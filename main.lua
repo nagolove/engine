@@ -5,6 +5,8 @@ local gridSize = 100
 local pixSize = 10
 local gr = love.graphics
 local codeLen = 32
+local cellsNum = 100
+local actions = {}
 
 local codeValues = {
     "left",
@@ -36,20 +38,36 @@ function initCell()
     return self
 end
 
-local actions = {}
-
 function actions.left(cell)
     pos = cell.pos
-    --if pos.x > 1 and 
+    --print("left", grid[pos.x - 1][pos.y])
+    if pos.x > 1 and not grid[pos.x - 1][pos.y] then
+        pos.x = pos.x - 1
+    end
 end
 
 function actions.right(cell)
+    pos = cell.pos
+    --print("right", grid[pos.x + 1][pos.y])
+    if pos.x < gridSize and not grid[pos.x + 1][pos.y] then
+        pos.x = pos.x + 1
+    end
 end
 
 function actions.up(cell)
+    pos = cell.pos
+    --print("up", grid[pos.x][pos.y - 1])
+    if pos.y > 1 and not grid[pos.x][pos.y - 1] then
+        pos.y = pos.y - 1
+    end
 end
 
 function actions.down(cell)
+    pos = cell.pos
+    --print("down", grid[pos.x][pos.y + 1])
+    if pos.y < gridSize and not grid[pos.x][pos.y + 1] then
+        pos.y = pos.y + 1
+    end
 end
 
 function actions.eat(cell)
@@ -69,19 +87,16 @@ function updateCell(cell)
         return cell
     else
         return nil
+    end
 end
 
 function drawCells()
-    for k, cell in pairs(cells) do
-        if cell.state then
-            if cell.state == "alive" then
-                gr.setColor(0, 0, 1)
-            else
-                gr.setColor(0, 0, 0)
+    -- grid[xvalue][yvalue] = true
+    for ik, i in pairs(grid) do
+        for jk, j in pairs(i) do
+            if j == true then
+                gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
             end
-        end
-        if cell.pos and cell.pos.x and cell.pos.y then
-            gr.rectangle("fill", (cell.pos.x - 1)* pixSize, (cell.pos.y - 1) * pixSize, pixSize, pixSize)
         end
     end
 end
@@ -101,15 +116,34 @@ love.draw = function()
     drawCells()
 end
 
+function getFalseGrid()
+    local res = {}
+    for i = 1, gridSize do
+        local t = {}
+        for j = 1, gridSize do
+            t[#t + 1] = false
+        end
+        res[#res + 1] = t
+    end
+    return res
+end
+
+function updateGrid()
+    for k, v in pairs(cells) do
+        grid[v.pos.x][v.pos.y] = true
+    end
+end
+
 love.update = function()
     local alive = {}
     for k, cell in pairs(cells) do
         table.insert(alive, updateCell(cell))
     end
     cells = alive
-end
 
-local cellsNum = 100
+    grid = getFalseGrid()
+    updateGrid()
+end
 
 function love.load()
     math.randomseed(love.timer.getTime())
@@ -117,5 +151,7 @@ function love.load()
         local c = initCell()
         table.insert(cells, c)
     end
-    inspect(cells)
+    --inspect(cells)
+    grid = getFalseGrid()
+    updateGrid()
 end
