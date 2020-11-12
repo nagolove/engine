@@ -7,8 +7,8 @@ local gr = love.graphics
 local codeLen = 32
 local cellsNum = 2000
 local actions = {}
-local initialEnergy = 1000
-
+local initialEnergy = {500, 1000}
+local statistic = {}
 local codeValues = {
     "left",
     "right",
@@ -34,7 +34,7 @@ function initCell()
     self.pos.y = math.random(1, gridSize)
     self.code = genCode()
     self.ip = 1
-    self.energy = initialEnergy
+    self.energy = math.random(initialEnergy[1], initialEnergy[2])
     return self
 end
 
@@ -103,7 +103,7 @@ function actions.check(cell)
             if newt.x >= 1 and newt.x < gridSize and
                 newt.y >= 1 and newt.y < gridSize then
                 local dish = grid[newt.x][newt.y]
-                if dish then
+                if dish.enery and dish.energy > 0 then
                     --print("died at", newt.x, newt.y)
                     dish.energy = 0
                     cell.energy = cell.energy + 10
@@ -157,9 +157,17 @@ function drawGrid()
     end
 end
 
+function drawStatistic()
+    if statistic.maxEnergy then
+        gr.setColor(1, 0, 0)
+        gr.print(string.format("max energy in cell %d", statistic.maxEnergy))
+    end
+end
+
 love.draw = function()
     drawGrid()
     drawCells()
+    drawStatistic()
 end
 
 function getFalseGrid()
@@ -180,6 +188,16 @@ function updateGrid()
     end
 end
 
+function gatherStatistic()
+    local maxEnergy = 0
+    for _, v in pairs(cells) do
+        if v.energy > maxEnergy then
+            maxEnergy = v.energy
+        end
+    end
+    return { maxEnergy = maxEnergy }
+end
+
 love.update = function()
     local alive = {}
     for k, cell in pairs(cells) do
@@ -189,6 +207,7 @@ love.update = function()
 
     grid = getFalseGrid()
     updateGrid()
+    statistic = gatherStatistic()
 end
 
 function love.load()
