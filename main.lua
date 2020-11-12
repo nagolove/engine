@@ -5,8 +5,9 @@ local gridSize = 100
 local pixSize = 10
 local gr = love.graphics
 local codeLen = 32
-local cellsNum = 100
+local cellsNum = 2000
 local actions = {}
+local initialEnergy = 1000
 
 local codeValues = {
     "left",
@@ -31,17 +32,21 @@ function initCell()
     self.pos = {}
     self.pos.x = math.random(1, gridSize)
     self.pos.y = math.random(1, gridSize)
-    self.state = "alive"
     self.code = genCode()
     self.ip = 1
-    self.energy = 100
+    self.energy = initialEnergy
     return self
+end
+
+function isAlive(x, y)
+    local t = grid[x][y]
+    return t.energy and t.energy > 0
 end
 
 function actions.left(cell)
     pos = cell.pos
     --print("left", grid[pos.x - 1][pos.y])
-    if pos.x > 1 and not grid[pos.x - 1][pos.y] then
+    if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
         pos.x = pos.x - 1
     end
 end
@@ -49,7 +54,7 @@ end
 function actions.right(cell)
     pos = cell.pos
     --print("right", grid[pos.x + 1][pos.y])
-    if pos.x < gridSize and not grid[pos.x + 1][pos.y] then
+    if pos.x < gridSize and not isAlive(pos.x + 1, pos.y) then
         pos.x = pos.x + 1
     end
 end
@@ -57,7 +62,7 @@ end
 function actions.up(cell)
     pos = cell.pos
     --print("up", grid[pos.x][pos.y - 1])
-    if pos.y > 1 and not grid[pos.x][pos.y - 1] then
+    if pos.y > 1 and not isAlive(pos.x, pos.y - 1) then
         pos.y = pos.y - 1
     end
 end
@@ -65,7 +70,7 @@ end
 function actions.down(cell)
     pos = cell.pos
     --print("down", grid[pos.x][pos.y + 1])
-    if pos.y < gridSize and not grid[pos.x][pos.y + 1] then
+    if pos.y < gridSize and not isAlive(pos.x, pos.y + 1) then
         pos.y = pos.y + 1
     end
 end
@@ -73,7 +78,36 @@ end
 function actions.eat(cell)
 end
 
+function copy(t)
+    local result = {}
+    for k, v in pairs(t) do
+        result[k] = v
+    end
+    return result
+end
+
+local around = {
+    {-1, -1}, {0, -1}, {1, -1},
+    {-1,  0},          {1, 0},
+    {-1,  1}, {0, -1}, {1, 1},
+}
 function actions.check(cell)
+    pos = cell.pos
+    for k, v in pairs(around) do
+        local ok, eaten = pcall(function()
+            local newt = copy(pos)
+            local displacement = around(math.random(1, #around))
+            newt.x = newt.x + displacement[1]
+            newt.y = newt.y + displacement[2]
+
+            local dish = grid[newt.x][newt.y]
+            if dish then
+                print("died at", newt.x, newt.y)
+                dish.energy = 0
+                cell.energy = cell.energy + 10
+            end
+        end)
+    end
 end
 
 function updateCell(cell)
@@ -94,8 +128,9 @@ function drawCells()
     -- grid[xvalue][yvalue] = true
     for ik, i in pairs(grid) do
         for jk, j in pairs(i) do
-            if j == true then
+            if j.energy then
                 gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
+                gr.print(string.format("%d", j.energy), (ik - 1)* pixSize, (jk - 1) * pixSize)
             end
         end
     end
@@ -121,7 +156,7 @@ function getFalseGrid()
     for i = 1, gridSize do
         local t = {}
         for j = 1, gridSize do
-            t[#t + 1] = false
+            t[#t + 1] = {}
         end
         res[#res + 1] = t
     end
@@ -130,7 +165,7 @@ end
 
 function updateGrid()
     for k, v in pairs(cells) do
-        grid[v.pos.x][v.pos.y] = true
+        grid[v.pos.x][v.pos.y] = v
     end
 end
 
