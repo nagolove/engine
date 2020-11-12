@@ -9,6 +9,7 @@ local cellsNum = 2000
 local actions = {}
 local initialEnergy = {500, 1000}
 local statistic = {}
+local iter = 0
 local codeValues = {
     "left",
     "right",
@@ -91,33 +92,24 @@ local around = {
     {-1,  0},          {1, 0},
     {-1,  1}, {0, -1}, {1, 1},
 }
+
 function actions.check(cell)
     pos = cell.pos
     for k, v in pairs(around) do
-        --local ok, eaten = pcall(function()
-            local newt = copy(pos)
-            local displacement = around[math.random(1, #around)]
-            newt.x = newt.x + displacement[1]
-            newt.y = newt.y + displacement[2]
+        local newt = copy(pos)
+        local displacement = around[math.random(1, #around)]
+        newt.x = newt.x + displacement[1]
+        newt.y = newt.y + displacement[2]
 
-            if newt.x >= 1 and newt.x < gridSize and
-                newt.y >= 1 and newt.y < gridSize then
-                local dish = grid[newt.x][newt.y]
-                if dish.enery and dish.energy > 0 then
-                    --print("died at", newt.x, newt.y)
-                    dish.energy = 0
-                    cell.energy = cell.energy + 10
-                    return
-                end
+        if newt.x >= 1 and newt.x < gridSize and
+            newt.y >= 1 and newt.y < gridSize then
+            local dish = grid[newt.x][newt.y]
+            if dish.enery and dish.energy > 0 then
+                dish.energy = 0
+                cell.energy = cell.energy + 10
+                return
             end
-            --return false
-        --end)
-        --if not ok then
-            --print(eaten)
-        --end
-        --if eaten then
-            --break
-        --end
+        end
     end
 end
 
@@ -136,12 +128,10 @@ function updateCell(cell)
 end
 
 function drawCells()
-    -- grid[xvalue][yvalue] = true
     for ik, i in pairs(grid) do
         for jk, j in pairs(i) do
             if j.energy then
                 gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
-                --gr.print(string.format("%d", j.energy), (ik - 1)* pixSize, (jk - 1) * pixSize)
             end
         end
     end
@@ -158,9 +148,21 @@ function drawGrid()
 end
 
 function drawStatistic()
+    local y0 = 0
     if statistic.maxEnergy then
         gr.setColor(1, 0, 0)
-        gr.print(string.format("max energy in cell %d", statistic.maxEnergy))
+        gr.print(string.format("max energy in cell %d", statistic.maxEnergy), 0, y0)
+        y0 = y0 + gr.getFont():getHeight()
+    end
+    if statistic.minEnergy then
+        gr.setColor(1, 0, 0)
+        gr.print(string.format("min energy in cell %d", statistic.minEnergy), 0, y0)
+        y0 = y0 + gr.getFont():getHeight()
+    end
+    if statistic.midEnergy then
+        gr.setColor(1, 0, 0)
+        gr.print(string.format("mid energy in cell %d", statistic.midEnergy), 0, y0)
+        y0 = y0 + gr.getFont():getHeight()
     end
 end
 
@@ -190,12 +192,25 @@ end
 
 function gatherStatistic()
     local maxEnergy = 0
+    local minEnergy = initialEnergy[2]
+    local sumEnergy = 0
     for _, v in pairs(cells) do
         if v.energy > maxEnergy then
             maxEnergy = v.energy
         end
+        if v.energy < minEnergy then
+            minEnergy = v.energy
+        end
+        sumEnergy = sumEnergy + v.energy
     end
-    return { maxEnergy = maxEnergy }
+    return { 
+        maxEnergy = maxEnergy,
+        minEnergy = minEnergy,
+        midEnergy = sumEnergy / #cells,
+    }
+end
+
+function emit()
 end
 
 love.update = function()
@@ -208,15 +223,21 @@ love.update = function()
     grid = getFalseGrid()
     updateGrid()
     statistic = gatherStatistic()
+    iter = iter + 1
+
+    --if (iter > initialEnergy[
 end
 
-function love.load()
-    math.randomseed(love.timer.getTime())
+function initialEmit()
     for i = 1, cellsNum do
         local c = initCell()
         table.insert(cells, c)
     end
-    --inspect(cells)
+end
+
+function love.load()
+    math.randomseed(love.timer.getTime())
+    initialEmit()
     grid = getFalseGrid()
     updateGrid()
 end
