@@ -141,7 +141,7 @@ function drawCells()
         for jk, j in pairs(i) do
             if j.energy then
                 gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
-                gr.print(string.format("%d", j.energy), (ik - 1)* pixSize, (jk - 1) * pixSize)
+                --gr.print(string.format("%d", j.energy), (ik - 1)* pixSize, (jk - 1) * pixSize)
             end
         end
     end
