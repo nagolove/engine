@@ -94,19 +94,30 @@ local around = {
 function actions.check(cell)
     pos = cell.pos
     for k, v in pairs(around) do
-        local ok, eaten = pcall(function()
+        --local ok, eaten = pcall(function()
             local newt = copy(pos)
-            local displacement = around(math.random(1, #around))
+            local displacement = around[math.random(1, #around)]
             newt.x = newt.x + displacement[1]
             newt.y = newt.y + displacement[2]
 
-            local dish = grid[newt.x][newt.y]
-            if dish then
-                print("died at", newt.x, newt.y)
-                dish.energy = 0
-                cell.energy = cell.energy + 10
+            if newt.x >= 1 and newt.x < gridSize and
+                newt.y >= 1 and newt.y < gridSize then
+                local dish = grid[newt.x][newt.y]
+                if dish then
+                    --print("died at", newt.x, newt.y)
+                    dish.energy = 0
+                    cell.energy = cell.energy + 10
+                    return
+                end
             end
-        end)
+            --return false
+        --end)
+        --if not ok then
+            --print(eaten)
+        --end
+        --if eaten then
+            --break
+        --end
     end
 end
 
