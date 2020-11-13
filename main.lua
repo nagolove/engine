@@ -19,6 +19,7 @@ local codeValues = {
     "check",
 }
 local mouseCapture
+local viewState = "sim"
 
 function genCode()
     local code = {}
@@ -167,14 +168,27 @@ function drawStatistic()
     end
 end
 
+function drawGraphs()
+    gr.setColor(0, 1, 0)
+    local w, h = gr.getDimensions()
+    gr.setLineWidth(3)
+    gr.line(0, h, 0, 0)
+    gr.line(0, h, w, h)
+    gr.setLineWidth(1)
+end
+
 love.draw = function()
     if mouseCapture then
         gr.translate(-mouseCapture.dx, -mouseCapture.dy)
     end
 
-    drawGrid()
-    drawCells()
-    drawStatistic()
+    if viewState == "sim" then
+        drawGrid()
+        drawCells()
+        drawStatistic()
+    elseif viewState == "graph" then
+        drawGraphs()
+    end
 end
 
 function getFalseGrid()
@@ -263,4 +277,16 @@ function love.load()
     initialEmit()
     grid = getFalseGrid()
     updateGrid()
+end
+
+function setViewState(stateName)
+    viewState = stateName
+end
+
+love.keypressed = function(_, key)
+    if key == "1" then
+        setViewState("sim")
+    elseif key == "2" then
+        setViewState("graph")
+    end
 end
