@@ -18,6 +18,7 @@ local codeValues = {
     "eat",
     "check",
 }
+local mouseCapture
 
 function genCode()
     local code = {}
@@ -167,6 +168,10 @@ function drawStatistic()
 end
 
 love.draw = function()
+    if mouseCapture then
+        gr.translate(-mouseCapture.dx, -mouseCapture.dy)
+    end
+
     drawGrid()
     drawCells()
     drawStatistic()
@@ -213,6 +218,10 @@ end
 function emit()
 end
 
+function dist(x1, y1, x2, y2)
+    return math.sqrt((x1 - x2)^2 + (y1 - y2)^2)
+end
+
 love.update = function()
     local alive = {}
     for k, cell in pairs(cells) do
@@ -225,7 +234,21 @@ love.update = function()
     statistic = gatherStatistic()
     iter = iter + 1
 
-    --if (iter > initialEnergy[
+    if love.mouse.isDown(1) then
+        if not mouseCapture then
+            mouseCapture = { 
+                x = love.mouse.getX(),
+                y = love.mouse.getY(),
+                dx = 0,
+                dy = 0,
+            }
+        else
+            mouseCapture.dx = mouseCapture.x - love.mouse.getX()
+            mouseCapture.dy = mouseCapture.y - love.mouse.getY()
+        end
+    else
+        mouseCapture = nil
+    end
 end
 
 function initialEmit()
