@@ -21,6 +21,9 @@ local codeValues = {
 local mouseCapture
 local viewState = "sim"
 local graphCanvas = gr.newCanvas(gr.getWidth() * 4, gr.getHeight())
+local MAX_ENERGY_COLOR = {1, 0.5, 0.7, 1}
+local MID_ENERGY_COLOR = {0.8, 0.3, 0.7, 1}
+local MIN_ENERGY_COLOR = {0.6, 0.1, 1, 1}
 
 function genCode()
     local code = {}
@@ -169,13 +172,35 @@ function drawStatistic()
     end
 end
 
-function drawGraphs()
+function drawAxises()
     gr.setColor(0, 1, 0)
     local w, h = gr.getDimensions()
     gr.setLineWidth(3)
     gr.line(0, h, 0, 0)
     gr.line(0, h, w, h)
     gr.setLineWidth(1)
+end
+
+function drawLegends()
+    local y0 = 0
+
+    gr.setColor(MAX_ENERGY_COLOR)
+    gr.print("max energy", 0, y0)
+    y0 = y0 + gr.getFont():getHeight()
+
+    gr.setColor(MID_ENERGY_COLOR)
+    gr.print("mid energy", 0, y0)
+    y0 = y0 + gr.getFont():getHeight()
+
+    gr.setColor(MIN_ENERGY_COLOR)
+    gr.print("min energy", 0, y0)
+    y0 = y0 + gr.getFont():getHeight()
+
+end
+
+function drawGraphs()
+    drawAxises()
+    drawLegends()
     gr.draw(graphCanvas)
 end
 
@@ -257,10 +282,6 @@ function checkMouse()
 end
 
 local lastGraphicPoint
-
-local MAX_ENERGY_COLOR = {1, 0.5, 0.7, 1}
-local MID_ENERGY_COLOR = {0.8, 0.3, 0.7, 1}
-local MIN_ENERGY_COLOR = {0.6, 0.1, 1, 1}
 
 function updateGraphic()
 
