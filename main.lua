@@ -20,6 +20,7 @@ local codeValues = {
 }
 local mouseCapture
 local viewState = "sim"
+local graphCanvas = gr.newCanvas(gr.getWidth() * 4, gr.getHeight())
 
 function genCode()
     local code = {}
@@ -175,6 +176,7 @@ function drawGraphs()
     gr.line(0, h, 0, 0)
     gr.line(0, h, w, h)
     gr.setLineWidth(1)
+    gr.draw(graphCanvas)
 end
 
 love.draw = function()
@@ -236,18 +238,7 @@ function dist(x1, y1, x2, y2)
     return math.sqrt((x1 - x2)^2 + (y1 - y2)^2)
 end
 
-love.update = function()
-    local alive = {}
-    for k, cell in pairs(cells) do
-        table.insert(alive, updateCell(cell))
-    end
-    cells = alive
-
-    grid = getFalseGrid()
-    updateGrid()
-    statistic = gatherStatistic()
-    iter = iter + 1
-
+function checkMouse()
     if love.mouse.isDown(1) then
         if not mouseCapture then
             mouseCapture = { 
@@ -263,6 +254,63 @@ love.update = function()
     else
         mouseCapture = nil
     end
+end
+
+local lastGraphicPoint
+
+local MAX_ENERGY_COLOR = {1, 0.5, 0.7, 1}
+local MID_ENERGY_COLOR = {0.8, 0.3, 0.7, 1}
+local MIN_ENERGY_COLOR = {0.6, 0.1, 1, 1}
+
+function updateGraphic()
+
+    --print("statistic", inspect(statistic))
+    --os.exit()
+    
+    if not lastGraphicPoint then
+        lastGraphicPoint = {
+            max = statistic.maxEnergy,
+            mid = statistic.midEnergy,
+            min = statistic.minEnergy,
+        }
+    end
+
+    gr.setCanvas(graphCanvas)
+    local w, h = graphCanvas:getDimensions()
+
+    gr.setColor(MAX_ENERGY_COLOR)
+    gr.line(iter - 1, h - lastGraphicPoint.max, iter, h - statistic.maxEnergy)
+
+    gr.setColor(MID_ENERGY_COLOR)
+    gr.line(iter - 1, h - lastGraphicPoint.mid, iter, h - statistic.midEnergy)
+
+    gr.setColor(MIN_ENERGY_COLOR)
+    gr.line(iter - 1, h - lastGraphicPoint.min, iter, h - statistic.minEnergy)
+
+    gr.setCanvas()
+
+    lastGraphicPoint = {
+        max = statistic.maxEnergy,
+        mid = statistic.midEnergy,
+        min = statistic.minEnergy,
+    }
+end
+
+love.update = function()
+    local alive = {}
+    for k, cell in pairs(cells) do
+        table.insert(alive, updateCell(cell))
+    end
+    cells = alive
+
+    grid = getFalseGrid()
+    updateGrid()
+    statistic = gatherStatistic()
+    iter = iter + 1
+
+    updateGraphic()
+
+    checkMouse()
 end
 
 function initialEmit()
