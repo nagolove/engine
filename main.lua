@@ -257,7 +257,24 @@ function gatherStatistic()
     }
 end
 
+local secondEmit = false
+
 function emit()
+    if #cells < cellsNum / 3 then
+        if not secondEmit then
+            secondEmit = true
+            for i = 1, cellsNum do
+                local x = math.random(1, gridSize)
+                local y = math.random(1, gridSize)
+                local t = grid[x][y]
+                if not t.energy then
+                    print("put cell at", x, y)
+                    grid[x][y] = initCell()
+                end
+            end
+            print("pasted")
+        end
+    end
 end
 
 function checkMouse()
