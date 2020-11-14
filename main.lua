@@ -24,6 +24,7 @@ local graphCanvas = gr.newCanvas(gr.getWidth() * 4, gr.getHeight())
 local MAX_ENERGY_COLOR = {1, 0.5, 0.7, 1}
 local MID_ENERGY_COLOR = {0.8, 0.3, 0.7, 1}
 local MIN_ENERGY_COLOR = {0.6, 0.1, 1, 1}
+local lastGraphicPoint
 
 function genCode()
     local code = {}
@@ -259,10 +260,6 @@ end
 function emit()
 end
 
-function dist(x1, y1, x2, y2)
-    return math.sqrt((x1 - x2)^2 + (y1 - y2)^2)
-end
-
 function checkMouse()
     if love.mouse.isDown(1) then
         if not mouseCapture then
@@ -281,13 +278,8 @@ function checkMouse()
     end
 end
 
-local lastGraphicPoint
-
 function updateGraphic()
 
-    --print("statistic", inspect(statistic))
-    --os.exit()
-    
     if not lastGraphicPoint then
         lastGraphicPoint = {
             max = statistic.maxEnergy,
@@ -327,6 +319,7 @@ love.update = function()
     grid = getFalseGrid()
     updateGrid()
     statistic = gatherStatistic()
+    emit()
     iter = iter + 1
 
     updateGraphic()
