@@ -1,3 +1,4 @@
+require "external"
 local grid
 local gridSize
 local actions = {}
@@ -48,14 +49,6 @@ end
 function actions.pushmem_pos(cell)
     table.insert(cell.mem, cell.pos.x)
     table.insert(cell.mem, cell.pos.y)
-end
-
-function copy(t)
-    local result = {}
-    for k, v in pairs(t) do
-        result[k] = v
-    end
-    return result
 end
 
 local around = {
