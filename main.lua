@@ -5,7 +5,7 @@ local gridSize = 100
 local pixSize = 10
 local gr = love.graphics
 local codeLen = 32
-local cellsNum = 2000
+local cellsNum = 200
 local actions = {}
 local initialEnergy = {500, 1000}
 local statistic = {}
@@ -72,7 +72,11 @@ end
 function drawCells()
     for ik, i in pairs(grid) do
         for jk, j in pairs(i) do
-            if j.energy then
+            if j.food then
+                gr.setColor(0, 1, 0)
+                gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
+            elseif j.energy then
+                gr.setColor(0.5, 0.5, 0.5)
                 gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
             end
         end
