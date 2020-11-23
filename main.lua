@@ -38,6 +38,9 @@ function genCode()
     return code
 end
 
+-- обнаружена проблема между соотношением положения клетки в initCell()
+-- и emit(). Нужно выработать интерфейс создания клетки который не будет
+-- нарушать структуры grid
 function initCell()
     local self = {}
     self.pos = {}
@@ -196,12 +199,26 @@ end
 
 local secondEmit = false
 
-function emitCellInRandomPoint()
+function initFood()
+    --[[
+       [local self = {}
+       [self.pos = {}
+       [self.pos.x = math.random(1, gridSize)
+       [self.pos.y = math.random(1, gridSize)
+       [self.code = genCode()
+       [self.ip = 1
+       [self.energy = math.random(initialEnergy[1], initialEnergy[2])
+       [self.mem = {}
+       [return self
+       ]]
+end
+
+function emitFoodInRandomPoint()
     local x = math.random(1, gridSize)
     local y = math.random(1, gridSize)
     local t = grid[x][y]
     if not t.energy then
-        grid[x][y] = initCell()
+        grid[x][y] = initFood()
     end
 end
 
