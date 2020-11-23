@@ -25,6 +25,7 @@ local MID_ENERGY_COLOR = {0.8, 0.3, 0.7, 1}
 local MIN_ENERGY_COLOR = {0.6, 0.1, 1, 1}
 local lastGraphicPoint
 local removed = {}
+local experimentCoro
 
 function genCode()
     local code = {}
@@ -357,40 +358,65 @@ function updateGraphic()
     }
 end
 
-function saveRemovedLog()
-    local file = io.open("removed-cell.txt", "w")
-    for _, cell in pairs(removed) do
-        file.write(string.format("pos %d, %d", cell.pos.x, cell.pos.y))
-        file.write(string.format("energy %d", cell.energy))
-        file.write(string.format("ip %d", cell.ip))
-        file.write(string.format("code:"))
+function saveDeadCellsLog(cells)
+    local file = io.open("removed-cells.txt", "w")
+    for _, cell in pairs(cells) do
+        file:write(string.format("pos %d, %d\n", cell.pos.x, cell.pos.y))
+        file:write(string.format("energy %d\n", cell.energy))
+        file:write(string.format("ip %d\n", cell.ip))
+        file:write(string.format("code:\n"))
         for _, codeline in pairs(cell.code) do
-            file.write(string.format("  %s", codeline))
+            file:write(string.format("  %s\n", codeline))
         end
+        file:write("\n")
     end
-    file.close()
+    file:close()
+end
+
+function experiment()
+    math.randomseed(love.timer.getTime())
+    initialEmit()
+    grid = getFalseGrid()
+    updateGrid()
+
+    coroutine.yield()
+
+    while #cells > 0 do
+        local alive = {}
+        for k, cell in pairs(cells) do
+            local isalive, c = updateCell(cell)
+            if isalive then
+                table.insert(alive, c)
+            else
+                table.insert(removed, c)
+            end
+        end
+        cells = alive
+
+        grid = getFalseGrid()
+        emit()
+        updateGrid()
+        statistic = gatherStatistic()
+        iter = iter + 1
+        coroutine.yield()
+    end
+
+    print("#removed", #removed)
+    saveDeadCellsLog(removed)
+    print("after")
+end
+
+function drawFinishedExperiment()
+    local y0 = 0
+    gr.print(string.format("Finished"), 0, y0, 100, "center")
 end
 
 love.update = function()
-    local alive = {}
-    for k, cell in pairs(cells) do
-        local isalive, c = updateCell(cell)
-        if isalive then
-            table.insert(alive, c)
-        else
-            table.insert(removed, c)
-        end
-    end
-    cells = alive
-
-    grid = getFalseGrid()
-    emit()
-    updateGrid()
-    statistic = gatherStatistic()
-    iter = iter + 1
-
+    local err = coroutine.resume(experimentCoro)
+    --if err then
+        --drawFinishedExperiment()
+    --end
     updateGraphic()
-
     checkMouse()
 end
 
@@ -402,10 +428,13 @@ function initialEmit()
 end
 
 function love.load()
-    math.randomseed(love.timer.getTime())
-    initialEmit()
-    grid = getFalseGrid()
-    updateGrid()
+    experimentCoro = coroutine.create(function()
+        local ok, errmsg = pcall(experiment)
+        if not ok then
+            print(string.format("Error %s", errmsg))
+        end
+    end)
+    coroutine.resume(experimentCoro)
 end
 
 function setViewState(stateName)
