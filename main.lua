@@ -30,6 +30,7 @@ local removed = {}
 local experimentCoro
 local actionsModule = require "cell-actions"
 local actions
+local meal = {}
 
 function genCode()
     local code = {}
@@ -175,7 +176,10 @@ function getFalseGrid()
 end
 
 function updateGrid()
-    for k, v in pairs(cells) do
+    for _, v in pairs(cells) do
+        grid[v.pos.x][v.pos.y] = v
+    end
+    for _, v in pairs(meal) do
         grid[v.pos.x][v.pos.y] = v
     end
 end
@@ -205,28 +209,24 @@ function gatherStatistic()
     }
 end
 
-local secondEmit = false
-
+-- записывает в решетку grid значение еды
 function initFood()
-    --[[
-       [local self = {}
-       [self.pos = {}
-       [self.pos.x = math.random(1, gridSize)
-       [self.pos.y = math.random(1, gridSize)
-       [self.code = genCode()
-       [self.ip = 1
-       [self.energy = math.random(initialEnergy[1], initialEnergy[2])
-       [self.mem = {}
-       [return self
-       ]]
+    local self = {}
+    self.food = true
+    table.insert(meal, self)
+    return self
 end
 
+-- возвращает true если получилось создать еду на случайной позиции
 function emitFoodInRandomPoint()
     local x = math.random(1, gridSize)
     local y = math.random(1, gridSize)
     local t = grid[x][y]
     if not t.energy then
-        grid[x][y] = initFood()
+        local food = initFood()
+        food.pos = {}
+        food.pos.x, food.pos.y = x, y
+        grid[x][y] = food
     end
 end
 
@@ -247,9 +247,9 @@ function emit()
         --end
     --end
     
-    --for i = 1, 100 do
-        --emitCellInRandomPoint()
-    --end
+    for i = 1, 10 do
+        emitFoodInRandomPoint()
+    end
 end
 
 function checkMouse()
@@ -340,9 +340,15 @@ function experiment()
         end
         cells = alive
 
+        -- сброс решетки после уничтожения некоторых клеток
         grid = getFalseGrid()
+
+        -- создать сколько-то еды
         emit()
+
+        -- обновление решетки по списку живых клеток
         updateGrid()
+
         statistic = gatherStatistic()
         iter = iter + 1
         coroutine.yield()

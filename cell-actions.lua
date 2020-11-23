@@ -74,7 +74,7 @@ function actions.checkAndEat(cell)
         newt.y >= 1 and newt.y < gridSize then
         local dish = grid[newt.x][newt.y]
         -- проверка на нахождение еды в определенной клетке и поедание
-        if dish.enery and dish.energy > 0 then
+        if dish.food then
             dish.energy = 0
             cell.energy = cell.energy + ENERGY
             return
