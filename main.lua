@@ -15,8 +15,7 @@ local codeValues = {
     "right",
     "up",
     "down",
-    "eat",
-    "check",
+    "checkAndEat",
 }
 local mouseCapture
 local viewState = "sim"
@@ -25,6 +24,7 @@ local MAX_ENERGY_COLOR = {1, 0.5, 0.7, 1}
 local MID_ENERGY_COLOR = {0.8, 0.3, 0.7, 1}
 local MIN_ENERGY_COLOR = {0.6, 0.1, 1, 1}
 local lastGraphicPoint
+local removed = {}
 
 function genCode()
     local code = {}
@@ -110,7 +110,7 @@ local around = {
 }
 
 -- функция питания
-function actions.check(cell)
+function actions.checkAndEat(cell)
     pos = cell.pos
     for k, v in pairs(around) do
         local newt = copy(pos)
@@ -130,6 +130,8 @@ function actions.check(cell)
     end
 end
 
+-- возвращает [boolean], [cell table]
+-- isalive, cell
 function updateCell(cell)
     if cell.ip > codeLen then
         cell.ip = 1
@@ -138,9 +140,9 @@ function updateCell(cell)
         actions[cell.code[cell.ip]](cell)
         cell.ip = cell.ip + 1
         cell.energy = cell.energy - 1
-        return cell
+        return true, cell
     else
-        return nil
+        return false, cell
     end
 end
 
@@ -300,9 +302,10 @@ function emit()
             --print("pasted")
         --end
     --end
-    for i = 1, 100 do
-        emitCellInRandomPoint()
-    end
+    
+    --for i = 1, 100 do
+        --emitCellInRandomPoint()
+    --end
 end
 
 function checkMouse()
@@ -354,10 +357,29 @@ function updateGraphic()
     }
 end
 
+function saveRemovedLog()
+    local file = io.open("removed-cell.txt", "w")
+    for _, cell in pairs(removed) do
+        file.write(string.format("pos %d, %d", cell.pos.x, cell.pos.y))
+        file.write(string.format("energy %d", cell.energy))
+        file.write(string.format("ip %d", cell.ip))
+        file.write(string.format("code:"))
+        for _, codeline in pairs(cell.code) do
+            file.write(string.format("  %s", codeline))
+        end
+    end
+    file.close()
+end
+
 love.update = function()
     local alive = {}
     for k, cell in pairs(cells) do
-        table.insert(alive, updateCell(cell))
+        local isalive, c = updateCell(cell)
+        if isalive then
+            table.insert(alive, c)
+        else
+            table.insert(removed, c)
+        end
     end
     cells = alive
 
