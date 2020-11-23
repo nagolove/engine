@@ -1,5 +1,7 @@
 local inspect = require "inspect"
+-- массив всех клеток
 local cells = {}
+-- массив массивов [x][y] с клетками по индексам
 local grid = {}
 local gridSize = 100
 local pixSize = 10
@@ -158,6 +160,8 @@ love.draw = function()
     end
 end
 
+-- заполнить решетку пустыми значениями. В качестве значений используются
+-- пустые таблицы {}
 function getFalseGrid()
     local res = {}
     for i = 1, gridSize do
