@@ -62,31 +62,24 @@ local around = {
 -- или проверять только среди клеток записанных в память на проверку?
 function actions.checkAndEat(cell)
     pos = cell.pos
-    -- проход по всем возможным соседним клеткам
-    for k, v in pairs(around) do -- (1)
-        local newt = copy(pos)
-        -- выбор случайной клетки из всех возможных окружающих
-        local displacement = around[math.random(1, #around)]
-        newt.x = newt.x + displacement[1]
-        newt.y = newt.y + displacement[2]
+    local newt = copy(pos)
+    -- выбор случайной клетки из всех возможных окружающих
+    local displacement = around[math.random(1, #around)]
+    newt.x = newt.x + displacement[1]
+    newt.y = newt.y + displacement[2]
 
-        -- проверка на выход за границы поля
-        if newt.x >= 1 and newt.x < gridSize and
-            newt.y >= 1 and newt.y < gridSize then
-            local dish = grid[newt.x][newt.y]
-            -- проверка на нахождение еды в определенной клетке и поедание
-            if dish.enery and dish.energy > 0 then
-                dish.energy = 0
-                cell.energy = cell.energy + 10
-                return
-            end
+    -- проверка на выход за границы поля
+    if newt.x >= 1 and newt.x < gridSize and
+        newt.y >= 1 and newt.y < gridSize then
+        local dish = grid[newt.x][newt.y]
+        -- проверка на нахождение еды в определенной клетке и поедание
+        if dish.enery and dish.energy > 0 then
+            dish.energy = 0
+            cell.energy = cell.energy + 10
+            return
         end
     end
 
-    ---XXX
-    -- В данной функции находится несоответствие целового алгоритма и кода.
-    -- Переменные цикла (1) не используются и происходит многократная выборка
-    -- клетки для поедания. К чему такая многократная выборка приводит?
 end
 
 function init(externalGrid, externalGridSize)
