@@ -100,6 +100,7 @@ local around = {
     {-1,  1}, {0, -1}, {1, 1},
 }
 
+-- функция питания
 function actions.check(cell)
     pos = cell.pos
     for k, v in pairs(around) do
@@ -250,6 +251,11 @@ function gatherStatistic()
         end
         sumEnergy = sumEnergy + v.energy
     end
+    local num = #cells > 0 and #cells or 1
+    if sumEnergy == 0 then
+        sumEnergy = 1
+    end
+    print("num, midEnergy", num, sumEnergy)
     return { 
         maxEnergy = maxEnergy,
         minEnergy = minEnergy,
@@ -259,21 +265,34 @@ end
 
 local secondEmit = false
 
+function emitCellInRandomPoint()
+    local x = math.random(1, gridSize)
+    local y = math.random(1, gridSize)
+    local t = grid[x][y]
+    if not t.energy then
+        --print("put cell at", x, y)
+        grid[x][y] = initCell()
+    end
+end
+
 function emit()
-    if #cells < cellsNum / 3 then
-        if not secondEmit then
-            secondEmit = true
-            for i = 1, cellsNum do
-                local x = math.random(1, gridSize)
-                local y = math.random(1, gridSize)
-                local t = grid[x][y]
-                if not t.energy then
-                    print("put cell at", x, y)
-                    grid[x][y] = initCell()
-                end
-            end
-            print("pasted")
-        end
+    --if #cells < cellsNum / 3 then
+        --if not secondEmit then
+            --secondEmit = true
+            --for i = 1, cellsNum do
+                --local x = math.random(1, gridSize)
+                --local y = math.random(1, gridSize)
+                --local t = grid[x][y]
+                --if not t.energy then
+                    --print("put cell at", x, y)
+                    --grid[x][y] = initCell()
+                --end
+            --end
+            --print("pasted")
+        --end
+    --end
+    for i = 1, 100 do
+        emitCellInRandomPoint()
     end
 end
 
@@ -334,9 +353,9 @@ love.update = function()
     cells = alive
 
     grid = getFalseGrid()
+    emit()
     updateGrid()
     statistic = gatherStatistic()
-    emit()
     iter = iter + 1
 
     updateGraphic()
