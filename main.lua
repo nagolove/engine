@@ -43,6 +43,7 @@ function initCell()
     self.code = genCode()
     self.ip = 1
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
+    self.mem = {}
     return self
 end
 
@@ -83,7 +84,15 @@ function actions.down(cell)
     end
 end
 
-function actions.eat(cell)
+-- непонятно куда выкладывать значения из стека.
+-- либо другие функции должны напрямую работать со стеком или
+-- должны быть регистры в виде переменных внутри клетки.
+function actions.popmem_pos(cell)
+end
+
+function actions.pushmem_pos(cell)
+    table.insert(cell.mem, cell.pos.x)
+    table.insert(cell.mem, cell.pos.y)
 end
 
 function copy(t)
