@@ -2,6 +2,7 @@ require "external"
 local grid
 local gridSize
 local actions = {}
+local ENERGY = 10
 
 function isAlive(x, y)
     local t = grid[x][y]
@@ -75,11 +76,10 @@ function actions.checkAndEat(cell)
         -- проверка на нахождение еды в определенной клетке и поедание
         if dish.enery and dish.energy > 0 then
             dish.energy = 0
-            cell.energy = cell.energy + 10
+            cell.energy = cell.energy + ENERGY
             return
         end
     end
-
 end
 
 function init(externalGrid, externalGridSize)
