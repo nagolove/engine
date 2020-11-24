@@ -135,6 +135,10 @@ function actions.eat8move(cell)
     end
 end
 
+-- если достаточно энергии(>0), то клетка
+function actions.cross(cell)
+end
+
 function init(externalGrid, externalGridSize)
     grid = externalGrid
     gridSize = externalGridSize
