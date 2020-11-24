@@ -153,7 +153,13 @@ end
 
 -- return code, not cell
 function mixCode(cell1, cell2)
-    local first = math.random() > 0.5 and cell1 or cell2
+    local rnd = math.random()
+    local first, second
+    if rnd > 0.5 then
+        first, second = cell1, cell2 
+    else
+        first, second = cell2, cell1
+    end
     local newcode = {}
     local i = 1
     local pushed
@@ -161,11 +167,11 @@ function mixCode(cell1, cell2)
     repeat
         pushed = false
         if i <= #cell1.code then
-            table.insert(newcode, cell1.code[i])
+            table.insert(newcode, first.code[i])
             pushed = true
         end
         if i <= #cell2.code then
-            table.insert(newcode, cell2.code[i])
+            table.insert(newcode, second.code[i])
             pushed = true
         end
         i = i + 1
@@ -173,6 +179,20 @@ function mixCode(cell1, cell2)
 
     return newcode
 end
+
+function test_mixCode()
+    math.randomseed(love.timer.getTime())
+    print("mixCode", inspect(mixCode({code={"left", "right", "up"}},
+    {code={"eat", "eat", "eat"}})))
+
+    print("mixCode", inspect(mixCode({code={"left", "right", "up"}},
+    {code={"eat", "eat"}})))
+
+    print("mixCode", inspect(mixCode({code={"left", "right", "up"}},
+    {code={"eat", "eat", "down", "down", "down"}})))
+end
+
+--test_mixCode()
 
 -- если достаточно энергии(>0), то клетка
 function actions.cross(cell)
