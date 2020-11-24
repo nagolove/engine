@@ -101,6 +101,9 @@ end
 
 function drawStatistic()
     local y0 = 0
+    gr.setColor(1, 0, 0)
+    gr.print(string.format("iteration %d", iter), 0, y0)
+    y0 = y0 + gr.getFont():getHeight()
     if statistic.maxEnergy then
         gr.setColor(1, 0, 0)
         gr.print(string.format("max energy in cell %d", statistic.maxEnergy), 0, y0)
