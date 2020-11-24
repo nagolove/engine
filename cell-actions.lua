@@ -151,8 +151,36 @@ function listNeighbours(x, y, cb)
     end
 end
 
+-- return code, not cell
+function mixCode(cell1, cell2)
+    local first = math.random() > 0.5 and cell1 or cell2
+    local newcode = {}
+    local i = 1
+    local pushed
+
+    repeat
+        pushed = false
+        if i <= #cell1.code then
+            table.insert(newcode, cell1.code[i])
+            pushed = true
+        end
+        if i <= #cell2.code then
+            table.insert(newcode, cell2.code[i])
+            pushed = true
+        end
+        i = i + 1
+    until not pushed
+
+    return newcode
+end
+
 -- если достаточно энергии(>0), то клетка
 function actions.cross(cell)
+    cell.wantdivide = true
+    listNeighbours(cell.pos.x, cell.pos.y, function(x, y, value)
+        if value.wantdivide then
+        end
+    end)
 end
 
 function init(externalGrid, externalGridSize)
