@@ -215,20 +215,17 @@ function gatherStatistic()
     }
 end
 
--- записывает в решетку grid значение еды
-function initFood()
-end
-
 function emitFoodInRandomPoint()
     local x = math.random(1, gridSize)
     local y = math.random(1, gridSize)
     local t = grid[x][y]
+    -- если клетка пустая
     if not t.energy then
         local self = {}
         self.food = true
-        table.insert(meal, self)
         self.pos = {}
         self.pos.x, self.pos.y = x, y
+        table.insert(meal, self)
         grid[x][y] = self
     end
 end
@@ -260,14 +257,11 @@ end
 function updateGraphic()
 
     if not lastGraphicPoint then
-        --print("lastGraphicPoint")
         lastGraphicPoint = {
             max = statistic.maxEnergy,
             mid = statistic.midEnergy,
             min = statistic.minEnergy,
         }
-        --print("lastGraphicPoint", inspect(lastGraphicPoint))
-        --print("statistic", inspect(statistic))
     end
 
     gr.setCanvas(graphCanvas)
@@ -330,14 +324,14 @@ function experiment()
 
     while #cells > 0 do
         if mode == "bystep" and stepPressed == true or mode == "continuos" then
+            -- создать сколько-то еды
+            emit()
+
             -- проход по ячейкам и вызов их программ
             cells = updateCells()
 
             -- сброс решетки после уничтожения некоторых клеток
             grid = getFalseGrid()
-
-            -- создать сколько-то еды
-            emit()
 
             -- обновление решетки по списку живых клеток и списку еды
             updateGrid()
