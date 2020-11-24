@@ -179,7 +179,6 @@ function initialEmit()
 end
 
 function experiment()
-    math.randomseed(love.timer.getTime())
     initialEmit()
     grid = getFalseGrid()
     updateGrid()
@@ -188,7 +187,8 @@ function experiment()
     coroutine.yield()
 
     while #cells > 0 do
-        if mode == "bystep" and stepPressed == true or mode == "continuos" then
+        --if mode == "bystep" and stepPressed == true or mode == "continuos" then
+        do
             -- создать сколько-то еды
             emit()
 
@@ -204,9 +204,9 @@ function experiment()
             statistic = gatherStatistic()
             iter = iter + 1
 
-            if stepPressed == true then
-                stepPressed = false
-            end
+            --if stepPressed == true then
+                --stepPressed = false
+            --end
         end
         coroutine.yield()
     end
@@ -215,7 +215,10 @@ function experiment()
 end
 
 function step()
-    local err = coroutine.resume(experimentCoro)
+    local err, errmsg = coroutine.resume(experimentCoro)
+    if not err then
+        print(string.format("coroutine error %s", errmsg))
+    end
 end
 
 function create()
@@ -232,7 +235,9 @@ end
 
 return {
     create = create,
-    grid = grid,
+    getGrid = function()
+        return grid
+    end,
     step = step,
     statistic = statistic,
     getIter = function()

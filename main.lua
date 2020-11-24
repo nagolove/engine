@@ -14,8 +14,9 @@ local sim = require "simulator"
 local pixSize = 10
 
 function drawCells()
-    for ik, i in pairs(sim.grid) do
+    for ik, i in pairs(sim.getGrid()) do
         for jk, j in pairs(i) do
+            --print("j", inspect(j))
             if j.food then
                 gr.setColor(0, 1, 0)
                 gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
@@ -194,7 +195,9 @@ end
 love.update = function()
     stepPressed = love.keyboard.isDown("s")
 
-    sim.step()
+    --if mode == "bystep" and stepPressed == true or mode == "continuos" then
+        sim.step()
+    --end
     --if err then
         --drawFinishedExperiment()
     --end
@@ -203,6 +206,7 @@ love.update = function()
 end
 
 function love.load()
+    math.randomseed(love.timer.getTime())
     sim.create()
 end
 
