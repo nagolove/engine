@@ -213,12 +213,21 @@ end
 
 -- если достаточно энергии(>0), то клетка
 function actions.cross(cell)
-    cell.wantdivide = true
-    listNeighbours(cell.pos.x, cell.pos.y, function(x, y, value)
-        if value.wantdivide then
-
-        end
-    end)
+    if cell.energy > 0 then
+        cell.wantdivide = true
+        listNeighbours(cell.pos.x, cell.pos.y, function(x, y, value)
+            if value.wantdivide then
+                local found, pos = findFreePos(cell.pos.x, cell.pos.y)
+                if found then
+                    local t = {
+                        pos = {x = pos.x, y = pos.y},
+                        code = mixCode(cell, grid[x][y])
+                    }
+                    initCell(t)
+                end
+            end
+        end)
+    end
 end
 
 function init(externalGrid, externalGridSize, functions)
