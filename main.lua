@@ -217,22 +217,19 @@ end
 
 -- записывает в решетку grid значение еды
 function initFood()
-    local self = {}
-    self.food = true
-    table.insert(meal, self)
-    return self
 end
 
--- возвращает true если получилось создать еду на случайной позиции
 function emitFoodInRandomPoint()
     local x = math.random(1, gridSize)
     local y = math.random(1, gridSize)
     local t = grid[x][y]
     if not t.energy then
-        local food = initFood()
-        food.pos = {}
-        food.pos.x, food.pos.y = x, y
-        grid[x][y] = food
+        local self = {}
+        self.food = true
+        table.insert(meal, self)
+        self.pos = {}
+        self.pos.x, self.pos.y = x, y
+        grid[x][y] = self
     end
 end
 
