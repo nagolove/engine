@@ -141,6 +141,8 @@ end
 -- решетки по текущим координатам.
 -- Если коллбэк функция возвращает false, то дальнейшие вызовы прерываются, 
 -- управление возвращается.
+-- FIXME поиск должен рандоминизировать начальное положение что-бы 
+-- исключить влияние порядка обхода клеток.
 function listNeighbours(x, y, cb)
     for k, displacement in pairs(around) do
         local nx, ny = x + displacement[1], y + displacement[2]
@@ -192,14 +194,29 @@ function test_mixCode()
     print("mixCode", inspect(mixCode({code={"left", "right", "up"}},
     {code={"eat", "eat", "down", "down", "down"}})))
 end
-
 --test_mixCode()
+
+-- возвращает true если найдена пустая клетка, {x, y} координаты.
+-- иначе false
+function findFreePos(x, y)
+    local found
+    local pos = {}
+    listNeighbours(x, y, function(xp, yp, value)
+        if (not value.energy) and (not value.dish) then
+            pos.x = xp
+            pos.y = yp
+            return true, pos
+        end
+    end)
+    return false
+end
 
 -- если достаточно энергии(>0), то клетка
 function actions.cross(cell)
     cell.wantdivide = true
     listNeighbours(cell.pos.x, cell.pos.y, function(x, y, value)
         if value.wantdivide then
+
         end
     end)
 end

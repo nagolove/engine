@@ -44,9 +44,7 @@ function genCode()
     return code
 end
 
--- обнаружена проблема между соотношением положения клетки в initCell()
--- и emit(). Нужно выработать интерфейс создания клетки который не будет
--- нарушать структуры grid
+-- t.pos, t.code
 function initCell(t)
     t = t or {}
     local self = {}
