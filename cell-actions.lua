@@ -1,4 +1,5 @@
 require "external"
+local inspect = require "inspect"
 local grid
 local gridSize
 local actions = {}
@@ -74,7 +75,9 @@ function actions.checkAndEat(cell)
         newt.y >= 1 and newt.y < gridSize then
         local dish = grid[newt.x][newt.y]
         -- проверка на нахождение еды в определенной клетке и поедание
+        print(inspect(dish))
         if dish.food then
+            print("eat at", newt.x, newt.y)
             dish.energy = 0
             cell.energy = cell.energy + ENERGY
             return

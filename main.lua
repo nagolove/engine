@@ -6,7 +6,7 @@ local grid = {}
 local gridSize = 100
 local pixSize = 10
 local gr = love.graphics
-local codeLen = 32
+local codeLen = 320
 local cellsNum = 2000
 local actions = {}
 local initialEnergy = {500, 1000}
@@ -38,7 +38,7 @@ local stepPressed = false
 function genCode()
     local code = {}
     local len = #codeValues
-    for i = 1, 32 do
+    for i = 1, codeLen do
         table.insert(code, codeValues[math.random(1, len)])
     end
     return code
@@ -342,7 +342,7 @@ function experiment()
             -- создать сколько-то еды
             emit()
 
-            -- обновление решетки по списку живых клеток
+            -- обновление решетки по списку живых клеток и списку еды
             updateGrid()
 
             statistic = gatherStatistic()
