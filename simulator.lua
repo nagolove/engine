@@ -4,7 +4,6 @@ local cells = {}
 -- массив массивов [x][y] с клетками по индексам
 local grid = {}
 local gridSize = 100
-local pixSize = 10
 local codeLen = 320
 local cellsNum = 2000
 local initialEnergy = {500, 1000}
@@ -233,12 +232,13 @@ end
 
 return {
     create = create,
+    grid = grid,
     step = step,
     statistic = statistic,
     getIter = function()
         return iter
     end,
-    getGridSize() = function()
+    getGridSize = function()
         return gridSize
     end,
 }

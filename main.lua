@@ -11,9 +11,10 @@ local lastGraphicPoint
 local mode = "continuos"
 local stepPressed = false
 local sim = require "simulator"
+local pixSize = 10
 
 function drawCells()
-    for ik, i in pairs(grid) do
+    for ik, i in pairs(sim.grid) do
         for jk, j in pairs(i) do
             if j.food then
                 gr.setColor(0, 1, 0)
@@ -28,7 +29,8 @@ end
 
 function drawGrid()
     gr.setColor(0.5, 0.5, 0.5)
-    for i = 0, gridSize do
+    local gridSize = sim.getGridSize()
+    for i = 0, sim.getGridSize() do
         -- vert
         gr.line(i * pixSize, 0, i * pixSize, gridSize * pixSize)
         -- hor
@@ -39,22 +41,25 @@ end
 function drawStatistic()
     local y0 = 0
     gr.setColor(1, 0, 0)
-    gr.print(string.format("iteration %d", iter), 0, y0)
+    gr.print(string.format("iteration %d", sim.getIter()), 0, y0)
     y0 = y0 + gr.getFont():getHeight()
-    if statistic.maxEnergy then
-        gr.setColor(1, 0, 0)
-        gr.print(string.format("max energy in cell %d", statistic.maxEnergy), 0, y0)
-        y0 = y0 + gr.getFont():getHeight()
-    end
-    if statistic.minEnergy then
-        gr.setColor(1, 0, 0)
-        gr.print(string.format("min energy in cell %d", statistic.minEnergy), 0, y0)
-        y0 = y0 + gr.getFont():getHeight()
-    end
-    if statistic.midEnergy then
-        gr.setColor(1, 0, 0)
-        gr.print(string.format("mid energy in cell %d", statistic.midEnergy), 0, y0)
-        y0 = y0 + gr.getFont():getHeight()
+    local statistic = sim.statistic
+    if statistic then
+        if statistic.maxEnergy then
+            gr.setColor(1, 0, 0)
+            gr.print(string.format("max energy in cell %d", statistic.maxEnergy), 0, y0)
+            y0 = y0 + gr.getFont():getHeight()
+        end
+        if statistic.minEnergy then
+            gr.setColor(1, 0, 0)
+            gr.print(string.format("min energy in cell %d", statistic.minEnergy), 0, y0)
+            y0 = y0 + gr.getFont():getHeight()
+        end
+        if statistic.midEnergy then
+            gr.setColor(1, 0, 0)
+            gr.print(string.format("mid energy in cell %d", statistic.midEnergy), 0, y0)
+            y0 = y0 + gr.getFont():getHeight()
+        end
     end
 end
 
