@@ -17,7 +17,7 @@ local codeValues = {
     "right",
     "up",
     "down",
-    "checkAndEat",
+    "eat8",
 }
 local mouseCapture
 local viewState = "sim"
@@ -62,7 +62,7 @@ end
 -- возвращает [boolean], [cell table]
 -- isalive, cell
 function updateCell(cell)
-    if cell.ip > codeLen then
+    if cell.ip > #cell.code then
         cell.ip = 1
     end
     if cell.energy > 0 then
