@@ -135,6 +135,22 @@ function actions.eat8move(cell)
     end
 end
 
+-- вызывает коллбэк вида function(x, y, value) для всех доступных соседей
+-- клетки. x, y - целочисленные координаты клетки в решетке. value - значение
+-- решетки по текущим координатам.
+-- Если коллбэк функция возвращает false, то дальнейшие вызовы прерываются, 
+-- управление возвращается.
+function listNeighbours(x, y, cb)
+    for k, displacement in pairs(around) do
+        local nx, ny = x + displacement[1], y + displacement[2]
+        if nx >= 1 and nx < gridSize and ny >= 1 and ny < gridSize then
+            if not cb(nx, ny, grid[nx][ny]) then
+                break
+            end
+        end
+    end
+end
+
 -- если достаточно энергии(>0), то клетка
 function actions.cross(cell)
 end
