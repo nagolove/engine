@@ -47,12 +47,25 @@ end
 -- обнаружена проблема между соотношением положения клетки в initCell()
 -- и emit(). Нужно выработать интерфейс создания клетки который не будет
 -- нарушать структуры grid
-function initCell()
+function initCell(t)
+    t = t or {}
     local self = {}
     self.pos = {}
-    self.pos.x = math.random(1, gridSize)
-    self.pos.y = math.random(1, gridSize)
-    self.code = genCode()
+    if t.pos and t.pos.x then
+        self.pos.x = t.pos.x
+    else
+        self.pos.x = math.random(1, gridSize)
+    end
+    if t.pos and t.pos.y then
+        self.pos.y = t.pos.y
+    else
+        self.pos.y = math.random(1, gridSize)
+    end
+    if t.code then
+        self.code = copy(t.code)
+    else
+        self.code = genCode()
+    end
     self.ip = 1
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
@@ -390,7 +403,8 @@ function love.load()
         end
     end)
     coroutine.resume(experimentCoro)
-    actionsModule.init(grid, gridSize)
+    actionsModule.init(grid, gridSize, {
+        initCell_fn = initCell})
     actions = actionsModule.actions
 end
 

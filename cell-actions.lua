@@ -4,6 +4,7 @@ local grid
 local gridSize
 local actions = {}
 local ENERGY = 10
+local initCell
 
 function isAlive(x, y)
     local t = grid[x][y]
@@ -203,9 +204,10 @@ function actions.cross(cell)
     end)
 end
 
-function init(externalGrid, externalGridSize)
+function init(externalGrid, externalGridSize, functions)
     grid = externalGrid
     gridSize = externalGridSize
+    initCell = functions.initCell_fn
 end
 
 return {
