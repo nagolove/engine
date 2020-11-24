@@ -67,6 +67,7 @@ function initCell(t)
     self.ip = 1
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
+    table.insert(cells, self)
     return self
 end
 
@@ -388,8 +389,7 @@ end
 
 function initialEmit()
     for i = 1, cellsNum do
-        local c = initCell()
-        table.insert(cells, c)
+        initCell()
     end
 end
 
