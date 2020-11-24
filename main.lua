@@ -7,7 +7,7 @@ local gridSize = 100
 local pixSize = 10
 local gr = love.graphics
 local codeLen = 32
-local cellsNum = 200
+local cellsNum = 2000
 local actions = {}
 local initialEnergy = {500, 1000}
 local statistic = {}
@@ -31,6 +31,9 @@ local experimentCoro
 local actionsModule = require "cell-actions"
 local actions
 local meal = {}
+-- continuos, bystep
+local mode = "continuos"
+local stepPressed = false
 
 function genCode()
     local code = {}
@@ -201,7 +204,7 @@ function gatherStatistic()
     if sumEnergy == 0 then
         sumEnergy = 1
     end
-    print("num, midEnergy", num, sumEnergy)
+    --print("num, midEnergy", num, sumEnergy)
     return { 
         maxEnergy = maxEnergy,
         minEnergy = minEnergy,
@@ -231,23 +234,7 @@ function emitFoodInRandomPoint()
 end
 
 function emit()
-    --if #cells < cellsNum / 3 then
-        --if not secondEmit then
-            --secondEmit = true
-            --for i = 1, cellsNum do
-                --local x = math.random(1, gridSize)
-                --local y = math.random(1, gridSize)
-                --local t = grid[x][y]
-                --if not t.energy then
-                    --print("put cell at", x, y)
-                    --grid[x][y] = initCell()
-                --end
-            --end
-            --print("pasted")
-        --end
-    --end
-    
-    for i = 1, 10 do
+    for i = 1, 3 do
         emitFoodInRandomPoint()
     end
 end
@@ -319,6 +306,19 @@ function saveDeadCellsLog(cells)
     file:close()
 end
 
+function updateCells()
+    local alive = {}
+    for k, cell in pairs(cells) do
+        local isalive, c = updateCell(cell)
+        if isalive then
+            table.insert(alive, c)
+        else
+            table.insert(removed, c)
+        end
+    end
+    return alive
+end
+
 function experiment()
     math.randomseed(love.timer.getTime())
     initialEmit()
@@ -329,29 +329,24 @@ function experiment()
     coroutine.yield()
 
     while #cells > 0 do
-        local alive = {}
-        for k, cell in pairs(cells) do
-            local isalive, c = updateCell(cell)
-            if isalive then
-                table.insert(alive, c)
-            else
-                table.insert(removed, c)
-            end
+        if mode == "bystep" and stepPressed == true or mode == "continuos" then
+            -- проход по ячейкам и вызов их программ
+            cells = updateCells()
+
+            -- сброс решетки после уничтожения некоторых клеток
+            grid = getFalseGrid()
+
+            -- создать сколько-то еды
+            emit()
+
+            -- обновление решетки по списку живых клеток
+            updateGrid()
+
+            statistic = gatherStatistic()
+            iter = iter + 1
+
+            coroutine.yield()
         end
-        cells = alive
-
-        -- сброс решетки после уничтожения некоторых клеток
-        grid = getFalseGrid()
-
-        -- создать сколько-то еды
-        emit()
-
-        -- обновление решетки по списку живых клеток
-        updateGrid()
-
-        statistic = gatherStatistic()
-        iter = iter + 1
-        coroutine.yield()
     end
 
     saveDeadCellsLog(removed)
@@ -360,6 +355,16 @@ end
 function drawFinishedExperiment()
     local y0 = 0
     gr.print(string.format("Finished"), 0, y0, 100, "center")
+end
+
+function nextMode(m)
+    local r = ""
+    if m == "continuos" then
+        r = "bystep"
+    elseif m == "bystep" then
+        r = "continuos"
+    end
+    return r
 end
 
 love.update = function()
@@ -399,5 +404,14 @@ love.keypressed = function(_, key)
         setViewState("sim")
     elseif key == "2" then
         setViewState("graph")
+    end
+    if key == "p" then
+        mode = nextMode(mode)
+        print("new mode", mode)
+    end
+    if key == "s" then
+        stepPressed = true
+    else
+        stepPressed = false
     end
 end
