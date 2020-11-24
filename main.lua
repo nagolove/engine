@@ -345,8 +345,11 @@ function experiment()
             statistic = gatherStatistic()
             iter = iter + 1
 
-            coroutine.yield()
+            if stepPressed == true then
+                stepPressed = false
+            end
         end
+        coroutine.yield()
     end
 
     saveDeadCellsLog(removed)
@@ -368,6 +371,8 @@ function nextMode(m)
 end
 
 love.update = function()
+    stepPressed = love.keyboard.isDown("s")
+
     local err = coroutine.resume(experimentCoro)
     --if err then
         --drawFinishedExperiment()
@@ -408,10 +413,5 @@ love.keypressed = function(_, key)
     if key == "p" then
         mode = nextMode(mode)
         print("new mode", mode)
-    end
-    if key == "s" then
-        stepPressed = true
-    else
-        stepPressed = false
     end
 end
