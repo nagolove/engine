@@ -227,9 +227,8 @@ function create()
         end
     end)
     coroutine.resume(experimentCoro)
-    actionsModule.init(grid, gridSize, {
-        initCell_fn = initCell})
-        actions = actionsModule.actions
+    actionsModule.init(grid, gridSize, { initCell_fn = initCell })
+    actions = actionsModule.actions
 end
 
 return {
