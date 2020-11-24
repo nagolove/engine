@@ -77,7 +77,7 @@ function actions.checkAndEat(cell)
         -- проверка на нахождение еды в определенной клетке и поедание
         --print(inspect(dish))
         if dish.food then
-            print("eat at", newt.x, newt.y)
+            --print("eat at", newt.x, newt.y)
             dish.energy = 0
             cell.energy = cell.energy + ENERGY
             return
@@ -101,7 +101,7 @@ function actions.eat8(cell)
             -- проверка на нахождение еды в определенной клетке и поедание
             --print(inspect(dish))
             if dish.food then
-                print("eat at", newt.x, newt.y)
+                --print("eat at", newt.x, newt.y)
                 dish.energy = 0
                 cell.energy = cell.energy + ENERGY
                 return
@@ -125,7 +125,7 @@ function actions.eat8move(cell)
             -- проверка на нахождение еды в определенной клетке и поедание
             --print(inspect(dish))
             if dish.food then
-                print("eat at", newt.x, newt.y)
+                --print("eat at", newt.x, newt.y)
                 dish.energy = 0
                 cell.energy = cell.energy + ENERGY
                 cell.pos.x = newt.x
@@ -223,6 +223,7 @@ function actions.cross(cell)
                         pos = {x = pos.x, y = pos.y},
                         code = mixCode(cell, grid[x][y])
                     }
+                    print("new cell!")
                     initCell(t)
                 end
             end
