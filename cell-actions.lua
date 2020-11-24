@@ -109,6 +109,32 @@ function actions.eat8(cell)
     end
 end
 
+-- аналогично eat8, но перемещается на место съеденной клетки.
+function actions.eat8move(cell)
+    pos = cell.pos
+    local newt = copy(pos)
+    for k, displacement in pairs(around) do
+        newt.x = newt.x + displacement[1]
+        newt.y = newt.y + displacement[2]
+
+        -- проверка на выход за границы поля
+        if newt.x >= 1 and newt.x < gridSize and
+            newt.y >= 1 and newt.y < gridSize then
+            local dish = grid[newt.x][newt.y]
+            -- проверка на нахождение еды в определенной клетке и поедание
+            --print(inspect(dish))
+            if dish.food then
+                print("eat at", newt.x, newt.y)
+                dish.energy = 0
+                cell.energy = cell.energy + ENERGY
+                cell.pos.x = newt.x
+                cell.pos.y = newt.y
+                return
+            end
+        end
+    end
+end
+
 function init(externalGrid, externalGridSize)
     grid = externalGrid
     gridSize = externalGridSize

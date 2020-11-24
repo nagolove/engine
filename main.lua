@@ -17,7 +17,7 @@ local codeValues = {
     "right",
     "up",
     "down",
-    "eat8",
+    "eat8move",
 }
 local mouseCapture
 local viewState = "sim"
