@@ -167,14 +167,17 @@ function drawGraphs()
 end
 
 love.draw = function()
-    if mouseCapture then
-        gr.translate(-mouseCapture.dx, -mouseCapture.dy)
-    end
-
     if viewState == "sim" then
+        gr.push()
+        if mouseCapture then
+            gr.translate(-mouseCapture.dx, -mouseCapture.dy)
+        end
+
         drawGrid()
         drawCells()
         drawStatistic()
+
+        gr.pop()
     elseif viewState == "graph" then
         drawGraphs()
     end
