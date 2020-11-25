@@ -9,14 +9,60 @@ local cellsNum = 2000
 local initialEnergy = {500, 1000}
 local iter = 0
 local statistic = {}
+
+-- вместилище команд "up", "left"  и прочего алфавита
+local genomStore = {}
+
+function genomStore:init()
+end
+
+local function initGenom()
+    local self = {}
+    return setmetatable(self, genomStore)
+end
+
+local ffi = require("ffi")
+pcall(ffi.cdef, [[
+typedef struct ImageData_Pixel
+{
+    uint8_t r, g, b, a;
+} ImageData_Pixel;
+typedef struct Grid_Data
+{
+    /*
+    state bits [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    0 - food
+    1 - cell
+    */
+    uint8_t state;
+} Grid_Data;
+]])
+local gridptr = ffi.typeof("Grid_Data*")
+local Grid = {}
+function Grid:new()
+end
+function Grid:fillZero()
+end
+function Grid:isFood(i, j)
+end
+function Grid:setFood(i, j)
+end
+
+function newGrid()
+    return setmetatable({}, Grid)
+end
+
 local codeValues = {
     "left",
     "right",
     "up",
     "down",
     "eat8move",
+    "eat8",
+    "checkAndEat",
     "cross",
 }
+
 local meal = {}
 local actionsModule = require "cell-actions"
 local actions
@@ -55,6 +101,13 @@ function initCell(t)
     self.ip = 1
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
+    self.diedCoro = coroutine.create(function()
+        for i = 1, 2 do
+            return coroutine.yield()
+        end
+        self.died = true
+    end)
+    self.died = false
     table.insert(cells, self)
     return self
 end
@@ -77,12 +130,16 @@ end
 
 -- заполнить решетку пустыми значениями. В качестве значений используются
 -- пустые таблицы {}
-function getFalseGrid()
+function getFalseGrid(oldGrid)
     local res = {}
     for i = 1, gridSize do
         local t = {}
         for j = 1, gridSize do
-            t[#t + 1] = {}
+            if oldGrid then
+                t[#t + 1] = copy(oldGrid[i][j])
+            else
+                t[#t + 1] = {}
+            end
         end
         res[#res + 1] = t
     end
@@ -135,13 +192,20 @@ function emitFoodInRandomPoint()
         self.pos.x, self.pos.y = x, y
         table.insert(meal, self)
         grid[x][y] = self
+        return true, grid[x][y]
+    else
+        return false, grid[x][y]
     end
 end
 
-function emitFood(iter)
-    print("iter", iter)
-    for i = 1, math.log(iter) / 10 do
-        emitFoodInRandomPoint()
+function emit(iter)
+    --for i = 1, math.log(iter) / 10 do
+    for i = 1, 3 do
+        local emited, gridcell = emitFoodInRandomPoint()
+        if not emited then
+            -- здесь исследовать причины смерти яцейки
+            --print("not emited gridcell", inspect(gridcell))
+        end
     end
 end
 
@@ -167,6 +231,17 @@ function updateCells()
         if isalive then
             table.insert(alive, c)
         else
+            local ok = true
+            local diedCell
+            while ok do
+                ok, diedCell = coroutine.resume(c.diedCoro)
+            end
+
+            if diedCell.pos then
+                print("copyed")
+                grid[diedCell.pos.x][diedCell.pos.y].died = true
+            end
+
             table.insert(removed, c)
         end
     end
@@ -176,23 +251,43 @@ end
 function initialEmit()
     for i = 1, cellsNum do
         --coroutine.yield(initCell())
+        print("i", i)
+        coroutine.yield()
+        initCell()
+    end
+end
+
+function postinitialEmit(iter)
+    local bound = math.log(iter) / 1000
+    for i = 1, bound do
+        print("i", i)
+        coroutine.yield()
         initCell()
     end
 end
 
 function experiment()
-    initialEmit = coroutine.create(initialEmit)
-    coroutine.resume(initialEmit)
-    grid = getFalseGrid()
+    local initialEmitCoro = coroutine.create(initialEmit)
+    coroutine.resume(initialEmitCoro) 
+    --while coroutine.resume(initialEmitCoro) do end
+
+    grid = getFalseGrid(oldGrid)
+
     updateGrid()
     statistic = gatherStatistic()
 
     coroutine.yield()
 
+    local postinitialEmitCoro = coroutine.create(postinitialEmit)
+
     while #cells > 0 do
+        -- дополнительное создание клеток в зависимости от iter
+        --if coroutine.resume(postinitialEmitCoro) then
+        --end
+
         --if mode == "bystep" and stepPressed == true or mode == "continuos" then
         do
-            coroutine.resume(initialEmit, iter)
+            --coroutine.resume(initialEmit, iter)
 
             -- создать сколько-то еды
             emitFood(iter)
