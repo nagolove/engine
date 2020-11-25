@@ -9,14 +9,57 @@ local cellsNum = 2000
 local initialEnergy = {500, 1000}
 local iter = 0
 local statistic = {}
+
+local genomStore = {}
+function genomStore:init()
+end
+local function initGenom()
+    local self = {}
+    return setmetatable(self, genomStore)
+end
+
+local ffi = require("ffi")
+pcall(ffi.cdef, [[
+typedef struct ImageData_Pixel
+{
+    uint8_t r, g, b, a;
+} ImageData_Pixel;
+typedef struct Grid_Data
+{
+    /*
+    state bits [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    0 - food
+    1 - cell
+    */
+    uint8_t state;
+} Grid_Data;
+]])
+local gridptr = ffi.typeof("Grid_Data*")
+local Grid = {}
+function grid:new()
+end
+function grid:fillZero()
+end
+function grid:isFood(i, j)
+end
+function grid:setFood(i, j)
+end
+
+function newGrid()
+    return setmetatable({}, Grid)
+end
+
 local codeValues = {
     "left",
     "right",
     "up",
     "down",
     "eat8move",
+    "eat8",
+    "checkAndEat",
     "cross",
 }
+
 local meal = {}
 local actionsModule = require "cell-actions"
 local actions
@@ -55,6 +98,12 @@ function initCell(t)
     self.ip = 1
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
+    self.died = coroutine.create(function()
+        for i = 1, 100 do
+            print("died")
+            return coroutine.yield()
+        end
+    end)
     table.insert(cells, self)
     return self
 end
@@ -135,12 +184,18 @@ function emitFoodInRandomPoint()
         self.pos.x, self.pos.y = x, y
         table.insert(meal, self)
         grid[x][y] = self
+        return true, grid[x][y]
+    else
+        return false, grid[x][y]
     end
 end
 
 function emit()
     for i = 1, 3 do
-        emitFoodInRandomPoint()
+        local emited, gridcell = emitFoodInRandomPoint()
+        if not emited then
+            print("not emited gridcell", inspect(gridcell))
+        end
     end
 end
 
@@ -166,6 +221,8 @@ function updateCells()
         if isalive then
             table.insert(alive, c)
         else
+            while coroutine.resume(c.died) do
+            end
             table.insert(removed, c)
         end
     end
@@ -173,13 +230,18 @@ function updateCells()
 end
 
 function initialEmit()
+    --for i = 1, cellsNum do
     for i = 1, cellsNum do
+        print("i", i)
+        coroutine.yield()
         initCell()
     end
 end
 
 function experiment()
-    initialEmit()
+    --initialEmit()
+    local initialEmit = coroutine.create(initialEmit)
+    while coroutine.resume(initialEmit) do end
     grid = getFalseGrid()
     updateGrid()
     statistic = gatherStatistic()

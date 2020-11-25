@@ -3,7 +3,7 @@ local inspect = require "inspect"
 local grid
 local gridSize
 local actions = {}
-local ENERGY = 10
+local ENERGY = 1000
 local initCell
 
 function isAlive(x, y)
@@ -60,8 +60,9 @@ local around = {
     {-1,  1}, {0, -1}, {1, 1},
 }
 
--- проверяет на съедобность одну случайную клетку вокруг. Съедает ее
--- если находит съедобную. На место съеденной не перемещается.
+-- проверяет на съедобность одну случайную клетку вокруг. 
+-- Съедает ее если находит съедобную. На место съеденной 
+-- не перемещается.
 function actions.checkAndEat(cell)
     pos = cell.pos
     local newt = copy(pos)
@@ -77,7 +78,7 @@ function actions.checkAndEat(cell)
         -- проверка на нахождение еды в определенной клетке и поедание
         --print(inspect(dish))
         if dish.food then
-            --print("eat at", newt.x, newt.y)
+            print("checkAndEat at", newt.x, newt.y)
             dish.energy = 0
             cell.energy = cell.energy + ENERGY
             return
@@ -101,7 +102,7 @@ function actions.eat8(cell)
             -- проверка на нахождение еды в определенной клетке и поедание
             --print(inspect(dish))
             if dish.food then
-                --print("eat at", newt.x, newt.y)
+                print("eat8 at", newt.x, newt.y)
                 dish.energy = 0
                 cell.energy = cell.energy + ENERGY
                 return
@@ -125,7 +126,7 @@ function actions.eat8move(cell)
             -- проверка на нахождение еды в определенной клетке и поедание
             --print(inspect(dish))
             if dish.food then
-                --print("eat at", newt.x, newt.y)
+                print("eat8move at", newt.x, newt.y)
                 dish.energy = 0
                 cell.energy = cell.energy + ENERGY
                 cell.pos.x = newt.x
