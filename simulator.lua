@@ -138,8 +138,9 @@ function emitFoodInRandomPoint()
     end
 end
 
-function emit()
-    for i = 1, 3 do
+function emitFood(iter)
+    print("iter", iter)
+    for i = 1, math.log(iter) / 10 do
         emitFoodInRandomPoint()
     end
 end
@@ -174,12 +175,14 @@ end
 
 function initialEmit()
     for i = 1, cellsNum do
+        --coroutine.yield(initCell())
         initCell()
     end
 end
 
 function experiment()
-    initialEmit()
+    initialEmit = coroutine.create(initialEmit)
+    coroutine.resume(initialEmit)
     grid = getFalseGrid()
     updateGrid()
     statistic = gatherStatistic()
@@ -189,8 +192,10 @@ function experiment()
     while #cells > 0 do
         --if mode == "bystep" and stepPressed == true or mode == "continuos" then
         do
+            coroutine.resume(initialEmit, iter)
+
             -- создать сколько-то еды
-            emit()
+            emitFood(iter)
 
             -- проход по ячейкам и вызов их программ
             cells = updateCells()
