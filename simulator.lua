@@ -101,13 +101,14 @@ function initCell(t)
     self.ip = 1
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
-    self.died = coroutine.create(function()
-        for i = 1, 100 do
+    self.diedCoro = coroutine.create(function()
+        for i = 1, 2 do
             print("died")
             return coroutine.yield()
         end
         self.died = true
     end)
+    self.died = false
     table.insert(cells, self)
     return self
 end
@@ -139,6 +140,7 @@ function getFalseGrid(oldGrid)
         end
         if oldGrid then
             for k, v in pairs(oldGrid[i][j]) do
+                print(k, v)
                 t[k] = v
             end
         end
@@ -203,7 +205,8 @@ function emit()
     for i = 1, 3 do
         local emited, gridcell = emitFoodInRandomPoint()
         if not emited then
-            print("not emited gridcell", inspect(gridcell))
+            -- здесь исследовать причины смерти яцейки
+            --print("not emited gridcell", inspect(gridcell))
         end
     end
 end
@@ -230,7 +233,7 @@ function updateCells()
         if isalive then
             table.insert(alive, c)
         else
-            while coroutine.resume(c.died) do
+            while coroutine.resume(c.diedCoro) do
             end
             table.insert(removed, c)
         end

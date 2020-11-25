@@ -18,8 +18,9 @@ function drawCells()
     for ik, i in pairs(sim.getGrid()) do
         for jk, j in pairs(i) do
             --print("j", inspect(j))
-            if j.died and __SELECTED_COLOR__ then
-                print("__SELECTED_COLOR__", inspect(__SELECTED_COLOR__))
+            --print(type(j.died))
+            if j.died and type(j.died) ~= "thread" and __SELECTED_COLOR__ then
+                --print("__SELECTED_COLOR__", inspect(__SELECTED_COLOR__))
                 gr.setColor(__SELECTED_COLOR__)
                 gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
             elseif j.food then

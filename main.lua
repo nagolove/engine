@@ -72,7 +72,6 @@ local toolsHotkes = {"`", "f1"}
 function checkToolsHotkey(key)
     for k, v in pairs(toolsHotkes) do
         if key == v then
-            print("pre")
             return true
         end
     end
