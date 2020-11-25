@@ -19,7 +19,7 @@ function drawCells()
         for jk, j in pairs(i) do
             --print("j", inspect(j))
             --print(type(j.died))
-            if j.died and type(j.died) ~= "thread" and __SELECTED_COLOR__ then
+            if j.died and type(j.died) == "boolean" and __SELECTED_COLOR__ then
                 --print("__SELECTED_COLOR__", inspect(__SELECTED_COLOR__))
                 gr.setColor(__SELECTED_COLOR__)
                 gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)

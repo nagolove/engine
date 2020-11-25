@@ -39,13 +39,13 @@ typedef struct Grid_Data
 ]])
 local gridptr = ffi.typeof("Grid_Data*")
 local Grid = {}
-function grid:new()
+function Grid:new()
 end
-function grid:fillZero()
+function Grid:fillZero()
 end
-function grid:isFood(i, j)
+function Grid:isFood(i, j)
 end
-function grid:setFood(i, j)
+function Grid:setFood(i, j)
 end
 
 function newGrid()
@@ -103,7 +103,6 @@ function initCell(t)
     self.mem = {}
     self.diedCoro = coroutine.create(function()
         for i = 1, 2 do
-            print("died")
             return coroutine.yield()
         end
         self.died = true
@@ -136,12 +135,10 @@ function getFalseGrid(oldGrid)
     for i = 1, gridSize do
         local t = {}
         for j = 1, gridSize do
-            t[#t + 1] = {}
-        end
-        if oldGrid then
-            for k, v in pairs(oldGrid[i][j]) do
-                print(k, v)
-                t[k] = v
+            if oldGrid then
+                t[#t + 1] = copy(oldGrid[i][j])
+            else
+                t[#t + 1] = {}
             end
         end
         res[#res + 1] = t
@@ -233,8 +230,17 @@ function updateCells()
         if isalive then
             table.insert(alive, c)
         else
-            while coroutine.resume(c.diedCoro) do
+            local ok = true
+            local diedCell
+            while ok do
+                ok, diedCell = coroutine.resume(c.diedCoro)
             end
+
+            if diedCell.pos then
+                print("copyed")
+                grid[diedCell.pos.x][diedCell.pos.y].died = true
+            end
+
             table.insert(removed, c)
         end
     end
@@ -242,7 +248,6 @@ function updateCells()
 end
 
 function initialEmit()
-    --for i = 1, cellsNum do
     for i = 1, cellsNum do
         print("i", i)
         coroutine.yield()
@@ -250,17 +255,30 @@ function initialEmit()
     end
 end
 
+function postinitialEmit(iter)
+    local bound = math.log(iter)
+    for i = 1, bound do
+        print("i", i)
+        coroutine.yield()
+        initCell()
+    end
+end
+
 function experiment()
-    --initialEmit()
     local initialEmit = coroutine.create(initialEmit)
     while coroutine.resume(initialEmit) do end
+
     grid = getFalseGrid(oldGrid)
     updateGrid()
     statistic = gatherStatistic()
 
     coroutine.yield()
 
+    local postinitialEmitCoro = coroutine.create(postinitialEmit)
+
     while #cells > 0 do
+        while coroutine.resume(postinitialEmitCoro) do end
+
         --if mode == "bystep" and stepPressed == true or mode == "continuos" then
         do
             -- создать сколько-то еды
