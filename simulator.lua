@@ -256,7 +256,7 @@ function initialEmit()
 end
 
 function postinitialEmit(iter)
-    local bound = math.log(iter)
+    local bound = math.log(iter) / 1000
     for i = 1, bound do
         print("i", i)
         coroutine.yield()
@@ -277,7 +277,9 @@ function experiment()
     local postinitialEmitCoro = coroutine.create(postinitialEmit)
 
     while #cells > 0 do
-        while coroutine.resume(postinitialEmitCoro) do end
+        -- дополнительное создание клеток в зависимости от iter
+        if coroutine.resume(postinitialEmitCoro) then
+        end
 
         --if mode == "bystep" and stepPressed == true or mode == "continuos" then
         do
