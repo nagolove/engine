@@ -8,6 +8,7 @@ __FREEZE_PHYSICS__ = true
 
 local scenes = {}
 scenes[1] = love.filesystem.load("scenes/1.lua")()
+scenes[2] = love.filesystem.load("scenes/2.lua")()
 
 currentScene = nil
 
@@ -21,7 +22,7 @@ end
 
 function love.load(arg)
     initScenes()
-    currentScene = scenes[1]
+    currentScene = scenes[2]
     initTools(currentScene)
 end
 
