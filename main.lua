@@ -66,10 +66,23 @@ function keypressedScene(key)
     end
 end
 
+local toolsHotkes = {"`", "f1"}
+
+function checkToolsHotkey(key)
+    for k, v in pairs(toolsHotkes) do
+        if key == v then
+            print("pre")
+            return true
+        end
+    end
+    return false
+end
+
 function love.keypressed(_, key)
    imgui.KeyPressed(key)
    if not imgui.GetWantCaptureKeyboard() then
-       if key == "`" then
+       --if key == "`" then
+       if checkToolsHotkey(key) then
            toggleTools()
        end
        keypressedScene(key)
