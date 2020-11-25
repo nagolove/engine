@@ -10,9 +10,12 @@ local initialEnergy = {500, 1000}
 local iter = 0
 local statistic = {}
 
+-- вместилище команд "up", "left"  и прочего алфавита
 local genomStore = {}
+
 function genomStore:init()
 end
+
 local function initGenom()
     local self = {}
     return setmetatable(self, genomStore)
@@ -103,6 +106,7 @@ function initCell(t)
             print("died")
             return coroutine.yield()
         end
+        self.died = true
     end)
     table.insert(cells, self)
     return self
@@ -126,12 +130,17 @@ end
 
 -- заполнить решетку пустыми значениями. В качестве значений используются
 -- пустые таблицы {}
-function getFalseGrid()
+function getFalseGrid(oldGrid)
     local res = {}
     for i = 1, gridSize do
         local t = {}
         for j = 1, gridSize do
             t[#t + 1] = {}
+        end
+        if oldGrid then
+            for k, v in pairs(oldGrid[i][j]) do
+                t[k] = v
+            end
         end
         res[#res + 1] = t
     end
@@ -242,7 +251,7 @@ function experiment()
     --initialEmit()
     local initialEmit = coroutine.create(initialEmit)
     while coroutine.resume(initialEmit) do end
-    grid = getFalseGrid()
+    grid = getFalseGrid(oldGrid)
     updateGrid()
     statistic = gatherStatistic()
 
