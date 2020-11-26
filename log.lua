@@ -1,36 +1,51 @@
-local ansicolor = require "ansicolors"
-
-local delim = "       "
-print("#delim", #delim)
+local colors = require "ansicolors"
 
 function log(...)
-    local function spaces(strlen, arg)
-        return string.rep(" ",1+  math.fmod(strlen, #delim))
-    end
-
     local args = {...}
     local str = ""
     for i = 1, #args do
         local arg = args[i]
-        --print("arg", arg)
         if str == "" then
-            str = tostring(arg) --.. spaces(arg)
+            str = tostring(arg)
         else
-            str = str ..  spaces(#str, arg) .. tostring(arg)
+            str = str ..  "\t" .. tostring(arg)
         end
     end
     print(str)
-    print(...)
 end
 
-function logf(...)
-    print(string.format(...))
+function logwarn(...)
+    local args = {...}
+    local str = ""
+    for i = 1, #args do
+        local arg = args[i]
+        if str == "" then
+            str = tostring(arg)
+        else
+            str = str ..  "\t" .. tostring(arg)
+        end
+    end
+    print(colors('%{yellow}str%{reset}'))
 end
 
-log("bla", 1, 2)
-log("blahh", "1fefe", 2)
-log("blahh", "1fefeaaaab", 2)
-log("blahhhh", 1, 2)
-log("blahhhhfef", 1, 2)
+function logerror(...)
+    local args = {...}
+    local str = ""
+    for i = 1, #args do
+        local arg = args[i]
+        if str == "" then
+            str = tostring(arg)
+        else
+            str = str ..  "\t" .. tostring(arg)
+        end
+    end
+    print(colors('%{red}str%{reset}'))
+end
 
-os.exit()
+function logfwarn(...)
+    print('%{yellow}' .. string.format(...) .. '%{reset}')
+end
+
+function logferror(...)
+    print('%{red}' .. string.format(...) .. '%{reset}')
+end
