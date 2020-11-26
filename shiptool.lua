@@ -14,7 +14,7 @@ local underCursor = {}
 local currentScene
 
 local function init(scene)
-    if scene.pworld then
+    if scene and scene.pworld then
         pworld = scene.pworld
         cam = scene.cam
         currentScene = scene

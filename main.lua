@@ -27,9 +27,9 @@ function loadScenes(path)
             table.insert(scenes, { scene = scene, name = v })
         else
             if errmsg then
-                logf("Error: %s", errmsg)
+                logferror("Error: %s", errmsg)
             else
-                logf("No file for loading: %s", fname)
+                logferror("No file for loading: %s", fname)
             end
         end
     end

@@ -42,10 +42,14 @@ function logerror(...)
     print(colors('%{red}str%{reset}'))
 end
 
+function logf(...)
+    print(string.format(...))
+end
+
 function logfwarn(...)
-    print('%{yellow}' .. string.format(...) .. '%{reset}')
+    print(colors('%{yellow}' .. string.format(...) .. '%{reset}'))
 end
 
 function logferror(...)
-    print('%{red}' .. string.format(...) .. '%{reset}')
+    print(colors('%{red}' .. string.format(...) .. '%{reset}'))
 end

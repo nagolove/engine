@@ -15,7 +15,7 @@ local underCursor = {}
 local shapePoint
 
 local function init(currentScene)
-    if currentScene.pworld then
+    if currentScene and currentScene.pworld then
         pworld = currentScene.pworld
         scene = currentScene
         cam = scene.cam
