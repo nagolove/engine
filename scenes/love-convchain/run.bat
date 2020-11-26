@@ -1,0 +1,1 @@
+c:\dev\megasource\build\love\Release\love.exe . --console
