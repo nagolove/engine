@@ -225,7 +225,9 @@ local function drawTerrainToolBox()
 
     imgui.End()
 
-    cam:attach()
+    if cam then 
+        cam:attach()
+    end
 
     if mesh then
         gr.draw(mesh)
@@ -236,7 +238,9 @@ local function drawTerrainToolBox()
     end
     drawLines()
 
-    cam:detach()
+    if cam then
+        cam:detach()
+    end
 
     drawAxes()
 end
