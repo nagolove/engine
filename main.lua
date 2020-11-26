@@ -1,44 +1,48 @@
 --:setlocal foldmethod=manual
 require "imgui"
 require "tools"
+require "log"
 local inspect = require "inspect"
 
 local gr = love.graphics
 
 __FREEZE_PHYSICS__ = true
 
-function searchScenes(path)
+function loadScenes(path)
     local scenes = {}
     local files = love.filesystem.getDirectoryItems(path)
     for k, v in pairs(files) do
         local info = love.filesystem.getInfo(path .. "/" .. v)
-        print("info", inspect(info))
-        local scene
-        local ok, errmsg
-        if info.filetype == "directory" then
-            ok, errmsg = pcall(function()
-                scene = love.filesystem.load(string.format("%s/%s%s", path, v, "/init.lua"))
-            end)
-        elseif info.filetype == "file" then
-            ok, errmsg = pcall(function()
-                scene = love.filesystem.load(path .. "/" .. v)
-            end)
+        local scene, fname
+        if info.type == "directory" then
+            fname = string.format("%s/%s%s", path, v, "/init.lua")
+        elseif info.type == "file" then
+            fname = path .. "/" .. v
         end
+        logf("loading scene %s", fname)
+        local ok, errmsg = pcall(function()
+            scene = love.filesystem.load(fname)
+        end)
         if ok and scene then
             table.insert(scenes, { scene = scene, name = v })
         else
-            print(string.format("Error: %s", errmsg))
+            if errmsg then
+                logf("Error: %s", errmsg)
+            else
+                logf("No file for loading: %s", fname)
+            end
         end
     end
     return scenes
 end
 
-local scenes = searchScenes("scenes")
+local scenes = loadScenes("scenes")
 print("scenes", inspect(scenes))
 --scenes[1] = love.filesystem.load("scenes/1.lua")()
 --scenes[2] = love.filesystem.load("scenes/2.lua")()
 function setCurrentScene(sceneName)
     for k, v in pairs(scenes) do
+        print("v", inspect(v), sceneName)
         if sceneName == v.name then
             currentScene = v.scene
         end
