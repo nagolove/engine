@@ -7,7 +7,7 @@ local gr = love.graphics
 function MeshExample1:new()
     local x, y = 0, 0
     local size = 128
-    local tex = gr.newImage("tex1.png")
+    local tex = gr.newImage("scenes/wavegrid/tex1.png")
     local self = setmetatable({}, MeshExample1)
     self.vertices = {}
 

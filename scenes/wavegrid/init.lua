@@ -1,6 +1,11 @@
+require "log"
 local inspect = require "inspect"
 local getTime = love.timer.getTime
 local gr = love.graphics
+
+-- FIXME HACK
+package.path = package.path .. ";scenes/wavegrid/?.lua"
+
 local mesh1 = require "meshexample":new()
 
 local WaveGrid = {}
@@ -125,16 +130,16 @@ function WaveGrid:draw()
     mesh1:draw()
 end
 
-love.load = function()
+function init()
     waveGrid = WaveGrid:new(4, 4, 16)
 end
 
-love.draw = function()
+function draw()
     waveGrid:draw()
     mesh1:draw()
 end
 
-love.update = function(dt)
+function update(dt)
     local lk = love.keyboard
     local assoc = {
         ["left"] = {-1, 0},
@@ -151,8 +156,15 @@ love.update = function(dt)
     waveGrid:update(dt)
 end
 
-love.keypressed = function(_, k)
+function keypressed (_, k)
     if k == "escape" then
         love.event.quit()
     end
 end
+
+return {
+    init = init,
+    draw = draw,
+    update = update,
+    keypressed = keypressed,
+}

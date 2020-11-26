@@ -23,17 +23,22 @@ function loadScenes(path)
             name = string.match(v, "(.+)%.lua")
         end
         logf("loading scene %s", fname)
-        local ok, errmsg = pcall(function()
-            scene = love.filesystem.load(fname)()
-        end)
-        if ok and scene then
-            table.insert(scenes, { scene = scene, name = name })
-        else
-            if errmsg then
-                logferror("Error: %s", errmsg)
+        local chunk, errmsg = love.filesystem.load(fname)
+        if chunk then
+            local ok, errmsg = pcall(function()
+                scene = chunk()
+            end)
+            if ok and scene then
+                table.insert(scenes, { scene = scene, name = name })
             else
-                logferror("No file for loading: %s", fname)
+                if errmsg then
+                    logferror("Error: %s", errmsg)
+                else
+                    logferror("No file for loading: %s", fname)
+                end
             end
+        else
+            logferror("Could'not load %s", fname)
         end
     end
     return scenes
@@ -71,7 +76,7 @@ end
 function love.load(arg)
     initScenes()
     
-    setCurrentScene("2")
+    setCurrentScene("wavegrid")
 
     initTools(currentScene)
 end
