@@ -97,11 +97,17 @@ end
 -- triangle[1]   is a vec3
 -- triangle[2]   is a vec3
 -- triangle[3]   is a vec3
-function intersect.ray_triangle(ray, triangle)
+-- backface_cull is a boolean (optional)
+function intersect.ray_triangle(ray, triangle, backface_cull)
 	local e1 = triangle[2] - triangle[1]
 	local e2 = triangle[3] - triangle[1]
 	local h  = ray.direction:cross(e2)
 	local a  = h:dot(e1)
+
+	-- if a is negative, ray hits the backface
+	if backface_cull and a < 0 then
+		return false
+	end
 
 	-- if a is too close to 0, ray does not intersect triangle
 	if abs(a) <= DBL_EPSILON then
@@ -576,9 +582,9 @@ function intersect.sphere_triangle(sphere, triangle)
 	local e2 = BC:dot(BC)
 	local e3 = CA:dot(CA)
 
-	local Q1 = A * e1 - d1 * AB
-	local Q2 = B * e2 - d2 * BC
-	local Q3 = C * e3 - d3 * CA
+	local Q1 = A * e1 - AB * d1
+	local Q2 = B * e2 - BC * d2
+	local Q3 = C * e3 - CA * d3
 
 	local QC = C * e1 - Q1
 	local QA = A * e2 - Q2

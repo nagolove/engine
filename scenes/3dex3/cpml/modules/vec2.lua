@@ -3,6 +3,7 @@
 
 local modules = (...):gsub('%.[^%.]+$', '') .. "."
 local vec3    = require(modules .. "vec3")
+local private = require(modules .. "_private_utils")
 local acos    = math.acos
 local atan2   = math.atan2
 local sqrt    = math.sqrt
@@ -54,7 +55,7 @@ function vec2.new(x, y)
 		return new(x, y)
 
 	-- {x, y} or {x=x, y=y}
-	elseif type(x) == "table" then
+	elseif type(x) == "table" or type(x) == "cdata" then -- table in vanilla lua, cdata in luajit
 		local xx, yy = x.x or x[1], x.y or x[2]
 		assert(type(xx) == "number", "new: Wrong argument type for x (<number> expected)")
 		assert(type(yy) == "number", "new: Wrong argument type for y (<number> expected)")
@@ -321,6 +322,36 @@ function vec2.to_polar(a)
 	return radius, theta
 end
 
+-- Round all components to nearest int (or other precision).
+-- @tparam vec2 a Vector to round.
+-- @tparam precision Digits after the decimal (round numebr if unspecified)
+-- @treturn vec2 Rounded vector
+function vec2.round(a, precision)
+	return vec2.new(private.round(a.x, precision), private.round(a.y, precision))
+end
+
+-- Negate x axis only of vector.
+-- @tparam vec2 a Vector to x-flip.
+-- @treturn vec2 x-flipped vector
+function vec2.flip_x(a)
+	return vec2.new(-a.x, a.y)
+end
+
+-- Negate y axis only of vector.
+-- @tparam vec2 a Vector to y-flip.
+-- @treturn vec2 y-flipped vector
+function vec2.flip_y(a)
+	return vec2.new(a.x, -a.y)
+end
+
+-- Convert vec2 to vec3.
+-- @tparam vec2 a Vector to convert.
+-- @tparam number the new z component, or nil for 0
+-- @treturn vec3 Converted vector
+function vec2.to_vec3(a, z)
+	return vec3(a.x, a.y, z or 0)
+end
+
 --- Return a formatted string.
 -- @tparam vec2 a Vector to be turned into a string
 -- @treturn string formatted
@@ -381,7 +412,9 @@ function vec2_mt.__div(a, b)
 end
 
 if status then
-	ffi.metatype(new, vec2_mt)
+	xpcall(function() -- Allow this to silently fail; assume failure means someone messed with package.loaded
+		ffi.metatype(new, vec2_mt)
+	end, function() end)
 end
 
 return setmetatable({}, vec2_mt)

@@ -37,7 +37,7 @@ end
 -- Do the check to see if JIT is enabled. If so use the optimized FFI structs.
 local status, ffi, the_type
 if type(jit) == "table" and jit.status() then
-    --status, ffi = pcall(require, "ffi")
+   --  status, ffi = pcall(require, "ffi")
     if status then
         ffi.cdef "typedef struct { double _m[16]; } cpml_mat4;"
         new = ffi.typeof("cpml_mat4")
@@ -316,59 +316,36 @@ end
 -- @tparam mat4 a Matrix to clone
 -- @treturn mat4 out
 function mat4.clone(a)
-	local m = mat4.new()
-	for i = 1, 16 do
-		m[i] = a[i]
-	end
-	
-	return m
-end
-
-function mat4.unpack(a)
-	return m[1],  m[2],  m[3], m[4], 
-	       m[5],  m[6],  m[7], m[8], 
-	       m[9],  m[10], m[11], m[12], 
-	       m[13], m[14], m[15], m[16]
+	return new(a)
 end
 
 --- Multiply two matrices.
 -- @tparam mat4 out Matrix to store the result
 -- @tparam mat4 a Left hand operand
 -- @tparam mat4 b Right hand operand
--- @treturn mat4 out
+-- @treturn mat4 out Matrix equivalent to "apply b, then a"
 function mat4.mul(out, a, b)
-	tm4[1]  = a[1]  * b[1] + a[2]  * b[5] + a[3]  * b[9]  + a[4]  * b[13]
-	tm4[2]  = a[1]  * b[2] + a[2]  * b[6] + a[3]  * b[10] + a[4]  * b[14]
-	tm4[3]  = a[1]  * b[3] + a[2]  * b[7] + a[3]  * b[11] + a[4]  * b[15]
-	tm4[4]  = a[1]  * b[4] + a[2]  * b[8] + a[3]  * b[12] + a[4]  * b[16]
-	tm4[5]  = a[5]  * b[1] + a[6]  * b[5] + a[7]  * b[9]  + a[8]  * b[13]
-	tm4[6]  = a[5]  * b[2] + a[6]  * b[6] + a[7]  * b[10] + a[8]  * b[14]
-	tm4[7]  = a[5]  * b[3] + a[6]  * b[7] + a[7]  * b[11] + a[8]  * b[15]
-	tm4[8]  = a[5]  * b[4] + a[6]  * b[8] + a[7]  * b[12] + a[8]  * b[16]
-	tm4[9]  = a[9]  * b[1] + a[10] * b[5] + a[11] * b[9]  + a[12] * b[13]
-	tm4[10] = a[9]  * b[2] + a[10] * b[6] + a[11] * b[10] + a[12] * b[14]
-	tm4[11] = a[9]  * b[3] + a[10] * b[7] + a[11] * b[11] + a[12] * b[15]
-	tm4[12] = a[9]  * b[4] + a[10] * b[8] + a[11] * b[12] + a[12] * b[16]
-	tm4[13] = a[13] * b[1] + a[14] * b[5] + a[15] * b[9]  + a[16] * b[13]
-	tm4[14] = a[13] * b[2] + a[14] * b[6] + a[15] * b[10] + a[16] * b[14]
-	tm4[15] = a[13] * b[3] + a[14] * b[7] + a[15] * b[11] + a[16] * b[15]
-	tm4[16] = a[13] * b[4] + a[14] * b[8] + a[15] * b[12] + a[16] * b[16]
+	tm4[1]  = b[1]  * a[1] + b[2]  * a[5] + b[3]  * a[9]  + b[4]  * a[13]
+	tm4[2]  = b[1]  * a[2] + b[2]  * a[6] + b[3]  * a[10] + b[4]  * a[14]
+	tm4[3]  = b[1]  * a[3] + b[2]  * a[7] + b[3]  * a[11] + b[4]  * a[15]
+	tm4[4]  = b[1]  * a[4] + b[2]  * a[8] + b[3]  * a[12] + b[4]  * a[16]
+	tm4[5]  = b[5]  * a[1] + b[6]  * a[5] + b[7]  * a[9]  + b[8]  * a[13]
+	tm4[6]  = b[5]  * a[2] + b[6]  * a[6] + b[7]  * a[10] + b[8]  * a[14]
+	tm4[7]  = b[5]  * a[3] + b[6]  * a[7] + b[7]  * a[11] + b[8]  * a[15]
+	tm4[8]  = b[5]  * a[4] + b[6]  * a[8] + b[7]  * a[12] + b[8]  * a[16]
+	tm4[9]  = b[9]  * a[1] + b[10] * a[5] + b[11] * a[9]  + b[12] * a[13]
+	tm4[10] = b[9]  * a[2] + b[10] * a[6] + b[11] * a[10] + b[12] * a[14]
+	tm4[11] = b[9]  * a[3] + b[10] * a[7] + b[11] * a[11] + b[12] * a[15]
+	tm4[12] = b[9]  * a[4] + b[10] * a[8] + b[11] * a[12] + b[12] * a[16]
+	tm4[13] = b[13] * a[1] + b[14] * a[5] + b[15] * a[9]  + b[16] * a[13]
+	tm4[14] = b[13] * a[2] + b[14] * a[6] + b[15] * a[10] + b[16] * a[14]
+	tm4[15] = b[13] * a[3] + b[14] * a[7] + b[15] * a[11] + b[16] * a[15]
+	tm4[16] = b[13] * a[4] + b[14] * a[8] + b[15] * a[12] + b[16] * a[16]
 
 	for i=1, 16 do
 		out[i] = tm4[i]
 	end
 
-	return out
-end
-
-function mat4.reset(out)
-	for i=1, 16 do
-		out[i] = 0.0
-	end
-	out[1]  = 1
-	out[6]  = 1
-	out[11] = 1
-	out[16] = 1
 	return out
 end
 
@@ -378,25 +355,15 @@ end
 -- @tparam table b Right hand operand
 -- @treturn mat4 out
 function mat4.mul_vec4(out, a, b)
-	local b1 = b[1] or b.x
-	local b2 = b[2] or b.y
-	local b3 = b[3] or b.z
-	local b4 = b[4] or b.w
-	
-	out[1] = b1 * a[1] + b2 * a[5] + b3 * a[9]  + b4 * a[13]
-	out[2] = b1 * a[2] + b2 * a[6] + b3 * a[10] + b4 * a[14]
-	out[3] = b1 * a[3] + b2 * a[7] + b3 * a[11] + b4 * a[15]
-	out[4] = b1 * a[4] + b2 * a[8] + b3 * a[12] + b4 * a[16]
+	tv4[1] = b[1] * a[1] + b[2] * a[5] + b [3] * a[9]  + b[4] * a[13]
+	tv4[2] = b[1] * a[2] + b[2] * a[6] + b [3] * a[10] + b[4] * a[14]
+	tv4[3] = b[1] * a[3] + b[2] * a[7] + b [3] * a[11] + b[4] * a[15]
+	tv4[4] = b[1] * a[4] + b[2] * a[8] + b [3] * a[12] + b[4] * a[16]
 
-	return out
-end
+	for i=1, 4 do
+		out[i] = tv4[i]
+	end
 
-
-local vec3_buf = {0, 0, 0}
-function mat4.mul_vec3(out, a, b)
-	out[1], out[2], out[3] = b[1] * a[1] + b[2] * a[5] + b[3] * a[9]  + a[13],
-	                         b[1] * a[2] + b[2] * a[6] + b[3] * a[10] + a[14],
-	                         b[1] * a[3] + b[2] * a[7] + b[3] * a[11] + a[15]
 	return out
 end
 
@@ -575,10 +542,10 @@ function mat4.look_at(out, a, eye, look_at, up)
 	out[10] = y_axis.z
 	out[11] = z_axis.z
 	out[12] = 0
-	out[13] = 0
-	out[14] = 0
-	out[15] = 0
-	out[16] = 1
+	out[13] = -out[  1]*eye.x - out[4+1]*eye.y - out[8+1]*eye.z
+	out[14] = -out[  2]*eye.x - out[4+2]*eye.y - out[8+2]*eye.z
+	out[15] = -out[  3]*eye.x - out[4+3]*eye.y - out[8+3]*eye.z
+	out[16] = -out[  4]*eye.x - out[4+4]*eye.y - out[8+4]*eye.z + 1
 
   return out
 end
@@ -611,29 +578,6 @@ function mat4.transpose(out, a)
 
 	return out
 end
-
-function mat4.getTranspose(a)
-	local v = new()
-	v[1]  = a[1]
-	v[2]  = a[5]
-	v[3]  = a[9]
-	v[4]  = a[13]
-	v[5]  = a[2]
-	v[6]  = a[6]
-	v[7]  = a[10]
-	v[8]  = a[14]
-	v[9]  = a[3]
-	v[10] = a[7]
-	v[11] = a[11]
-	v[12] = a[15]
-	v[13] = a[4]
-	v[14] = a[8]
-	v[15] = a[12]
-	v[16] = a[16]
-
-	return v
-end
-
 
 -- https://github.com/g-truc/glm/blob/master/glm/gtc/matrix_transform.inl#L518
 --- Project a matrix from world space to screen space.
@@ -690,8 +634,7 @@ end
 -- @treturn boolean is_mat4
 function mat4.is_mat4(a)
 	if type(a) == "cdata" then
-		local a, b = ffi.istype("cpml_mat4", a)
-		return a, b
+		return ffi.istype("cpml_mat4", a)
 	end
 
 	if type(a) ~= "table" then
@@ -722,7 +665,7 @@ function mat4.to_string(a)
 	return str
 end
 
---- Convert a matrix to vec4s.
+--- Convert a matrix to row vec4s.
 -- @tparam mat4 a Matrix to be converted
 -- @treturn table vec4s
 function mat4.to_vec4s(a)
@@ -731,6 +674,18 @@ function mat4.to_vec4s(a)
 		{ a[5],  a[6],  a[7],  a[8]  },
 		{ a[9],  a[10], a[11], a[12] },
 		{ a[13], a[14], a[15], a[16] }
+	}
+end
+
+--- Convert a matrix to col vec4s.
+-- @tparam mat4 a Matrix to be converted
+-- @treturn table vec4s
+function mat4.to_vec4s_cols(a)
+	return {
+		{ a[1], a[5], a[9],  a[13] },
+		{ a[2], a[6], a[10], a[14] },
+		{ a[3], a[7], a[11], a[15] },
+		{ a[4], a[8], a[12], a[16] }
 	}
 end
 
@@ -900,7 +855,7 @@ function mat4_mt.__mul(a, b)
 		return vec3(mat4.mul_vec4({}, a, { b.x, b.y, b.z, 1 }))
 	end
 
-	assert(mat4.is_mat4(b) or (#b == 4), "__mul: Wrong argument type for right hand operand. (<cpml.mat4> or table #4 expected)")
+	assert(mat4.is_mat4(b) or #b == 4, "__mul: Wrong argument type for right hand operand. (<cpml.mat4> or table #4 expected)")
 
 	if mat4.is_mat4(b) then
 		return new():mul(a, b)
@@ -910,7 +865,9 @@ function mat4_mt.__mul(a, b)
 end
 
 if status then
-	ffi.metatype(new, mat4_mt)
+	xpcall(function() -- Allow this to silently fail; assume failure means someone messed with package.loaded
+		ffi.metatype(new, mat4_mt)
+	end, function() end)
 end
 
 return setmetatable({}, mat4_mt)

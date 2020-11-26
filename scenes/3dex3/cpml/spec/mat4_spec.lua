@@ -131,16 +131,16 @@ describe("mat4:", function()
 
 	it("multiplies two 4x4 matrices", function()
 		local a = mat4 {
-			1,  2,  3,  4,
-			5,  6,  7,  8,
-			9,  10, 11, 12,
-			13, 14, 15, 16
-		}
-		local b = mat4 {
 			1, 5, 9,  13,
 			2, 6, 10, 14,
 			3, 7, 11, 15,
 			4, 8, 12, 16
+		}
+		local b = mat4 {
+			1,  2,  3,  4,
+			5,  6,  7,  8,
+			9,  10, 11, 12,
+			13, 14, 15, 16
 		}
 		local c = mat4():mul(a, b)
 		local d = a * b
@@ -182,6 +182,32 @@ describe("mat4:", function()
 		assert.is.equal(c[2], d[2])
 		assert.is.equal(c[3], d[3])
 		assert.is.equal(c[4], d[4])
+	end)
+
+	it("verifies mat4 composition order", function()
+		local a = mat4 {
+			1, 5, 9,  13,
+			2, 6, 10, 14,
+			3, 7, 11, 15,
+			4, 8, 12, 16
+		}
+		local b = mat4 {
+			2,  3,  5,  7,
+			11, 13, 17, 19,
+			23, 29, 31, 37,
+			41, 43, 47, 53
+		}
+		local c = mat4():mul(a, b)
+		local d = a * b
+
+		local v = { 10, 20, 30, 40 }
+
+		local cv = c * v
+		local abv = a*(b*v)
+
+		assert.is.equal(cv.x, abv.x) -- Verify (a*b)*v == a*(b*v)
+		assert.is.equal(cv.y, abv.y)
+		assert.is.equal(cv.z, abv.z)
 	end)
 
 	it("scales a matrix", function()
@@ -322,7 +348,12 @@ describe("mat4:", function()
 	end)
 
 	it("converts a matrix to vec4s", function()
-		local a = mat4()
+		local a = mat4 {
+			1,  2,  3,  4,
+			5,  6,  7,  8,
+			9,  10, 11, 12,
+			13, 14, 15, 16
+		}
 		local v = a:to_vec4s()
 		assert.is_true(type(v)    == "table")
 		assert.is_true(type(v[1]) == "table")
@@ -330,25 +361,60 @@ describe("mat4:", function()
 		assert.is_true(type(v[3]) == "table")
 		assert.is_true(type(v[4]) == "table")
 
-		assert.is.equal(1, v[1][1])
-		assert.is.equal(0, v[1][2])
-		assert.is.equal(0, v[1][3])
-		assert.is.equal(0, v[1][4])
+		assert.is.equal(1,  v[1][1])
+		assert.is.equal(2,  v[1][2])
+		assert.is.equal(3,  v[1][3])
+		assert.is.equal(4,  v[1][4])
 
-		assert.is.equal(0, v[2][1])
-		assert.is.equal(1, v[2][2])
-		assert.is.equal(0, v[2][3])
-		assert.is.equal(0, v[2][4])
+		assert.is.equal(5,  v[2][1])
+		assert.is.equal(6,  v[2][2])
+		assert.is.equal(7,  v[2][3])
+		assert.is.equal(8,  v[2][4])
 
-		assert.is.equal(0, v[3][1])
-		assert.is.equal(0, v[3][2])
-		assert.is.equal(1, v[3][3])
-		assert.is.equal(0, v[3][4])
+		assert.is.equal(9,  v[3][1])
+		assert.is.equal(10, v[3][2])
+		assert.is.equal(11, v[3][3])
+		assert.is.equal(12, v[3][4])
 
-		assert.is.equal(0, v[4][1])
-		assert.is.equal(0, v[4][2])
-		assert.is.equal(0, v[4][3])
-		assert.is.equal(1, v[4][4])
+		assert.is.equal(13, v[4][1])
+		assert.is.equal(14, v[4][2])
+		assert.is.equal(15, v[4][3])
+		assert.is.equal(16, v[4][4])
+	end)
+
+	it("converts a matrix to vec4s, column-wise", function()
+		local a = mat4 {
+			1,  2,  3,  4,
+			5,  6,  7,  8,
+			9,  10, 11, 12,
+			13, 14, 15, 16
+		}
+		local v = a:to_vec4s_cols()
+		assert.is_true(type(v)    == "table")
+		assert.is_true(type(v[1]) == "table")
+		assert.is_true(type(v[2]) == "table")
+		assert.is_true(type(v[3]) == "table")
+		assert.is_true(type(v[4]) == "table")
+
+		assert.is.equal(1,  v[1][1])
+		assert.is.equal(5,  v[1][2])
+		assert.is.equal(9,  v[1][3])
+		assert.is.equal(13, v[1][4])
+
+		assert.is.equal(2,  v[2][1])
+		assert.is.equal(6,  v[2][2])
+		assert.is.equal(10, v[2][3])
+		assert.is.equal(14, v[2][4])
+
+		assert.is.equal(3,  v[3][1])
+		assert.is.equal(7,  v[3][2])
+		assert.is.equal(11, v[3][3])
+		assert.is.equal(15, v[3][4])
+
+		assert.is.equal(4,  v[4][1])
+		assert.is.equal(8,  v[4][2])
+		assert.is.equal(12, v[4][3])
+		assert.is.equal(16, v[4][4])
 	end)
 
 	it("converts a matrix to a quaternion", function()

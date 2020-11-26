@@ -42,6 +42,7 @@ local cpml = {
 }
 
 local files = {
+	"bvh",
 	"color",
 	"constants",
 	"intersect",
@@ -53,6 +54,8 @@ local files = {
 	"utils",
 	"vec2",
 	"vec3",
+	"bound2",
+	"bound3",
 }
 
 for _, file in ipairs(files) do

@@ -28,7 +28,7 @@ end
 -- Do the check to see if JIT is enabled. If so use the optimized FFI structs.
 local status, ffi
 if type(jit) == "table" and jit.status() then
-	--status, ffi = pcall(require, "ffi")
+	status, ffi = pcall(require, "ffi")
 	if status then
 		ffi.cdef "typedef struct { double x, y, z, w;} cpml_quat;"
 		new = ffi.typeof("cpml_quat")
@@ -176,10 +176,6 @@ function quat.pow(a, s)
 		a   = -a
 	end
 	local dot = a.w
-
-	if dot > DOT_THRESHOLD then
-		return a:scale(s)
-	end
 
 	dot = min(max(dot, -1), 1)
 
@@ -368,13 +364,25 @@ end
 
 --- Convert a quaternion into an angle plus axis components.
 -- @tparam quat a Quaternion to convert
+-- @tparam identityAxis vec3 of axis to use on identity/degenerate quaternions (optional, default returns 0,0,0,1)
 -- @treturn number angle
 -- @treturn x axis-x
 -- @treturn y axis-y
 -- @treturn z axis-z
-function quat.to_angle_axis_unpack(a)
+function quat.to_angle_axis_unpack(a, identityAxis)
 	if a.w > 1 or a.w < -1 then
 		a = a:normalize()
+	end
+
+	-- If length of xyz components is less than DBL_EPSILON, this is zero or close enough (an identity quaternion)
+	-- Normally an identity quat would return a nonsense answer, so we return an arbitrary zero rotation early.
+	-- FIXME: Is it safe to assume there are *no* valid quaternions with nonzero degenerate lengths?
+	if a.x*a.x + a.y*a.y + a.z*a.z < constants.DBL_EPSILON*constants.DBL_EPSILON then
+		if identityAxis then
+			return 0,identityAxis:unpack()
+		else
+			return 0,0,0,1
+		end
 	end
 
 	local x, y, z
@@ -396,10 +404,11 @@ end
 
 --- Convert a quaternion into an angle/axis pair.
 -- @tparam quat a Quaternion to convert
+-- @tparam identityAxis vec3 of axis to use on identity/degenerate quaternions (optional, default returns 0,vec3(0,0,1))
 -- @treturn number angle
 -- @treturn vec3 axis
-function quat.to_angle_axis(a)
-	local angle, x, y, z = a:to_angle_axis_unpack()
+function quat.to_angle_axis(a, identityAxis)
+	local angle, x, y, z = a:to_angle_axis_unpack(identityAxis)
 	return angle, vec3(x, y, z)
 end
 
@@ -469,7 +478,9 @@ function quat_mt.__pow(a, n)
 end
 
 if status then
-	ffi.metatype(new, quat_mt)
+	xpcall(function() -- Allow this to silently fail; assume failure means someone messed with package.loaded
+		ffi.metatype(new, quat_mt)
+	end, function() end)
 end
 
 return setmetatable({}, quat_mt)

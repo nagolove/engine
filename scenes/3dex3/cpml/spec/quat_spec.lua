@@ -1,6 +1,7 @@
 local quat  = require "modules.quat"
 local vec3  = require "modules.vec3"
 local utils = require "modules.utils"
+local constants = require "modules.constants"
 
 describe("quat:", function()
 	it("creates an identity quaternion", function()
@@ -123,6 +124,19 @@ describe("quat:", function()
 		assert.is.equal( 4,  c.y)
 		assert.is.equal( 17, c.z)
 		assert.is.equal(b, c)
+	end)
+
+	it("verifies quat composition order", function()
+		local a = quat(2, 3, 4, 1):normalize() -- Only the normal quaternions represent rotations
+		local b = quat(3, 6, 9, 1):normalize()
+		local c = a * b
+
+		local v = vec3(3, 4, 5)
+
+		local cv = c * v
+		local abv = a * (b * v)
+
+		assert.is_true((abv - cv):len() < 1e-07) -- Verify (a*b)*v == a*(b*v) within an epsilon
 	end)
 
 	it("multiplies a quaternion by an exponent of 0", function()
@@ -308,6 +322,22 @@ describe("quat:", function()
 		assert.is.equal(1, axis.x)
 		assert.is.equal(2, axis.y)
 		assert.is.equal(3, axis.z)
+	end)
+
+	it("converts between a quaternion and angle/axis (identity quaternion) (by component)", function()
+		local angle, x,y,z = quat():to_angle_axis_unpack()
+		assert.is.equal(0, angle)
+		assert.is.equal(0, x)
+		assert.is.equal(0, y)
+		assert.is.equal(1, z)
+	end)
+
+	it("converts between a quaternion and angle/axis (identity quaternion with fallback)", function()
+		local angle, axis = quat():to_angle_axis(vec3(2,3,4))
+		assert.is.equal(0, angle)
+		assert.is.equal(2, axis.x)
+		assert.is.equal(3, axis.y)
+		assert.is.equal(4, axis.z)
 	end)
 
 	it("gets a string representation of a quaternion", function()
