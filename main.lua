@@ -10,9 +10,11 @@ __FREEZE_PHYSICS__ = true
 
 
 function love.load(arg)
-    initScenes()
-    
-    scenes.setCurrentScene("wavegrid")
+    scenes.loadScenes("scenes")
+    scenes.initLoaded()
+
+    --scenes.setCurrentScene("wavegrid")
+    scenes.setCurrentScene("1")
 
     initTools(currentScene)
 end
@@ -58,7 +60,8 @@ end
 function love.keypressed(_, key)
    imgui.KeyPressed(key)
    if not imgui.GetWantCaptureKeyboard() then
-       if checkToolsHotkey(key) then
+       --if checkToolsHotkey(key) then
+       if key == "f1" then
            toggleTools()
        end
        scenes.keypressed(key)

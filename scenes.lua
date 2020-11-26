@@ -46,7 +46,7 @@ end
 
 currentScene = nil
 
-function initScenes()
+function initLoaded()
     for k, v in pairs(scenes) do
         local scene = v.scene
         local ok, errmsg = pcall(function()
@@ -83,6 +83,8 @@ return {
         return currentScene
     end,
     setCurrentScene = setCurrentScene,
+    loadScenes = loadScenes,
+    initLoaded = initLoaded,
     update = update,
     draw = draw,
     keypressed = keypressed,
