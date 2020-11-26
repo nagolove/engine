@@ -3,88 +3,22 @@ require "imgui"
 require "tools"
 require "log"
 local inspect = require "inspect"
-
+local scenes = require "scenes"
 local gr = love.graphics
 
 __FREEZE_PHYSICS__ = true
 
--- возвращает таблицу вида {scene, name} со сцена из указанного каталога
-function loadScenes(path)
-    local scenes = {}
-    local files = love.filesystem.getDirectoryItems(path)
-    for k, v in pairs(files) do
-        local info = love.filesystem.getInfo(path .. "/" .. v)
-        local scene, fname, name
-        if info.type == "directory" then
-            fname = string.format("%s/%s%s", path, v, "/init.lua")
-            name = v
-        elseif info.type == "file" then
-            fname = path .. "/" .. v
-            name = string.match(v, "(.+)%.lua")
-        end
-        logf("loading scene %s", fname)
-        local chunk, errmsg = love.filesystem.load(fname)
-        if chunk then
-            local ok, errmsg = pcall(function()
-                scene = chunk()
-            end)
-            if ok and scene then
-                table.insert(scenes, { scene = scene, name = name })
-            else
-                if errmsg then
-                    logferror("Error: %s", errmsg)
-                else
-                    logferror("No file for loading: %s", fname)
-                end
-            end
-        else
-            logferror("Could'not load %s", fname)
-        end
-    end
-    return scenes
-end
-
-local scenes = loadScenes("scenes")
-print("scenes", inspect(scenes))
---scenes[1] = love.filesystem.load("scenes/1.lua")()
---scenes[2] = love.filesystem.load("scenes/2.lua")()
-function setCurrentScene(sceneName)
-    for k, v in pairs(scenes) do
-        print("v", inspect(v), sceneName)
-        if sceneName == v.name then
-            currentScene = v.scene
-        end
-    end
-end
-
-currentScene = nil
-
-function initScenes()
-    for k, v in pairs(scenes) do
-        local scene = v.scene
-        local ok, errmsg = pcall(function()
-            if scene.init then
-                scene.init()
-            end
-        end)
-        if not ok then
-            logferror("Error in scene init %s", v.name)
-        end
-    end
-end
 
 function love.load(arg)
     initScenes()
     
-    setCurrentScene("wavegrid")
+    scenes.setCurrentScene("wavegrid")
 
     initTools(currentScene)
 end
 
 function updateScene(dt)
-    if currentScene and currentScene.update then
-        currentScene.update(dt)
-    end
+    scenes.update()
 end
 
 function love.update(dt)
@@ -92,15 +26,9 @@ function love.update(dt)
     updateTools()
 end
 
-function drawScene()
-    if currentScene and currentScene.draw then
-        currentScene.draw()
-    end
-end
-
 function love.draw()
    gr.setColor{1, 1, 1}
-   drawScene()
+   scenes.draw()
    gr.setColor{1, 1, 1}
    drawTools()
 end
@@ -114,12 +42,6 @@ function love.textinput(t)
    if not imgui.GetWantCaptureKeyboard() then
        -- Pass event to the game
    end
-end
-
-function keypressedScene(key)
-    if currentScene and currentScene.keypressed then
-        currentScene.keypressed(key)
-    end
 end
 
 local toolsHotkes = {"`", "f1"}
@@ -136,11 +58,10 @@ end
 function love.keypressed(_, key)
    imgui.KeyPressed(key)
    if not imgui.GetWantCaptureKeyboard() then
-       --if key == "`" then
        if checkToolsHotkey(key) then
            toggleTools()
        end
-       keypressedScene(key)
+       scenes.keypressed(key)
        keypressedTools(key)
    end
 end
