@@ -4,11 +4,13 @@ local img = gr.newImage("gfx/fire1.png")
 local vec2 = require "vector-light"
 local ps
 local lastTime
+require "log"
 
 local scale, x, y = 0.031, 10.309, 0
 local imgScale = 0.062
 
 local function init()
+    log("engine init")
     ps = gr.newParticleSystem(img)
 
     ps:setParticleLifetime(1, 3) -- Particles live at least 2s and at most 5s.
@@ -59,7 +61,7 @@ local function update()
 end
 
 local function getEmissionRate()
-    return ps:getEmissionRate()
+    return ps and ps:getEmissionRate() or nil
 end
 
 local function getScale()

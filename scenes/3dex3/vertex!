@@ -1,0 +1,203 @@
+let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
+argglobal
+if bufexists("/usr/share/nvim/runtime/doc/starting.txt") | buffer /usr/share/nvim/runtime/doc/starting.txt | else | edit /usr/share/nvim/runtime/doc/starting.txt | endif
+lmap <buffer> " Э
+lmap <buffer> # №
+lmap <buffer> $ ;
+lmap <buffer> & ?
+lmap <buffer> ' э
+lmap <buffer> , б
+lmap <buffer> . ю
+lmap <buffer> / .
+lmap <buffer> : Ж
+lmap <buffer> ; ж
+lmap <buffer> < Б
+lmap <buffer> > Ю
+lmap <buffer> ? ,
+lmap <buffer> @ "
+lmap <buffer> A Ф
+lmap <buffer> B И
+lmap <buffer> C С
+lmap <buffer> D В
+lmap <buffer> E У
+lmap <buffer> F А
+lmap <buffer> G П
+lmap <buffer> H Р
+lmap <buffer> I Ш
+lmap <buffer> J О
+lmap <buffer> K Л
+lmap <buffer> L Д
+lmap <buffer> M Ь
+lmap <buffer> N Т
+lmap <buffer> O Щ
+lmap <buffer> P З
+lmap <buffer> Q Й
+lmap <buffer> R К
+lmap <buffer> S Ы
+lmap <buffer> T Е
+lmap <buffer> U Г
+lmap <buffer> V М
+lmap <buffer> W Ц
+lmap <buffer> X Ч
+lmap <buffer> Y Н
+lmap <buffer> Z Я
+lmap <buffer> [ х
+lmap <buffer> ] ъ
+lmap <buffer> ^ :
+lmap <buffer> ` ё
+lmap <buffer> a ф
+lmap <buffer> b и
+lmap <buffer> c с
+lmap <buffer> d в
+lmap <buffer> e у
+lmap <buffer> f а
+lmap <buffer> g п
+let s:cpo_save=&cpo
+set cpo&vim
+lmap <buffer> h р
+lmap <buffer> i ш
+lmap <buffer> j о
+lmap <buffer> k л
+lmap <buffer> l д
+lmap <buffer> m ь
+lmap <buffer> n т
+lmap <buffer> o щ
+lmap <buffer> p з
+lmap <buffer> q й
+lmap <buffer> r к
+lmap <buffer> s ы
+lmap <buffer> t е
+lmap <buffer> u г
+lmap <buffer> v м
+lmap <buffer> w ц
+lmap <buffer> x ч
+lmap <buffer> y н
+lmap <buffer> z я
+lmap <buffer> { Х
+lmap <buffer> } Ъ
+lmap <buffer> ~ Ё
+let &cpo=s:cpo_save
+unlet s:cpo_save
+setlocal keymap=russian-jcukenwin
+setlocal noarabic
+setlocal autoindent
+setlocal backupcopy=
+setlocal nobinary
+setlocal nobreakindent
+setlocal breakindentopt=
+setlocal bufhidden=
+setlocal nobuflisted
+setlocal buftype=help
+setlocal nocindent
+setlocal cinkeys=0{,0},0),0],:,0#,!^F,o,O,e
+setlocal cinoptions=
+setlocal cinwords=if,else,while,do,for,switch
+setlocal colorcolumn=80
+setlocal comments=s1:/*,mb:*,ex:*/,://,b:#,:%,:XCOMM,n:>,fb:-
+setlocal commentstring=/*%s*/
+setlocal complete=.,w,b,u,t
+setlocal concealcursor=nc
+setlocal conceallevel=2
+setlocal completefunc=
+setlocal nocopyindent
+setlocal nocursorbind
+setlocal nocursorcolumn
+setlocal nocursorline
+setlocal define=
+setlocal dictionary=
+setlocal nodiff
+setlocal equalprg=
+setlocal errorformat=
+setlocal noexpandtab
+if &filetype != 'help'
+setlocal filetype=help
+endif
+setlocal fillchars=
+setlocal fixendofline
+setlocal foldcolumn=0
+setlocal nofoldenable
+setlocal foldexpr=0
+setlocal foldignore=#
+setlocal foldlevel=5
+setlocal foldmarker={{{,}}}
+setlocal foldmethod=manual
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldtext=foldtext()
+setlocal formatexpr=
+setlocal formatoptions=jtcroql
+setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
+setlocal formatprg=
+setlocal grepprg=
+setlocal iminsert=0
+setlocal imsearch=0
+setlocal include=
+setlocal includeexpr=
+setlocal indentexpr=
+setlocal indentkeys=0{,0},0),0],:,0#,!^F,o,O,e
+setlocal noinfercase
+setlocal iskeyword=!-~,^*,^|,^\",192-255
+setlocal keywordprg=:help
+setlocal nolinebreak
+setlocal nolisp
+setlocal lispwords=
+setlocal nolist
+setlocal listchars=
+setlocal makeencoding=
+setlocal makeprg=
+setlocal matchpairs=(:),{:},[:]
+setlocal modeline
+setlocal nomodifiable
+setlocal nrformats=bin,hex
+setlocal nonumber
+setlocal numberwidth=4
+setlocal omnifunc=
+setlocal path=
+setlocal nopreserveindent
+setlocal nopreviewwindow
+setlocal quoteescape=\\
+setlocal readonly
+setlocal norelativenumber
+setlocal norightleft
+setlocal rightleftcmd=search
+setlocal scrollback=-1
+setlocal noscrollbind
+setlocal shiftwidth=4
+setlocal signcolumn=auto
+setlocal nosmartindent
+setlocal softtabstop=4
+setlocal nospell
+setlocal spellcapcheck=[.?!]\\_[\\])'\"\	\ ]\\+
+setlocal spellfile=
+setlocal spelllang=en
+setlocal statusline=%!airline#statusline(1)
+setlocal suffixesadd=
+setlocal noswapfile
+setlocal synmaxcol=3000
+if &syntax != 'help'
+setlocal syntax=help
+endif
+setlocal tabstop=8
+setlocal tagcase=
+setlocal tags=
+setlocal textwidth=78
+setlocal thesaurus=
+setlocal noundofile
+setlocal undolevels=-123456
+setlocal winblend=0
+setlocal winhighlight=
+setlocal nowinfixheight
+setlocal nowinfixwidth
+setlocal nowrap
+setlocal wrapmargin=0
+silent! normal! zE
+let s:l = 865 - ((23 * winheight(0) + 12) / 25)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+865
+normal! 064|
+lcd ~/myprojects/3dex3
+let &so = s:so_save | let &siso = s:siso_save
+doautoall SessionLoadPost
+" vim: set ft=vim :

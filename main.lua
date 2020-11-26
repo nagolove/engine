@@ -1,28 +1,78 @@
 --:setlocal foldmethod=manual
 require "imgui"
 require "tools"
+require "log"
+local inspect = require "inspect"
 
 local gr = love.graphics
 
 __FREEZE_PHYSICS__ = true
 
-local scenes = {}
-scenes[1] = love.filesystem.load("scenes/1.lua")()
-scenes[2] = love.filesystem.load("scenes/2.lua")()
+-- возвращает таблицу вида {scene, name} со сцена из указанного каталога
+function loadScenes(path)
+    local scenes = {}
+    local files = love.filesystem.getDirectoryItems(path)
+    for k, v in pairs(files) do
+        local info = love.filesystem.getInfo(path .. "/" .. v)
+        local scene, fname, name
+        if info.type == "directory" then
+            fname = string.format("%s/%s%s", path, v, "/init.lua")
+            name = v
+        elseif info.type == "file" then
+            fname = path .. "/" .. v
+            name = string.match(v, "(.+)%.lua")
+        end
+        logf("loading scene %s", fname)
+        local ok, errmsg = pcall(function()
+            scene = love.filesystem.load(fname)()
+        end)
+        if ok and scene then
+            table.insert(scenes, { scene = scene, name = name })
+        else
+            if errmsg then
+                logferror("Error: %s", errmsg)
+            else
+                logferror("No file for loading: %s", fname)
+            end
+        end
+    end
+    return scenes
+end
+
+local scenes = loadScenes("scenes")
+print("scenes", inspect(scenes))
+--scenes[1] = love.filesystem.load("scenes/1.lua")()
+--scenes[2] = love.filesystem.load("scenes/2.lua")()
+function setCurrentScene(sceneName)
+    for k, v in pairs(scenes) do
+        print("v", inspect(v), sceneName)
+        if sceneName == v.name then
+            currentScene = v.scene
+        end
+    end
+end
 
 currentScene = nil
 
 function initScenes()
     for k, v in pairs(scenes) do
-        if v.init then
-            v.init()
+        local scene = v.scene
+        local ok, errmsg = pcall(function()
+            if scene.init then
+                scene.init()
+            end
+        end)
+        if not ok then
+            logferror("Error in scene init %s", v.name)
         end
     end
 end
 
 function love.load(arg)
     initScenes()
-    currentScene = scenes[2]
+    
+    setCurrentScene("2")
+
     initTools(currentScene)
 end
 

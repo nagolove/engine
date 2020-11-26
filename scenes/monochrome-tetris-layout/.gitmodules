@@ -1,0 +1,3 @@
+[submodule "touchgui"]
+	path = touchgui
+	url = ../touchgui

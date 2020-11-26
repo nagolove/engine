@@ -63,6 +63,8 @@ local function init(currentScene)
     if currentScene then
         pworld = currentScene.pworld
         cam = currentScene.cam
+    else
+        cam = require "camera".new()
     end
     levels = findLevels()
 end

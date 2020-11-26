@@ -28,7 +28,8 @@ function drawParticleEditor()
     spread = newspread
     --print("r1, r2", r1, r2)
 
-    imgui.LabelText("emmision rate", engine.getEmissionRate())
+    local emmisionRate = engine.getEmissionRate() or "<nil>"
+    imgui.LabelText("emmision rate", emmisionRate)
 
     local value, ok = imgui.SliderFloat("scale", engine.getScale(), 0, 2)
     if ok then
