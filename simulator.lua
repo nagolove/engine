@@ -102,6 +102,7 @@ function initCell(t)
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
     self.diedCoro = coroutine.create(function()
+        print("died")
         for i = 1, 2 do
             return coroutine.yield()
         end
@@ -115,7 +116,8 @@ end
 -- возвращает [boolean], [cell table]
 -- isalive, cell
 function updateCell(cell)
-    if cell.ip > #cell.code then
+    print("cell ip", cell.ip)
+    if cell.ip >= #cell.code then
         cell.ip = 1
     end
     if cell.energy > 0 then
@@ -259,15 +261,14 @@ function initCellOneCommandCode(command, steps)
 end
 
 function initialEmit()
-    --[[
-       [for i = 1, cellsNum do
-       [    --coroutine.yield(initCell())
-       [    print("i", i)
-       [    coroutine.yield()
-       [    initCell()
-       [end
-       ]]
-    local steps = 2500
+    --for i = 1, cellsNum do
+        ----coroutine.yield(initCell())
+        --print("i", i)
+        --coroutine.yield()
+        --initCell()
+    --end
+
+    local steps = 5
     initCellOneCommandCode("right", steps)
     initCellOneCommandCode("left", steps)
     initCellOneCommandCode("up", steps)

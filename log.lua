@@ -11,7 +11,7 @@ function log(...)
             str = str ..  "\t" .. tostring(arg)
         end
     end
-    print(str)
+    print(colors(str))
 end
 
 function logwarn(...)
@@ -43,7 +43,7 @@ function logerror(...)
 end
 
 function logf(...)
-    print(string.format(...))
+    print(colors(string.format(...)))
 end
 
 function logfwarn(...)

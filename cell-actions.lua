@@ -16,7 +16,6 @@ function actions.left(cell)
     if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
         pos.x = pos.x - 1
     elseif pos.x <= 1 and not isAlive(gridSize, pos.y) then
-        print("left second branch")
         pos.x = gridSize
     end
 end
@@ -26,7 +25,6 @@ function actions.right(cell)
     if pos.x < gridSize and not isAlive(pos.x + 1, pos.y) then
         pos.x = pos.x + 1
     elseif pos.x >= gridSize and not isAlive(1, pos.y) then
-        print("right second branch")
         pos.x = 1
     end
 end
