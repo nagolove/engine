@@ -198,7 +198,7 @@ function emitFoodInRandomPoint()
     end
 end
 
-function emit(iter)
+function emitFood(iter)
     --for i = 1, math.log(iter) / 10 do
     for i = 1, 3 do
         local emited, gridcell = emitFoodInRandomPoint()
@@ -248,13 +248,28 @@ function updateCells()
     return alive
 end
 
-function initialEmit()
-    for i = 1, cellsNum do
-        --coroutine.yield(initCell())
-        print("i", i)
-        coroutine.yield()
-        initCell()
+function initCellOneCommandCode(command, steps)
+    local cell = initCell()
+    cell.code = {}
+    for i = 1, steps do
+        table.insert(cell.code, command)
     end
+end
+
+function initialEmit()
+    --[[
+       [for i = 1, cellsNum do
+       [    --coroutine.yield(initCell())
+       [    print("i", i)
+       [    coroutine.yield()
+       [    initCell()
+       [end
+       ]]
+    local steps = 2500
+    initCellOneCommandCode("right", steps)
+    initCellOneCommandCode("left", steps)
+    initCellOneCommandCode("up", steps)
+    initCellOneCommandCode("down", steps)
 end
 
 function postinitialEmit(iter)
@@ -281,16 +296,15 @@ function experiment()
 
     while #cells > 0 do
         -- дополнительное создание клеток в зависимости от iter
-        --if coroutine.resume(postinitialEmitCoro) then
-        --end
+        if coroutine.resume(postinitialEmitCoro) then
+        end
 
         --if mode == "bystep" and stepPressed == true or mode == "continuos" then
         do
             --coroutine.resume(initialEmit, iter)
 
             -- создать сколько-то еды
-            --emitFood(iter)
-            emit()
+            emitFood(iter)
 
             -- проход по ячейкам и вызов их программ
             cells = updateCells()
