@@ -241,6 +241,9 @@ local function quit()
 end
 
 return {
+    getPixSize = function()
+        return pixSize
+    end,
     cam = cam, 
     pworld = pworld,
 

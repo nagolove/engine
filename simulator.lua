@@ -116,7 +116,7 @@ end
 -- возвращает [boolean], [cell table]
 -- isalive, cell
 function updateCell(cell)
-    print("cell ip", cell.ip)
+    --print("cell ip", cell.ip)
     if cell.ip >= #cell.code then
         cell.ip = 1
     end
@@ -273,6 +273,7 @@ function initialEmit()
     initCellOneCommandCode("left", steps)
     initCellOneCommandCode("up", steps)
     initCellOneCommandCode("down", steps)
+    initCell()
 end
 
 function postinitialEmit(iter)

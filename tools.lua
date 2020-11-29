@@ -1,12 +1,5 @@
 require "log"
 
---tools[1] = love.filesystem.load("colorselector.lua")()
---tools[2] = love.filesystem.load("box2dtool.lua")()
---tools[3] = love.filesystem.load("cameratool.lua")()
---tools[4] = love.filesystem.load("hotkeystool.lua")()
---tools[5] = love.filesystem.load("terraintool.lua")()
---tools[6] = love.filesystem.load("particlestool.lua")()
---tools[7] = love.filesystem.load("shiptool.lua")()
 local function loadTools()
     local tools = {}
     local files = love.filesystem.getDirectoryItems("")
