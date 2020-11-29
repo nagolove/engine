@@ -96,16 +96,22 @@ end
 local function draw()
     imgui.Begin("cell", false, "ImGuiWindowFlags_AlwaysAutoResize")
 
+    imgui.Text(string.format("mode %s", automatoScene.getMode()))
+
+    if imgui.Button("change mode", automatoScene.getMode()) then
+        automatoScene.nextMode()
+    end
+
+    if imgui.Button("reset silumation") then
+        sim.create()
+    end
+
     if underCursor then
         drawCellInfo(getCellPositon(underCursor))
     end
 
-    imgui.Text(string.format("__FREEZE_PHYSICS__ = %s", tostring(__FREEZE_PHYSICS__ or false)))
-
     imgui.End()
     gr.setColor{1, 1, 1, 1}
-
-    underCursor = nil
 end
 
 function keypressed(key)
@@ -134,5 +140,3 @@ return {
     mousemoved = mousemoved,
     keypressed = keypressed,
 }
-
-

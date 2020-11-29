@@ -188,25 +188,26 @@ function drawFinishedExperiment()
     gr.print(string.format("Finished"), 0, y0, 100, "center")
 end
 
-function nextMode(m)
-    local r = ""
-    if m == "continuos" then
-        r = "bystep"
-    elseif m == "bystep" then
-        r = "continuos"
+local function nextMode()
+    print("_mode", mode)
+    if mode == "continuos" then
+        mode = "bystep"
+    print("mode", mode)
+    elseif mode == "bystep" then
+        mode = "continuos"
+    print("mode", mode)
     end
-    return r
+    print("_mode", mode)
 end
 
 local function update()
     stepPressed = love.keyboard.isDown("s")
-
-    --if mode == "bystep" and stepPressed == true or mode == "continuos" then
+    print("stepPressed", stepPressed)
+    print("mode", mode)
+    if mode == "bystep" and stepPressed == true or mode == "continuos" then
         sim.step()
-    --end
-    --if err then
-        --drawFinishedExperiment()
-    --end
+    end
+    
     updateGraphic()
     checkMouse()
 end
@@ -222,8 +223,7 @@ local function keypressed(key)
         setViewState("graph")
     end
     if key == "p" then
-        mode = nextMode(mode)
-        print("new mode", mode)
+        nextMode()
     end
 end
 
@@ -244,6 +244,10 @@ return {
     getPixSize = function()
         return pixSize
     end,
+    getMode = function()
+        return mode
+    end,
+    nextMode = nextMode,
     cam = cam, 
     pworld = pworld,
 
