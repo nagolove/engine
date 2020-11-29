@@ -42,6 +42,7 @@ function drawTools()
 end
 
 function toggleTools()
+    print("toggleTools")
     devshow = not devshow
 end
 

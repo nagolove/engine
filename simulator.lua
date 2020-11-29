@@ -268,8 +268,7 @@ end
 
 function experiment()
     local initialEmitCoro = coroutine.create(initialEmit)
-    coroutine.resume(initialEmitCoro) 
-    --while coroutine.resume(initialEmitCoro) do end
+    while coroutine.resume(initialEmitCoro) do end
 
     grid = getFalseGrid(oldGrid)
 
@@ -290,7 +289,8 @@ function experiment()
             --coroutine.resume(initialEmit, iter)
 
             -- создать сколько-то еды
-            emitFood(iter)
+            --emitFood(iter)
+            emit()
 
             -- проход по ячейкам и вызов их программ
             cells = updateCells()
@@ -314,10 +314,13 @@ function experiment()
     saveDeadCellsLog(removed)
 end
 
+local experimentErrorPrinted = false
+
 function step()
     local err, errmsg = coroutine.resume(experimentCoro)
-    if not err then
-        print(string.format("coroutine error %s", errmsg))
+    if not err and not experimentErrorPrinted then
+        experimentErrorPrinted = true
+        logfwarn("coroutine error %s", errmsg)
     end
 end
 
@@ -325,7 +328,7 @@ function create()
     experimentCoro = coroutine.create(function()
         local ok, errmsg = pcall(experiment)
         if not ok then
-            print(string.format("Error %s", errmsg))
+            logferror("Error %s", errmsg)
         end
     end)
     coroutine.resume(experimentCoro)

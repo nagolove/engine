@@ -215,7 +215,7 @@ function setViewState(stateName)
     viewState = stateName
 end
 
-love.keypressed = function(_, key)
+local function keypressed(key)
     if key == "1" then
         setViewState("sim")
     elseif key == "2" then

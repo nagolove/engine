@@ -14,7 +14,9 @@ function love.load(arg)
     scenes.initLoaded()
 
     --scenes.setCurrentScene("wavegrid")
-    scenes.setCurrentScene("1")
+    --scenes.setCurrentScene("1")
+    --scenes.setCurrentScene("2")
+    scenes.setCurrentScene("automato")
 
     initTools(currentScene)
 end
@@ -60,8 +62,7 @@ end
 function love.keypressed(_, key)
    imgui.KeyPressed(key)
    if not imgui.GetWantCaptureKeyboard() then
-       --if checkToolsHotkey(key) then
-       if key == "f1" then
+       if checkToolsHotkey(key) then
            toggleTools()
        end
        scenes.keypressed(key)
