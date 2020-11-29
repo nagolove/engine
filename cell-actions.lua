@@ -13,33 +13,39 @@ end
 
 function actions.left(cell)
     pos = cell.pos
-    --print("left", grid[pos.x - 1][pos.y])
     if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
         pos.x = pos.x - 1
+    elseif pos.x <= 1 and not isAlive(gridSize, pos.y) then
+        print("left second branch")
+        pos.x = gridSize
     end
 end
 
 function actions.right(cell)
     pos = cell.pos
-    --print("right", grid[pos.x + 1][pos.y])
     if pos.x < gridSize and not isAlive(pos.x + 1, pos.y) then
         pos.x = pos.x + 1
+    elseif pos.x >= gridSize and not isAlive(1, pos.y) then
+        print("right second branch")
+        pos.x = 1
     end
 end
 
 function actions.up(cell)
     pos = cell.pos
-    --print("up", grid[pos.x][pos.y - 1])
     if pos.y > 1 and not isAlive(pos.x, pos.y - 1) then
         pos.y = pos.y - 1
+    elseif pos.y <= 1 and not isAlive(pos.x, gridSize) then
+        pos.y = gridSize
     end
 end
 
 function actions.down(cell)
     pos = cell.pos
-    --print("down", grid[pos.x][pos.y + 1])
     if pos.y < gridSize and not isAlive(pos.x, pos.y + 1) then
         pos.y = pos.y + 1
+    elseif pos.y >= gridSize and not isAlive(pos.x, 1) then
+        pos.y = 1
     end
 end
 

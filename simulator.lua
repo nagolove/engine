@@ -124,6 +124,7 @@ function updateCell(cell)
         cell.energy = cell.energy - 1
         return true, cell
     else
+        print("not energy")
         return false, cell
     end
 end
@@ -200,7 +201,8 @@ end
 
 function emitFood(iter)
     --for i = 1, math.log(iter) / 10 do
-    for i = 1, 3 do
+    --for i = 1, 3 do
+    for i = 1, 0 do
         local emited, gridcell = emitFoodInRandomPoint()
         if not emited then
             -- здесь исследовать причины смерти яцейки
