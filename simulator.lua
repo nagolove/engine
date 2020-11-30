@@ -260,6 +260,29 @@ function initCellOneCommandCode(command, steps)
     end
 end
 
+function cloneCell(cell, newx, newy)
+    if not isAlive(newx, newy) then
+        local new = {}
+        for k, v in pairs(cell) do
+            if type(v) ~= "table" then
+                new[k] = v
+            else
+                new[k] = {}
+                for k1, v1 in pairs(v) do
+                    new[k][k1] = v1
+                end
+            end
+        end
+        new.pos.x, new.pos.y = newx, newy
+        print("cloned cell")
+        table.insert(cells, new)
+        return new
+    else
+        print("nothing in clone")
+        return nil
+    end
+end
+
 function initialEmit()
     --for i = 1, cellsNum do
         ----coroutine.yield(initCell())
@@ -269,11 +292,12 @@ function initialEmit()
     --end
 
     local steps = 5
+    local c = initCell()
+    cloneCell(c, 10, 10)
     initCellOneCommandCode("right", steps)
     initCellOneCommandCode("left", steps)
     initCellOneCommandCode("up", steps)
     initCellOneCommandCode("down", steps)
-    initCell()
 end
 
 function postinitialEmit(iter)

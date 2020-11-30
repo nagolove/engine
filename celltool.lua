@@ -59,13 +59,12 @@ local function mousemoved(x, y, dx, dy)
 end
 
 local function getCellPositon(pos)
-    --return nil
     local grid = sim.getGrid()
     print("pos", inspect(pos))
     local x, y = pos.x, pos.y
-    if x >= 1 and x <= sim.getGridSize() and
-        y >= 1 and y <= sim.getGridSize() then
-        return grid[x][y]
+    if x + 1 >= 1 and x + 1 <= sim.getGridSize() and
+        y + 1 >= 1 and y + 1 <= sim.getGridSize() then
+        return grid[x + 1][y + 1]
     end
 
     print(pos.x, pos.y)
@@ -116,11 +115,6 @@ end
 
 function keypressed(key)
     if key == "p" then
-        if __FREEZE_PHYSICS__ then
-            __FREEZE_PHYSICS__ = not __FREEZE_PHYSICS__
-        else
-            __FREEZE_PHYSICS__ = true
-        end
     end
 end
 
