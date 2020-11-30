@@ -104,22 +104,24 @@ end
 
 local function draw()
     if viewState == "sim" then
-        --gr.push()
-        --if mouseCapture then
-            --gr.translate(-mouseCapture.dx, -mouseCapture.dy)
-        --end
+        if mouseCapture then
+            cam:attach()
+            cam:move(-mouseCapture.dx, -mouseCapture.dy)
+        end
 
         drawGrid()
         drawCells()
         drawStatistic()
 
-        --gr.pop()
+        if mouseCapture then
+            cam:detach()
+        end
     elseif viewState == "graph" then
         drawGraphs()
     end
 end
 
-function checkMouse()
+local function checkMouse()
     if love.mouse.isDown(1) then
         if not mouseCapture then
             mouseCapture = { 
@@ -137,7 +139,7 @@ function checkMouse()
     end
 end
 
-function updateGraphic()
+local function updateGraphic()
 
     if not lastGraphicPoint then
         local statistic = sim.statistic
