@@ -191,21 +191,23 @@ function drawFinishedExperiment()
 end
 
 local function nextMode()
-    print("_mode", mode)
+    --print("_mode", mode)
     if mode == "continuos" then
         mode = "bystep"
-    print("mode", mode)
+    --print("mode", mode)
     elseif mode == "bystep" then
         mode = "continuos"
-    print("mode", mode)
+    --print("mode", mode)
     end
-    print("_mode", mode)
+    --print("_mode", mode)
 end
 
 local function update()
     stepPressed = love.keyboard.isDown("s")
-    print("stepPressed", stepPressed)
-    print("mode", mode)
+
+    --print("stepPressed", stepPressed)
+    --print("mode", mode)
+
     if mode == "bystep" and stepPressed == true or mode == "continuos" then
         sim.step()
     end

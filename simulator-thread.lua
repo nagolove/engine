@@ -366,10 +366,7 @@ function step()
     end
 end
 
-local function create()
-    local processorCount = love.system.getProcessorCount()
-    print("processorCount", processorCount)
-
+function create()
     experimentCoro = coroutine.create(function()
         local ok, errmsg = pcall(experiment)
         if not ok then
