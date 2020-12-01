@@ -366,8 +366,13 @@ function step()
     end
 end
 
+local threads = {}
+
 local function create()
     local processorCount = love.system.getProcessorCount()
+    for i = 1, processorCount - 2 do
+        --tables.insert(threads, love.newThread("simulator-thread.lua"))
+    end
     print("processorCount", processorCount)
 
     experimentCoro = coroutine.create(function()
