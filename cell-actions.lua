@@ -114,7 +114,7 @@ function actions.eat8(cell)
             -- проверка на нахождение еды в определенной клетке и поедание
             --print(inspect(dish))
             if dish.food then
-                print("eat8 at", newt.x, newt.y)
+                --print("eat8 at", newt.x, newt.y)
                 dish.energy = 0
                 cell.energy = cell.energy + ENERGY
                 incEat(cell)
@@ -139,7 +139,7 @@ function actions.eat8move(cell)
             -- проверка на нахождение еды в определенной клетке и поедание
             --print(inspect(dish))
             if dish.food then
-                print("eat8move at", newt.x, newt.y)
+                --print("eat8move at", newt.x, newt.y)
                 dish.energy = 0
                 cell.energy = cell.energy + ENERGY
                 cell.pos.x = newt.x

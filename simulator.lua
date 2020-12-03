@@ -70,12 +70,22 @@ local removed = {}
 local experimentCoro
 
 function genCode()
-    local code = {}
-    local len = #codeValues
-    for i = 1, codeLen do
-        table.insert(code, codeValues[math.random(1, len)])
-    end
-    return code
+    --[[
+       [local code = {}
+       [local len = #codeValues
+       [for i = 1, codeLen do
+       [    table.insert(code, codeValues[math.random(1, len)])
+       [end
+       [return code
+       ]]
+
+       local code = {}
+       local len = #codeValues
+       for i = 1, codeLen / 2 do
+           table.insert(code, "eat8")
+           table.insert(code, codeValues[math.random(1, len)])
+       end
+       return code
 end
 
 -- t.pos, t.code
@@ -284,15 +294,13 @@ function cloneCell(cell, newx, newy)
 end
 
 function initialEmit()
-    --[[
-       [for i = 1, cellsNum do
-       [    --coroutine.yield(initCell())
-       [    print("i", i)
-       [    coroutine.yield()
-       [    initCell()
-       [end
-       ]]
-    initCell()
+    for i = 1, cellsNum do
+        --coroutine.yield(initCell())
+        print("i", i)
+        coroutine.yield()
+        initCell()
+    end
+    --initCell()
 
     --[[
        [local steps = 5

@@ -52,15 +52,14 @@ local function mousemoved(x, y, dx, dy)
         brx, bry = cam:worldCoords(brx, bry)
     end
 
-    x = math.floor(x / automatoScene.getPixSize())
-    y = math.floor(y / automatoScene.getPixSize())
-    print("mousemoved x, y", x, y)
-    underCursor = {x = x, y = y}
+    underCursor = {
+        x = math.floor(x / automatoScene.getPixSize()),
+        y = math.floor(y / automatoScene.getPixSize())
+    }
 end
 
 local function getCellPositon(pos)
     local grid = sim.getGrid()
-    print("pos", inspect(pos))
     local x, y = pos.x, pos.y
     if x + 1 >= 1 and x + 1 <= sim.getGridSize() and
         y + 1 >= 1 and y + 1 <= sim.getGridSize() then
