@@ -351,6 +351,10 @@ function experiment()
 
     coroutine.yield()
 
+    for i = 0, 10000 do
+        emitFoodInRandomPoint()
+    end
+
     local postinitialEmitCoro = coroutine.create(postinitialEmit)
 
     while #cells > 0 do
@@ -363,7 +367,7 @@ function experiment()
             --coroutine.resume(initialEmit, iter)
 
             -- создать сколько-то еды
-            emitFood(iter)
+            --emitFood(iter)
 
             -- проход по ячейкам и вызов их программ
             cells = updateCells()
