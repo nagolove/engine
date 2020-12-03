@@ -203,8 +203,8 @@ end
 
 function emitFood(iter)
     --for i = 1, math.log(iter) / 10 do
-    --for i = 1, 3 do
-    for i = 1, 0 do
+    for i = 1, 3 do
+    --for i = 1, 0 do
         local emited, gridcell = emitFoodInRandomPoint()
         if not emited then
             -- здесь исследовать причины смерти яцейки
@@ -284,20 +284,25 @@ function cloneCell(cell, newx, newy)
 end
 
 function initialEmit()
-    --for i = 1, cellsNum do
-        ----coroutine.yield(initCell())
-        --print("i", i)
-        --coroutine.yield()
-        --initCell()
-    --end
+    --[[
+       [for i = 1, cellsNum do
+       [    --coroutine.yield(initCell())
+       [    print("i", i)
+       [    coroutine.yield()
+       [    initCell()
+       [end
+       ]]
+    initCell()
 
-    local steps = 5
-    local c = initCell()
-    cloneCell(c, 10, 10)
-    initCellOneCommandCode("right", steps)
-    initCellOneCommandCode("left", steps)
-    initCellOneCommandCode("up", steps)
-    initCellOneCommandCode("down", steps)
+    --[[
+       [local steps = 5
+       [local c = initCell()
+       [cloneCell(c, 10, 10)
+       [initCellOneCommandCode("right", steps)
+       [initCellOneCommandCode("left", steps)
+       [initCellOneCommandCode("up", steps)
+       [initCellOneCommandCode("down", steps)
+       ]]
 end
 
 function postinitialEmit(iter)

@@ -71,23 +71,34 @@ local function getCellPositon(pos)
     return nil
 end
 
+local function replaceCaret(str)
+    return string.gsub(str, "\n", "")
+end
+
 local function drawCellInfo(cell)
+    if not cell then
+        return
+    end
+
     local msg
-    imgui.Text(inspect(cell))
-    if cell then
-        if cell.pos and cell.pos.x and cell.pos.y then
-            msg = string.format("%d, %d", cell.pos.x, cell.pos.y)
-            imgui.LabelText("position", msg)
-        end
-
-        if cell.ip then
-            msg = string.format("%d", cell.ip)
-            imgui.LabelText("ip", msg)
-        end
-
-        if cell.code then
-            msg = string.format("%d", #cell.code)
-            imgui.LabelText("code length", msg)
+    for k, v in pairs(cell) do
+        if k ~= "code" then
+            local fmt 
+            local functor = function(a) return a end
+            local tp = type(v)
+            if tp == "number" then
+                fmt = "%d"
+            elseif tp == "table" then
+                fmt = "%s"
+                functor = function(a)
+                    return replaceCaret(inspect(a))
+                end
+            else
+                fmt = "%s"
+                functor = tostring
+            end
+            msg = string.format(fmt, functor(v))
+            imgui.LabelText(k, msg)
         end
     end
 end
