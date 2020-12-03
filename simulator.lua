@@ -189,7 +189,7 @@ function gatherStatistic()
         sumEnergy = 1
     end
     --print("num, midEnergy", num, sumEnergy)
-    print("getAllEated()", actionsModule.getAllEated())
+    --print("getAllEated()", actionsModule.getAllEated())
     return { 
         maxEnergy = maxEnergy,
         minEnergy = minEnergy,
@@ -363,11 +363,12 @@ function experiment()
         --coroutine.resume(initialEmit, iter)
 
         -- создать сколько-то еды
-        --emitFood(iter)
+        emitFood(iter)
 
-        -- проход по ячейкам и вызов их программ
+        -- проход по списку клеток и вызов их программ.
         cells = updateCells(cells)
         
+        -- проход по списку еды и проверка на съеденность
         meal = updateMeal(meal)
 
         -- сброс решетки после уничтожения некоторых клеток
@@ -375,9 +376,6 @@ function experiment()
 
         -- обновление решетки по списку живых клеток и списку еды
         updateGrid()
-
-        --emitFoodInRandomPoint()
-        --emitFoodInRandomPoint()
 
         statistic = gatherStatistic()
         iter = iter + 1
@@ -400,6 +398,10 @@ end
 
 local threads = {}
 
+local function getGrid()
+    return grid
+end
+
 local function create()
     local processorCount = love.system.getProcessorCount()
     for i = 1, processorCount - 2 do
@@ -414,17 +416,17 @@ local function create()
         end
     end)
     coroutine.resume(experimentCoro)
-    actionsModule.init(grid, gridSize, { initCell_fn = initCell })
+    actionsModule.init(getGrid, gridSize, { initCell_fn = initCell })
     actions = actionsModule.actions
 end
 
 return {
     create = create,
-    getGrid = function()
-        return grid
-    end,
+    getGrid = getGrid,
     step = step,
-    statistic = statistic,
+    getStatistic = function()
+        return statistic
+    end,
     getIter = function()
         return iter
     end,

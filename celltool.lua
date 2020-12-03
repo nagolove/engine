@@ -29,20 +29,6 @@ local function init(currentScene)
     underCursor = {x = mx, y = my}
 end
 
-local function drawBodyVectors(body)
-    local masscx, masscy, _, _ = body:getMassData()
-    masscx, masscy = body:getWorldPoints(masscx, masscy)
-    masscx, masscy = M2PIX * masscx, M2PIX * masscy
-
-    gr.setColor{1, 0, 0}
-    gr.circle("fill", masscx, masscy, 3)
-
-    local vx, vy = body:getLinearVelocity()
-
-    gr.setColor(0.7, 0, 0)
-    gr.line(masscx, masscy, masscx + vx, masscy + vy)
-end
-
 local function mousemoved(x, y, dx, dy)
     local w, h = gr.getDimensions()
     local tlx, tly, brx, bry = 0, 0, w, h
@@ -115,9 +101,9 @@ local function draw()
         sim.create()
     end
 
-    if sim.statistic and sim.statistic.allEated then
+    if sim.getStatistic() and sim.getStatistic().allEated then
         print("statistic", inspect(sim.statistic))
-        imgui.LabelText(sim.statistic.allEated, "all eated")
+        imgui.LabelText(sim.getStatistic().allEated, "all eated")
     end
 
     if underCursor then

@@ -9,8 +9,7 @@ local MID_ENERGY_COLOR = {0.8, 0.3, 0.7, 1}
 local MIN_ENERGY_COLOR = {0.6, 0.1, 1, 1}
 local lastGraphicPoint
 -- continuos, bystep
---local mode = "continuos"
-local mode = "bystep"
+local mode = "continuos"
 
 local stepPressed = false
 local sim = require "simulator"
@@ -142,9 +141,8 @@ local function checkMouse()
 end
 
 local function updateGraphic()
-
+    local statistic = sim.getStatistic()
     if not lastGraphicPoint then
-        local statistic = sim.statistic
         if statistic then
             lastGraphicPoint = {
                 max = statistic.maxEnergy,
@@ -153,31 +151,31 @@ local function updateGraphic()
             }
         end
     end
+    local getIter = sim.getIter
 
     gr.setCanvas(graphCanvas)
     local w, h = graphCanvas:getDimensions()
 
     if lastGraphicPoint.max then
         gr.setColor(MAX_ENERGY_COLOR)
-        gr.line(sim.getIter() - 1, h - lastGraphicPoint.max, 
-        getIter(), h - statistic.maxEnergy)
+        gr.line(getIter() - 1, h - lastGraphicPoint.max, 
+            getIter(), h - statistic.maxEnergy)
     end
 
     if lastGraphicPoint.mid then
         gr.setColor(MID_ENERGY_COLOR)
-        gr.line(sim.getIter() - 1, h - lastGraphicPoint.mid, 
-        getIter(), h - statistic.midEnergy)
+        gr.line(getIter() - 1, h - lastGraphicPoint.mid, 
+            getIter(), h - statistic.midEnergy)
     end
 
     if lastGraphicPoint.min then
         gr.setColor(MIN_ENERGY_COLOR)
-        gr.line(sim.getIter() - 1, h - lastGraphicPoint.min, 
-        getIter(), h - statistic.minEnergy)
+        gr.line(getIter() - 1, h - lastGraphicPoint.min, 
+            getIter(), h - statistic.minEnergy)
     end
 
     gr.setCanvas()
 
-    local statistic = sim.statistic
     if statistic.maxEnergy and statistic.midEnergy and statistic.minEnergy then
         lastGraphicPoint = {
             max = statistic.maxEnergy,

@@ -1,6 +1,6 @@
 require "external"
 local inspect = require "inspect"
-local grid
+local getGrid
 local gridSize
 local actions = {}
 local ENERGY = 1000
@@ -8,7 +8,7 @@ local initCell
 local allEated = 0
 
 function isAlive(x, y)
-    local t = grid[x][y]
+    local t = getGrid()[x][y]
     return t.energy and t.energy > 0
 end
 
@@ -87,7 +87,7 @@ function actions.checkAndEat(cell)
     -- проверка на выход за границы поля
     if newt.x >= 1 and newt.x < gridSize and
         newt.y >= 1 and newt.y < gridSize then
-        local dish = grid[newt.x][newt.y]
+        local dish = getGrid()[newt.x][newt.y]
         -- проверка на нахождение еды в определенной клетке и поедание
         --print(inspect(dish))
         if dish.food then
@@ -112,10 +112,11 @@ function actions.eat8(cell)
         -- проверка на выход за границы поля
         if nx >= 1 and nx <= gridSize and
             ny >= 1 and ny <= gridSize then
+            local grid = getGrid()
             local dish = grid[nx][ny]
             -- проверка на нахождение еды в определенной клетке и поедание
             if dish and dish.food then
-                grid[nx][ny].food = nil
+                getGrid()[nx][ny].food = nil
                 dish.energy = 0
                 cell.energy = cell.energy + ENERGY
                 incEat(cell)
@@ -136,7 +137,7 @@ function actions.eat8move(cell)
         -- проверка на выход за границы поля
         if newt.x >= 1 and newt.x < gridSize and
             newt.y >= 1 and newt.y < gridSize then
-            local dish = grid[newt.x][newt.y]
+            local dish = getGrid()[newt.x][newt.y]
             -- проверка на нахождение еды в определенной клетке и поедание
             --print(inspect(dish))
             if dish.food then
@@ -164,7 +165,7 @@ function listNeighbours(x, y, cb)
     for k, displacement in pairs(around) do
         local nx, ny = x + displacement[1], y + displacement[2]
         if nx >= 1 and nx < gridSize and ny >= 1 and ny < gridSize then
-            if not cb(nx, ny, grid[nx][ny]) then
+            if not cb(nx, ny, getGrid()[nx][ny]) then
                 break
             end
         end
@@ -238,7 +239,7 @@ function actions.cross(cell)
                 if found then
                     local t = {
                         pos = {x = pos.x, y = pos.y},
-                        code = mixCode(cell, grid[x][y])
+                        code = mixCode(cell, getGrid()[x][y])
                     }
                     print("new cell!")
                     initCell(t)
@@ -248,8 +249,9 @@ function actions.cross(cell)
     end
 end
 
-function init(externalGrid, externalGridSize, functions)
-    grid = externalGrid
+function init(getGridFunc, externalGridSize, functions)
+    assert(type(getGridFunc) == "function")
+    getGrid = getGridFunc
     gridSize = externalGridSize
     initCell = functions.initCell_fn
     allEated = 0
