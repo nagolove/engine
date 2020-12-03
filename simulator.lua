@@ -9,6 +9,7 @@ local cellsNum = 2000
 local initialEnergy = {500, 1000}
 local iter = 0
 local statistic = {}
+local IdCounter = 0
 
 -- вместилище команд "up", "left"  и прочего алфавита
 local genomStore = {}
@@ -57,9 +58,9 @@ local codeValues = {
     "right",
     "up",
     "down",
-    "eat8move",
+    --"eat8move",
     "eat8",
-    "checkAndEat",
+    --"checkAndEat",
     "cross",
 }
 
@@ -88,6 +89,11 @@ function genCode()
        return code
 end
 
+local function getId()
+    IdCounter = IdCounter + 1
+    return IdCounter
+end
+
 -- t.pos, t.code
 function initCell(t)
     t = t or {}
@@ -108,6 +114,7 @@ function initCell(t)
     else
         self.code = genCode()
     end
+    self.id = getId()
     self.ip = 1
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
@@ -186,6 +193,7 @@ function gatherStatistic()
         sumEnergy = 1
     end
     --print("num, midEnergy", num, sumEnergy)
+    print("getAllEated()", actionsModule.getAllEated())
     return { 
         maxEnergy = maxEnergy,
         minEnergy = minEnergy,
@@ -202,8 +210,7 @@ function emitFoodInRandomPoint()
     if not t.energy then
         local self = {}
         self.food = true
-        self.pos = {}
-        self.pos.x, self.pos.y = x, y
+        self.pos = {x = x, y = y}
         table.insert(meal, self)
         grid[x][y] = self
         return true, grid[x][y]
@@ -323,6 +330,16 @@ function postinitialEmit(iter)
     end
 end
 
+local function updateMeal()
+    local alive = {}
+    for k, dish in pairs(meal) do
+        if dish.food == true then
+            table.insert(alive, dish)
+        end
+    end
+    return alive
+end
+
 function experiment()
     local initialEmitCoro = coroutine.create(initialEmit)
     while coroutine.resume(initialEmitCoro) do end
@@ -350,6 +367,8 @@ function experiment()
 
             -- проход по ячейкам и вызов их программ
             cells = updateCells()
+
+            meal = updateMeal()
 
             -- сброс решетки после уничтожения некоторых клеток
             grid = getFalseGrid()
