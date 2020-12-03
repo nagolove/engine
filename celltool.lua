@@ -115,6 +115,11 @@ local function draw()
         sim.create()
     end
 
+    if sim.statistic and sim.statistic.allEated then
+        print("statistic", inspect(sim.statistic))
+        imgui.LabelText(sim.statistic.allEated, "all eated")
+    end
+
     if underCursor then
         drawCellInfo(getCellPositon(underCursor))
     end

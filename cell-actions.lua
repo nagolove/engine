@@ -5,6 +5,7 @@ local gridSize
 local actions = {}
 local ENERGY = 1000
 local initCell
+local allEated = 0
 
 function isAlive(x, y)
     local t = grid[x][y]
@@ -69,6 +70,7 @@ local function incEat(cell)
         cell.eated = 0
     end
     cell.eated = cell.eated + 1
+    allEated = allEated + 1
 end
 
 -- проверяет на съедобность одну случайную клетку вокруг. 
@@ -89,7 +91,8 @@ function actions.checkAndEat(cell)
         -- проверка на нахождение еды в определенной клетке и поедание
         --print(inspect(dish))
         if dish.food then
-            print("checkAndEat at", newt.x, newt.y)
+            --print("checkAndEat at", newt.x, newt.y)
+            dish.food = nil
             dish.energy = 0
             cell.energy = cell.energy + ENERGY
             incEat(cell)
@@ -116,6 +119,7 @@ function actions.eat8(cell)
             if dish.food then
                 --print("eat8 at", newt.x, newt.y)
                 dish.energy = 0
+                dish.food = nil
                 cell.energy = cell.energy + ENERGY
                 incEat(cell)
                 return
@@ -140,6 +144,7 @@ function actions.eat8move(cell)
             --print(inspect(dish))
             if dish.food then
                 --print("eat8move at", newt.x, newt.y)
+                dish.food = nil
                 dish.energy = 0
                 cell.energy = cell.energy + ENERGY
                 cell.pos.x = newt.x
@@ -250,9 +255,13 @@ function init(externalGrid, externalGridSize, functions)
     grid = externalGrid
     gridSize = externalGridSize
     initCell = functions.initCell_fn
+    allEated = 0
 end
 
 return {
     actions = actions,
     init = init,
+    getAllEated = function()
+        return allEated
+    end,
 }

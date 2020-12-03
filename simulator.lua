@@ -190,6 +190,7 @@ function gatherStatistic()
         maxEnergy = maxEnergy,
         minEnergy = minEnergy,
         midEnergy = sumEnergy / #cells,
+        allEated = actionsModule.getAllEated(),
     }
 end
 
