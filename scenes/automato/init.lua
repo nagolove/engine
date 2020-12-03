@@ -9,7 +9,9 @@ local MID_ENERGY_COLOR = {0.8, 0.3, 0.7, 1}
 local MIN_ENERGY_COLOR = {0.6, 0.1, 1, 1}
 local lastGraphicPoint
 -- continuos, bystep
-local mode = "continuos"
+--local mode = "continuos"
+local mode = "bystep"
+
 local stepPressed = false
 local sim = require "simulator"
 local pixSize = 10

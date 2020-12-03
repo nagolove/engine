@@ -106,34 +106,22 @@ end
 function actions.eat8(cell)
     local nx, ny = cell.pos.x, cell.pos.y
     for k, displacement in pairs(around) do
-        --print("displacement", inspect(displacement))
         nx = nx + displacement[1]
         ny = ny + displacement[2]
 
         -- проверка на выход за границы поля
-        --if newt.x >= 1 and newt.x <= gridSize and
-            --newt.y >= 1 and newt.y <= gridSize then
-            local dish
-            --local dish = grid[newt.x][newt.y]
-            pcall(function()
-            dish = grid[nx][ny]
-        end)
-            --print("dish", inspect(dish))
+        if nx >= 1 and nx <= gridSize and
+            ny >= 1 and ny <= gridSize then
+            local dish = grid[nx][ny]
             -- проверка на нахождение еды в определенной клетке и поедание
-            --print(inspect(dish))
-            if dish then
-                --print("dish", inspect(dish))
-               if dish.food then
-                --print("eat8 at", newt.x, newt.y)
+            if dish and dish.food then
                 grid[nx][ny].food = nil
                 dish.energy = 0
                 cell.energy = cell.energy + ENERGY
-                print("mmm", inspect(cell))
                 incEat(cell)
                 return
             end
         end
-        --end
     end
 end
 

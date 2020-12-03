@@ -150,16 +150,12 @@ end
 
 -- заполнить решетку пустыми значениями. В качестве значений используются
 -- пустые таблицы {}
-function getFalseGrid(oldGrid)
+function getFalseGrid()
     local res = {}
     for i = 1, gridSize do
         local t = {}
         for j = 1, gridSize do
-            if oldGrid then
-                t[#t + 1] = copy(oldGrid[i][j])
-            else
-                t[#t + 1] = {}
-            end
+            t[#t + 1] = {}
         end
         res[#res + 1] = t
     end
@@ -208,9 +204,10 @@ function emitFoodInRandomPoint()
     local t = grid[x][y]
     -- если клетка пустая
     if not t.energy then
-        local self = {}
-        self.food = true
-        self.pos = {x = x, y = y}
+        local self = {
+            food = true,
+            pos = {x = x, y = y}
+        }
         table.insert(meal, self)
         grid[x][y] = self
         return true, grid[x][y]
@@ -246,7 +243,7 @@ function saveDeadCellsLog(cells)
     file:close()
 end
 
-function updateCells()
+function updateCells(cells)
     local alive = {}
     for k, cell in pairs(cells) do
         local isalive, c = updateCell(cell)
@@ -330,7 +327,7 @@ function postinitialEmit(iter)
     end
 end
 
-local function updateMeal()
+local function updateMeal(meal)
     local alive = {}
     for k, dish in pairs(meal) do
         if dish.food == true then
@@ -344,14 +341,14 @@ function experiment()
     local initialEmitCoro = coroutine.create(initialEmit)
     while coroutine.resume(initialEmitCoro) do end
 
-    grid = getFalseGrid(oldGrid)
+    grid = getFalseGrid()
 
     updateGrid()
     statistic = gatherStatistic()
 
     coroutine.yield()
 
-    for i = 0, 10000 do
+    for i = 0, 5000 do
         emitFoodInRandomPoint()
     end
 
@@ -363,30 +360,28 @@ function experiment()
         end
 
         --if mode == "bystep" and stepPressed == true or mode == "continuos" then
-        do
-            --coroutine.resume(initialEmit, iter)
+        --coroutine.resume(initialEmit, iter)
 
-            -- создать сколько-то еды
-            --emitFood(iter)
+        -- создать сколько-то еды
+        --emitFood(iter)
 
-            -- проход по ячейкам и вызов их программ
-            cells = updateCells()
+        -- проход по ячейкам и вызов их программ
+        cells = updateCells(cells)
+        
+        meal = updateMeal(meal)
 
-            meal = updateMeal()
+        -- сброс решетки после уничтожения некоторых клеток
+        grid = getFalseGrid()
 
-            -- сброс решетки после уничтожения некоторых клеток
-            grid = getFalseGrid()
+        -- обновление решетки по списку живых клеток и списку еды
+        updateGrid()
 
-            -- обновление решетки по списку живых клеток и списку еды
-            updateGrid()
+        --emitFoodInRandomPoint()
+        --emitFoodInRandomPoint()
 
-            statistic = gatherStatistic()
-            iter = iter + 1
+        statistic = gatherStatistic()
+        iter = iter + 1
 
-            --if stepPressed == true then
-                --stepPressed = false
-            --end
-        end
         coroutine.yield()
     end
 
