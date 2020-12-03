@@ -44,7 +44,7 @@ local function mousemoved(x, y, dx, dy)
     }
 end
 
-local function getCellPositon(pos)
+local function getCell(pos)
     local grid = sim.getGrid()
     local x, y = pos.x, pos.y
     if x + 1 >= 1 and x + 1 <= sim.getGridSize() and
@@ -52,7 +52,6 @@ local function getCellPositon(pos)
         return grid[x + 1][y + 1]
     end
 
-    print(pos.x, pos.y)
     return nil
 end
 
@@ -88,6 +87,24 @@ local function drawCellInfo(cell)
     end
 end
 
+local function drawCellPath(cell)
+    if cell.moves and #cell.moves >= 4 then
+        local pixSize = automatoScene.getPixSize()
+        local half = pixSize / 2
+        local prevx, prevy = cell.moves[1], cell.moves[2]
+        local i = 3
+        while i <= #cell.moves do
+            gr.setColor(1, 0, 0)
+            gr.line(prevx * pixSize + half, 
+                prevy * pixSize + half, 
+                cell.moves[i] * pixSize + half, 
+                cell.moves[i + 1] * pixSize + half)
+            prevx, prevy = cell.moves[i], cell.moves[i + 1]
+            i = i + 2
+        end
+    end
+end
+
 local function draw()
     imgui.Begin("cell", false, "ImGuiWindowFlags_AlwaysAutoResize")
 
@@ -106,7 +123,9 @@ local function draw()
     end
 
     if underCursor then
-        drawCellInfo(getCellPositon(underCursor))
+        local cell = getCell(underCursor)
+        drawCellInfo(cell)
+        drawCellPath(cell)
     end
 
     imgui.End()

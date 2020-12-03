@@ -12,8 +12,25 @@ function isAlive(x, y)
     return t.energy and t.energy > 0
 end
 
+local function pushPosition(cell)
+    if not cell.moves then
+        cell.moves = {}
+    end
+    if #cell.moves >= 2 then
+        local lastX, lastY = cell.moves[#cell.moves - 1], cell.moves[#cell.moves]
+        if lastX ~= cell.pos.x and lastY ~= cell.pos.y then
+            table.insert(cell.moves, cell.pos.x)
+            table.insert(cell.moves, cell.pos.y)
+        end
+    else
+        table.insert(cell.moves, cell.pos.x)
+        table.insert(cell.moves, cell.pos.y)
+    end
+end
+
 function actions.left(cell)
     pos = cell.pos
+    pushPosition(cell)
     if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
         pos.x = pos.x - 1
     elseif pos.x <= 1 and not isAlive(gridSize, pos.y) then
@@ -23,6 +40,7 @@ end
 
 function actions.right(cell)
     pos = cell.pos
+    pushPosition(cell)
     if pos.x < gridSize and not isAlive(pos.x + 1, pos.y) then
         pos.x = pos.x + 1
     elseif pos.x >= gridSize and not isAlive(1, pos.y) then
@@ -32,6 +50,7 @@ end
 
 function actions.up(cell)
     pos = cell.pos
+    pushPosition(cell)
     if pos.y > 1 and not isAlive(pos.x, pos.y - 1) then
         pos.y = pos.y - 1
     elseif pos.y <= 1 and not isAlive(pos.x, gridSize) then
@@ -41,6 +60,7 @@ end
 
 function actions.down(cell)
     pos = cell.pos
+    pushPosition(cell)
     if pos.y < gridSize and not isAlive(pos.x, pos.y + 1) then
         pos.y = pos.y + 1
     elseif pos.y >= gridSize and not isAlive(pos.x, 1) then
