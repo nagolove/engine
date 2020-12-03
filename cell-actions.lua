@@ -104,27 +104,31 @@ end
 -- Аналогично checkAndEat, но проверяет на съедобность все клетки 
 -- вокруг себя.
 function actions.eat8(cell)
-    pos = cell.pos
-    local newt = copy(pos)
+    local newt = copy(cell.pos)
     for k, displacement in pairs(around) do
         newt.x = newt.x + displacement[1]
         newt.y = newt.y + displacement[2]
 
         -- проверка на выход за границы поля
-        if newt.x >= 1 and newt.x < gridSize and
-            newt.y >= 1 and newt.y < gridSize then
-            local dish = grid[newt.x][newt.y]
+        --if newt.x >= 1 and newt.x <= gridSize and
+            --newt.y >= 1 and newt.y <= gridSize then
+            local dish
+            --local dish = grid[newt.x][newt.y]
+            pcall(function()
+            dish = grid[newt.x][newt.y]
+        end)
+            --print("dish", inspect(dish))
             -- проверка на нахождение еды в определенной клетке и поедание
             --print(inspect(dish))
-            if dish.food then
+            if dish and dish.food then
                 --print("eat8 at", newt.x, newt.y)
+                grid[newt.x][newt.y].food = nil
                 dish.energy = 0
-                dish.food = nil
                 cell.energy = cell.energy + ENERGY
                 incEat(cell)
                 return
             end
-        end
+        --end
     end
 end
 
