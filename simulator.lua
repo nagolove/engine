@@ -71,22 +71,22 @@ local removed = {}
 local experimentCoro
 
 function genCode()
-    --[[
-       [local code = {}
-       [local len = #codeValues
-       [for i = 1, codeLen do
-       [    table.insert(code, codeValues[math.random(1, len)])
-       [end
-       [return code
-       ]]
-
-       local code = {}
-       local len = #codeValues
-       for i = 1, codeLen / 2 do
-           table.insert(code, "eat8")
-           table.insert(code, codeValues[math.random(1, len)])
-       end
-       return code
+    local code = {}
+    local len = #codeValues
+    for i = 1, codeLen do
+        table.insert(code, codeValues[math.random(1, len)])
+    end
+    return code
+--[[
+   [
+   [       local code = {}
+   [       local len = #codeValues
+   [       for i = 1, codeLen / 2 do
+   [           table.insert(code, "eat8")
+   [           table.insert(code, codeValues[math.random(1, len)])
+   [       end
+   [       return code
+   ]]
 end
 
 local function getId()
@@ -217,9 +217,8 @@ function emitFoodInRandomPoint()
 end
 
 function emitFood(iter)
-    --for i = 1, math.log(iter) / 10 do
-    for i = 1, 3 do
-    --for i = 1, 0 do
+    --print(math.log(iter) / 1)
+    for i = 1, math.log(iter) * 10 do
         local emited, gridcell = emitFoodInRandomPoint()
         if not emited then
             -- здесь исследовать причины смерти яцейки
@@ -349,7 +348,7 @@ function experiment()
     coroutine.yield()
 
     for i = 0, 5000 do
-        emitFoodInRandomPoint()
+        --emitFoodInRandomPoint()
     end
 
     local postinitialEmitCoro = coroutine.create(postinitialEmit)
@@ -388,7 +387,7 @@ end
 
 local experimentErrorPrinted = false
 
-function step()
+local function step()
     local err, errmsg = coroutine.resume(experimentCoro)
     if not err and not experimentErrorPrinted then
         experimentErrorPrinted = true

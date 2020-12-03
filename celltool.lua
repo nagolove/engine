@@ -102,7 +102,6 @@ local function draw()
     end
 
     if sim.getStatistic() and sim.getStatistic().allEated then
-        print("statistic", inspect(sim.statistic))
         imgui.LabelText(sim.getStatistic().allEated, "all eated")
     end
 

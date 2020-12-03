@@ -3,7 +3,7 @@ local inspect = require "inspect"
 local getGrid
 local gridSize
 local actions = {}
-local ENERGY = 1000
+local ENERGY = 10
 local initCell
 local allEated = 0
 
