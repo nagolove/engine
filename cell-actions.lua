@@ -64,6 +64,13 @@ local around = {
     {-1,  1}, {0, -1}, {1, 1},
 }
 
+local function incEat(cell)
+    if not cell.eated then
+        cell.eated = 0
+    end
+    cell.eated = cell.eated + 1
+end
+
 -- проверяет на съедобность одну случайную клетку вокруг. 
 -- Съедает ее если находит съедобную. На место съеденной 
 -- не перемещается.
@@ -85,6 +92,7 @@ function actions.checkAndEat(cell)
             print("checkAndEat at", newt.x, newt.y)
             dish.energy = 0
             cell.energy = cell.energy + ENERGY
+            incEat(cell)
             return
         end
     end
@@ -109,6 +117,7 @@ function actions.eat8(cell)
                 print("eat8 at", newt.x, newt.y)
                 dish.energy = 0
                 cell.energy = cell.energy + ENERGY
+                incEat(cell)
                 return
             end
         end
@@ -135,6 +144,7 @@ function actions.eat8move(cell)
                 cell.energy = cell.energy + ENERGY
                 cell.pos.x = newt.x
                 cell.pos.y = newt.y
+                incEat(cell)
                 return
             end
         end
