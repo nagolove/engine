@@ -162,7 +162,7 @@ function getFalseGrid()
     return res
 end
 
-function updateGrid()
+local function updateGrid()
     for _, v in pairs(cells) do
         grid[v.pos.x][v.pos.y] = v
     end
@@ -219,7 +219,7 @@ end
 function emitFood(iter)
     --print(math.log(iter) / 1)
     for i = 1, math.log(iter) * 10 do
-        local emited, gridcell = emitFoodInRandomPoint()
+        --local emited, gridcell = emitFoodInRandomPoint()
         if not emited then
             -- здесь исследовать причины смерти яцейки
             --print("not emited gridcell", inspect(gridcell))
@@ -242,7 +242,7 @@ function saveDeadCellsLog(cells)
     file:close()
 end
 
-function updateCells(cells)
+local function updateCells(cells)
     local alive = {}
     for k, cell in pairs(cells) do
         local isalive, c = updateCell(cell)
@@ -298,23 +298,23 @@ function cloneCell(cell, newx, newy)
 end
 
 function initialEmit()
-    for i = 1, cellsNum do
-        --coroutine.yield(initCell())
-        print("i", i)
-        coroutine.yield()
-        initCell()
-    end
-    --initCell()
-
     --[[
-       [local steps = 5
-       [local c = initCell()
-       [cloneCell(c, 10, 10)
-       [initCellOneCommandCode("right", steps)
-       [initCellOneCommandCode("left", steps)
-       [initCellOneCommandCode("up", steps)
-       [initCellOneCommandCode("down", steps)
+       [for i = 1, cellsNum do
+       [    --coroutine.yield(initCell())
+       [    print("i", i)
+       [    coroutine.yield()
+       [    initCell()
+       [end
+       [--initCell()
        ]]
+
+    local steps = 5
+    --local c = initCell()
+    --cloneCell(c, 10, 10)
+    initCellOneCommandCode("right", steps)
+    initCellOneCommandCode("left", steps)
+    initCellOneCommandCode("up", steps)
+    initCellOneCommandCode("down", steps)
 end
 
 function postinitialEmit(iter)
@@ -346,10 +346,6 @@ function experiment()
     statistic = gatherStatistic()
 
     coroutine.yield()
-
-    for i = 0, 5000 do
-        --emitFoodInRandomPoint()
-    end
 
     local postinitialEmitCoro = coroutine.create(postinitialEmit)
 
@@ -403,8 +399,12 @@ end
 
 local function create()
     local processorCount = love.system.getProcessorCount()
-    for i = 1, processorCount - 2 do
-        --tables.insert(threads, love.newThread("simulator-thread.lua"))
+    local threadCount = processorCount - 2
+    print("threadCount", threadCount)
+    for i = 1, threadCount do
+        pcall(function()
+        tables.insert(threads, love.newThread("simulator-thread.lua"))
+    end)
     end
     print("processorCount", processorCount)
 

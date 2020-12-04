@@ -1,3 +1,12 @@
+
+local chan = love.thread.getChannel()
+a = 0
+chan:push("from thread")
+while true do
+    a = a + 1
+end
+print("hi from thread")
+
 local inspect = require "inspect"
 -- массив всех клеток
 local cells = {}
