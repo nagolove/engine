@@ -93,36 +93,8 @@ local function incEat(cell)
     allEated = allEated + 1
 end
 
--- проверяет на съедобность одну случайную клетку вокруг. 
--- Съедает ее если находит съедобную. На место съеденной 
--- не перемещается.
-function actions.checkAndEat(cell)
-    pos = cell.pos
-    local newt = copy(pos)
-    -- выбор случайной клетки из всех возможных окружающих
-    local displacement = around[math.random(1, #around)]
-    newt.x = newt.x + displacement[1]
-    newt.y = newt.y + displacement[2]
-
-    -- проверка на выход за границы поля
-    if newt.x >= 1 and newt.x < gridSize and
-        newt.y >= 1 and newt.y < gridSize then
-        local dish = getGrid()[newt.x][newt.y]
-        -- проверка на нахождение еды в определенной клетке и поедание
-        --print(inspect(dish))
-        if dish.food then
-            --print("checkAndEat at", newt.x, newt.y)
-            dish.food = nil
-            dish.energy = 0
-            cell.energy = cell.energy + ENERGY
-            incEat(cell)
-            return
-        end
-    end
-end
-
--- Аналогично checkAndEat, но проверяет на съедобность все клетки 
--- вокруг себя.
+-- Проверяет на съедобность все клетки вокруг себя. Найдя съедобную - поедает
+-- ее оставаясь на месте
 function actions.eat8(cell)
     local nx, ny = cell.pos.x, cell.pos.y
     for k, displacement in pairs(around) do
