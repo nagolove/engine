@@ -53,17 +53,6 @@ function newGrid()
     return setmetatable({}, Grid)
 end
 
-local codeValues = {
-    "left",
-    "right",
-    "up",
-    "down",
-    --"eat8move",
-    "eat8",
-    --"checkAndEat",
-    "cross",
-}
-
 local meal = {}
 local actionsModule = require "cell-actions"
 local actions
@@ -401,11 +390,39 @@ local function create()
     local processorCount = love.system.getProcessorCount()
     local threadCount = processorCount - 2
     print("threadCount", threadCount)
+
     for i = 1, threadCount do
-        pcall(function()
-        tables.insert(threads, love.newThread("simulator-thread.lua"))
-    end)
+        local ok, errmsg = pcall(function()
+            local th = love.thread.newThread("simulator-thread.lua")
+            table.insert(threads, th)
+            local errmsg = th:getError()
+            th:start()
+            if errmsg then
+                logfwarn("Thread %s", errmsg)
+            end
+        end)
+        if not ok then
+            logferror("Error in creating thread %s", errmsg)
+        end
     end
+
+    love.timer.sleep(0.5)
+
+    for k, v in pairs(threads) do
+        print(v:getError())
+    end
+
+    local printerChannel = love.thread.getChannel("printer")
+    if printerChannel then
+        local msg = printerChannel:pop()
+        while msg do
+            print(">>" .. msg)
+            msg = printerChannel:pop()
+        end
+    else
+        logfwarn("No printer channel found.")
+    end
+
     print("processorCount", processorCount)
 
     experimentCoro = coroutine.create(function()
@@ -415,7 +432,6 @@ local function create()
         end
     end)
     coroutine.resume(experimentCoro)
-    actionsModule.init(getGrid, gridSize, { initCell_fn = initCell })
     actions = actionsModule.actions
 end
 

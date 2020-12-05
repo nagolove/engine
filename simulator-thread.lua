@@ -1,14 +1,8 @@
-
-local chan = love.thread.getChannel()
-
-a = 0
-chan:push("from thread")
-while true do
-    a = a + 1
-end
-print("hi from thread")
-
 local inspect = require "inspect"
+local chan = love.thread.getChannel("setup")
+
+local state = {}
+
 -- массив всех клеток
 local cells = {}
 -- массив массивов [x][y] с клетками по индексам
@@ -20,19 +14,20 @@ local initialEnergy = {500, 1000}
 local iter = 0
 local statistic = {}
 
-local codeValues = {
-    "left",
-    "right",
-    "up",
-    "down",
-    "eat8move",
-    "eat8",
-    "checkAndEat",
-    "cross",
-}
-
 local meal = {}
+
 local actionsModule = require "cell-actions"
+
+local function getCodeValues()
+    local codeValues = {}
+    for k, v in pairs(actionsModule.actions) do
+        table.insert(codeValues, k)
+    end
+    return codeValues
+end
+
+local codeValues = getCodeValues()
+
 local actions
 local removed = {}
 local experimentCoro
@@ -342,7 +337,7 @@ function create()
         end
     end)
     coroutine.resume(experimentCoro)
-    actionsModule.init(grid, gridSize, { initCell_fn = initCell })
+    actionsModule.init(getGrid, gridSize, { initCell_fn = initCell })
     actions = actionsModule.actions
 end
 
