@@ -1,7 +1,4 @@
 local inspect = require "inspect"
-local chan = love.thread.getChannel("setup")
-
-local state = {}
 
 -- массив всех клеток
 local cells = {}
@@ -13,8 +10,16 @@ local cellsNum = 2000
 local initialEnergy = {500, 1000}
 local iter = 0
 local statistic = {}
-
+local IdCounter = 0
 local meal = {}
+
+local chan = love.thread.getChannel("setup")
+local initialSetup = chan.pop()
+
+gridSize = initialSetup.gridSize
+codeLen = initialSetup.codeLen
+cellsNum = initialSetup.cellsNum
+initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
 
 local actionsModule = require "cell-actions"
 
@@ -41,6 +46,11 @@ function genCode()
     return code
 end
 
+local function getId()
+    IdCounter = IdCounter + 1
+    return IdCounter
+end
+
 -- t.pos, t.code
 function initCell(t)
     t = t or {}
@@ -61,6 +71,7 @@ function initCell(t)
     else
         self.code = genCode()
     end
+    self.id = getId()
     self.ip = 1
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
@@ -93,6 +104,7 @@ function updateCell(cell)
         return false, cell
     end
 end
+
 
 -- заполнить решетку пустыми значениями. В качестве значений используются
 -- пустые таблицы {}
@@ -139,12 +151,15 @@ function gatherStatistic()
         sumEnergy = 1
     end
     --print("num, midEnergy", num, sumEnergy)
+    --print("getAllEated()", actionsModule.getAllEated())
     return { 
         maxEnergy = maxEnergy,
         minEnergy = minEnergy,
         midEnergy = sumEnergy / #cells,
+        allEated = actionsModule.getAllEated(),
     }
 end
+
 
 function emitFoodInRandomPoint()
     local x = math.random(1, gridSize)
@@ -152,10 +167,10 @@ function emitFoodInRandomPoint()
     local t = grid[x][y]
     -- если клетка пустая
     if not t.energy then
-        local self = {}
-        self.food = true
-        self.pos = {}
-        self.pos.x, self.pos.y = x, y
+        local self = {
+            food = true,
+            pos = {x = x, y = y}
+        }
         table.insert(meal, self)
         grid[x][y] = self
         return true, grid[x][y]
@@ -164,11 +179,11 @@ function emitFoodInRandomPoint()
     end
 end
 
+
 function emitFood(iter)
-    --for i = 1, math.log(iter) / 10 do
-    --for i = 1, 3 do
-    for i = 1, 0 do
-        local emited, gridcell = emitFoodInRandomPoint()
+    --print(math.log(iter) / 1)
+    for i = 1, math.log(iter) * 10 do
+        --local emited, gridcell = emitFoodInRandomPoint()
         if not emited then
             -- здесь исследовать причины смерти яцейки
             --print("not emited gridcell", inspect(gridcell))
@@ -272,11 +287,21 @@ function postinitialEmit(iter)
     end
 end
 
+local function updateMeal(meal)
+    local alive = {}
+    for k, dish in pairs(meal) do
+        if dish.food == true then
+            table.insert(alive, dish)
+        end
+    end
+    return alive
+end
+
 function experiment()
     local initialEmitCoro = coroutine.create(initialEmit)
     while coroutine.resume(initialEmitCoro) do end
 
-    grid = getFalseGrid(oldGrid)
+    grid = getFalseGrid()
 
     updateGrid()
     statistic = gatherStatistic()
@@ -291,28 +316,26 @@ function experiment()
         end
 
         --if mode == "bystep" and stepPressed == true or mode == "continuos" then
-        do
-            --coroutine.resume(initialEmit, iter)
+        --coroutine.resume(initialEmit, iter)
 
-            -- создать сколько-то еды
-            emitFood(iter)
+        -- создать сколько-то еды
+        emitFood(iter)
 
-            -- проход по ячейкам и вызов их программ
-            cells = updateCells()
+        -- проход по списку клеток и вызов их программ.
+        cells = updateCells(cells)
+        
+        -- проход по списку еды и проверка на съеденность
+        meal = updateMeal(meal)
 
-            -- сброс решетки после уничтожения некоторых клеток
-            grid = getFalseGrid()
+        -- сброс решетки после уничтожения некоторых клеток
+        grid = getFalseGrid()
 
-            -- обновление решетки по списку живых клеток и списку еды
-            updateGrid()
+        -- обновление решетки по списку живых клеток и списку еды
+        updateGrid()
 
-            statistic = gatherStatistic()
-            iter = iter + 1
+        statistic = gatherStatistic()
+        iter = iter + 1
 
-            --if stepPressed == true then
-                --stepPressed = false
-            --end
-        end
         coroutine.yield()
     end
 
