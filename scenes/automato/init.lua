@@ -16,21 +16,30 @@ local sim = require "simulator"
 local pixSize = 10
 
 function drawCells()
-    for ik, i in pairs(sim.getGrid()) do
-        for jk, j in pairs(i) do
+    --for ik, i in pairs(sim.getGrid()) do
+        --for jk, j in pairs(i) do
             --print("j", inspect(j))
-            --print(type(j.died))
-            if j.died and type(j.died) == "boolean" and __SELECTED_COLOR__ then
-                --print("__SELECTED_COLOR__", inspect(__SELECTED_COLOR__))
-                gr.setColor(__SELECTED_COLOR__)
-                gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
-            elseif j.food then
-                gr.setColor(0, 1, 0)
-                gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
-            elseif j.energy then
-                gr.setColor(0.5, 0.5, 0.5)
-                gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
-            end
+            ----print(type(j.died))
+            --if j.died and type(j.died) == "boolean" and __SELECTED_COLOR__ then
+                ----print("__SELECTED_COLOR__", inspect(__SELECTED_COLOR__))
+                --gr.setColor(__SELECTED_COLOR__)
+                --gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
+            --elseif j.food then
+                --gr.setColor(0, 1, 0)
+                --gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
+            --elseif j.energy then
+                --gr.setColor(0.5, 0.5, 0.5)
+                --gr.rectangle("fill", (ik - 1)* pixSize, (jk - 1) * pixSize, pixSize, pixSize)
+            --end
+        --end
+    --end
+    for k, v in pairs(sim.getGrid()) do
+        if v.food then
+            gr.setColor(0, 1, 0)
+            gr.rectangle("fill", (v.x - 1)* pixSize, (v.y - 1) * pixSize, pixSize, pixSize)
+        else
+            gr.setColor(0.5, 0.5, 0.5)
+            gr.rectangle("fill", (v.x - 1)* pixSize, (v.y - 1) * pixSize, pixSize, pixSize)
         end
     end
 end

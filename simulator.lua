@@ -42,16 +42,12 @@ function newGrid()
     return setmetatable({}, Grid)
 end
 
-local meal = {}
-local actionsModule = require "cell-actions"
-local actions
-local removed = {}
-local experimentCoro
-
 local threads = {}
+local dataChan = love.thread.getChannel("data")
+local msgChan = love.thread.getChannel("msg")
 
 local function getGrid()
-    return grid
+    return dataChan:pop()
 end
 
 local gridSize = 100
@@ -116,6 +112,16 @@ end
 local function step()
 end
 
+local iter = 0
+
+local function getIter()
+    local newIter = love.thread.getChannel("iter")
+    if newIter then
+        iter = newIter:pop()
+    end
+    return iter
+end
+
 return {
     create = create,
     getGrid = getGrid,
@@ -123,9 +129,7 @@ return {
     getStatistic = function()
         return statistic
     end,
-    getIter = function()
-        return iter
-    end,
+    getIter = getIter,
     getGridSize = function()
         return gridSize
     end,

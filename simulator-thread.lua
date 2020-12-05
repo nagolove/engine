@@ -1,5 +1,5 @@
 local inspect = require "inspect"
-
+require "log"
 -- массив всех клеток
 local cells = {}
 -- массив массивов [x][y] с клетками по индексам
@@ -344,7 +344,7 @@ end
 
 local experimentErrorPrinted = false
 
-function step()
+local function step()
     local err, errmsg = coroutine.resume(experimentCoro)
     if not err and not experimentErrorPrinted then
         experimentErrorPrinted = true
@@ -352,7 +352,11 @@ function step()
     end
 end
 
-function create()
+local function getGrid()
+    return grid
+end
+
+local function create()
     experimentCoro = coroutine.create(function()
         local ok, errmsg = pcall(experiment)
         if not ok then
@@ -364,17 +368,28 @@ function create()
     actions = actionsModule.actions
 end
 
-return {
-    create = create,
-    getGrid = function()
-        return grid
-    end,
-    step = step,
-    statistic = statistic,
-    getIter = function()
-        return iter
-    end,
-    getGridSize = function()
-        return gridSize
-    end,
-}
+create()
+local chan = love.thread.getChannel("msg")
+local data = love.thread.getChannel("data")
+while true do
+    local cmd = chan:pop()
+    if cmd == "stop" then
+        break
+    end
+    step()
+    local drawlist = {}
+    for k, v in pairs(cells) do
+        table.insert(drawlist, { x = v.pos.x, y = v.pos.y })
+    end
+    for k, v in pairs(meal) do
+        table.insert(drawlist, { x = v.pos.x, y = v.pos.y, food = true})
+    end
+    if data:getCount() < 5 then
+        data:push(drawlist)
+    end
+    
+    local iterChan = love.thread.getChannel("iter")
+    if iterChan:getCount() < 5 then
+        iterChan:push(iter)
+    end
+end
