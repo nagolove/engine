@@ -70,7 +70,7 @@ local function create()
             local th = love.thread.newThread("simulator-thread.lua")
             table.insert(threads, th)
             local errmsg = th:getError()
-            th:start()
+            th:start(i)
             if errmsg then
                 logfwarn("Thread %s", errmsg)
             end
@@ -110,6 +110,12 @@ local function create()
 end
 
 local function step()
+    local logChan = love.thread.getChannel("log")
+    local msg = logChan:pop()
+    while msg do
+        print(msg[1], msg[2])
+        msg = logChan:po()
+    end
 end
 
 local iter = 0

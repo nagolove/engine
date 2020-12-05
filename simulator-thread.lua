@@ -1,5 +1,5 @@
+local threadNum = ...
 local inspect = require "inspect"
-require "log"
 -- массив всех клеток
 local cells = {}
 -- массив массивов [x][y] с клетками по индексам
@@ -344,6 +344,11 @@ end
 
 local experimentErrorPrinted = false
 
+local function logfwarn(...)
+    local args = {...}
+    love.thread.getChannel("log"):push(args)
+end
+
 local function step()
     local err, errmsg = coroutine.resume(experimentCoro)
     if not err and not experimentErrorPrinted then
@@ -371,6 +376,8 @@ end
 create()
 local chan = love.thread.getChannel("msg")
 local data = love.thread.getChannel("data")
+local log = love.thread.getChannel("log")
+
 while true do
     local cmd = chan:pop()
     if cmd == "stop" then
