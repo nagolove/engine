@@ -11,11 +11,9 @@ __FREEZE_PHYSICS__ = true
 
 function love.load(arg)
     scenes.loadScenes("scenes")
-    scenes.initLoaded()
+    --scenes.initLoaded()
 
-    --scenes.setCurrentScene("wavegrid")
-    --scenes.setCurrentScene("1")
-    --scenes.setCurrentScene("2")
+    scenes.initOne("automato")
     scenes.setCurrentScene("automato")
 
     initTools(currentScene)

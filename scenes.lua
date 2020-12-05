@@ -36,6 +36,10 @@ end
 
 local scenes = loadScenes("scenes")
 
+local function getScenes()
+    return scenes
+end
+
 function setCurrentScene(sceneName)
     for k, v in pairs(scenes) do
         if sceneName == v.name then
@@ -46,7 +50,7 @@ end
 
 currentScene = nil
 
-function initLoaded()
+local function initLoaded()
     for k, v in pairs(scenes) do
         local scene = v.scene
         local ok, errmsg = pcall(function()
@@ -72,9 +76,20 @@ function draw()
     end
 end
 
-function keypressed(key)
+local function keypressed(key)
     if currentScene and currentScene.keypressed then
         currentScene.keypressed(key)
+    end
+end
+
+local function initOne(name)
+    for k, v in pairs(getScenes()) do
+        if v.name == name then
+            if v.scene.init then
+                v.scene.init()
+            end
+            break
+        end
     end
 end
 
@@ -82,9 +97,11 @@ return {
     getCurrentScene = function()
         return currentScene
     end,
+    getScenes = getScenes,
     setCurrentScene = setCurrentScene,
     loadScenes = loadScenes,
     initLoaded = initLoaded,
+    initOne = initOne,
     update = update,
     draw = draw,
     keypressed = keypressed,

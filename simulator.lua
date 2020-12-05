@@ -46,8 +46,13 @@ local threads = {}
 local dataChan = love.thread.getChannel("data")
 local msgChan = love.thread.getChannel("msg")
 
+local lastGrid
+
 local function getGrid()
-    return dataChan:pop()
+    if not lastGrid then
+        lastGrid = dataChan:peek()
+    end
+    return dataChan:pop() or lastGrid
 end
 
 local gridSize = 100
@@ -67,10 +72,12 @@ local function create()
 
     for i = 1, threadCount do
         local ok, errmsg = pcall(function()
-            local th = love.thread.newThread("simulator-thread.lua")
-            table.insert(threads, th)
-            local errmsg = th:getError()
-            th:start(i)
+            --[[
+               [local th = love.thread.newThread("simulator-thread.lua")
+               [table.insert(threads, th)
+               [local errmsg = th:getError()
+               [th:start(i)
+               ]]
             if errmsg then
                 logfwarn("Thread %s", errmsg)
             end
@@ -86,36 +93,20 @@ local function create()
         print(v:getError())
     end
 
-    local printerChannel = love.thread.getChannel("printer")
-    if printerChannel then
-        local msg = printerChannel:pop()
-        while msg do
-            print(">>" .. msg)
-            msg = printerChannel:pop()
-        end
-    else
-        logfwarn("No printer channel found.")
-    end
-
     print("processorCount", processorCount)
-
-    experimentCoro = coroutine.create(function()
-        local ok, errmsg = pcall(experiment)
-        if not ok then
-            logferror("Error %s", errmsg)
-        end
-    end)
-    coroutine.resume(experimentCoro)
-    actions = actionsModule.actions
 end
 
-local function step()
+local function printThreadsLog()
     local logChan = love.thread.getChannel("log")
     local msg = logChan:pop()
     while msg do
         print(msg[1], msg[2])
-        msg = logChan:po()
+        msg = logChan:pop()
     end
+end
+
+local function step()
+    printThreadsLog()
 end
 
 local iter = 0
@@ -123,7 +114,7 @@ local iter = 0
 local function getIter()
     local newIter = love.thread.getChannel("iter")
     if newIter then
-        iter = newIter:pop()
+        iter = newIter:pop() or iter
     end
     return iter
 end

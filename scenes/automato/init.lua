@@ -16,13 +16,16 @@ local sim = require "simulator"
 local pixSize = 10
 
 function drawCells()
-    for k, v in pairs(sim.getGrid()) do
-        if v.food then
-            gr.setColor(0, 1, 0)
-            gr.rectangle("fill", (v.x - 1)* pixSize, (v.y - 1) * pixSize, pixSize, pixSize)
-        else
-            gr.setColor(0.5, 0.5, 0.5)
-            gr.rectangle("fill", (v.x - 1)* pixSize, (v.y - 1) * pixSize, pixSize, pixSize)
+    local drawlist = sim.getGrid()
+    if drawlist then
+        for k, v in pairs(drawlist) do
+            if v.food then
+                gr.setColor(0, 1, 0)
+                gr.rectangle("fill", (v.x - 1)* pixSize, (v.y - 1) * pixSize, pixSize, pixSize)
+            else
+                gr.setColor(0.5, 0.5, 0.5)
+                gr.rectangle("fill", (v.x - 1)* pixSize, (v.y - 1) * pixSize, pixSize, pixSize)
+            end
         end
     end
 end

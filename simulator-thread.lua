@@ -1,4 +1,6 @@
 local threadNum = ...
+print("thread", threadNum, "is running")
+
 local inspect = require "inspect"
 -- массив всех клеток
 local cells = {}
@@ -76,7 +78,6 @@ function initCell(t)
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
     self.diedCoro = coroutine.create(function()
-        print("died")
         for i = 1, 2 do
             return coroutine.yield()
         end
@@ -90,7 +91,6 @@ end
 -- возвращает [boolean], [cell table]
 -- isalive, cell
 function updateCell(cell)
-    --print("cell ip", cell.ip)
     if cell.ip >= #cell.code then
         cell.ip = 1
     end
@@ -100,7 +100,6 @@ function updateCell(cell)
         cell.energy = cell.energy - 1
         return true, cell
     else
-        print("not energy")
         return false, cell
     end
 end
@@ -183,7 +182,7 @@ end
 function emitFood(iter)
     --print(math.log(iter) / 1)
     for i = 1, math.log(iter) * 10 do
-        --local emited, gridcell = emitFoodInRandomPoint()
+        local emited, gridcell = emitFoodInRandomPoint()
         if not emited then
             -- здесь исследовать причины смерти яцейки
             --print("not emited gridcell", inspect(gridcell))
@@ -262,12 +261,10 @@ function cloneCell(cell, newx, newy)
 end
 
 function initialEmit()
-    --for i = 1, cellsNum do
-        ----coroutine.yield(initCell())
-        --print("i", i)
-        --coroutine.yield()
-        --initCell()
-    --end
+    for i = 1, cellsNum do
+        coroutine.yield(initCell())
+        initCell()
+    end
 
     local steps = 5
     local c = initCell()
@@ -345,8 +342,7 @@ end
 local experimentErrorPrinted = false
 
 local function logfwarn(...)
-    local args = {...}
-    love.thread.getChannel("log"):push(args)
+    love.thread.getChannel("log"):push({threadNum, string.format(...)})
 end
 
 local function step()
