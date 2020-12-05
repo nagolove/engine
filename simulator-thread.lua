@@ -14,7 +14,7 @@ local IdCounter = 0
 local meal = {}
 
 local chan = love.thread.getChannel("setup")
-local initialSetup = chan.pop()
+local initialSetup = chan:pop()
 
 gridSize = initialSetup.gridSize
 codeLen = initialSetup.codeLen

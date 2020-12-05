@@ -156,27 +156,29 @@ local function updateGraphic()
     gr.setCanvas(graphCanvas)
     local w, h = graphCanvas:getDimensions()
 
-    if lastGraphicPoint.max then
-        gr.setColor(MAX_ENERGY_COLOR)
-        gr.line(getIter() - 1, h - lastGraphicPoint.max, 
+    if lastGraphicPoint then
+        if lastGraphicPoint.max then
+            gr.setColor(MAX_ENERGY_COLOR)
+            gr.line(getIter() - 1, h - lastGraphicPoint.max, 
             getIter(), h - statistic.maxEnergy)
-    end
+        end
 
-    if lastGraphicPoint.mid then
-        gr.setColor(MID_ENERGY_COLOR)
-        gr.line(getIter() - 1, h - lastGraphicPoint.mid, 
+        if lastGraphicPoint.mid then
+            gr.setColor(MID_ENERGY_COLOR)
+            gr.line(getIter() - 1, h - lastGraphicPoint.mid, 
             getIter(), h - statistic.midEnergy)
-    end
+        end
 
-    if lastGraphicPoint.min then
-        gr.setColor(MIN_ENERGY_COLOR)
-        gr.line(getIter() - 1, h - lastGraphicPoint.min, 
+        if lastGraphicPoint.min then
+            gr.setColor(MIN_ENERGY_COLOR)
+            gr.line(getIter() - 1, h - lastGraphicPoint.min, 
             getIter(), h - statistic.minEnergy)
+        end
     end
 
     gr.setCanvas()
 
-    if statistic.maxEnergy and statistic.midEnergy and statistic.minEnergy then
+    if statistic and statistic.maxEnergy and statistic.midEnergy and statistic.minEnergy then
         lastGraphicPoint = {
             max = statistic.maxEnergy,
             mid = statistic.midEnergy,

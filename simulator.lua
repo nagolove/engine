@@ -54,10 +54,20 @@ local function getGrid()
     return grid
 end
 
+local gridSize = 100
+
 local function create()
     local processorCount = love.system.getProcessorCount()
-    local threadCount = processorCount - 2
+    --local threadCount = processorCount - 2
+    local threadCount = 1
     print("threadCount", threadCount)
+
+    love.thread.getChannel("setup"):push({
+        gridSize = 100,
+        cellsNum = 2000,
+        initialEnergy = {500, 1000},
+        codeLen = 32,
+    })
 
     for i = 1, threadCount do
         local ok, errmsg = pcall(function()
@@ -101,6 +111,9 @@ local function create()
     end)
     coroutine.resume(experimentCoro)
     actions = actionsModule.actions
+end
+
+local function step()
 end
 
 return {
