@@ -6,22 +6,29 @@ local inspect = require "inspect"
 local cells = {}
 -- массив массивов [x][y] с клетками по индексам
 local grid = {}
-local gridSize = 100
-local codeLen = 320
-local cellsNum = 2000
-local initialEnergy = {500, 1000}
+local gridSize
+local codeLen
+local cellsNum
+local initialEnergy = {}
 local iter = 0
 local statistic = {}
 local IdCounter = 0
 local meal = {}
 
-local chan = love.thread.getChannel("setup")
-local initialSetup = chan:pop()
+local function doSetup()
+    local chan = love.thread.getChannel("setup")
+    local initialSetup = chan:pop()
 
-gridSize = initialSetup.gridSize
-codeLen = initialSetup.codeLen
-cellsNum = initialSetup.cellsNum
-initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
+    gridSize = initialSetup.gridSize
+    codeLen = initialSetup.codeLen
+    cellsNum = initialSetup.cellsNum
+    initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
+end
+
+local chan = love.thread.getChannel("msg")
+local data = love.thread.getChannel("data")
+local log = love.thread.getChannel("log")
+local request = love.thread.getChannel("request")
 
 local actionsModule = require "cell-actions"
 
@@ -369,17 +376,7 @@ local function create()
     actions = actionsModule.actions
 end
 
-create()
-local chan = love.thread.getChannel("msg")
-local data = love.thread.getChannel("data")
-local log = love.thread.getChannel("log")
-
-while true do
-    local cmd = chan:pop()
-    if cmd == "stop" then
-        break
-    end
-    step()
+local function pushDrawList()
     local drawlist = {}
     for k, v in pairs(cells) do
         table.insert(drawlist, { x = v.pos.x, y = v.pos.y })
@@ -390,6 +387,43 @@ while true do
     if data:getCount() < 5 then
         data:push(drawlist)
     end
+end
+
+doSetup()
+create()
+
+local doStep = false
+local checkStep = false
+
+while true do
+    local cmd = chan:pop()
+    if cmd == "stop" then
+        break
+    elseif cmd == "getobject" then
+        local x, y = chan:pop(), chan:pop()
+        local ok, errmsg = pcall(function()
+            if grid and grid[x] and grid[x][y] then
+                print("object", grid[x][y])
+                request:push(grid[x][y])
+            end
+        end)
+        if not ok then
+            print("Error in getobject operation", errmsg)
+        end
+    elseif cmd == "step" then
+        checkStep = true
+        doStep = true
+    elseif cmd == "continuos" then
+        checkStep = false
+    end
+
+    if checkStep and doStep then
+        step()
+    end
+
+    doStep = false
+
+    pushDrawList()
     
     local iterChan = love.thread.getChannel("iter")
     if iterChan:getCount() < 5 then

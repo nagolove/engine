@@ -16,7 +16,7 @@ local sim = require "simulator"
 local pixSize = 10
 
 function drawCells()
-    local drawlist = sim.getGrid()
+    local drawlist = sim.getDrawList()
     if drawlist then
         for k, v in pairs(drawlist) do
             if v.food then
@@ -188,26 +188,21 @@ function drawFinishedExperiment()
 end
 
 local function nextMode()
-    --print("_mode", mode)
     if mode == "continuos" then
         mode = "bystep"
-    --print("mode", mode)
     elseif mode == "bystep" then
         mode = "continuos"
-    --print("mode", mode)
     end
-    --print("_mode", mode)
+    sim.setMode(mode)
 end
 
 local function update()
     stepPressed = love.keyboard.isDown("s")
 
     --print("stepPressed", stepPressed)
-    --print("mode", mode)
+    print("mode", mode)
 
-    if mode == "bystep" and stepPressed == true or mode == "continuos" then
-        sim.step()
-    end
+    sim.step()
     
     updateGraphic()
     checkMouse()

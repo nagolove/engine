@@ -46,13 +46,13 @@ local threads = {}
 local dataChan = love.thread.getChannel("data")
 local msgChan = love.thread.getChannel("msg")
 
-local lastGrid
+local lastDrawList
 
-local function getGrid()
-    if not lastGrid then
-        lastGrid = dataChan:peek()
+local function getDrawList()
+    if not lastDrawList then
+        lastDrawList = dataChan:peek()
     end
-    return dataChan:pop() or lastGrid
+    return dataChan:demand() or lastDrawList
 end
 
 local gridSize = 100
@@ -64,7 +64,7 @@ local function create()
     print("threadCount", threadCount)
 
     love.thread.getChannel("setup"):push({
-        gridSize = 100,
+        gridSize = gridSize,
         cellsNum = 2000,
         initialEnergy = {500, 1000},
         codeLen = 32,
@@ -72,12 +72,10 @@ local function create()
 
     for i = 1, threadCount do
         local ok, errmsg = pcall(function()
-            --[[
-               [local th = love.thread.newThread("simulator-thread.lua")
-               [table.insert(threads, th)
-               [local errmsg = th:getError()
-               [th:start(i)
-               ]]
+            local th = love.thread.newThread("simulator-thread.lua")
+            table.insert(threads, th)
+            local errmsg = th:getError()
+            th:start(i)
             if errmsg then
                 logfwarn("Thread %s", errmsg)
             end
@@ -119,9 +117,30 @@ local function getIter()
     return iter
 end
 
+local function getObject(x, y)
+    local chan = love.thread.getChannel("msg")
+    chan:push("getobject")
+    chan:push(x)
+    chan:push(y)
+    --local object = love.thread.getChannel("data"):pop()
+    local object = love.thread.getChannel("request"):demand()
+    print("object", inspect(object))
+    return object
+end
+
+local mode = "continuos" -- "step"
+
+local function setMode(m)
+    --assert(m == "step" or m == "continuos")
+    mode = m
+    msgChan:push(mode)
+end
+
 return {
     create = create,
-    getGrid = getGrid,
+    setMode = setMode,
+    getDrawList = getDrawList,
+    getObject = getObject,
     step = step,
     getStatistic = function()
         return statistic
