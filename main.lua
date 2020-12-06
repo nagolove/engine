@@ -19,7 +19,19 @@ function love.load(arg)
     initTools(currentScene)
 end
 
+local lastGCTime = love.timer.getTime()
+local GCPeriod = 1 * 60 * 5 -- 5 mins
+
+local function collectGarbage()
+    local now = love.timer.getTime()
+    if now - lastGCTime > GCPeriod then
+        collectgarbage()
+        lastGCTime = now
+    end
+end
+
 function updateScene(dt)
+    collectGarbage()
     scenes.update()
 end
 
