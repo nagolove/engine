@@ -133,7 +133,12 @@ local mode = "continuos" -- "step"
 local function setMode(m)
     --assert(m == "step" or m == "continuos")
     mode = m
+    print("push", mode)
     msgChan:push(mode)
+end
+
+local function doStep()
+    msgChan:push("step")
 end
 
 return {
@@ -142,6 +147,7 @@ return {
     getDrawList = getDrawList,
     getObject = getObject,
     step = step,
+    doStep = doStep,
     getStatistic = function()
         return statistic
     end,

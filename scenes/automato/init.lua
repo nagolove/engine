@@ -189,18 +189,15 @@ end
 
 local function nextMode()
     if mode == "continuos" then
-        mode = "bystep"
-    elseif mode == "bystep" then
+        mode = "step"
+    elseif mode == "step" then
         mode = "continuos"
     end
     sim.setMode(mode)
 end
 
 local function update()
-    stepPressed = love.keyboard.isDown("s")
-
-    --print("stepPressed", stepPressed)
-    print("mode", mode)
+    --stepPressed = love.keyboard.isDown("s")
 
     sim.step()
     
@@ -220,6 +217,8 @@ local function keypressed(key)
     end
     if key == "p" then
         nextMode()
+    elseif key == "s" then
+        sim.doStep()
     end
 end
 

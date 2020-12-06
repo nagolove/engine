@@ -319,7 +319,6 @@ function experiment()
         if coroutine.resume(postinitialEmitCoro) then
         end
 
-        --if mode == "bystep" and stepPressed == true or mode == "continuos" then
         --coroutine.resume(initialEmit, iter)
 
         -- создать сколько-то еды
@@ -413,11 +412,20 @@ while true do
     elseif cmd == "step" then
         checkStep = true
         doStep = true
+        print("cmd1", cmd)
     elseif cmd == "continuos" then
         checkStep = false
+        print("cmd2", cmd)
     end
 
-    if checkStep and doStep then
+    --print("checkStep", checkStep)
+    --print("doStep", doStep)
+    
+    if checkStep then
+        if doStep then
+            step()
+        end
+    else
         step()
     end
 
