@@ -399,10 +399,13 @@ while true do
     if cmd == "stop" then
         break
     elseif cmd == "getobject" then
-        local x, y = chan:pop(), chan:pop()
+        --local y, x = chan:pop(), chan:pop()
+        local x, y = 1, 1
+        print("x, y", x, y)
         local ok, errmsg = pcall(function()
-            if grid and grid[x] and grid[x][y] then
-                print("object", grid[x][y])
+            if grid then
+                print("object", inspect(grid[x][y]))
+                --print("type", type(grid[x][y]))
                 request:push(grid[x][y])
             end
         end)
@@ -412,15 +415,10 @@ while true do
     elseif cmd == "step" then
         checkStep = true
         doStep = true
-        print("cmd1", cmd)
     elseif cmd == "continuos" then
         checkStep = false
-        print("cmd2", cmd)
     end
 
-    --print("checkStep", checkStep)
-    --print("doStep", doStep)
-    
     if checkStep then
         if doStep then
             step()

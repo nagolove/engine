@@ -48,10 +48,9 @@ local function getCell(pos)
     local x, y = pos.x, pos.y
     if x + 1 >= 1 and x + 1 <= sim.getGridSize() and
         y + 1 >= 1 and y + 1 <= sim.getGridSize() then
-        local cell = sim.getObject(x, y)
+        local cell = sim.getObject(x + 1, y + 1)
         return cell
     end
-
     return nil
 end
 

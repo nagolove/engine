@@ -119,9 +119,9 @@ end
 
 local function getObject(x, y)
     local chan = love.thread.getChannel("msg")
+    --chan:push(x)
+    --chan:push(y)
     chan:push("getobject")
-    chan:push(x)
-    chan:push(y)
     --local object = love.thread.getChannel("data"):pop()
     local object = love.thread.getChannel("request"):demand()
     print("object", inspect(object))
