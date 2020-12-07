@@ -394,6 +394,16 @@ create()
 local doStep = false
 local checkStep = false
 
+local function flatCopy(src)
+    local dst = {}
+    for k, v in pairs(src) do
+        if type(v) ~= "table" and type(v) ~= "function" and type(v) ~= "thread" then
+            dst[k] = v
+        end
+    end
+    return dst
+end
+
 while true do
     local cmd = chan:pop()
     if cmd == "stop" then
@@ -404,9 +414,8 @@ while true do
         print("x, y", x, y)
         local ok, errmsg = pcall(function()
             if grid then
-                print("object", inspect(grid[x][y]))
-                --print("type", type(grid[x][y]))
-                request:push(grid[x][y])
+                --print("object", inspect(grid[x][y]))
+                request:push(flatCopy(grid[x][y]))
             end
         end)
         if not ok then

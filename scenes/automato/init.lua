@@ -89,7 +89,6 @@ function drawLegends()
     gr.setColor(MIN_ENERGY_COLOR)
     gr.print("min energy", 0, y0)
     y0 = y0 + gr.getFont():getHeight()
-
 end
 
 function drawGraphs()
