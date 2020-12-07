@@ -17,14 +17,19 @@ local statistic = {}
 local IdCounter = 0
 local meal = {}
 local stop = false
+local schema
 
 local function doSetup()
-    local initialSetup = love.thread.getChannel("setup" .. threadNum):pop()
+    local setupName = "setup" .. threadNum
+    local initialSetup = love.thread.getChannel(setupName):pop()
 
     gridSize = initialSetup.gridSize
     codeLen = initialSetup.codeLen
     cellsNum = initialSetup.cellsNum
     initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
+
+    schema = love.thread.getChannel(setupName):pop()
+    print("schema", inspect(schema))
 end
 
 local chan = love.thread.getChannel("msg")
@@ -373,7 +378,7 @@ local function create()
         end
     end)
     coroutine.resume(experimentCoro)
-    actionsModule.init(getGrid, gridSize, { initCell_fn = initCell })
+    actionsModule.init(getGrid, gridSize, schema, { initCell_fn = initCell })
     actions = actionsModule.actions
 end
 

@@ -75,8 +75,8 @@ local function create()
 
     for i = 1, threadCount do
         local ok, errmsg = pcall(function()
-            local setup = copy1(commonSetup)
-            love.thread.getChannel("setup" .. i):push(setup)
+            love.thread.getChannel("setup" .. i):push(commonSetup)
+            love.thread.getChannel("setup" .. i):push(schema[i])
             local th = love.thread.newThread("simulator-thread.lua")
             table.insert(threads, th)
             local errmsg = th:getError()

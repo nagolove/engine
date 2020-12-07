@@ -241,7 +241,7 @@ function actions.cross(cell)
     end
 end
 
-function init(getGridFunc, externalGridSize, functions)
+function init(getGridFunc, externalGridSize, schema, functions)
     assert(type(getGridFunc) == "function")
     getGrid = getGridFunc
     gridSize = externalGridSize
