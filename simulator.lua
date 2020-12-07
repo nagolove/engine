@@ -1,4 +1,5 @@
 local inspect = require "inspect"
+require "external"
 
 -- вместилище команд "up", "left"  и прочего алфавита
 local genomStore = {}
@@ -63,15 +64,17 @@ local function create()
     local threadCount = 1
     print("threadCount", threadCount)
 
-    love.thread.getChannel("setup"):push({
+    local commonSetup = {
         gridSize = gridSize,
         cellsNum = 2000,
         initialEnergy = {500, 1000},
         codeLen = 32,
-    })
+    }
 
     for i = 1, threadCount do
         local ok, errmsg = pcall(function()
+            local setup = copy1(commonSetup)
+            love.thread.getChannel("setup"):push(setup)
             local th = love.thread.newThread("simulator-thread.lua")
             table.insert(threads, th)
             local errmsg = th:getError()
@@ -119,12 +122,10 @@ end
 
 local function getObject(x, y)
     local chan = love.thread.getChannel("msg")
-    chan:push(y)
-    chan:push(x)
     chan:push("getobject")
-    --local object = love.thread.getChannel("data"):pop()
+    chan:push(x)
+    chan:push(y)
     local sobject = love.thread.getChannel("request"):demand()
-    --print("object", inspect(object))
     local objectfun, err = loadstring(sobject)
     if err then
         logferror("Could'not deserialize cell object %s", err)

@@ -87,7 +87,7 @@ local function drawCellInfo(cell)
 end
 
 local function drawCellPath(cell)
-    if cell.moves and #cell.moves >= 4 then
+    if cell and cell.moves and #cell.moves >= 4 then
         local pixSize = automatoScene.getPixSize()
         local half = pixSize / 2
         local prevx, prevy = cell.moves[1], cell.moves[2]

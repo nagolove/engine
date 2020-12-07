@@ -1,6 +1,7 @@
 local threadNum = ...
 print("thread", threadNum, "is running")
 
+require "love.timer"
 local inspect = require "inspect"
 local serpent = require "serpent"
 -- массив всех клеток
@@ -413,14 +414,13 @@ function commands.stop()
 end
 
 function commands.getobject()
-    --local y, x = chan:pop(), chan:pop()
-    local x, y = 1, 1
-    print("x, y", x, y)
+    local x, y = chan:pop(), chan:pop()
     local ok, errmsg = pcall(function()
         if grid then
-            --print("object", inspect(grid[x][y]))
-            --request:push(flatCopy(grid[x][y]))
-            request:push(serpent.dump(grid[x][y]))
+            local cell = grid[x][y]
+            if cell then
+                request:push(serpent.dump(cell))
+            end
         end
     end)
     if not ok then
@@ -456,6 +456,7 @@ while not stop do
         if doStep then
             step()
         end
+        love.timer.sleep(0.02)
     else
         step()
     end
