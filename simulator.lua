@@ -71,22 +71,7 @@ local function create()
         codeLen = 32,
     }
 
-    local mtScheme = {
-        {"l" = 2, "r" = 2}, 
-        {"l" = 1, "r" = 1}
-    }
-
-    local mtScheme = {
-        {"l" = 3, "r" = 2}, 
-        {"l" = 1, "r" = 3},
-        {"l" = 2, "r" = 1},
-    }
-
-    local mtScheme = {
-        {"l" = 3, "r" = 2}, 
-        {"l" = 1, "r" = 3},
-        {"l" = 2, "r" = 1},
-    }
+    local schemas = require "mtschemes"
 
     for i = 1, threadCount do
         local ok, errmsg = pcall(function()
