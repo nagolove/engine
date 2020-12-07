@@ -119,13 +119,18 @@ end
 
 local function getObject(x, y)
     local chan = love.thread.getChannel("msg")
-    --chan:push(x)
-    --chan:push(y)
+    chan:push(y)
+    chan:push(x)
     chan:push("getobject")
     --local object = love.thread.getChannel("data"):pop()
-    local object = love.thread.getChannel("request"):demand()
-    print("object", inspect(object))
-    return object
+    local sobject = love.thread.getChannel("request"):demand()
+    --print("object", inspect(object))
+    local objectfun, err = loadstring(sobject)
+    if err then
+        logferror("Could'not deserialize cell object %s", err)
+        return nil
+    end
+    return objectfun()
 end
 
 local mode = "continuos" -- "step"

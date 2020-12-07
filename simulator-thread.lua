@@ -2,6 +2,7 @@ local threadNum = ...
 print("thread", threadNum, "is running")
 
 local inspect = require "inspect"
+local serpent = require "serpent"
 -- массив всех клеток
 local cells = {}
 -- массив массивов [x][y] с клетками по индексам
@@ -14,6 +15,7 @@ local iter = 0
 local statistic = {}
 local IdCounter = 0
 local meal = {}
+local stop = false
 
 local function doSetup()
     local chan = love.thread.getChannel("setup")
@@ -404,29 +406,51 @@ local function flatCopy(src)
     return dst
 end
 
-while true do
-    local cmd = chan:pop()
-    if cmd == "stop" then
-        break
-    elseif cmd == "getobject" then
-        --local y, x = chan:pop(), chan:pop()
-        local x, y = 1, 1
-        print("x, y", x, y)
-        local ok, errmsg = pcall(function()
-            if grid then
-                --print("object", inspect(grid[x][y]))
-                request:push(flatCopy(grid[x][y]))
-            end
-        end)
-        if not ok then
-            print("Error in getobject operation", errmsg)
+local commands = {}
+
+function commands.stop()
+    stop = true
+end
+
+function commands.getobject()
+    --local y, x = chan:pop(), chan:pop()
+    local x, y = 1, 1
+    print("x, y", x, y)
+    local ok, errmsg = pcall(function()
+        if grid then
+            --print("object", inspect(grid[x][y]))
+            --request:push(flatCopy(grid[x][y]))
+            request:push(serpent.dump(grid[x][y]))
         end
-    elseif cmd == "step" then
-        checkStep = true
-        doStep = true
-    elseif cmd == "continuos" then
-        checkStep = false
+    end)
+    if not ok then
+        print("Error in getobject operation", errmsg)
     end
+end
+
+function commands.step()
+    checkStep = true
+    doStep = true
+end
+
+function commands.continuos()
+    checkStep = false
+end
+
+local function popCommand()
+    local cmd = chan:pop()
+    if cmd then
+        local command = commands[cmd]
+        if command then
+            command()
+        else
+            print("Unknown command", cmd)
+        end
+    end
+end
+
+while not stop do
+    popCommand()
 
     if checkStep then
         if doStep then
