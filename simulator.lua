@@ -61,7 +61,7 @@ local gridSize = 100
 local function create()
     local processorCount = love.system.getProcessorCount()
     --local threadCount = processorCount - 2
-    local threadCount = 1
+    local threadCount = 2
     print("threadCount", threadCount)
 
     local commonSetup = {
@@ -71,7 +71,7 @@ local function create()
         codeLen = 32,
     }
 
-    local schemas = require "mtschemes"
+    local schema = require "mtschemes"[threadCount]
 
     for i = 1, threadCount do
         local ok, errmsg = pcall(function()
