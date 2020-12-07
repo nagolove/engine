@@ -71,10 +71,27 @@ local function create()
         codeLen = 32,
     }
 
+    local mtScheme = {
+        {"l" = 2, "r" = 2}, 
+        {"l" = 1, "r" = 1}
+    }
+
+    local mtScheme = {
+        {"l" = 3, "r" = 2}, 
+        {"l" = 1, "r" = 3},
+        {"l" = 2, "r" = 1},
+    }
+
+    local mtScheme = {
+        {"l" = 3, "r" = 2}, 
+        {"l" = 1, "r" = 3},
+        {"l" = 2, "r" = 1},
+    }
+
     for i = 1, threadCount do
         local ok, errmsg = pcall(function()
             local setup = copy1(commonSetup)
-            love.thread.getChannel("setup"):push(setup)
+            love.thread.getChannel("setup" .. i):push(setup)
             local th = love.thread.newThread("simulator-thread.lua")
             table.insert(threads, th)
             local errmsg = th:getError()

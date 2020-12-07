@@ -19,8 +19,7 @@ local meal = {}
 local stop = false
 
 local function doSetup()
-    local chan = love.thread.getChannel("setup")
-    local initialSetup = chan:pop()
+    local initialSetup = love.thread.getChannel("setup" .. threadNum):pop()
 
     gridSize = initialSetup.gridSize
     codeLen = initialSetup.codeLen
