@@ -56,6 +56,23 @@ local function getDrawList()
     return dataChan:demand() or lastDrawList
 end
 
+local lastDrawLists = {}
+local function getDrawLists()
+    --if not lastDrawLists then
+        --lastDrawLists = dataChan:peek()
+    --end
+    local list = {}
+    for k, v in pairs(threads) do
+        --local sublist = love.thread.getChannel("data" .. k):demand()
+        local sublist = love.thread.getChannel("data" .. k):demand()
+        for k1, v1 in pairs(sublist) do
+            table.insert(list, v1)
+        end
+    end
+    --return dataChan:demand() or lastDrawLists
+    return list
+end
+
 local gridSize = 100
 
 local function create()
@@ -153,6 +170,7 @@ return {
     create = create,
     setMode = setMode,
     getDrawList = getDrawList,
+    getDrawLists = getDrawLists,
     getObject = getObject,
     step = step,
     doStep = doStep,

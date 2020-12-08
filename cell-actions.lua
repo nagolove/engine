@@ -6,6 +6,7 @@ local actions = {}
 local ENERGY = 10
 local initCell
 local allEated = 0
+local schema
 
 function isAlive(x, y)
     local t = getGrid()[x][y]
@@ -246,6 +247,7 @@ function init(getGridFunc, externalGridSize, schema, functions)
     getGrid = getGridFunc
     gridSize = externalGridSize
     initCell = functions.initCell_fn
+    schema = schema
     allEated = 0
 end
 

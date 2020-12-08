@@ -33,7 +33,7 @@ local function doSetup()
 end
 
 local chan = love.thread.getChannel("msg")
-local data = love.thread.getChannel("data")
+local data = love.thread.getChannel("data" .. threadNum)
 local log = love.thread.getChannel("log")
 local request = love.thread.getChannel("request")
 
@@ -275,9 +275,16 @@ function cloneCell(cell, newx, newy)
 end
 
 function initialEmit()
-    for i = 1, cellsNum do
-        coroutine.yield(initCell())
-        initCell()
+    if threadNum == 1 then
+        for i = 1, cellsNum do
+            coroutine.yield(initCell())
+            initCell()
+        end
+    elseif threadNum == 2 then
+        for i = 1, cellsNum / 10 do
+            coroutine.yield(initCell())
+            initCell()
+        end
     end
 
     local steps = 5

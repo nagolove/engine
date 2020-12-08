@@ -16,7 +16,8 @@ local sim = require "simulator"
 local pixSize = 10
 
 function drawCells()
-    local drawlist = sim.getDrawList()
+    --local drawlist = sim.getDrawList()
+    local drawlist = sim.getDrawLists()
     if drawlist then
         for k, v in pairs(drawlist) do
             if v.food then
