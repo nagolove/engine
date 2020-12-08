@@ -1,20 +1,22 @@
---:setlocal foldmethod=manual
+-- :setlocal foldmethod=manual
 require "imgui"
 require "tools"
 require "log"
+
 local inspect = require "inspect"
 local scenes = require "scenes"
 local gr = love.graphics
 
 __FREEZE_PHYSICS__ = true
 
-
 function love.load(arg)
     scenes.loadScenes("scenes")
     --scenes.initLoaded()
 
-    scenes.initOne("automato")
-    scenes.setCurrentScene("automato")
+    scenes.initOne("selector")
+    scene.setCurrentScene("selector")
+    --scenes.initOne("automato")
+    --scenes.setCurrentScene("automato")
 
     initTools(currentScene)
 end
