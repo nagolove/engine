@@ -1,4 +1,5 @@
 local inspect = require "inspect"
+local serpent = require "serpent"
 require "external"
 
 -- вместилище команд "up", "left"  и прочего алфавита
@@ -89,11 +90,15 @@ local function create()
     }
 
     local schema = require "mtschemes"[threadCount]
+    if not schema then
+        error(string.format("Unsupported scheme for % threads."))
+    end
 
     for i = 1, threadCount do
         local ok, errmsg = pcall(function()
-            love.thread.getChannel("setup" .. i):push(commonSetup)
-            love.thread.getChannel("setup" .. i):push(schema[i])
+            local setupName = "setup" .. i
+            love.thread.getChannel(setupName):push(commonSetup)
+            love.thread.getChannel(setupName):push(serpent.dump(schema[i]))
             local th = love.thread.newThread("simulator-thread.lua")
             table.insert(threads, th)
             local errmsg = th:getError()

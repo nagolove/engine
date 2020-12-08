@@ -2,6 +2,8 @@ local threadNum = ...
 print("thread", threadNum, "is running")
 
 require "love.timer"
+require "external"
+
 local inspect = require "inspect"
 local serpent = require "serpent"
 -- массив всех клеток
@@ -18,6 +20,7 @@ local IdCounter = 0
 local meal = {}
 local stop = false
 local schema
+local drawCoefficients
 
 local function doSetup()
     local setupName = "setup" .. threadNum
@@ -28,8 +31,17 @@ local function doSetup()
     cellsNum = initialSetup.cellsNum
     initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
 
-    schema = love.thread.getChannel(setupName):pop()
+    local sschema = love.thread.getChannel(setupName):pop()
+    local schemafun, err = loadstring(sschema)
+    if err then
+        error("Could'not get schema for thread")
+    end
+    local schemaRestored = schemafun()
+    schema = flatCopy(schemaRestored)
+    drawCoefficients = flatCopy(schemaRestored.draw)
+
     print("schema", inspect(schema))
+    print("drawCoefficients", inspect(drawCoefficients))
 end
 
 local chan = love.thread.getChannel("msg")
@@ -392,10 +404,17 @@ end
 local function pushDrawList()
     local drawlist = {}
     for k, v in pairs(cells) do
-        table.insert(drawlist, { x = v.pos.x, y = v.pos.y })
+        table.insert(drawlist, { 
+            x = v.pos.x + gridSize * drawCoefficients[1],
+            y = v.pos.y + gridSize * drawCoefficients[2],
+        })
     end
     for k, v in pairs(meal) do
-        table.insert(drawlist, { x = v.pos.x, y = v.pos.y, food = true})
+        table.insert(drawlist, { 
+            x = v.pos.x + gridSize * drawCoefficients[1],
+            y = v.pos.y + gridSize * drawCoefficients[2], 
+            food = true
+        })
     end
     if data:getCount() < 5 then
         data:push(drawlist)
@@ -407,16 +426,6 @@ create()
 
 local doStep = false
 local checkStep = false
-
-local function flatCopy(src)
-    local dst = {}
-    for k, v in pairs(src) do
-        if type(v) ~= "table" and type(v) ~= "function" and type(v) ~= "thread" then
-            dst[k] = v
-        end
-    end
-    return dst
-end
 
 local commands = {}
 

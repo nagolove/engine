@@ -6,6 +6,16 @@ function copy(t)
     return result
 end
 
+function flatCopy(src)
+    local dst = {}
+    for k, v in pairs(src) do
+        if type(v) ~= "table" and type(v) ~= "function" and type(v) ~= "thread" then
+            dst[k] = v
+        end
+    end
+    return dst
+end
+
 function copy1(t)
     local result = {}
     for k, v in pairs(t) do
