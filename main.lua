@@ -13,10 +13,11 @@ function love.load(arg)
     scenes.loadScenes("scenes")
     --scenes.initLoaded()
 
-    scenes.initOne("selector")
-    scene.setCurrentScene("selector")
-    --scenes.initOne("automato")
-    --scenes.setCurrentScene("automato")
+    --scenes.initOne("selector")
+    --scenes.setCurrentScene("selector")
+    
+    scenes.initOne("automato")
+    scenes.setCurrentScene("automato")
 
     initTools(currentScene)
 end
