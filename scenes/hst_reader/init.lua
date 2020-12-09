@@ -3,10 +3,13 @@ local histPath = "c:/users/dekar/AppData/Roaming/MetaQuotes/Terminal/287469DEA96
 local imgui = require "imgui"
 local thread
 
+--package.path = package.path .. ";scenes/hst_reader/?.lua"
+local threadPath = "scenes/hst_reader/file-thread.lua"
+
 local function init()
-    thread = love.thread.newThread("file-thread.lua")
+    thread = love.thread.newThread(threadPath)
     love.thread.getChannel("fname"):push(histPath)
-    thread.start(1)
+    thread:start(1)
 end
 
 local function quit()
