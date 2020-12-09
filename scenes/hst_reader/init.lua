@@ -1,5 +1,6 @@
 ﻿local struct = require "struct"
 local histPath = "c:/users/dekar/AppData/Roaming/MetaQuotes/Terminal/287469DEA9630EA94D0715D755974F1B/history/Alpari-Demo/EURUSD999.hst"
+local imgui = require "imgui"
 
 local function init()
 end

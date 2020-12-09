@@ -79,7 +79,7 @@ function love.keypressed(_, key)
    imgui.KeyPressed(key)
    if not imgui.GetWantCaptureKeyboard() then
        if checkToolsHotkey(key) then
-           toggleTools()
+           --toggleTools()
        end
        scenes.keypressed(key)
        keypressedTools(key)
@@ -89,7 +89,7 @@ end
 function love.keyreleased(_, key)
    imgui.KeyReleased(key)
    if not imgui.GetWantCaptureKeyboard() then
-       -- Pass event to the game
+       scenes.keyreleased(key)
    end
 end
 
@@ -97,6 +97,7 @@ function love.mousemoved(x, y, dx, dy)
    imgui.MouseMoved(x, y)
    if not imgui.GetWantCaptureMouse() then
        mousemovedTools(x, y, dx, dy)
+       scenes.mousemoved(x, y, dx, dy)
    end
 end
 
@@ -104,6 +105,7 @@ function love.mousepressed(x, y, button)
    imgui.MousePressed(button)
    if not imgui.GetWantCaptureMouse() then
        mousepressedTools(x, y, button)
+       scenes.mousepressed(x, y, button)
    end
 end
 
@@ -111,13 +113,14 @@ function love.mousereleased(x, y, button)
    imgui.MouseReleased(button)
    if not imgui.GetWantCaptureMouse() then
        mousereleasedTools(x, y, button)
+       scenes.mousereleased(x, y, button)
    end
 end
 
 function love.wheelmoved(x, y)
    imgui.WheelMoved(y)
    if not imgui.GetWantCaptureMouse() then
-       -- Pass event to the game
+       scenes.wheelmoved(x, y)
    end
 end
 

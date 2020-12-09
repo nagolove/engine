@@ -105,6 +105,24 @@ local function initOne(name)
     end
 end
 
+local function mousemoved(x, y, dx, dy)
+    if currentScene and currentScene.mousemoved then
+        currentScene.mousemoved(x, y, dx, dy)
+    end
+end
+
+local function mousereleased(x, y, btn)
+    if currentScene and currentScene.mousereleased then
+        currentScene.mousereleased(x, y, btn)
+    end
+end
+
+local function mousepressed(x, y, btn)
+    if currentScene and currentScene.mousepressed then
+        currentScene.mousepressed(x, y, btn)
+    end
+end
+
 return {
     getCurrentScene = function()
         return currentScene
@@ -117,5 +135,8 @@ return {
     update = update,
     draw = draw,
     keypressed = keypressed,
+    mousemoved = mousemoved,
+    mousereleased = mousereleased,
+    mousepressed = mousepressed,
 }
 
