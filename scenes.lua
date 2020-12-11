@@ -123,6 +123,12 @@ local function mousepressed(x, y, btn)
     end
 end
 
+local function keyreleased(_, key)
+    if currentScene and currentScene.keyreleased then
+        currentScene.keyreleased(key)
+    end
+end
+
 return {
     getCurrentScene = function()
         return currentScene
@@ -135,6 +141,7 @@ return {
     update = update,
     draw = draw,
     keypressed = keypressed,
+    keyreleased = keyreleased,
     mousemoved = mousemoved,
     mousereleased = mousereleased,
     mousepressed = mousepressed,
