@@ -34,9 +34,11 @@ local function readRecord(f)
             rvol = rvol
         })
 
-        local info = copy(raw[#raw])
-        info.ctm = os.date("*t", ctm)
-        textOut:write(inspect(info))
+        --[[
+           [local info = copy(raw[#raw])
+           [info.ctm = os.date("*t", ctm)
+           [textOut:write(inspect(info))
+           ]]
 
         --print("ctm", ctm)
         --print("ctm", inspect(os.date("*t", ctm)))
@@ -63,8 +65,7 @@ end
 --[[
 -- Полностью загружает файл в память
 --]]
-local function firstRead()
-    local file = io.open(fname, "rb")
+local function firstRead(file)
     local version = struct.unpack("<i", file:read(4))
     print("version", version)
     local copyright = file:read(64)
@@ -80,30 +81,10 @@ local function firstRead()
     print("last_sync", inspect(os.date("*t", last_sync)))
 
     _ = file:read(52) -- unused
-
-    --for i = 1, 100 do
-    local time1 = love.timer.getTime()
-    local record = readRecord(file)
-    local i = 0
-    while record do
-        record = readRecord(file)
-        i = i + 1
-        --if not readRecord(file) then
-            --print(string.format("Error in reading %d record", i))
-            --break
-        --end
-    end
-    local time2 = love.timer.getTime()
-    print("i", i)
-    print("diff time", time2 - time1)
-
-    file:close()
 end
 
 local function secondRead()
 end
-
-firstRead()
 
 local messageHandler = {}
 
@@ -112,14 +93,15 @@ function messageHandler.len()
 end
 
 function messageHandler.get()
-    local idx = love.thread.getChannel("msg"):pop()
+    local idx = tonumber(love.thread.getChannel("msg"):pop())
     if not idx then
         print("Error in 'get' message, no index for data")
     else
         if idx >= 1 and idx <= #raw then
+            --print("data pushing")
             love.thread.getChannel("data"):push(raw[idx])
         else
-            print(string.format("Incorrect index %d", index))
+            print(string.format("Incorrect index %d", idx))
         end
     end
 end
@@ -134,17 +116,38 @@ function checkFileSize()
     return size
 end
 
---local sz = checkFileSize()
-
-while true do
+local function processMessages()
     local message = love.thread.getChannel("msg"):pop()
     if messageHandler[message] then
         messageHandler[message]()
     end
+end
 
-    --local nsz = checkFileSize()
-    --print(nsz - sz)
-    --sz = nsz
+--local sz = checkFileSize()
 
-    love.timer.sleep(0.1)
+local file = io.open(fname, "rb")
+if not file then
+    error(string.format("Could'not open %s file", fname))
+end
+firstRead(file)
+local time1 = love.timer.getTime()
+local i = 0
+
+while true do
+    processMessages()
+    local record = readRecord(file)
+    if record then
+        i = i + 1
+    else
+        break
+    end
+end
+
+file:close()
+local time2 = love.timer.getTime()
+print(string.format("%d records loaded for %f secs", i, time2 - time1))
+
+while true do
+    processMessages()
+    love.thread.sleep(0.002)
 end
