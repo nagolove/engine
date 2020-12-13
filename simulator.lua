@@ -75,30 +75,23 @@ local function getDrawLists()
 end
 
 local gridSize = 100
+local mtschema
 
-local function create()
+local function create(commonSetup)
     local processorCount = love.system.getProcessorCount()
-    --local threadCount = processorCount - 2
-    local threadCount = 2
+    local threadCount = commonSetup.threadCount
     print("threadCount", threadCount)
 
-    local commonSetup = {
-        gridSize = gridSize,
-        cellsNum = 2000,
-        initialEnergy = {500, 1000},
-        codeLen = 32,
-    }
-
-    local schema = require "mtschemes"[threadCount]
-    if not schema then
-        error(string.format("Unsupported scheme for % threads."))
+    mtschema = require "mtschemes"[threadCount]
+    if not mtschema then
+        error(string.format("Unsupported scheme for % threads.", threadCount))
     end
 
     for i = 1, threadCount do
         local ok, errmsg = pcall(function()
             local setupName = "setup" .. i
             love.thread.getChannel(setupName):push(commonSetup)
-            love.thread.getChannel(setupName):push(serpent.dump(schema[i]))
+            love.thread.getChannel(setupName):push(serpent.dump(mtschema[i]))
             local th = love.thread.newThread("simulator-thread.lua")
             table.insert(threads, th)
             local errmsg = th:getError()
@@ -185,5 +178,8 @@ return {
     getIter = getIter,
     getGridSize = function()
         return gridSize
+    end,
+    getSchema = function()
+        return mtschema
     end,
 }

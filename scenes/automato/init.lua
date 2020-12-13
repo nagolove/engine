@@ -34,11 +34,25 @@ end
 function drawGrid()
     gr.setColor(0.5, 0.5, 0.5)
     local gridSize = sim.getGridSize()
-    for i = 0, sim.getGridSize() do
-        -- vert
-        gr.line(i * pixSize, 0, i * pixSize, gridSize * pixSize)
-        -- hor
-        gr.line(0, i * pixSize, gridSize * pixSize, i * pixSize)
+    local schema = sim.getSchema()
+    if schema then
+        for _, v in pairs(sim.getSchema()) do
+            local dx, dy = v.draw[1] * pixSize * gridSize, v.draw[2] * pixSize * gridSize
+            for i = 0, sim.getGridSize() do
+                -- vert
+                gr.line(dx + i * pixSize, dy + 0, dx + i * pixSize, dy + gridSize * pixSize)
+                -- hor
+                gr.line(dx + 0, dy + i * pixSize, dx + gridSize * pixSize, dy + i * pixSize)
+            end
+        end
+    else
+        local dx, dy = 0, 0
+        for i = 0, sim.getGridSize() do
+            -- vert
+            gr.line(dx + i * pixSize, dy + 0, dx + i * pixSize, dy + gridSize * pixSize)
+            -- hor
+            gr.line(dx + 0, dy + i * pixSize, dx + gridSize * pixSize, dy + i * pixSize)
+        end
     end
 end
 
@@ -101,17 +115,14 @@ end
 local function draw()
     if viewState == "sim" then
         if mouseCapture then
-            cam:attach()
             cam:move(-mouseCapture.dx, -mouseCapture.dy)
         end
 
+        cam:attach()
         drawGrid()
         drawCells()
         drawStatistic()
-
-        if mouseCapture then
-            cam:detach()
-        end
+        cam:detach()
     elseif viewState == "graph" then
         drawGraphs()
     end
@@ -197,6 +208,19 @@ local function nextMode()
 end
 
 local function update()
+    local dx, dy = 10, 10
+    local isDown = love.keyboard.isDown
+    if isDown("lshift") then
+        if isDown("left") then
+            cam:move(-dx, 0)
+        elseif isDown("right") then
+            cam:move(dx, 0)
+        elseif isDown("up") then
+            cam:move(0, -dy)
+        elseif isDown("down") then
+            cam:move(0, dy)
+        end
+    end
     --stepPressed = love.keyboard.isDown("s")
 
     sim.step()
@@ -229,7 +253,16 @@ local function init(lvldata)
         cam.rotate = lvldata.cam.rotate
     end
     math.randomseed(love.timer.getTime())
-    sim.create()
+
+    local commonSetup = {
+        gridSize = gridSize,
+        cellsNum = 2000,
+        initialEnergy = {500, 1000},
+        codeLen = 32,
+        threadsCount = 2,
+    }
+
+    sim.create(commonSetup)
 end
 
 local function quit()

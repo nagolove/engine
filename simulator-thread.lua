@@ -208,7 +208,7 @@ end
 function emitFood(iter)
     --print(math.log(iter) / 1)
     for i = 1, math.log(iter) * 10 do
-        local emited, gridcell = emitFoodInRandomPoint()
+        --local emited, gridcell = emitFoodInRandomPoint()
         if not emited then
             -- здесь исследовать причины смерти яцейки
             --print("not emited gridcell", inspect(gridcell))
@@ -289,23 +289,23 @@ end
 function initialEmit()
     if threadNum == 1 then
         for i = 1, cellsNum do
-            coroutine.yield(initCell())
-            initCell()
+            --coroutine.yield(initCell())
         end
     elseif threadNum == 2 then
         for i = 1, cellsNum / 10 do
-            coroutine.yield(initCell())
-            initCell()
+            --coroutine.yield(initCell())
         end
     end
 
-    local steps = 5
-    local c = initCell()
-    cloneCell(c, 10, 10)
-    initCellOneCommandCode("right", steps)
-    initCellOneCommandCode("left", steps)
-    initCellOneCommandCode("up", steps)
-    initCellOneCommandCode("down", steps)
+    for i = 1, 10 do
+        local steps = 5
+        local c = initCell()
+        cloneCell(c, 10, 10)
+        initCellOneCommandCode("right", steps)
+        initCellOneCommandCode("left", steps)
+        initCellOneCommandCode("up", steps)
+        initCellOneCommandCode("down", steps)
+    end
 end
 
 function postinitialEmit(iter)

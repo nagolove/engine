@@ -10,11 +10,12 @@ local thread
 --package.path = package.path .. ";scenes/hst_reader/?.lua"
 local threadPath = "scenes/hst_reader/file-thread.lua"
 
-thread = love.thread.newThread(threadPath)
-love.thread.getChannel("fname"):push(histPath)
-thread:start(1)
-
 local function init()
+    -- проблема со временем запуска этого кода на выполнение
+    thread = love.thread.newThread(threadPath)
+    love.thread.getChannel("fname"):push(histPath)
+    thread:start(1)
+
     love.timer.sleep(1.3)
 end
 
