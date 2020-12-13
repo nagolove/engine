@@ -123,7 +123,7 @@ function updateCell(cell)
     if cell.energy > 0 then
         actions[cell.code[cell.ip]](cell)
         cell.ip = cell.ip + 1
-        cell.energy = cell.energy - 1
+        --cell.energy = cell.energy - 1
         return true, cell
     else
         return false, cell
@@ -255,7 +255,7 @@ function updateCells()
     return alive
 end
 
-function initCellOneCommandCode(command, steps)
+local function initCellOneCommandCode(command, steps)
     local cell = initCell()
     cell.code = {}
     for i = 1, steps do
@@ -263,7 +263,7 @@ function initCellOneCommandCode(command, steps)
     end
 end
 
-function cloneCell(cell, newx, newy)
+local function cloneCell(cell, newx, newy)
     if not isAlive(newx, newy) then
         local new = {}
         for k, v in pairs(cell) do
@@ -297,14 +297,16 @@ function initialEmit()
         end
     end
 
-    for i = 1, 10 do
-        local steps = 5
-        local c = initCell()
-        cloneCell(c, 10, 10)
-        initCellOneCommandCode("right", steps)
-        initCellOneCommandCode("left", steps)
-        initCellOneCommandCode("up", steps)
-        initCellOneCommandCode("down", steps)
+    if threadNum == 1 then
+        for i = 1, 2 do
+            local steps = 5
+            --local c = initCell()
+            --cloneCell(c, 10, 10)
+            initCellOneCommandCode("right", steps)
+            initCellOneCommandCode("left", steps)
+            initCellOneCommandCode("up", steps)
+            initCellOneCommandCode("down", steps)
+        end
     end
 end
 

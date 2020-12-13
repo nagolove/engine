@@ -30,7 +30,7 @@ local function pushPosition(cell)
 end
 
 function actions.left(cell)
-    pos = cell.pos
+    local pos = cell.pos
     pushPosition(cell)
     if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
         pos.x = pos.x - 1
@@ -40,7 +40,7 @@ function actions.left(cell)
 end
 
 function actions.right(cell)
-    pos = cell.pos
+    local pos = cell.pos
     pushPosition(cell)
     if pos.x < gridSize and not isAlive(pos.x + 1, pos.y) then
         pos.x = pos.x + 1
@@ -50,7 +50,7 @@ function actions.right(cell)
 end
 
 function actions.up(cell)
-    pos = cell.pos
+    local pos = cell.pos
     pushPosition(cell)
     if pos.y > 1 and not isAlive(pos.x, pos.y - 1) then
         pos.y = pos.y - 1
@@ -60,7 +60,7 @@ function actions.up(cell)
 end
 
 function actions.down(cell)
-    pos = cell.pos
+    local pos = cell.pos
     pushPosition(cell)
     if pos.y < gridSize and not isAlive(pos.x, pos.y + 1) then
         pos.y = pos.y + 1

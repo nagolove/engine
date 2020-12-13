@@ -208,7 +208,7 @@ local function nextMode()
 end
 
 local function update()
-    local dx, dy = 10, 10
+    local dx, dy = 20, 20
     local isDown = love.keyboard.isDown
     if isDown("lshift") then
         if isDown("left") then
@@ -259,7 +259,7 @@ local function init(lvldata)
         cellsNum = 2000,
         initialEnergy = {500, 1000},
         codeLen = 32,
-        threadCount = 2,
+        threadCount = 4,
     }
 
     sim.create(commonSetup)
