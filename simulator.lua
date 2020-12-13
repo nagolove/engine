@@ -2,6 +2,12 @@ local inspect = require "inspect"
 local serpent = require "serpent"
 require "external"
 
+local threads = {}
+local gridSize
+local mtschema
+local threadCount
+local iter = 0
+
 -- вместилище команд "up", "left"  и прочего алфавита
 local genomStore = {}
 
@@ -44,9 +50,6 @@ function newGrid()
     return setmetatable({}, Grid)
 end
 
-local threads = {}
-local dataChan = love.thread.getChannel("data")
-
 local function getDrawLists()
     local list = {}
     for k, v in pairs(threads) do
@@ -57,10 +60,6 @@ local function getDrawLists()
     end
     return list
 end
-
-local gridSize
-local mtschema
-local threadCount
 
 local function create(commonSetup)
     threadCount = commonSetup.threadCount
@@ -90,7 +89,8 @@ local function create(commonSetup)
         end
     end
 
-    love.timer.sleep(0.5)
+    pushSync()
+    --love.timer.sleep(0.5)
 
     for k, v in pairs(threads) do
         print(v:getError())
@@ -109,11 +109,16 @@ local function printThreadsLog()
     end
 end
 
-local function step()
-    printThreadsLog()
+local function pushSync()
+    local syncChan = love.thread.getChannel("sync")
+    for i = 1, threadCount do
+        syncChan:push("sync")
+    end
 end
 
-local iter = 0
+local function step()
+    pushSync()
+end
 
 local function getIter()
     local newIter = love.thread.getChannel("iter")
@@ -123,6 +128,8 @@ local function getIter()
     return iter
 end
 
+-- здеcь нужно определять в какой из потоков отправить запрос используя каналы
+-- msg1, msg2, ...
 local function getObject(x, y)
     local chan = love.thread.getChannel("msg")
     chan:push("getobject")

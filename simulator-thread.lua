@@ -471,6 +471,8 @@ local function popCommand()
     end
 end
 
+local syncChan = love.thread.getChannel("sync")
+
 while not stop do
     popCommand()
 
@@ -482,13 +484,19 @@ while not stop do
     else
         step()
     end
+    pushDrawList()
+
+    local syncMsg = syncChan:demand(0.001)
+    --local syncMsg = syncChan:demand()
+    --local syncMsg = syncChan:pop()
+    print(threadNum, syncMsg)
 
     doStep = false
 
-    pushDrawList()
-    
-    local iterChan = love.thread.getChannel("iter")
-    if iterChan:getCount() < 5 then
-        iterChan:push(iter)
-    end
+    --[[
+       [local iterChan = love.thread.getChannel("iter")
+       [if iterChan:getCount() < 5 then
+       [    iterChan:push(iter)
+       [end
+       ]]
 end
