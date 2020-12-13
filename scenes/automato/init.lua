@@ -255,14 +255,15 @@ local function init(lvldata)
     math.randomseed(love.timer.getTime())
 
     local commonSetup = {
-        gridSize = gridSize,
+        gridSize = 100,
         cellsNum = 2000,
         initialEnergy = {500, 1000},
         codeLen = 32,
-        threadsCount = 2,
+        threadCount = 2,
     }
 
     sim.create(commonSetup)
+    nextMode()
 end
 
 local function quit()

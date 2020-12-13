@@ -46,7 +46,6 @@ end
 
 local threads = {}
 local dataChan = love.thread.getChannel("data")
-local msgChan = love.thread.getChannel("msg")
 
 local lastDrawList
 
@@ -74,17 +73,18 @@ local function getDrawLists()
     return list
 end
 
-local gridSize = 100
+local gridSize
 local mtschema
+local threadCount
 
 local function create(commonSetup)
-    local processorCount = love.system.getProcessorCount()
-    local threadCount = commonSetup.threadCount
+    threadCount = commonSetup.threadCount
     print("threadCount", threadCount)
 
+    gridSize = commonSetup.gridSize
     mtschema = require "mtschemes"[threadCount]
     if not mtschema then
-        error(string.format("Unsupported scheme for % threads.", threadCount))
+        error(string.format("Unsupported scheme for %d threads.", threadCount))
     end
 
     for i = 1, threadCount do
@@ -111,6 +111,7 @@ local function create(commonSetup)
         print(v:getError())
     end
 
+    local processorCount = love.system.getProcessorCount()
     print("processorCount", processorCount)
 end
 
@@ -153,15 +154,21 @@ end
 
 local mode = "continuos" -- "step"
 
+local function pushMsg2Threads(t)
+    for i = 1, threadCount do
+        love.thread.getChannel("msg" .. i):push(t)
+    end
+end
+
 local function setMode(m)
     --assert(m == "step" or m == "continuos")
     mode = m
     print("push", mode)
-    msgChan:push(mode)
+    pushMsg2Threads(mode)
 end
 
 local function doStep()
-    msgChan:push("step")
+    pushMsg2Threads("step")
 end
 
 return {

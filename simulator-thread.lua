@@ -44,7 +44,7 @@ local function doSetup()
     print("drawCoefficients", inspect(drawCoefficients))
 end
 
-local chan = love.thread.getChannel("msg")
+local chan = love.thread.getChannel("msg" .. threadNum)
 local data = love.thread.getChannel("data" .. threadNum)
 local log = love.thread.getChannel("log")
 local request = love.thread.getChannel("request")
