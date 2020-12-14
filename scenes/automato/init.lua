@@ -125,6 +125,10 @@ function drawGraphs()
     gr.draw(graphCanvas)
 end
 
+local function replaceCaret(str)
+    return string.gsub(str, "\n", "")
+end
+
 local function drawui()
     imgui.Begin("sim", false, "ImGuiWindowFlags_AlwaysAutoResize")
 
@@ -137,6 +141,8 @@ local function drawui()
     if imgui.Button("reset silumation") then
         sim.create(commonSetup)
     end
+
+    imgui.Text(replaceCaret(inspect(sim.getStatistic)))
 
     imgui.End()
 end

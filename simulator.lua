@@ -6,7 +6,7 @@ local threads = {}
 local gridSize
 local mtschema
 local threadCount
-local iter = 0
+local statistic = {}
 
 -- вместилище команд "up", "left"  и прочего алфавита
 local genomStore = {}
@@ -134,6 +134,14 @@ local function printThreadsLog()
 end
 
 local function step()
+    local iterSum = 0
+    local iterChan = love.thread.getChannel("iter")
+    local value = iterChan:pop()
+    while value do
+        iterSum = iterSum + value
+        value = iterChan:pop()
+    end
+    statistic.iterAverage = iterSum / threadCount
     pushSync()
 end
 
@@ -183,6 +191,10 @@ local function doStep()
     pushMsg2Threads("step")
 end
 
+local function getStatistic()
+    return statistic
+end
+
 return {
     create = create,
     setMode = setMode,
@@ -191,9 +203,7 @@ return {
     getObject = getObject,
     step = step,
     doStep = doStep,
-    getStatistic = function()
-        return statistic
-    end,
+    getStatistic = getStatistic,
     getIter = getIter,
     getGridSize = function()
         return gridSize

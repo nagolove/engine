@@ -525,10 +525,6 @@ while not stop do
 
     doStep = false
 
-    --[[
-       [local iterChan = love.thread.getChannel("iter")
-       [if iterChan:getCount() < 5 then
-       [    iterChan:push(iter)
-       [end
-       ]]
+    local iterChan = love.thread.getChannel("iter")
+    iterChan:push(iter)
 end
