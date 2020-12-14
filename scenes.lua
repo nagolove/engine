@@ -90,6 +90,12 @@ local function draw()
     end
 end
 
+local function drawui()
+    if currentScene and currentScene.drawui then
+        currentScene.drawui()
+    end
+end
+
 local function keypressed(key)
     if currentScene and currentScene.keypressed then
         currentScene.keypressed(key)
@@ -140,6 +146,7 @@ return {
     initOne = initOne,
     update = update,
     draw = draw,
+    drawui = drawui,
     keypressed = keypressed,
     keyreleased = keyreleased,
     mousemoved = mousemoved,

@@ -15,6 +15,19 @@ local stepPressed = false
 local sim = require "simulator"
 local pixSize = 10
 
+local commonSetup = {
+    gridSize = 100,
+    cellsNum = 2000,
+    initialEnergy = {500, 1000},
+    codeLen = 32,
+    threadCount = 4,
+}
+
+
+local function getMode()
+    return mode
+end
+
 function drawCells()
     --local drawlist = sim.getDrawList()
     local drawlist = sim.getDrawLists()
@@ -112,10 +125,26 @@ function drawGraphs()
     gr.draw(graphCanvas)
 end
 
+local function drawui()
+    imgui.Begin("sim", false, "ImGuiWindowFlags_AlwaysAutoResize")
+
+    imgui.Text(string.format("mode %s", getMode()))
+
+    if imgui.Button("change mode", getMode()) then
+        nextMode()
+    end
+
+    if imgui.Button("reset silumation") then
+        sim.create(commonSetup)
+    end
+
+    imgui.End()
+end
+
 local function draw()
     if viewState == "sim" then
         if mouseCapture then
-            cam:move(-mouseCapture.dx, -mouseCapture.dy)
+            --cam:move(-mouseCapture.dx, -mouseCapture.dy)
         end
 
         cam:attach()
@@ -254,14 +283,6 @@ local function init(lvldata)
     end
     math.randomseed(love.timer.getTime())
 
-    local commonSetup = {
-        gridSize = 100,
-        cellsNum = 2000,
-        initialEnergy = {500, 1000},
-        codeLen = 32,
-        threadCount = 4,
-    }
-
     sim.create(commonSetup)
     nextMode()
 end
@@ -273,9 +294,7 @@ return {
     getPixSize = function()
         return pixSize
     end,
-    getMode = function()
-        return mode
-    end,
+    getMode = getMode,
     nextMode = nextMode,
     cam = cam, 
     pworld = pworld,
@@ -286,6 +305,7 @@ return {
     init = init,
     quit = quit,
     draw = draw,
+    drawui = drawui,
     update = update,
     keypressed = keypressed,
 }

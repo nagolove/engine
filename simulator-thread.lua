@@ -49,7 +49,6 @@ local chan = love.thread.getChannel("msg" .. threadNum)
 local data = love.thread.getChannel("data" .. threadNum)
 local log = love.thread.getChannel("log")
 local request = love.thread.getChannel("request" .. threadNum)
-local newcells = love.thread.getChannel("newcells" .. threadNum)
 
 local actionsModule = require "cell-actions"
 
@@ -496,7 +495,7 @@ local function popCommand()
         if command then
             command()
         else
-            print("Unknown command", cmd)
+            error(string.format("Unknown command", cmd))
         end
     end
 end

@@ -50,7 +50,11 @@ function love.draw()
    gr.setColor{1, 1, 1}
    scenes.draw()
    gr.setColor{1, 1, 1}
-   drawTools()
+   imgui.NewFrame()
+   scenes.drawui()
+   love.graphics.setColor{1, 1, 1}
+   imgui.Render();
+   --drawTools()
 end
 
 function love.quit()
@@ -64,10 +68,10 @@ function love.textinput(t)
    end
 end
 
-local toolsHotkes = {"`", "f1"}
+local toolsHotkeys = {"`", "f1"}
 
 function checkToolsHotkey(key)
-    for k, v in pairs(toolsHotkes) do
+    for k, v in pairs(toolsHotkeys) do
         if key == v then
             return true
         end

@@ -68,8 +68,24 @@ local function pushSync()
     end
 end
 
+local function pushMsg2Threads(t)
+    for i = 1, threadCount do
+        love.thread.getChannel("msg" .. i):push(t)
+    end
+end
 
 local function create(commonSetup)
+    if #threads ~= 0 then
+        pushMsg2Threads("stop")
+        love.timer.sleep(0.05)
+        for i = 1, threadCount do
+            love.thread.getChannel("msg" .. i):clear()
+            love.thread.getChannel("data" .. i):clear()
+            love.thread.getChannel("setup" .. i):clear()
+            love.thread.getChannel("request" .. i):clear()
+        end
+    end
+
     threadCount = commonSetup.threadCount
     print("threadCount", threadCount)
 
@@ -155,12 +171,6 @@ local function getObject(x, y)
 end
 
 local mode = "continuos" -- "step"
-
-local function pushMsg2Threads(t)
-    for i = 1, threadCount do
-        love.thread.getChannel("msg" .. i):push(t)
-    end
-end
 
 local function setMode(m)
     --assert(m == "step" or m == "continuos")
