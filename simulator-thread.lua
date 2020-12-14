@@ -48,6 +48,7 @@ local chan = love.thread.getChannel("msg" .. threadNum)
 local data = love.thread.getChannel("data" .. threadNum)
 local log = love.thread.getChannel("log")
 local request = love.thread.getChannel("request" .. threadNum)
+local newcells = love.thread.getChannel("newcells" .. threadNum)
 
 local actionsModule = require "cell-actions"
 
@@ -292,8 +293,8 @@ function initialEmit()
             --coroutine.yield(initCell())
         end
     elseif threadNum == 2 then
-        for i = 1, cellsNum / 10 do
-            --coroutine.yield(initCell())
+        for i = 1, cellsNum / 100 do
+            coroutine.yield(initCell())
         end
     end
 
@@ -468,13 +469,22 @@ function commands.isalive()
     local ok, errmsg = pcall(function()
         if x >= 1 and x <= gridSize and y >= 1 and y <= gridSize then
             local cell = grid[x][y]
-            local state = t.energy and t.energy > 0
+            local state = cell.energy and cell.energy > 0
             request:push(state)
         end
     end)
     if not ok then
-        print(errmsg)
+        error(errmsg)
     end
+end
+
+function commands.insertcell()
+    local newcellfun, err = loadstring(chan:pop())
+    if err then
+        error(err)
+    end
+    local newcell = newcellfun()
+    table.insert(cells, newcell)
 end
 
 local function popCommand()

@@ -86,8 +86,8 @@ local function create(commonSetup)
             love.thread.getChannel(setupName):push(serpent.dump(mtschema[i]))
             local th = love.thread.newThread("simulator-thread.lua")
             table.insert(threads, th)
-            local errmsg = th:getError()
             th:start(i)
+            local errmsg = th:getError()
             if errmsg then
                 logfwarn("Thread %s", errmsg)
             end

@@ -1,5 +1,6 @@
 require "external"
 local inspect = require "inspect"
+local serpent = require "serpent"
 local getGrid
 local gridSize
 local actions = {}
@@ -30,10 +31,6 @@ local function pushPosition(cell)
     end
 end
 
-local function getCurrentSchema()
-    return schema[threadNum]
-end
-
 -- проверяет жива ли клетка в определенном потоке
 local function isAliveNeighbours(x, y, threadNum)
     local msgChan = love.thread.getChannel("msg" .. threadNum)
@@ -44,14 +41,24 @@ local function isAliveNeighbours(x, y, threadNum)
     return state
 end
 
+local function moveCellToThread(cell, threadNum)
+    local dump = serpent.dump(cell)
+    local chan = love.thread.getChannel("msg" .. threadNum)
+    chan:push("insertcell")
+    chan:push(dump)
+end
+
 function actions.left(cell)
     local pos = cell.pos
     pushPosition(cell)
+    --print("cell", inspect(cell))
     if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
         pos.x = pos.x - 1
     --elseif pos.x <= 1 and not isAlive(gridSize, pos.y, schema) then
-    elseif pos.x <= 1 and not isAlive(gridSize, pos.y) then
+    elseif pos.x <= 1 and not isAliveNeighbours(gridSize, pos.y, schema.l) then
+        getGrid()[cell.pos.x][cell.pos.y].energy = 0
         pos.x = gridSize
+        moveCellToThread(cell, schema.l)
     end
 end
 
@@ -267,7 +274,6 @@ function init(t)
     initCell = t.initCell_fn
     schema = t.schema
     print("t", inspect(t))
-    print("init schema", inspect(schema))
     allEated = 0
 end
 
