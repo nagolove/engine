@@ -292,7 +292,8 @@ function initialEmit()
         for i = 1, cellsNum do
             --coroutine.yield(initCell())
         end
-    elseif threadNum == 2 then
+    --elseif threadNum == 2 then
+    else
         for i = 1, cellsNum / 100 do
             coroutine.yield(initCell())
         end
