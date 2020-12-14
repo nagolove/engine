@@ -61,6 +61,14 @@ local function getDrawLists()
     return list
 end
 
+local function pushSync()
+    local syncChan = love.thread.getChannel("sync")
+    for i = 1, threadCount do
+        syncChan:push("sync")
+    end
+end
+
+
 local function create(commonSetup)
     threadCount = commonSetup.threadCount
     print("threadCount", threadCount)
@@ -109,13 +117,6 @@ local function printThreadsLog()
     end
 end
 
-local function pushSync()
-    local syncChan = love.thread.getChannel("sync")
-    for i = 1, threadCount do
-        syncChan:push("sync")
-    end
-end
-
 local function step()
     pushSync()
 end
@@ -128,14 +129,23 @@ local function getIter()
     return iter
 end
 
+local function findThreadByPos(x, y)
+    local ix, iy = math.floor(x / gridSize), math.floor(y / gridSize)
+    local rx, ry = x % gridSize, y % gridSize
+    for k, v in pairs(mtschema) do
+    end
+    return nil
+end
+
 -- здеcь нужно определять в какой из потоков отправить запрос используя каналы
 -- msg1, msg2, ...
 local function getObject(x, y)
+    local threadNum = findThreadByPos(x, y)
     local chan = love.thread.getChannel("msg")
     chan:push("getobject")
     chan:push(x)
     chan:push(y)
-    local sobject = love.thread.getChannel("request"):demand()
+    local sobject = love.thread.getChannel("request" .. threadNum):demand()
     local objectfun, err = loadstring(sobject)
     if err then
         logferror("Could'not deserialize cell object %s", err)

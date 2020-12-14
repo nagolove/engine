@@ -7,6 +7,7 @@ local ENERGY = 10
 local initCell
 local allEated = 0
 local schema
+local threadNum
 
 function isAlive(x, y)
     local t = getGrid()[x][y]
@@ -29,11 +30,26 @@ local function pushPosition(cell)
     end
 end
 
+local function getCurrentSchema()
+    return schema[threadNum]
+end
+
+-- проверяет жива ли клетка в определенном потоке
+local function isAliveNeighbours(x, y, threadNum)
+    local msgChan = love.thread.getChannel("msg" .. threadNum)
+    msgChan:push("isalive")
+    msgChan:push(x)
+    msgChan:push(y)
+    local state = love.thread.getChannel("request" .. threadNum):demand()
+    return state
+end
+
 function actions.left(cell)
     local pos = cell.pos
     pushPosition(cell)
     if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
         pos.x = pos.x - 1
+    --elseif pos.x <= 1 and not isAlive(gridSize, pos.y, schema) then
     elseif pos.x <= 1 and not isAlive(gridSize, pos.y) then
         pos.x = gridSize
     end
@@ -242,12 +258,16 @@ function actions.cross(cell)
     end
 end
 
-function init(getGridFunc, externalGridSize, schema, functions)
-    assert(type(getGridFunc) == "function")
-    getGrid = getGridFunc
-    gridSize = externalGridSize
-    initCell = functions.initCell_fn
-    schema = schema
+--function init(getGridFunc, externalGridSize, currentThreadNum, schema, functions)
+function init(t)
+    --assert(type(getGridFunc) == "function")
+    threadNum = t.threadNum
+    getGrid = t.getGridFunc
+    gridSize = t.gridSize
+    initCell = t.initCell_fn
+    schema = t.schema
+    print("t", inspect(t))
+    print("init schema", inspect(schema))
     allEated = 0
 end
 

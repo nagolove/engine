@@ -47,7 +47,7 @@ end
 local chan = love.thread.getChannel("msg" .. threadNum)
 local data = love.thread.getChannel("data" .. threadNum)
 local log = love.thread.getChannel("log")
-local request = love.thread.getChannel("request")
+local request = love.thread.getChannel("request" .. threadNum)
 
 local actionsModule = require "cell-actions"
 
@@ -399,7 +399,14 @@ local function create()
         end
     end)
     coroutine.resume(experimentCoro)
-    actionsModule.init(getGrid, gridSize, schema, { initCell_fn = initCell })
+    --actionsModule.init(getGrid, gridSize, schema, threadNum, { initCell_fn = initCell })
+    actionsModule.init({
+        getGridFunc = getGrid,
+        gridSize = gridSize,
+        schema = schema,
+        threadNum = threadNum,
+        initCell_fn = initCell,
+    })
     actions = actionsModule.actions
 end
 
@@ -422,9 +429,6 @@ local function pushDrawList()
         data:push(drawlist)
     end
 end
-
-doSetup()
-create()
 
 local doStep = false
 local checkStep = false
@@ -459,6 +463,20 @@ function commands.continuos()
     checkStep = false
 end
 
+function commands.isalive()
+    local x, y = chan:pop(), chan:pop()
+    local ok, errmsg = pcall(function()
+        if x >= 1 and x <= gridSize and y >= 1 and y <= gridSize then
+            local cell = grid[x][y]
+            local state = t.energy and t.energy > 0
+            request:push(state)
+        end
+    end)
+    if not ok then
+        print(errmsg)
+    end
+end
+
 local function popCommand()
     local cmd = chan:pop()
     if cmd then
@@ -472,6 +490,9 @@ local function popCommand()
 end
 
 local syncChan = love.thread.getChannel("sync")
+
+doSetup()
+create()
 
 while not stop do
     popCommand()
@@ -489,7 +510,7 @@ while not stop do
     local syncMsg = syncChan:demand(0.001)
     --local syncMsg = syncChan:demand()
     --local syncMsg = syncChan:pop()
-    print(threadNum, syncMsg)
+    --print(threadNum, syncMsg)
 
     doStep = false
 
