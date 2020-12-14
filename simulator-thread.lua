@@ -2,6 +2,7 @@ local threadNum = ...
 print("thread", threadNum, "is running")
 
 require "love.timer"
+math.randomseed(love.timer.getTime())
 require "external"
 
 local inspect = require "inspect"
