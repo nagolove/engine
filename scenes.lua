@@ -135,6 +135,12 @@ local function keyreleased(_, key)
     end
 end
 
+local function wheelmoved(x, y)
+    if currentScene and currentScene.wheelmoved then
+        currentScene.wheelmoved(x, y)
+    end
+end
+
 return {
     getCurrentScene = function()
         return currentScene
@@ -152,5 +158,6 @@ return {
     mousemoved = mousemoved,
     mousereleased = mousereleased,
     mousepressed = mousepressed,
+    wheelmoved = wheelmoved,
 }
 

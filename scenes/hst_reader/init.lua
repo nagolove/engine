@@ -58,7 +58,7 @@ local function draw()
         local msgChannel = love.thread.getChannel("msg")
         msgChannel:push("get")
         msgChannel:push(i)
-        local rec = love.thread.getChannel("data"):pop()
+        local rec = love.thread.getChannel("data"):demand()
         if rec then 
             drawBar(i, rec)
             if not __ONCE__ then
@@ -68,6 +68,9 @@ local function draw()
         end
     end
     cam:detach()
+end
+
+local function drawui()
 end
 
 local function update(dt)
@@ -96,6 +99,7 @@ return {
     init = init,
     quit = quit,
     draw = draw,
+    drawui = drawui,
     update = update,
     keypressed = keypressed,
     wheelmoved = wheelmoved,
