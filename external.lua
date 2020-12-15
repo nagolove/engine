@@ -38,7 +38,7 @@ cameraSettings = {
 }
 
 function controlCamera(cam)
-    local dx, dy = cameraSettings.dx, cameraSettings.dy
+    local dx, dy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
     local isDown = love.keyboard.isDown
     if isDown("lshift") then
         if isDown("left") then
