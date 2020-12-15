@@ -6,6 +6,7 @@ local imgui = require "imgui"
 local cam = require "camera".new()
 local inspect = require "inspect"
 local gr = love.graphics
+local kons = require "kons".new()
 local thread
 
 --package.path = package.path .. ";scenes/hst_reader/?.lua"
@@ -56,11 +57,12 @@ local function drawBar(x, record)
     gr.setColor(barColor)
     local barHeight = yhigh - ylow
     --print("barHeight", barHeight)
-    local x, y = sx + x * math.floor(barWidth * 2), sy + ylow * ylowFactor
+    --local x, y = sx + x * math.floor(barWidth * 2), sy + ylow * ylowFactor
+    local x, y = sx + x * math.floor(barWidth * 2), sy + math.exp(ylow * 5) * 1
     local w, h = barWidth, barHeight * barHeightFactor
 
     if __I__ < 100 then
-        --print(h)
+        print("y", y)
         __I__ = __I__ + 1
     end
 
@@ -81,6 +83,8 @@ local function draw()
         end
     end
     cam:detach()
+    kons:pushi("ylowFactor %f", ylowFactor)
+    kons:draw()
 end
 
 local function drawui()
@@ -89,12 +93,19 @@ end
 local isDown = love.keyboard.isDown
 
 local function update(dt)
+    kons:update(dt)
     controlCamera(cam)
 
     if isDown("z") then
-        ylowFactor = ylowFactor * math.log(ylowFactor)
+        --if ylowFactor > 0 then
+            ylowFactor = ylowFactor * 1.001
+            --ylowFactor = math.log(ylowFactor * 1.001)
+        --end
     elseif isDown("x") then
-        ylowFactor = ylowFactor / math.log(ylowFactor)
+        --if ylowFactor > 0 then
+            ylowFactor = ylowFactor * 0.999
+            --ylowFactor = math.log(ylowFactor / 1.001)
+        --end
     end
 end
 
