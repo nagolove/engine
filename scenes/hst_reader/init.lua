@@ -37,6 +37,7 @@ local function drawBar(x, record)
     local barColor
     local ylow, yhigh
 
+    print("record", inspect(record))
     if record.close > record.open then
         barColor = BAR_DOWN
         ylow = record.open
@@ -53,13 +54,15 @@ end
 
 local __ONCE__ = false
 
+local msgChannel = love.thread.getChannel("msg")
+
 local function draw()
     cam:attach()
+    msgChannel:clear()
     for i = 1, 100 do
-        local msgChannel = love.thread.getChannel("msg")
         msgChannel:push("get")
         msgChannel:push(i)
-        local rec = love.thread.getChannel("data"):demand()
+        local rec = love.thread.getChannel("data"):demand(0.01)
         if rec then 
             drawBar(i, rec)
             if not __ONCE__ then

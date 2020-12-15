@@ -1,11 +1,37 @@
 ﻿local arg = ...
 require "love.timer"
 require "external"
+local ffi = require "ffi"
 local inspect = require "inspect"
 local serpent = require "serpent"
 local struct = require "struct"
 
 print(arg, inspect(arg))
+
+-- FFI array of Frame structs
+local array
+local arrayLen
+local arrayLast = 0
+
+local function addFrame(ctm, open, close)
+    if arrayLast + 1 >= arrayLen then
+        error(string.format("Array overflow with %d records", arrayLast))
+    end
+    array[arrayLast].ctm = ctm
+    array[arrayLast].open = open
+    array[arrayLast].close = close
+    arrayLast = arrayLast + 1
+end
+
+local ok, errmsg = pcall(ffi.cdef, [[
+typedef struct Frame {
+    unsigned long ctm;
+    double open, close;
+} Frame;
+]])
+if not ok then
+    error(errmsg)
+end
 
 local fname = love.thread.getChannel("fname"):pop()
 
@@ -14,7 +40,9 @@ local READ_LEN = 60
 
 local textOut = io.open("candells.txt", "w")
 
+local counter = 0
 local function readRecord(f)
+    counter = counter + 1
     local data = f:read(READ_LEN)
     local fmt = "<LddddLIL"
     if data then
@@ -23,16 +51,22 @@ local function readRecord(f)
             return nil
         end
         local ctm, open, low, high, close, vol, spread, rvol = struct.unpack(fmt, data)
-        table.insert(raw, {
-            ctm = ctm,
-            open = open,
-            low = low,
-            high = high,
-            close = close,
-            vol = vol,
-            spread = spread,
-            rvol = rvol
-        })
+        
+        --[[
+           [table.insert(raw, {
+           [    ctm = ctm,
+           [    open = open,
+           [    close = close,
+           [})
+           ]]
+
+        local record = {
+            ctm = ctm, 
+            open = open, 
+            close = close
+        }
+
+        addFrame(ctm, open, close)
 
         --[[
            [local info = copy(raw[#raw])
@@ -48,15 +82,18 @@ local function readRecord(f)
             --print(string.format("%d.%d %d:%d:%d", date.day, date.month, date.hour,
                 --date.min, date.sec))
         end
-        return raw[#raw]
-        --print("open", open)
-        --print("low", low)
-        --print("high", high)
-        --print("close", close)
-        --print("volume", vol)
-        --print("spread", spread)
-        --print("real volume", rvol)
 
+        if counter < 100 then
+            print("open", string.format("%.8f", open))
+            print("close", string.format("%.8f", close))
+            --print("low", string.format("%.8f", low))
+            --print("high", string.format("%.8f", high))
+            --print("volume", string.format("%.8f", vol))
+            --print("spread", string.format("%.8f", spread))
+            --print("real volume", string.format("%.8f", rvol))
+        end
+
+        return record
     else
         return nil
     end
@@ -97,9 +134,19 @@ function messageHandler.get()
     if not idx then
         print("Error in 'get' message, no index for data")
     else
-        if idx >= 1 and idx <= #raw then
-            --print("data pushing")
-            love.thread.getChannel("data"):push(raw[idx])
+        --if idx >= 1 and idx <= #raw then
+            ----print("data pushing")
+            --love.thread.getChannel("data"):push(raw[idx])
+        --else
+            --print(string.format("Incorrect index %d", idx))
+        --end
+        if idx >= 1 and idx <= arrayLast then
+            local rec = array[idx - 1]
+            love.thread.getChannel("data"):push({
+                ctm = rec.ctm,
+                open = rec.open,
+                close = rec.close,
+            })
         else
             print(string.format("Incorrect index %d", idx))
         end
@@ -123,13 +170,27 @@ local function processMessages()
     end
 end
 
---local sz = checkFileSize()
+local function initArray(num)
+    num = math.floor(num)
+    array = ffi.new("Frame[?]", num)
+    arrayLen = num
+    print("init array of len", num)
+end
+
+local sz = checkFileSize()
+local approxRecordsNum = math.floor(sz / READ_LEN)
+print("file size", sz, "bytes")
+print("approximately", approxRecordsNum, "records")
+
+initArray(approxRecordsNum * 1.2)
 
 local file = io.open(fname, "rb")
 if not file then
     error(string.format("Could'not open %s file", fname))
 end
+
 firstRead(file)
+
 local time1 = love.timer.getTime()
 local i = 0
 
@@ -149,5 +210,5 @@ print(string.format("%d records loaded for %f secs", i, time2 - time1))
 
 while true do
     processMessages()
-    love.thread.sleep(0.002)
+    love.timer.sleep(0.002)
 end
