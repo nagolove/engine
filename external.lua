@@ -31,3 +31,24 @@ function copy1(t)
     end
     return result
 end
+
+cameraSettings = {
+    dx = 20,
+    dy = 20,
+}
+
+function controlCamera(cam)
+    local dx, dy = cameraSettings.dx, cameraSettings.dy
+    local isDown = love.keyboard.isDown
+    if isDown("lshift") then
+        if isDown("left") then
+            cam:move(-dx, 0)
+        elseif isDown("right") then
+            cam:move(dx, 0)
+        elseif isDown("up") then
+            cam:move(0, -dy)
+        elseif isDown("down") then
+            cam:move(0, dy)
+        end
+    end
+end

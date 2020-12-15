@@ -1,4 +1,5 @@
-﻿local struct = require "struct"
+﻿require "external"
+local struct = require "struct"
 --local histPath = "c:/users/dekar/AppData/Roaming/MetaQuotes/Terminal/287469DEA9630EA94D0715D755974F1B/history/Alpari-Demo/EURUSD999.hst"
 local histPath = [[C:/Users/dekar/Desktop/tick history/EURUSD999.hst]]
 local imgui = require "imgui"
@@ -74,6 +75,7 @@ local function drawui()
 end
 
 local function update(dt)
+    controlCamera(cam)
 end
 
 local function keypressed(key)
@@ -87,7 +89,6 @@ local function wheelmoved(x, y)
     elseif y == -1 then
         cam:zoom(1.0 - zoomFactor)
     end
-    print(x, y)
 end
 
 return {

@@ -1,3 +1,4 @@
+require "external"
 local cam = require "camera".new()
 local inspect = require "inspect"
 local gr = love.graphics
@@ -243,19 +244,7 @@ local function nextMode()
 end
 
 local function update()
-    local dx, dy = 20, 20
-    local isDown = love.keyboard.isDown
-    if isDown("lshift") then
-        if isDown("left") then
-            cam:move(-dx, 0)
-        elseif isDown("right") then
-            cam:move(dx, 0)
-        elseif isDown("up") then
-            cam:move(0, -dy)
-        elseif isDown("down") then
-            cam:move(0, dy)
-        end
-    end
+    controlCamera(cam)
     --stepPressed = love.keyboard.isDown("s")
 
     sim.step()
