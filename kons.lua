@@ -14,9 +14,9 @@ Usage:
 * linesbuffer:draw() - draw first lines pushed by push_text_i(). After it 
 drawing lines pushed by push()
 
-* linesbuffer:push("hello", 1) - push text to screeen for 1 second
+* linesbuffer:push(1, "hello", ...) - push text to screeen for 1 second
 
-* linesbuffer:pushi("fps" .. fps) -- push text to screen for one frame
+* linesbuffer:pushi("fps %d", fps) -- push text to screen for one frame
 
 * linesbuffer:clear() - full clear of console content
 
