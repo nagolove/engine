@@ -13,6 +13,9 @@ local array
 local arrayLen
 local arrayLast = 0
 
+-- main loop cycle flag
+local stop = false
+
 local function addFrame(ctm, open, close)
     if arrayLast + 1 >= arrayLen then
         error(string.format("Array overflow with %d records", arrayLast))
@@ -129,8 +132,12 @@ function messageHandler.len()
     love.thread.getChannel("data"):push(#raw)
 end
 
+function messageHandler.stop()
+    stop = true
+end
+
 function messageHandler.get()
-    local idx = tonumber(love.thread.getChannel("msg"):pop())
+    local idx = tonumber(love.thread.getChannel("msg"):demand())
     if not idx then
         print("Error in 'get' message, no index for data")
     else
@@ -194,7 +201,7 @@ firstRead(file)
 local time1 = love.timer.getTime()
 local i = 0
 
-while true do
+while not stop do
     processMessages()
     local record = readRecord(file)
     if record then
@@ -208,6 +215,6 @@ file:close()
 local time2 = love.timer.getTime()
 print(string.format("%d records loaded for %f secs", i, time2 - time1))
 
-while true do
+while not stop do
     processMessages()
 end

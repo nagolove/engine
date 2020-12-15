@@ -23,36 +23,49 @@ end
 -- стартовые позиции для рисования
 local sx, sy = 0, 0
 
-local function quit()
-end
-
 local BAR_DOWN = {0.9, 0, 0}
 local BAR_UP = {0, 0.9, 0}
+local BAR_EQUAL = {0.5, 0.5, 0.5}
 local barWidth = 5
-local barHeight = 25
-local barHeightFactor = 1.0
+--local barHeight = 25
+local barHeightFactor = 100000
 local barMode = "fill"
+
+local __I__ = 0
+local ylowFactor = 100
 
 local function drawBar(x, record)
     local barColor
     local ylow, yhigh
 
-    print("record", inspect(record))
+    --print("record", inspect(record))
     if record.close > record.open then
         barColor = BAR_DOWN
         ylow = record.open
         yhigh = record.close
-    else
+    elseif record.close < record.open then
         barColor = BAR_UP
         ylow = record.close
         yhigh = record.open
+    else
+        barColor = BAR_EQUAL
+        ylow = record.open
+        yhigh = record.close
     end
 
     gr.setColor(barColor)
-    gr.rectangle(barMode, sx + x, sy + ylow, barWidth, barHeight * barHeightFactor)
-end
+    local barHeight = yhigh - ylow
+    --print("barHeight", barHeight)
+    local x, y = sx + x * math.floor(barWidth * 2), sy + ylow * ylowFactor
+    local w, h = barWidth, barHeight * barHeightFactor
 
-local __ONCE__ = false
+    if __I__ < 100 then
+        --print(h)
+        __I__ = __I__ + 1
+    end
+
+    gr.rectangle(barMode, x, y, w, h)
+end
 
 local msgChannel = love.thread.getChannel("msg")
 
@@ -65,10 +78,6 @@ local function draw()
         local rec = love.thread.getChannel("data"):demand(0.01)
         if rec then 
             drawBar(i, rec)
-            if not __ONCE__ then
-                print("rec", inspect(rec))
-                __ONCE__ = true
-            end
         end
     end
     cam:detach()
@@ -77,8 +86,16 @@ end
 local function drawui()
 end
 
+local isDown = love.keyboard.isDown
+
 local function update(dt)
     controlCamera(cam)
+
+    if isDown("z") then
+        ylowFactor = ylowFactor * math.log(ylowFactor)
+    elseif isDown("x") then
+        ylowFactor = ylowFactor / math.log(ylowFactor)
+    end
 end
 
 local function keypressed(key)
@@ -92,6 +109,11 @@ local function wheelmoved(x, y)
     elseif y == -1 then
         cam:zoom(1.0 - zoomFactor)
     end
+end
+
+local function quit()
+    msgChannel:push("stop")
+    love.timer.wait(0.01)
 end
 
 return {
