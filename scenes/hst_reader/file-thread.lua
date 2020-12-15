@@ -210,5 +210,4 @@ print(string.format("%d records loaded for %f secs", i, time2 - time1))
 
 while true do
     processMessages()
-    love.timer.sleep(0.002)
 end
