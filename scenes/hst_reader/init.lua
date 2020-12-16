@@ -17,8 +17,7 @@ local function init()
     thread = love.thread.newThread(threadPath)
     love.thread.getChannel("fname"):push(histPath)
     thread:start(1)
-
-    love.timer.sleep(1.3)
+    love.timer.sleep(0.3)
 end
 
 -- стартовые позиции для рисования
@@ -78,7 +77,7 @@ print("drawingRange", inspect(drawingRange))
 
 local function draw()
     cam:attach()
-    msgChannel:clear()
+    --msgChannel:clear()
     for i = drawingRange.from, drawingRange.to do
         msgChannel:push("get")
         msgChannel:push(i)
@@ -131,6 +130,10 @@ local function update(dt)
         moveRight()
     end
 
+    msgChannel:push("len")
+    --local len = love.thread.getChannel("data"):demand(0.01)
+    local len = love.thread.getChannel("len"):pop()
+    drawingRange:setBorders(1, len)
 end
 
 local function keypressed(key)

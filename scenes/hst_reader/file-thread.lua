@@ -124,24 +124,19 @@ end
 local messageHandler = {}
 
 function messageHandler.len()
-    love.thread.getChannel("data"):push(#raw)
+    love.thread.getChannel("len"):push(arrayLast)
 end
 
 function messageHandler.stop()
     stop = true
 end
 
+-- доступ к фрейму по индексу. Отсчет с 1
 function messageHandler.get()
     local idx = tonumber(love.thread.getChannel("msg"):demand())
     if not idx then
         print("Error in 'get' message, no index for data")
     else
-        --if idx >= 1 and idx <= #raw then
-            ----print("data pushing")
-            --love.thread.getChannel("data"):push(raw[idx])
-        --else
-            --print(string.format("Incorrect index %d", idx))
-        --end
         if idx >= 1 and idx <= arrayLast then
             local rec = array[idx - 1]
             love.thread.getChannel("data"):push({
@@ -150,7 +145,7 @@ function messageHandler.get()
                 close = rec.close,
             })
         else
-            print(string.format("Incorrect index %d", idx))
+            error(string.format("Incorrect index %d", idx))
         end
     end
 end

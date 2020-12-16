@@ -147,7 +147,7 @@ return {
     end,
     getScenes = getScenes,
     setCurrentScene = setCurrentScene,
-    loadScenes = loadScenes,
+    --loadScenes = loadScenes,
     initLoaded = initLoaded,
     initOne = initOne,
     update = update,
