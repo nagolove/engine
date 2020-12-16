@@ -62,7 +62,7 @@ local function drawBar(x, record)
     local w, h = barWidth, barHeight * barHeightFactor
 
     if __I__ < 100 then
-        print("y", y)
+        --print("y", y)
         __I__ = __I__ + 1
     end
 
@@ -70,6 +70,40 @@ local function drawBar(x, record)
 end
 
 local msgChannel = love.thread.getChannel("msg")
+
+--[[
+--такая таблица выглядит топорно. Если сделать объектом с метатаблицей, которая
+--автоматом следит за шириной
+--]]
+local drawingRange = {
+    from = 1, 
+    to = 100,
+}
+
+local function newDrawingRange(from, to)
+    local DrawingRange_mt = {}
+    function DrawingRange_mt.__index(table, key)
+        print("index", key)
+        return rawget(table, key)
+    end
+    function DrawingRange_mt.__newindex(table, key, value)
+        print("newindex key", key, "value", value)
+        if key == "from" then
+        elseif key == "to" then
+        elseif key == "width" then
+        end
+        rawset(table, key, value)
+    end
+    return setmetatable({
+        from = from,
+        to = to,
+        width = to - from
+    }, DrawingRange_mt)
+end
+
+local range = newDrawingRange(1, 100)
+
+print("range", inspect(range))
 
 local function draw()
     cam:attach()
@@ -91,6 +125,16 @@ local function drawui()
 end
 
 local isDown = love.keyboard.isDown
+local horizontalSpeed = 5
+
+-- проследи индексы - с 0 или с 1??
+local function moveLeft()
+    if drawingRange.from - horizontalSpeed > 1 then
+    end
+end
+
+local function moveRight()
+end
 
 local function update(dt)
     kons:update(dt)
@@ -107,6 +151,13 @@ local function update(dt)
             --ylowFactor = math.log(ylowFactor / 1.001)
         --end
     end
+
+    if isDown("left") then
+        moveLeft()
+    elseif isDown("right") then
+        moveRight()
+    end
+
 end
 
 local function keypressed(key)
