@@ -32,7 +32,8 @@ local barHeightFactor = 100000
 local barMode = "fill"
 
 local __I__ = 0
-local ylowFactor = 100
+local ylowFactor = 5
+local barStep = math.floor(barWidth * 2)
 
 local function drawBar(x, record)
     local barColor
@@ -57,7 +58,7 @@ local function drawBar(x, record)
     local barHeight = yhigh - ylow
     --print("barHeight", barHeight)
     --local x, y = sx + x * math.floor(barWidth * 2), sy + ylow * ylowFactor
-    local x, y = sx + x * math.floor(barWidth * 2), sy + math.exp(ylow * 5) * 1
+    local x, y = sx + x * barStep, sy + math.exp(ylow * ylowFactor) * 1
     local w, h = barWidth, barHeight * barHeightFactor
 
     if __I__ < 100 then
@@ -71,7 +72,10 @@ end
 local msgChannel = love.thread.getChannel("msg")
 
 package.path = package.path .. ";scenes/hst_reader/?.lua"
-local drawingRange = require "drawingrange".newDrawingRange(1, 100)
+local w, h = gr.getDimensions()
+local maxHorizontalBars = math.floor(w / barStep)
+print("maxHorizontalBars", maxHorizontalBars)
+local drawingRange = require "drawingrange".newDrawingRange(1, maxHorizontalBars)
 
 print("drawingRange", inspect(drawingRange))
 
@@ -136,6 +140,8 @@ local function update(dt)
     --local len = love.thread.getChannel("data"):demand(0.01)
     local len = love.thread.getChannel("len"):pop()
     drawingRange:setBorders(1, len)
+
+    kons:pushi("frames count %d", len or 0)
 end
 
 local function keypressed(key)

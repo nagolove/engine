@@ -11,11 +11,13 @@ local function newDrawingRange(from, to)
     local store = {
         from = from,
         to = to,
-        width = to - from
+        width = to - from,
     }
     local methods = {}
     function methods:setBorders(firstFrameIndex, lastFrameIndex)
-        print("firstFrameIndex", firstFrameIndex, "lastFrameIndex", lastFrameIndex)
+        store.firstFrameIndex = firstFrameIndex
+        store.lastFrameIndex = lastFrameIndex
+        --print("firstFrameIndex", firstFrameIndex, "lastFrameIndex", lastFrameIndex)
     end
     function DrawingRange_mt.__index(table, key)
         return rawget(store, key) or methods[key]
@@ -23,7 +25,7 @@ local function newDrawingRange(from, to)
         --return v
     end
     function DrawingRange_mt.__newindex(table, key, value)
-        print("newindex key", key, "value", value)
+        --print("newindex key", key, "value", value)
 
         local from = store.from
         local to = store.to

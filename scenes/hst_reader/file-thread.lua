@@ -133,11 +133,12 @@ end
 
 -- доступ к фрейму по индексу. Отсчет с 1
 function messageHandler.get()
-    local idx = tonumber(love.thread.getChannel("msg"):demand())
-    if not idx then
-        print("Error in 'get' message, no index for data")
+    local idxFrom = tonumber(love.thread.getChannel("msg"):demand())
+    local idxTo = tonumber(love.thread.getChannel("msg"):demand())
+    if not idxFrom or not idxTo then
+        print("Error in 'get' message, no indices for data")
     else
-        if idx >= 1 and idx <= arrayLast then
+        if idxFrom >= 1 and idxFrom <= arrayLast and idxTo >= 1 and idxTo <= arrayLast then
             local rec = array[idx - 1]
             love.thread.getChannel("data"):push({
                 ctm = rec.ctm,
