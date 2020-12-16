@@ -17,7 +17,7 @@ local function init()
     thread = love.thread.newThread(threadPath)
     love.thread.getChannel("fname"):push(histPath)
     thread:start(1)
-    love.timer.sleep(0.3)
+    --love.timer.sleep(0.3)
 end
 
 -- стартовые позиции для рисования
@@ -124,10 +124,12 @@ local function update(dt)
         --end
     end
 
-    if isDown("left") then
-        moveLeft()
-    elseif isDown("right") then
-        moveRight()
+    if not isDown("lshift") then
+        if isDown("left")then
+            moveLeft()
+        elseif isDown("right") then
+            moveRight()
+        end
     end
 
     msgChannel:push("len")
