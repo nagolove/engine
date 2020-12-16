@@ -76,10 +76,13 @@ function kons:pushi(text, ...)
 end
 
 function kons:draw(x0, y0)
-    if not y0 then y0 = 0 end
-    if not x0 then x0 = 0 end
+    x0 = x0 or 0
+    y0 = y0 or 0
 
     if not self.show then return end
+
+    local curColor = {g.getColor()}
+    g.setColor(self.color)
 
     local y = y0
     for k, v in pairs(self.strings_i) do
@@ -94,6 +97,8 @@ function kons:draw(x0, y0)
         g.print(v.text, x0, y)
         y = y + g.getFont():getHeight()
     end
+
+    g.setColor(curColor)
 
     self.height = math.abs(y - y0)
 end
