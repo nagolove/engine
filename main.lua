@@ -10,7 +10,7 @@ local gr = love.graphics
 __FREEZE_PHYSICS__ = true
 
 function love.load(arg)
-    scenes.loadScenes("scenes")
+    --scenes.loadScenes("scenes")
     --scenes.initLoaded()
 
     --scenes.initOne("selector")
