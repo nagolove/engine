@@ -87,13 +87,8 @@ local function readRecord(f)
         end
 
         if counter < 100 then
-            print("open", string.format("%.8f", open))
-            print("close", string.format("%.8f", close))
-            --print("low", string.format("%.8f", low))
-            --print("high", string.format("%.8f", high))
-            --print("volume", string.format("%.8f", vol))
-            --print("spread", string.format("%.8f", spread))
-            --print("real volume", string.format("%.8f", rvol))
+            --print("open", string.format("%.8f", open))
+            --print("close", string.format("%.8f", close))
         end
 
         return record

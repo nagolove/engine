@@ -71,44 +71,15 @@ end
 
 local msgChannel = love.thread.getChannel("msg")
 
---[[
---такая таблица выглядит топорно. Если сделать объектом с метатаблицей, которая
---автоматом следит за шириной
---]]
-local drawingRange = {
-    from = 1, 
-    to = 100,
-}
+package.path = package.path .. ";scenes/hst_reader/?.lua"
+local drawingRange = require "drawingrange".newDrawingRange(1, 100)
 
-local function newDrawingRange(from, to)
-    local DrawingRange_mt = {}
-    function DrawingRange_mt.__index(table, key)
-        print("index", key)
-        return rawget(table, key)
-    end
-    function DrawingRange_mt.__newindex(table, key, value)
-        print("newindex key", key, "value", value)
-        if key == "from" then
-        elseif key == "to" then
-        elseif key == "width" then
-        end
-        rawset(table, key, value)
-    end
-    return setmetatable({
-        from = from,
-        to = to,
-        width = to - from
-    }, DrawingRange_mt)
-end
-
-local range = newDrawingRange(1, 100)
-
-print("range", inspect(range))
+print("drawingRange", inspect(drawingRange))
 
 local function draw()
     cam:attach()
     msgChannel:clear()
-    for i = 1, 100 do
+    for i = drawingRange.from, drawingRange.to do
         msgChannel:push("get")
         msgChannel:push(i)
         local rec = love.thread.getChannel("data"):demand(0.01)
@@ -129,11 +100,13 @@ local horizontalSpeed = 5
 
 -- проследи индексы - с 0 или с 1??
 local function moveLeft()
-    if drawingRange.from - horizontalSpeed > 1 then
-    end
+    --if drawingRange.from - horizontalSpeed > 1 then
+    --end
+    drawingRange.from = drawingRange.from - 1
 end
 
 local function moveRight()
+    drawingRange.from = drawingRange.from + 1
 end
 
 local function update(dt)
