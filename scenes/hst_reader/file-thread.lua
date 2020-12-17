@@ -47,49 +47,33 @@ local counter = 0
 local function readRecord(f)
     counter = counter + 1
     local data = f:read(READ_LEN)
+    --local fmt = "<LddddLIL"
     local fmt = "<LddddLIL"
     if data then
         if #data ~= READ_LEN then
             print(string.format("Read %s bytes.", #data))
             return nil
         end
-        local ctm, open, low, high, close, vol, spread, rvol = struct.unpack(fmt, data)
-        
-        --[[
-           [table.insert(raw, {
-           [    ctm = ctm,
-           [    open = open,
-           [    close = close,
-           [})
-           ]]
 
+        local ctm, open, high, low, close, vol, spread, rvol = struct.unpack(fmt, data)
         local record = {
             ctm = ctm, 
             open = open, 
             close = close
         }
 
+        --[[
+        -- дата считывается некорректно
+        --]]
         addFrame(ctm, open, close)
 
         --[[
-           [local info = copy(raw[#raw])
-           [info.ctm = os.date("*t", ctm)
-           [textOut:write(inspect(info))
+           [print(type(ctm))
+           [print("date", os.date("%Y, %m, %d %H:%M:%S", ctm), ctm)
+           [print("open", open)
+           [print("close", close)
+           [os.exit()
            ]]
-
-        --print("ctm", ctm)
-        --print("ctm", inspect(os.date("*t", ctm)))
-        local date = os.date("*t", ctm)
-        --print("date", inspect(date))
-        if date then
-            --print(string.format("%d.%d %d:%d:%d", date.day, date.month, date.hour,
-                --date.min, date.sec))
-        end
-
-        if counter < 100 then
-            --print("open", string.format("%.8f", open))
-            --print("close", string.format("%.8f", close))
-        end
 
         return record
     else
@@ -116,6 +100,7 @@ local function firstRead(file)
     print("last_sync", inspect(os.date("*t", last_sync)))
 
     _ = file:read(52) -- unused
+    print("seek", file:seek("cur"))
 end
 
 local function secondRead()
