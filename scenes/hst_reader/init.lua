@@ -47,17 +47,14 @@ local function drawBar(x, record)
 
     if record.close > record.open then
         barColor = BAR_DOWN
-        ylow = record.open
-        yhigh = record.close
     elseif record.close < record.open then
         barColor = BAR_UP
-        ylow = record.close
-        yhigh = record.open
     else
         barColor = BAR_EQUAL
-        ylow = record.open
-        yhigh = record.close
     end
+
+    ylow = math.min(record.open, record.close)
+    yhigh = math.max(record.open, record.close)
 
     if selectedBar and selectedBar == x then
         barColor = BAR_SELECTED
