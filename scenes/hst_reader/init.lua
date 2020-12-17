@@ -25,6 +25,7 @@ end
 -- стартовые позиции для рисования
 local sx, sy = 0, 0
 
+local WHITE = {1, 1, 1, 1}
 local BAR_DOWN = {0.9, 0, 0}
 local BAR_UP = {0, 0.9, 0}
 local BAR_EQUAL = {0.5, 0.5, 0.5}
@@ -58,12 +59,8 @@ local function drawBar(x, record)
         yhigh = record.close
     end
 
-    if selectedBar then
-        print("OO")
-    end
     if selectedBar and selectedBar == x then
         barColor = BAR_SELECTED
-        print("color changed")
     end
 
     gr.setColor(barColor)
@@ -78,6 +75,15 @@ local function drawBar(x, record)
 
     gr.rectangle(barMode, barX, barY, w, h)
     table.insert(visibleFrames, { barX, barY, w, h, absIndex = x})
+
+    if selectedBar and selectedBar == x then
+        gr.setColor(WHITE)
+        local mx, my = love.mouse.getPosition()
+        local str = string.format("%s\nopen %f\n close %f", 
+            os.date("%Y, %m, %d %H:%M:%S", record.ctm),
+            record.open, record.close)
+        gr.print(str, mx, my)
+    end
 end
 
 local msgChannel = love.thread.getChannel("msg")
@@ -200,11 +206,12 @@ local function update(dt)
     drawingRange:setBorders(1, len)
 
     kons:pushi("frames count %d", len or 0)
-
-    --selectedBar = nil
 end
 
 local function keypressed(key)
+    if key == "escape" then
+        love.quit()
+    end
 end
 
 local zoomFactor = 0.1
@@ -226,14 +233,19 @@ local function inRect(xp, yp, x, y, w, h)
 end
 
 local function mousemoved(x, y, dx, dy)
+    local found = false
     for k, v in pairs(visibleFrames) do
         if inRect(x, y, v[1], v[2], v[3], v[4]) then
+            --print("cam", inspect(cam))
             selectedBar = v.absIndex
+            found = true
             print("selected", v.absIndex)
             break
         end
     end
-    selectedBar = nil
+    if not found then
+        selectedBar = nil
+    end
 end
 
 local function quit()
