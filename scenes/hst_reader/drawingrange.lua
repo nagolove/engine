@@ -19,6 +19,13 @@ local function newDrawingRange(from, to)
         store.lastFrameIndex = lastFrameIndex
         --print("firstFrameIndex", firstFrameIndex, "lastFrameIndex", lastFrameIndex)
     end
+    function methods:setRange(from, to)
+        assert(from < to)
+        if from >= store.firstFrameIndex and to <= store.lastFrameIndex then
+            store.from = from
+            store.to = to
+        end
+    end
     function DrawingRange_mt.__index(table, key)
         return rawget(store, key) or methods[key]
         --print("v", inspect(v))
@@ -36,8 +43,6 @@ local function newDrawingRange(from, to)
 
         if key == "from" then
             if value >= 1 then
-                --rawset(table, key, value)
-                --rawset(table, "to", value + width)
                 store.from = value
                 store.to = value + width
             end

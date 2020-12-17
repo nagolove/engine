@@ -71,7 +71,7 @@ local function drawBar(x, record)
     end
 
     gr.rectangle(barMode, barX, barY, w, h)
-    table.insert(visibleFrames, { barX, barY, w, h, absIndex = x})
+    table.insert(visibleFrames, { barX + cam.x, barY + cam.y, w, h, absIndex = x})
 
     if selectedBar and selectedBar == x then
         gr.setColor(WHITE)
@@ -85,10 +85,17 @@ end
 
 local msgChannel = love.thread.getChannel("msg")
 
-package.path = package.path .. ";scenes/hst_reader/?.lua"
 local w, h = gr.getDimensions()
 local maxHorizontalBars = math.floor(w / barStep)
 print("maxHorizontalBars", maxHorizontalBars)
+
+local function updateMaxHorizontalBars()
+    local w, h = gr.getDimensions()
+    maxHorizontalBars = math.floor(w / (barStep * cam.scale))
+    kons:push(2.5, "maxHorizontalBars %d", maxHorizontalBars)
+end
+
+package.path = package.path .. ";scenes/hst_reader/?.lua"
 local drawingRange = require "drawingrange".newDrawingRange(1, maxHorizontalBars)
 
 print("drawingRange", inspect(drawingRange))
@@ -203,6 +210,7 @@ local function update(dt)
     drawingRange:setBorders(1, len)
 
     kons:pushi("frames count %d", len or 0)
+    kons:pushi("camera %f,%f scale %f", cam.x, cam.y, cam.scale)
 end
 
 local function keypressed(key)
@@ -216,8 +224,12 @@ local zoomFactor = 0.1
 local function wheelmoved(x, y)
     if y == 1 then
         cam:zoom(1.0 + zoomFactor)
+        updateMaxHorizontalBars()
+        drawingRange:setRange(1, maxHorizontalBars)
     elseif y == -1 then
         cam:zoom(1.0 - zoomFactor)
+        updateMaxHorizontalBars()
+        drawingRange:setRange(1, maxHorizontalBars)
     end
 end
 
