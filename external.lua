@@ -33,22 +33,28 @@ function copy1(t)
 end
 
 cameraSettings = {
+    -- знавение в пикселях
     dx = 20,
     dy = 20,
+
+    -- значение в пикселях сглаженное относительно значения scale камеры
+    relativedx = 0,
+    relativedy = 0,
 }
 
 function controlCamera(cam)
-    local dx, dy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
+    local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
+    cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
     local isDown = love.keyboard.isDown
     if isDown("lshift") then
         if isDown("left") then
-            cam:move(-dx, 0)
+            cam:move(-reldx, 0)
         elseif isDown("right") then
-            cam:move(dx, 0)
+            cam:move(reldx, 0)
         elseif isDown("up") then
-            cam:move(0, -dy)
+            cam:move(0, -reldy)
         elseif isDown("down") then
-            cam:move(0, dy)
+            cam:move(0, reldy)
         end
     end
 end

@@ -8,6 +8,7 @@ local inspect = require "inspect"
 local gr = love.graphics
 local kons = require "kons".new()
 local thread
+local selectedBar
 
 --package.path = package.path .. ";scenes/hst_reader/?.lua"
 local threadPath = "scenes/hst_reader/file-thread.lua"
@@ -17,6 +18,7 @@ local function init()
     thread = love.thread.newThread(threadPath)
     love.thread.getChannel("fname"):push(histPath)
     thread:start(1)
+    -- задержка что-бы успели загрузиться фреймы на ширину экрана
     love.timer.sleep(0.3)
 end
 
@@ -26,20 +28,22 @@ local sx, sy = 0, 0
 local BAR_DOWN = {0.9, 0, 0}
 local BAR_UP = {0, 0.9, 0}
 local BAR_EQUAL = {0.5, 0.5, 0.5}
+local BAR_SELECTED = {0, 0.1, 1}
 local barWidth = 5
 --local barHeight = 25
 local barHeightFactor = 100000
 local barMode = "fill"
 
-local __I__ = 0
 local ylowFactor = 5
-local barStep = math.floor(barWidth * 2)
+local barStep = math.floor(barWidth * 1.5)
+
+local barX, barY = sx, sy
+local visibleFrames = {}
 
 local function drawBar(x, record)
     local barColor
     local ylow, yhigh
 
-    --print("record", inspect(record))
     if record.close > record.open then
         barColor = BAR_DOWN
         ylow = record.open
@@ -54,19 +58,26 @@ local function drawBar(x, record)
         yhigh = record.close
     end
 
-    gr.setColor(barColor)
-    local barHeight = yhigh - ylow
-    --print("barHeight", barHeight)
-    --local x, y = sx + x * math.floor(barWidth * 2), sy + ylow * ylowFactor
-    local x, y = sx + x * barStep, sy + math.exp(ylow * ylowFactor) * 1
-    local w, h = barWidth, barHeight * barHeightFactor
-
-    if __I__ < 100 then
-        --print("y", y)
-        __I__ = __I__ + 1
+    if selectedBar then
+        print("OO")
+    end
+    if selectedBar and selectedBar == x then
+        barColor = BAR_SELECTED
+        print("color changed")
     end
 
-    gr.rectangle(barMode, x, y, w, h)
+    gr.setColor(barColor)
+    local barHeight = yhigh - ylow
+    barX, barY = sx + x * barStep, sy + math.exp(ylow * ylowFactor) * 1
+    local w, h = barWidth, barHeight * barHeightFactor
+    local screenW, screenH = gr.getDimensions()
+
+    if barY > screenH then
+        sy = sy - 1
+    end
+
+    gr.rectangle(barMode, barX, barY, w, h)
+    table.insert(visibleFrames, { barX, barY, w, h, absIndex = x})
 end
 
 local msgChannel = love.thread.getChannel("msg")
@@ -82,31 +93,32 @@ print("drawingRange", inspect(drawingRange))
 local function draw()
     cam:attach()
     --msgChannel:clear()
-    
+   
+    visibleFrames = {}
+    local min, max = 10000, -10000
     for i = drawingRange.from, drawingRange.to do
         msgChannel:push("get")
         msgChannel:push(i)
         local rec = love.thread.getChannel("data"):demand(0.01)
         if rec then 
+            if rec.open < min then
+                min = rec.open
+            end
+            if rec.close < min then
+                min = rec.close
+            end
+            if rec.open > max then
+                max = rec.open
+            end
+            if rec.close > max then
+                max = rec.close
+            end
             drawBar(i, rec)
         end
     end
 
-    --[[
-    msgChannel:push("get")
-    msgChannel:push(drawingRange.from)
-    msgChannel:push(drawingRange.to)
-    local rec = love.thread.getChannel("data"):demand(0.01)
-    if rec then
-        for i = 1, #rec - 2 do
-            drawBar(i, {
-                ctm = rec[i],
-                open = rec[i + 1],
-                close = rec[i + 2],
-            })
-        end
-    end
-    --]]
+    kons:pushi("min %f", min)
+    kons:pushi("max %f", max)
 
     cam:detach()
     kons:pushi("ylowFactor %f", ylowFactor)
@@ -120,19 +132,43 @@ local isDown = love.keyboard.isDown
 local horizontalSpeed = 5
 
 -- проследи индексы - с 0 или с 1??
+local rangeShift = 5
 local function moveLeft()
-    --if drawingRange.from - horizontalSpeed > 1 then
-    --end
-    drawingRange.from = drawingRange.from - 1
+    local before = drawingRange.from
+    drawingRange.from = drawingRange.from - rangeShift
+    if drawingRange.from ~= before then
+        cam:move(-barStep * rangeShift, 0)
+    end
 end
 
 local function moveRight()
-    drawingRange.from = drawingRange.from + 1
+    drawingRange.from = drawingRange.from + rangeShift
+    cam:move(barStep * rangeShift, 0)
+end
+
+local function correctExpVisibility()
+    -- полоса хорошей видимости по вертикали - от и до пикселей, когда подгонка
+    -- по высоте смещением не включается
+    local factor = 0.3
+    local verticalRange = { math.floor(w * factor), w - math.floor(w * factor)}
+
+    --print("barY", barY)
+    --[[
+       [if barY > h / 2 then
+       [    sy = sy - math.abs(h - barY)
+       [    print("correction", math.abs(h - barY))
+       [end
+       [if barY < 0 then
+       [    sy = sy + math.abs(0 - barY)
+       [end
+       ]]
 end
 
 local function update(dt)
     kons:update(dt)
     controlCamera(cam)
+
+    correctExpVisibility()
 
     if isDown("z") then
         --if ylowFactor > 0 then
@@ -151,6 +187,10 @@ local function update(dt)
             moveLeft()
         elseif isDown("right") then
             moveRight()
+        elseif isDown("up") then
+            cam:move(0, cameraSettings.dy / cam.scale)
+        elseif isDown("down") then
+            cam:move(0, -cameraSettings.dy / cam.scale)
         end
     end
 
@@ -160,6 +200,8 @@ local function update(dt)
     drawingRange:setBorders(1, len)
 
     kons:pushi("frames count %d", len or 0)
+
+    --selectedBar = nil
 end
 
 local function keypressed(key)
@@ -173,6 +215,25 @@ local function wheelmoved(x, y)
     elseif y == -1 then
         cam:zoom(1.0 - zoomFactor)
     end
+end
+
+local function inRect(xp, yp, x, y, w, h)
+    if xp >= x and xp <= x + w and yp >= y and yp <= y + h then
+        return true
+    else
+        return false
+    end
+end
+
+local function mousemoved(x, y, dx, dy)
+    for k, v in pairs(visibleFrames) do
+        if inRect(x, y, v[1], v[2], v[3], v[4]) then
+            selectedBar = v.absIndex
+            print("selected", v.absIndex)
+            break
+        end
+    end
+    selectedBar = nil
 end
 
 local function quit()
@@ -191,6 +252,7 @@ return {
     draw = draw,
     drawui = drawui,
     update = update,
+    mousemoved = mousemoved,
     keypressed = keypressed,
     wheelmoved = wheelmoved,
 }
