@@ -133,12 +133,11 @@ end
 
 -- доступ к фрейму по индексу. Отсчет с 1
 function messageHandler.get()
-    local idxFrom = tonumber(love.thread.getChannel("msg"):demand())
-    local idxTo = tonumber(love.thread.getChannel("msg"):demand())
-    if not idxFrom or not idxTo then
-        print("Error in 'get' message, no indices for data")
+    local idx = tonumber(love.thread.getChannel("msg"):demand())
+    if not idx then
+        print("Error in 'get' message, no index for data")
     else
-        if idxFrom >= 1 and idxFrom <= arrayLast and idxTo >= 1 and idxTo <= arrayLast then
+        if idx >= 1 and idx <= arrayLast then
             local rec = array[idx - 1]
             love.thread.getChannel("data"):push({
                 ctm = rec.ctm,
@@ -147,6 +146,30 @@ function messageHandler.get()
             })
         else
             error(string.format("Incorrect index %d", idx))
+        end
+    end
+end
+
+-- получить таблицу с фреймами от индекс1 до индекс2 вида 
+-- {ctm, open, close, ctm, open, close, ...}
+function messageHandler.getRange()
+    local idxFrom = tonumber(love.thread.getChannel("msg"):demand())
+    local idxTo = tonumber(love.thread.getChannel("msg"):demand())
+    if (not idxFrom) or (not idxTo) then
+        print("Error in 'get' message, no indices for data")
+    else
+        if idxFrom >= 1 and idxFrom <= arrayLast and idxTo >= 1 and idxTo <= arrayLast then
+            local t = {}
+            for i = idxFrom, idxTo do
+                local rec = array[i - 1]
+                table.insert(t, rec.ctm)
+                table.insert(t, rec.open)
+                table.insert(t, rec.close)
+            end
+            love.thread.getChannel("data"):push(t)
+        else
+            error(string.format("Incorrect indices %d - %d, arrayLast %d", 
+                idxFrom, idxTo, arrayLast))
         end
     end
 end

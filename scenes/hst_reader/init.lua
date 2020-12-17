@@ -17,7 +17,7 @@ local function init()
     thread = love.thread.newThread(threadPath)
     love.thread.getChannel("fname"):push(histPath)
     thread:start(1)
-    --love.timer.sleep(0.3)
+    love.timer.sleep(0.3)
 end
 
 -- стартовые позиции для рисования
@@ -82,6 +82,7 @@ print("drawingRange", inspect(drawingRange))
 local function draw()
     cam:attach()
     --msgChannel:clear()
+    
     for i = drawingRange.from, drawingRange.to do
         msgChannel:push("get")
         msgChannel:push(i)
@@ -90,6 +91,23 @@ local function draw()
             drawBar(i, rec)
         end
     end
+
+    --[[
+    msgChannel:push("get")
+    msgChannel:push(drawingRange.from)
+    msgChannel:push(drawingRange.to)
+    local rec = love.thread.getChannel("data"):demand(0.01)
+    if rec then
+        for i = 1, #rec - 2 do
+            drawBar(i, {
+                ctm = rec[i],
+                open = rec[i + 1],
+                close = rec[i + 2],
+            })
+        end
+    end
+    --]]
+
     cam:detach()
     kons:pushi("ylowFactor %f", ylowFactor)
     kons:draw()
