@@ -56,28 +56,13 @@ local function readRecord(f)
         end
 
         local ctm, open, high, low, close, vol, spread, rvol = struct.unpack(fmt, data)
-        local record = {
-            ctm = ctm, 
-            open = open, 
-            close = close
-        }
-
         --[[
         -- дата считывается некорректно
         --]]
         addFrame(ctm, open, close)
-
-        --[[
-           [print(type(ctm))
-           [print("date", os.date("%Y, %m, %d %H:%M:%S", ctm), ctm)
-           [print("open", open)
-           [print("close", close)
-           [os.exit()
-           ]]
-
-        return record
+        return true
     else
-        return nil
+        return false
     end
 end
 
@@ -202,8 +187,8 @@ local i = 0
 
 while not stop do
     processMessages()
-    local record = readRecord(file)
-    if record then
+    local readed = readRecord(file)
+    if readed then
         i = i + 1
     else
         break
