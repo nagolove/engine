@@ -69,26 +69,31 @@ function drawCells()
 end
 
 function drawGrid()
-    gr.setColor(0.5, 0.5, 0.5)
-    local gridSize = sim.getGridSize()
-    local schema = sim.getSchema()
-    if schema then
-        for _, v in pairs(sim.getSchema()) do
-            local dx, dy = v.draw[1] * pixSize * gridSize, v.draw[2] * pixSize * gridSize
+    if sim.getMode() == "stop" then
+        gr.setColor(1, 1, 1)
+        gr.print("No simulation", 100, 100)
+    else
+        gr.setColor(0.5, 0.5, 0.5)
+        local gridSize = sim.getGridSize()
+        local schema = sim.getSchema()
+        if schema then
+            for _, v in pairs(sim.getSchema()) do
+                local dx, dy = v.draw[1] * pixSize * gridSize, v.draw[2] * pixSize * gridSize
+                for i = 0, sim.getGridSize() do
+                    -- vert
+                    gr.line(dx + i * pixSize, dy + 0, dx + i * pixSize, dy + gridSize * pixSize)
+                    -- hor
+                    gr.line(dx + 0, dy + i * pixSize, dx + gridSize * pixSize, dy + i * pixSize)
+                end
+            end
+        else
+            local dx, dy = 0, 0
             for i = 0, sim.getGridSize() do
                 -- vert
                 gr.line(dx + i * pixSize, dy + 0, dx + i * pixSize, dy + gridSize * pixSize)
                 -- hor
                 gr.line(dx + 0, dy + i * pixSize, dx + gridSize * pixSize, dy + i * pixSize)
             end
-        end
-    else
-        local dx, dy = 0, 0
-        for i = 0, sim.getGridSize() do
-            -- vert
-            gr.line(dx + i * pixSize, dy + 0, dx + i * pixSize, dy + gridSize * pixSize)
-            -- hor
-            gr.line(dx + 0, dy + i * pixSize, dx + gridSize * pixSize, dy + i * pixSize)
         end
     end
 end
@@ -147,6 +152,15 @@ function drawGraphs()
     drawAxises()
     drawLegends()
     gr.draw(graphCanvas)
+end
+
+local function nextMode()
+    if mode == "continuos" then
+        mode = "step"
+    elseif mode == "step" then
+        mode = "continuos"
+    end
+    sim.setMode(mode)
 end
 
 local function replaceCaret(str)
@@ -252,15 +266,6 @@ local function updateGraphic()
             min = statistic.minEnergy,
         }
     end
-end
-
-local function nextMode()
-    if mode == "continuos" then
-        mode = "step"
-    elseif mode == "step" then
-        mode = "continuos"
-    end
-    sim.setMode(mode)
 end
 
 local function update()

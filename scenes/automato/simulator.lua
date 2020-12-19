@@ -5,50 +5,14 @@ require "external"
 local threads = {}
 local gridSize
 local mtschema
+
+-- количество потоков
 local threadCount
+
+-- режим работы - протяженный, пошаговый или стоп
+local mode = "stop" -- "step"
+
 local statistic = {}
-
--- вместилище команд "up", "left"  и прочего алфавита
-local genomStore = {}
-
-function genomStore:init()
-end
-
-local function initGenom()
-    local self = {}
-    return setmetatable(self, genomStore)
-end
-
-local ffi = require("ffi")
-pcall(ffi.cdef, [[
-typedef struct ImageData_Pixel
-{
-    uint8_t r, g, b, a;
-} ImageData_Pixel;
-typedef struct Grid_Data
-{
-    /*
-    state bits [0, 1, 2, 3, 4, 5, 6, 7, 8]
-    0 - food
-    1 - cell
-    */
-    uint8_t state;
-} Grid_Data;
-]])
-local gridptr = ffi.typeof("Grid_Data*")
-local Grid = {}
-function Grid:new()
-end
-function Grid:fillZero()
-end
-function Grid:isFood(i, j)
-end
-function Grid:setFood(i, j)
-end
-
-function newGrid()
-    return setmetatable({}, Grid)
-end
 
 local function getDrawLists()
     local list = {}
@@ -74,7 +38,7 @@ local function pushMsg2Threads(t)
     end
 end
 
-local function create(commonSetup)
+local function stopThreadsClearChannels()
     if #threads ~= 0 then
         pushMsg2Threads("stop")
         love.timer.sleep(0.05)
@@ -85,6 +49,11 @@ local function create(commonSetup)
             love.thread.getChannel("request" .. i):clear()
         end
     end
+end
+
+local function create(commonSetup)
+    stopThreadsClearChannels()
+    mode = "continuos"
 
     threadCount = commonSetup.threadCount
     print("threadCount", threadCount)
@@ -135,6 +104,10 @@ local function printThreadsLog()
 end
 
 local function step()
+    if mode == "stop" then
+        return
+    end
+
     local iterSum = 0
     local iterChan = love.thread.getChannel("iter")
     local value = iterChan:pop()
@@ -146,12 +119,16 @@ local function step()
     pushSync()
 end
 
+-- FIXME Как починить счетчик итераций при работе в несколько нитей?
 local function getIter()
-    local newIter = love.thread.getChannel("iter")
-    if newIter then
-        iter = newIter:pop() or iter
-    end
-    return iter
+    --[[
+       [local newIter = love.thread.getChannel("iter")
+       [if newIter then
+       [    iter = newIter:pop() or iter
+       [end
+       [return iter
+       ]]
+       return 0
 end
 
 local function findThreadByPos(x, y)
@@ -179,13 +156,15 @@ local function getObject(x, y)
     return objectfun()
 end
 
-local mode = "continuos" -- "step"
-
 local function setMode(m)
     --assert(m == "step" or m == "continuos")
     mode = m
     print("push", mode)
     pushMsg2Threads(mode)
+end
+
+local function getMode()
+    return mode
 end
 
 local function doStep()
@@ -199,6 +178,7 @@ end
 return {
     create = create,
     setMode = setMode,
+    getMode = getMode,
     getDrawList = getDrawList,
     getDrawLists = getDrawLists,
     getObject = getObject,
