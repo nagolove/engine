@@ -55,6 +55,7 @@ local data = love.thread.getChannel("data" .. threadNum)
 local log = love.thread.getChannel("log")
 local request = love.thread.getChannel("request" .. threadNum)
 
+package.path = package.path .. ";scenes/automato/?.lua"
 local actionsModule = require "cell-actions"
 
 local function getCodeValues()
