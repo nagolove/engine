@@ -1,36 +1,58 @@
+--[[
+--Клеточный автомат-симулятор. Действие происходит на плоском поле в клетку,
+--замкнутом на себя.
+--Создается популяция клеток которые двигаются по сгенерированной случайным
+--образом программе из простого языка.
+--Клетки питаются едой(зеленый цвет) и имеют конечный запас энергии.
+--]]
 require "external"
 local cam = require "camera".new()
 local inspect = require "inspect"
 local gr = love.graphics
+-- если ~= nil, то содержит табличку с координатами клетки под курсором
 local mouseCapture
+-- режит отображения "sim" или "graph"
 local viewState = "sim"
+-- канва для рисования графиков
 local graphCanvas = gr.newCanvas(gr.getWidth() * 4, gr.getHeight())
+
+-- цвета графиков
 local MAX_ENERGY_COLOR = {1, 0.5, 0.7, 1}
 local MID_ENERGY_COLOR = {0.8, 0.3, 0.7, 1}
 local MIN_ENERGY_COLOR = {0.6, 0.1, 1, 1}
+
+-- ?? инфа с последним изменением статистики 
 local lastGraphicPoint
--- continuos, bystep
+
+-- режим работы - непрерывный или пошаговый continuos, bystep
 local mode = "continuos"
 
-local stepPressed = false
 local sim = require "simulator"
+
+-- размер клетки поля в пикселях
 local pixSize = 10
 
+--[[
+--Начальные установки симуляции
+--]]
 local commonSetup = {
+    -- размер сетки одного потока
     gridSize = 100,
-    cellsNum = 2000,
+    -- количество клеток создаваемых на один поток
+    cellsNum = 2000, 
+    -- разбром начальной энергии клеток
     initialEnergy = {500, 1000},
+    -- длина ленты кода
     codeLen = 32,
-    threadCount = 4,
+    -- на сколько потоков запускать
+    threadCount = 1,
 }
-
 
 local function getMode()
     return mode
 end
 
 function drawCells()
-    --local drawlist = sim.getDrawList()
     local drawlist = sim.getDrawLists()
     if drawlist then
         for k, v in pairs(drawlist) do
@@ -143,6 +165,9 @@ local function drawui()
         sim.create(commonSetup)
     end
 
+    if imgui.Button("start") then
+    end
+
     imgui.Text(replaceCaret(inspect(sim.getStatistic)))
 
     imgui.End()
@@ -150,10 +175,6 @@ end
 
 local function draw()
     if viewState == "sim" then
-        if mouseCapture then
-            --cam:move(-mouseCapture.dx, -mouseCapture.dy)
-        end
-
         cam:attach()
         drawGrid()
         drawCells()
@@ -229,11 +250,6 @@ local function updateGraphic()
     end
 end
 
-function drawFinishedExperiment()
-    local y0 = 0
-    gr.print(string.format("Finished"), 0, y0, 100, "center")
-end
-
 local function nextMode()
     if mode == "continuos" then
         mode = "step"
@@ -245,7 +261,6 @@ end
 
 local function update()
     controlCamera(cam)
-    --stepPressed = love.keyboard.isDown("s")
 
     sim.step()
     
