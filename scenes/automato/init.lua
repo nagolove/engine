@@ -132,7 +132,7 @@ function drawAxises()
     gr.setLineWidth(1)
 end
 
-function drawLegends()
+local function drawLegends()
     local y0 = 0
 
     gr.setColor(MAX_ENERGY_COLOR)
@@ -148,7 +148,7 @@ function drawLegends()
     y0 = y0 + gr.getFont():getHeight()
 end
 
-function drawGraphs()
+local function drawGraphs()
     drawAxises()
     drawLegends()
     gr.draw(graphCanvas)
