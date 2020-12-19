@@ -100,7 +100,8 @@ local function create(commonSetup)
             local setupName = "setup" .. i
             love.thread.getChannel(setupName):push(commonSetup)
             love.thread.getChannel(setupName):push(serpent.dump(mtschema[i]))
-            local th = love.thread.newThread("simulator-thread.lua")
+
+            local th = love.thread.newThread("scenes/automato/simulator-thread.lua")
             table.insert(threads, th)
             th:start(i)
             local errmsg = th:getError()

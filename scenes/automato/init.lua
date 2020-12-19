@@ -27,6 +27,7 @@ local lastGraphicPoint
 -- режим работы - непрерывный или пошаговый continuos, bystep
 local mode = "continuos"
 
+package.path = package.path .. ";scenes/automato/?.lua"
 local sim = require "simulator"
 
 -- размер клетки поля в пикселях

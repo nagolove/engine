@@ -33,12 +33,15 @@ local function doSetup()
     initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
 
     local sschema = love.thread.getChannel(setupName):pop()
+
     local schemafun, err = loadstring(sschema)
     if err then
         error("Could'not get schema for thread")
     end
     local schemaRestored = schemafun()
+    print("schemaRestored", inspect(schemaRestored))
     schema = flatCopy(schemaRestored)
+
     drawCoefficients = flatCopy(schemaRestored.draw)
 
     print("schema", inspect(schema))
