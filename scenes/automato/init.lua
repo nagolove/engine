@@ -162,6 +162,7 @@ local function drawui()
     end
 
     if imgui.Button("reset silumation") then
+        collectgarbage()
         sim.create(commonSetup)
     end
 

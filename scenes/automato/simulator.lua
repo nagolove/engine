@@ -366,7 +366,9 @@ function step()
     end
 end
 
-local function create()
+local function create(setup)
+    print("sim.create setup", inspect(setup))
+
     local processorCount = love.system.getProcessorCount()
     print("processorCount", processorCount)
 
@@ -381,8 +383,13 @@ local function create()
     actions = actionsModule.actions
 end
 
+-- послать сообщения о закрытии запущенным потокам и подождать
+local function close()
+end
+
 return {
     create = create,
+    close = close,
     getGrid = function()
         return grid
     end,
