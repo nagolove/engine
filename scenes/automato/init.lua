@@ -168,6 +168,8 @@ local function drawui()
     end
 
     if imgui.Button("start") then
+        sim.create(commonSetup)
+        nextMode()
     end
 
     imgui.Text(replaceCaret(inspect(sim.getStatistic)))
@@ -294,9 +296,6 @@ local function init(lvldata)
         cam.rotate = lvldata.cam.rotate
     end
     math.randomseed(love.timer.getTime())
-
-    sim.create(commonSetup)
-    nextMode()
 end
 
 local function quit()

@@ -1,13 +1,30 @@
 require "external"
 local inspect = require "inspect"
 local serpent = require "serpent"
+
+-- функция возвращает таблицу таблиц. Для запросов вида cell = getGrid()[1][1]
 local getGrid
+
+-- размер поля
 local gridSize
+
+-- табличка с действиями клетки
 local actions = {}
+
+-- количество энергии прибавляемое за одну съеденную ячейку "еды"
 local ENERGY = 10
+
+-- функция создания клетки по координатам x, y
 local initCell
+
+-- счетчик 
 local allEated = 0
+
+-- табличка с напралением передачи инфы о клетках выщедщих за границы поля
+-- при работе в несколько потоков
 local schema
+
+-- текущий номер потока
 local threadNum
 
 function isAlive(x, y)
@@ -15,6 +32,7 @@ function isAlive(x, y)
     return t.energy and t.energy > 0
 end
 
+-- записать текущее положение клетки в ее табличку передвижений
 local function pushPosition(cell)
     if not cell.moves then
         cell.moves = {}
@@ -41,6 +59,7 @@ local function isAliveNeighbours(x, y, threadNum)
     return state
 end
 
+-- отослать клетку в другой поток через канал
 local function moveCellToThread(cell, threadNum)
     local dump = serpent.dump(cell)
     local chan = love.thread.getChannel("msg" .. threadNum)
@@ -273,7 +292,6 @@ function actions.cross(cell)
     end
 end
 
---function init(getGridFunc, externalGridSize, currentThreadNum, schema, functions)
 function init(t)
     --assert(type(getGridFunc) == "function")
     threadNum = t.threadNum

@@ -176,8 +176,6 @@ function gatherStatistic()
     if sumEnergy == 0 then
         sumEnergy = 1
     end
-    --print("num, midEnergy", num, sumEnergy)
-    --print("getAllEated()", actionsModule.getAllEated())
     return { 
         maxEnergy = maxEnergy,
         minEnergy = minEnergy,
