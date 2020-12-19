@@ -1,70 +1,67 @@
+local threadNum = ...
+print("thread", threadNum, "is running")
+
+require "love.timer"
+math.randomseed(love.timer.getTime())
+require "external"
+
 local inspect = require "inspect"
+local serpent = require "serpent"
 -- массив всех клеток
 local cells = {}
 -- массив массивов [x][y] с клетками по индексам
 local grid = {}
-local gridSize = 100
-local codeLen = 320
-local cellsNum = 2000
-local initialEnergy = {500, 1000}
+local gridSize
+local codeLen
+local cellsNum
+local initialEnergy = {}
 local iter = 0
 local statistic = {}
-
--- вместилище команд "up", "left"  и прочего алфавита
-local genomStore = {}
-
-function genomStore:init()
-end
-
-local function initGenom()
-    local self = {}
-    return setmetatable(self, genomStore)
-end
-
-local ffi = require("ffi")
-pcall(ffi.cdef, [[
-typedef struct ImageData_Pixel
-{
-    uint8_t r, g, b, a;
-} ImageData_Pixel;
-typedef struct Grid_Data
-{
-    /*
-    state bits [0, 1, 2, 3, 4, 5, 6, 7, 8]
-    0 - food
-    1 - cell
-    */
-    uint8_t state;
-} Grid_Data;
-]])
-local gridptr = ffi.typeof("Grid_Data*")
-local Grid = {}
-function Grid:new()
-end
-function Grid:fillZero()
-end
-function Grid:isFood(i, j)
-end
-function Grid:setFood(i, j)
-end
-
-function newGrid()
-    return setmetatable({}, Grid)
-end
-
-local codeValues = {
-    "left",
-    "right",
-    "up",
-    "down",
-    "eat8move",
-    "eat8",
-    "checkAndEat",
-    "cross",
-}
-
+local IdCounter = 0
 local meal = {}
+local stop = false
+local schema
+local drawCoefficients
+
+local function doSetup()
+    local setupName = "setup" .. threadNum
+    local initialSetup = love.thread.getChannel(setupName):pop()
+
+    gridSize = initialSetup.gridSize
+    codeLen = initialSetup.codeLen
+    cellsNum = initialSetup.cellsNum
+    initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
+
+    local sschema = love.thread.getChannel(setupName):pop()
+    local schemafun, err = loadstring(sschema)
+    if err then
+        error("Could'not get schema for thread")
+    end
+    local schemaRestored = schemafun()
+    schema = flatCopy(schemaRestored)
+    drawCoefficients = flatCopy(schemaRestored.draw)
+
+    print("schema", inspect(schema))
+    print("drawCoefficients", inspect(drawCoefficients))
+end
+
+local chan = love.thread.getChannel("msg" .. threadNum)
+local data = love.thread.getChannel("data" .. threadNum)
+local log = love.thread.getChannel("log")
+local request = love.thread.getChannel("request" .. threadNum)
+
 local actionsModule = require "cell-actions"
+
+local function getCodeValues()
+    local codeValues = {}
+    for k, v in pairs(actionsModule.actions) do
+        table.insert(codeValues, k)
+    end
+    return codeValues
+end
+
+local codeValues = getCodeValues()
+
 local actions
 local removed = {}
 local experimentCoro
@@ -76,6 +73,11 @@ function genCode()
         table.insert(code, codeValues[math.random(1, len)])
     end
     return code
+end
+
+local function getId()
+    IdCounter = IdCounter + 1
+    return IdCounter
 end
 
 -- t.pos, t.code
@@ -98,11 +100,11 @@ function initCell(t)
     else
         self.code = genCode()
     end
+    self.id = getId()
     self.ip = 1
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
     self.diedCoro = coroutine.create(function()
-        print("died")
         for i = 1, 2 do
             return coroutine.yield()
         end
@@ -116,20 +118,19 @@ end
 -- возвращает [boolean], [cell table]
 -- isalive, cell
 function updateCell(cell)
-    --print("cell ip", cell.ip)
     if cell.ip >= #cell.code then
         cell.ip = 1
     end
     if cell.energy > 0 then
         actions[cell.code[cell.ip]](cell)
         cell.ip = cell.ip + 1
-        cell.energy = cell.energy - 1
+        --cell.energy = cell.energy - 1
         return true, cell
     else
-        print("not energy")
         return false, cell
     end
 end
+
 
 -- заполнить решетку пустыми значениями. В качестве значений используются
 -- пустые таблицы {}
@@ -176,12 +177,15 @@ function gatherStatistic()
         sumEnergy = 1
     end
     --print("num, midEnergy", num, sumEnergy)
+    --print("getAllEated()", actionsModule.getAllEated())
     return { 
         maxEnergy = maxEnergy,
         minEnergy = minEnergy,
         midEnergy = sumEnergy / #cells,
+        allEated = actionsModule.getAllEated(),
     }
 end
+
 
 function emitFoodInRandomPoint()
     local x = math.random(1, gridSize)
@@ -189,10 +193,10 @@ function emitFoodInRandomPoint()
     local t = grid[x][y]
     -- если клетка пустая
     if not t.energy then
-        local self = {}
-        self.food = true
-        self.pos = {}
-        self.pos.x, self.pos.y = x, y
+        local self = {
+            food = true,
+            pos = {x = x, y = y}
+        }
         table.insert(meal, self)
         grid[x][y] = self
         return true, grid[x][y]
@@ -201,11 +205,11 @@ function emitFoodInRandomPoint()
     end
 end
 
+
 function emitFood(iter)
-    --for i = 1, math.log(iter) / 10 do
-    --for i = 1, 3 do
-    for i = 1, 0 do
-        local emited, gridcell = emitFoodInRandomPoint()
+    --print(math.log(iter) / 1)
+    for i = 1, math.log(iter) * 10 do
+        --local emited, gridcell = emitFoodInRandomPoint()
         if not emited then
             -- здесь исследовать причины смерти яцейки
             --print("not emited gridcell", inspect(gridcell))
@@ -252,7 +256,7 @@ function updateCells()
     return alive
 end
 
-function initCellOneCommandCode(command, steps)
+local function initCellOneCommandCode(command, steps)
     local cell = initCell()
     cell.code = {}
     for i = 1, steps do
@@ -260,7 +264,7 @@ function initCellOneCommandCode(command, steps)
     end
 end
 
-function cloneCell(cell, newx, newy)
+local function cloneCell(cell, newx, newy)
     if not isAlive(newx, newy) then
         local new = {}
         for k, v in pairs(cell) do
@@ -284,20 +288,28 @@ function cloneCell(cell, newx, newy)
 end
 
 function initialEmit()
-    --for i = 1, cellsNum do
-        ----coroutine.yield(initCell())
-        --print("i", i)
-        --coroutine.yield()
-        --initCell()
-    --end
+    if threadNum == 1 then
+        for i = 1, cellsNum do
+            --coroutine.yield(initCell())
+        end
+    --elseif threadNum == 2 then
+    else
+        for i = 1, cellsNum / 100 do
+            coroutine.yield(initCell())
+        end
+    end
 
-    local steps = 5
-    local c = initCell()
-    cloneCell(c, 10, 10)
-    initCellOneCommandCode("right", steps)
-    initCellOneCommandCode("left", steps)
-    initCellOneCommandCode("up", steps)
-    initCellOneCommandCode("down", steps)
+    if threadNum == 1 then
+        for i = 1, 2 do
+            local steps = 5
+            --local c = initCell()
+            --cloneCell(c, 10, 10)
+            initCellOneCommandCode("right", steps)
+            initCellOneCommandCode("left", steps)
+            initCellOneCommandCode("up", steps)
+            initCellOneCommandCode("down", steps)
+        end
+    end
 end
 
 function postinitialEmit(iter)
@@ -309,11 +321,21 @@ function postinitialEmit(iter)
     end
 end
 
+local function updateMeal(meal)
+    local alive = {}
+    for k, dish in pairs(meal) do
+        if dish.food == true then
+            table.insert(alive, dish)
+        end
+    end
+    return alive
+end
+
 function experiment()
     local initialEmitCoro = coroutine.create(initialEmit)
     while coroutine.resume(initialEmitCoro) do end
 
-    grid = getFalseGrid(oldGrid)
+    grid = getFalseGrid()
 
     updateGrid()
     statistic = gatherStatistic()
@@ -327,29 +349,26 @@ function experiment()
         if coroutine.resume(postinitialEmitCoro) then
         end
 
-        --if mode == "bystep" and stepPressed == true or mode == "continuos" then
-        do
-            --coroutine.resume(initialEmit, iter)
+        --coroutine.resume(initialEmit, iter)
 
-            -- создать сколько-то еды
-            emitFood(iter)
+        -- создать сколько-то еды
+        emitFood(iter)
 
-            -- проход по ячейкам и вызов их программ
-            cells = updateCells()
+        -- проход по списку клеток и вызов их программ.
+        cells = updateCells(cells)
+        
+        -- проход по списку еды и проверка на съеденность
+        meal = updateMeal(meal)
 
-            -- сброс решетки после уничтожения некоторых клеток
-            grid = getFalseGrid()
+        -- сброс решетки после уничтожения некоторых клеток
+        grid = getFalseGrid()
 
-            -- обновление решетки по списку живых клеток и списку еды
-            updateGrid()
+        -- обновление решетки по списку живых клеток и списку еды
+        updateGrid()
 
-            statistic = gatherStatistic()
-            iter = iter + 1
+        statistic = gatherStatistic()
+        iter = iter + 1
 
-            --if stepPressed == true then
-                --stepPressed = false
-            --end
-        end
         coroutine.yield()
     end
 
@@ -358,7 +377,11 @@ end
 
 local experimentErrorPrinted = false
 
-function step()
+local function logfwarn(...)
+    love.thread.getChannel("log"):push({threadNum, string.format(...)})
+end
+
+local function step()
     local err, errmsg = coroutine.resume(experimentCoro)
     if not err and not experimentErrorPrinted then
         experimentErrorPrinted = true
@@ -366,7 +389,11 @@ function step()
     end
 end
 
-function create()
+local function getGrid()
+    return grid
+end
+
+local function create()
     experimentCoro = coroutine.create(function()
         local ok, errmsg = pcall(experiment)
         if not ok then
@@ -374,21 +401,130 @@ function create()
         end
     end)
     coroutine.resume(experimentCoro)
-    actionsModule.init(grid, gridSize, { initCell_fn = initCell })
+    --actionsModule.init(getGrid, gridSize, schema, threadNum, { initCell_fn = initCell })
+    actionsModule.init({
+        getGridFunc = getGrid,
+        gridSize = gridSize,
+        schema = schema,
+        threadNum = threadNum,
+        initCell_fn = initCell,
+    })
     actions = actionsModule.actions
 end
 
-return {
-    create = create,
-    getGrid = function()
-        return grid
-    end,
-    step = step,
-    statistic = statistic,
-    getIter = function()
-        return iter
-    end,
-    getGridSize = function()
-        return gridSize
-    end,
-}
+local function pushDrawList()
+    local drawlist = {}
+    for k, v in pairs(cells) do
+        table.insert(drawlist, { 
+            x = v.pos.x + gridSize * drawCoefficients[1],
+            y = v.pos.y + gridSize * drawCoefficients[2],
+        })
+    end
+    for k, v in pairs(meal) do
+        table.insert(drawlist, { 
+            x = v.pos.x + gridSize * drawCoefficients[1],
+            y = v.pos.y + gridSize * drawCoefficients[2], 
+            food = true
+        })
+    end
+    if data:getCount() < 5 then
+        data:push(drawlist)
+    end
+end
+
+local doStep = false
+local checkStep = false
+
+local commands = {}
+
+function commands.stop()
+    stop = true
+end
+
+function commands.getobject()
+    local x, y = chan:pop(), chan:pop()
+    local ok, errmsg = pcall(function()
+        if grid then
+            local cell = grid[x][y]
+            if cell then
+                request:push(serpent.dump(cell))
+            end
+        end
+    end)
+    if not ok then
+        print("Error in getobject operation", errmsg)
+    end
+end
+
+function commands.step()
+    checkStep = true
+    doStep = true
+end
+
+function commands.continuos()
+    checkStep = false
+end
+
+function commands.isalive()
+    local x, y = chan:pop(), chan:pop()
+    local ok, errmsg = pcall(function()
+        if x >= 1 and x <= gridSize and y >= 1 and y <= gridSize then
+            local cell = grid[x][y]
+            local state = cell.energy and cell.energy > 0
+            request:push(state)
+        end
+    end)
+    if not ok then
+        error(errmsg)
+    end
+end
+
+function commands.insertcell()
+    local newcellfun, err = loadstring(chan:pop())
+    if err then
+        error(err)
+    end
+    local newcell = newcellfun()
+    table.insert(cells, newcell)
+end
+
+local function popCommand()
+    local cmd = chan:pop()
+    if cmd then
+        local command = commands[cmd]
+        if command then
+            command()
+        else
+            error(string.format("Unknown command", cmd))
+        end
+    end
+end
+
+local syncChan = love.thread.getChannel("sync")
+
+doSetup()
+create()
+
+while not stop do
+    popCommand()
+
+    if checkStep then
+        if doStep then
+            step()
+        end
+        love.timer.sleep(0.02)
+    else
+        step()
+    end
+    pushDrawList()
+
+    local syncMsg = syncChan:demand(0.001)
+    --local syncMsg = syncChan:demand()
+    --local syncMsg = syncChan:pop()
+    --print(threadNum, syncMsg)
+
+    doStep = false
+
+    local iterChan = love.thread.getChannel("iter")
+    iterChan:push(iter)
+end

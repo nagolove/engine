@@ -1,13 +1,11 @@
 local inspect = require "inspect"
--- массив всех клеток
-local cells = {}
--- массив массивов [x][y] с клетками по индексам
-local grid = {}
-local gridSize = 100
-local codeLen = 320
-local cellsNum = 2000
-local initialEnergy = {500, 1000}
-local iter = 0
+local serpent = require "serpent"
+require "external"
+
+local threads = {}
+local gridSize
+local mtschema
+local threadCount
 local statistic = {}
 
 -- вместилище команд "up", "left"  и прочего алфавита
@@ -52,353 +50,165 @@ function newGrid()
     return setmetatable({}, Grid)
 end
 
-local codeValues = {
-    "left",
-    "right",
-    "up",
-    "down",
-    "eat8move",
-    "eat8",
-    "checkAndEat",
-    "cross",
-}
-
-local meal = {}
-local actionsModule = require "cell-actions"
-local actions
-local removed = {}
-local experimentCoro
-
-function genCode()
-    local code = {}
-    local len = #codeValues
-    for i = 1, codeLen do
-        table.insert(code, codeValues[math.random(1, len)])
-    end
-    return code
-end
-
--- t.pos, t.code
-function initCell(t)
-    t = t or {}
-    local self = {}
-    self.pos = {}
-    if t.pos and t.pos.x then
-        self.pos.x = t.pos.x
-    else
-        self.pos.x = math.random(1, gridSize)
-    end
-    if t.pos and t.pos.y then
-        self.pos.y = t.pos.y
-    else
-        self.pos.y = math.random(1, gridSize)
-    end
-    if t.code then
-        self.code = copy(t.code)
-    else
-        self.code = genCode()
-    end
-    self.ip = 1
-    self.energy = math.random(initialEnergy[1], initialEnergy[2])
-    self.mem = {}
-    self.diedCoro = coroutine.create(function()
-        print("died")
-        for i = 1, 2 do
-            return coroutine.yield()
+local function getDrawLists()
+    local list = {}
+    for k, v in pairs(threads) do
+        local sublist = love.thread.getChannel("data" .. k):demand()
+        for k1, v1 in pairs(sublist) do
+            table.insert(list, v1)
         end
-        self.died = true
-    end)
-    self.died = false
-    table.insert(cells, self)
-    return self
+    end
+    return list
 end
 
--- возвращает [boolean], [cell table]
--- isalive, cell
-function updateCell(cell)
-    --print("cell ip", cell.ip)
-    if cell.ip >= #cell.code then
-        cell.ip = 1
-    end
-    if cell.energy > 0 then
-        actions[cell.code[cell.ip]](cell)
-        cell.ip = cell.ip + 1
-        cell.energy = cell.energy - 1
-        return true, cell
-    else
-        print("not energy")
-        return false, cell
+local function pushSync()
+    local syncChan = love.thread.getChannel("sync")
+    for i = 1, threadCount do
+        syncChan:push("sync")
     end
 end
 
--- заполнить решетку пустыми значениями. В качестве значений используются
--- пустые таблицы {}
-function getFalseGrid(oldGrid)
-    local res = {}
-    for i = 1, gridSize do
-        local t = {}
-        for j = 1, gridSize do
-            if oldGrid then
-                t[#t + 1] = copy(oldGrid[i][j])
-            else
-                t[#t + 1] = {}
+local function pushMsg2Threads(t)
+    for i = 1, threadCount do
+        love.thread.getChannel("msg" .. i):push(t)
+    end
+end
+
+local function create(commonSetup)
+    if #threads ~= 0 then
+        pushMsg2Threads("stop")
+        love.timer.sleep(0.05)
+        for i = 1, threadCount do
+            love.thread.getChannel("msg" .. i):clear()
+            love.thread.getChannel("data" .. i):clear()
+            love.thread.getChannel("setup" .. i):clear()
+            love.thread.getChannel("request" .. i):clear()
+        end
+    end
+
+    threadCount = commonSetup.threadCount
+    print("threadCount", threadCount)
+
+    gridSize = commonSetup.gridSize
+    mtschema = require "mtschemes"[threadCount]
+    if not mtschema then
+        error(string.format("Unsupported scheme for %d threads.", threadCount))
+    end
+
+    for i = 1, threadCount do
+        local ok, errmsg = pcall(function()
+            local setupName = "setup" .. i
+            love.thread.getChannel(setupName):push(commonSetup)
+            love.thread.getChannel(setupName):push(serpent.dump(mtschema[i]))
+            local th = love.thread.newThread("simulator-thread.lua")
+            table.insert(threads, th)
+            th:start(i)
+            local errmsg = th:getError()
+            if errmsg then
+                logfwarn("Thread %s", errmsg)
             end
-        end
-        res[#res + 1] = t
-    end
-    return res
-end
-
-function updateGrid()
-    for _, v in pairs(cells) do
-        grid[v.pos.x][v.pos.y] = v
-    end
-    for _, v in pairs(meal) do
-        grid[v.pos.x][v.pos.y] = v
-    end
-end
-
-function gatherStatistic()
-    local maxEnergy = 0
-    local minEnergy = initialEnergy[2]
-    local sumEnergy = 0
-    for _, v in pairs(cells) do
-        if v.energy > maxEnergy then
-            maxEnergy = v.energy
-        end
-        if v.energy < minEnergy then
-            minEnergy = v.energy
-        end
-        sumEnergy = sumEnergy + v.energy
-    end
-    local num = #cells > 0 and #cells or 1
-    if sumEnergy == 0 then
-        sumEnergy = 1
-    end
-    --print("num, midEnergy", num, sumEnergy)
-    return { 
-        maxEnergy = maxEnergy,
-        minEnergy = minEnergy,
-        midEnergy = sumEnergy / #cells,
-    }
-end
-
-function emitFoodInRandomPoint()
-    local x = math.random(1, gridSize)
-    local y = math.random(1, gridSize)
-    local t = grid[x][y]
-    -- если клетка пустая
-    if not t.energy then
-        local self = {}
-        self.food = true
-        self.pos = {}
-        self.pos.x, self.pos.y = x, y
-        table.insert(meal, self)
-        grid[x][y] = self
-        return true, grid[x][y]
-    else
-        return false, grid[x][y]
-    end
-end
-
-function emitFood(iter)
-    --for i = 1, math.log(iter) / 10 do
-    --for i = 1, 3 do
-    for i = 1, 0 do
-        local emited, gridcell = emitFoodInRandomPoint()
-        if not emited then
-            -- здесь исследовать причины смерти яцейки
-            --print("not emited gridcell", inspect(gridcell))
+        end)
+        if not ok then
+            logferror("Error in creating thread %s", errmsg)
         end
     end
-end
 
-function saveDeadCellsLog(cells)
-    local file = io.open("removed-cells.txt", "w")
-    for _, cell in pairs(cells) do
-        file:write(string.format("pos %d, %d\n", cell.pos.x, cell.pos.y))
-        file:write(string.format("energy %d\n", cell.energy))
-        file:write(string.format("ip %d\n", cell.ip))
-        file:write(string.format("code:\n"))
-        for _, codeline in pairs(cell.code) do
-            file:write(string.format("  %s\n", codeline))
-        end
-        file:write("\n")
+    pushSync()
+    --love.timer.sleep(0.5)
+
+    for k, v in pairs(threads) do
+        print(v:getError())
     end
-    file:close()
-end
-
-function updateCells()
-    local alive = {}
-    for k, cell in pairs(cells) do
-        local isalive, c = updateCell(cell)
-        if isalive then
-            table.insert(alive, c)
-        else
-            local ok = true
-            local diedCell
-            while ok do
-                ok, diedCell = coroutine.resume(c.diedCoro)
-            end
-
-            if diedCell.pos then
-                print("copyed")
-                grid[diedCell.pos.x][diedCell.pos.y].died = true
-            end
-
-            table.insert(removed, c)
-        end
-    end
-    return alive
-end
-
-function initCellOneCommandCode(command, steps)
-    local cell = initCell()
-    cell.code = {}
-    for i = 1, steps do
-        table.insert(cell.code, command)
-    end
-end
-
-function cloneCell(cell, newx, newy)
-    if not isAlive(newx, newy) then
-        local new = {}
-        for k, v in pairs(cell) do
-            if type(v) ~= "table" then
-                new[k] = v
-            else
-                new[k] = {}
-                for k1, v1 in pairs(v) do
-                    new[k][k1] = v1
-                end
-            end
-        end
-        new.pos.x, new.pos.y = newx, newy
-        print("cloned cell")
-        table.insert(cells, new)
-        return new
-    else
-        print("nothing in clone")
-        return nil
-    end
-end
-
-function initialEmit()
-    --for i = 1, cellsNum do
-        ----coroutine.yield(initCell())
-        --print("i", i)
-        --coroutine.yield()
-        --initCell()
-    --end
-
-    local steps = 5
-    local c = initCell()
-    cloneCell(c, 10, 10)
-    initCellOneCommandCode("right", steps)
-    initCellOneCommandCode("left", steps)
-    initCellOneCommandCode("up", steps)
-    initCellOneCommandCode("down", steps)
-end
-
-function postinitialEmit(iter)
-    local bound = math.log(iter) / 1000
-    for i = 1, bound do
-        print("i", i)
-        coroutine.yield()
-        initCell()
-    end
-end
-
-function experiment()
-    local initialEmitCoro = coroutine.create(initialEmit)
-    while coroutine.resume(initialEmitCoro) do end
-
-    grid = getFalseGrid(oldGrid)
-
-    updateGrid()
-    statistic = gatherStatistic()
-
-    coroutine.yield()
-
-    local postinitialEmitCoro = coroutine.create(postinitialEmit)
-
-    while #cells > 0 do
-        -- дополнительное создание клеток в зависимости от iter
-        if coroutine.resume(postinitialEmitCoro) then
-        end
-
-        --if mode == "bystep" and stepPressed == true or mode == "continuos" then
-        do
-            --coroutine.resume(initialEmit, iter)
-
-            -- создать сколько-то еды
-            emitFood(iter)
-
-            -- проход по ячейкам и вызов их программ
-            cells = updateCells()
-
-            -- сброс решетки после уничтожения некоторых клеток
-            grid = getFalseGrid()
-
-            -- обновление решетки по списку живых клеток и списку еды
-            updateGrid()
-
-            statistic = gatherStatistic()
-            iter = iter + 1
-
-            --if stepPressed == true then
-                --stepPressed = false
-            --end
-        end
-        coroutine.yield()
-    end
-
-    saveDeadCellsLog(removed)
-end
-
-local experimentErrorPrinted = false
-
-function step()
-    local err, errmsg = coroutine.resume(experimentCoro)
-    if not err and not experimentErrorPrinted then
-        experimentErrorPrinted = true
-        logfwarn("coroutine error %s", errmsg)
-    end
-end
-
-local function create(setup)
-    print("sim.create setup", inspect(setup))
 
     local processorCount = love.system.getProcessorCount()
     print("processorCount", processorCount)
-
-    experimentCoro = coroutine.create(function()
-        local ok, errmsg = pcall(experiment)
-        if not ok then
-            logferror("Error %s", errmsg)
-        end
-    end)
-    coroutine.resume(experimentCoro)
-    actionsModule.init(grid, gridSize, { initCell_fn = initCell })
-    actions = actionsModule.actions
 end
 
--- послать сообщения о закрытии запущенным потокам и подождать
-local function close()
+local function printThreadsLog()
+    local logChan = love.thread.getChannel("log")
+    local msg = logChan:pop()
+    while msg do
+        print(msg[1], msg[2])
+        msg = logChan:pop()
+    end
+end
+
+local function step()
+    local iterSum = 0
+    local iterChan = love.thread.getChannel("iter")
+    local value = iterChan:pop()
+    while value do
+        iterSum = iterSum + value
+        value = iterChan:pop()
+    end
+    statistic.iterAverage = iterSum / threadCount
+    pushSync()
+end
+
+local function getIter()
+    local newIter = love.thread.getChannel("iter")
+    if newIter then
+        iter = newIter:pop() or iter
+    end
+    return iter
+end
+
+local function findThreadByPos(x, y)
+    local ix, iy = math.floor(x / gridSize), math.floor(y / gridSize)
+    local rx, ry = x % gridSize, y % gridSize
+    for k, v in pairs(mtschema) do
+    end
+    return nil
+end
+
+-- здеcь нужно определять в какой из потоков отправить запрос используя каналы
+-- msg1, msg2, ...
+local function getObject(x, y)
+    local threadNum = findThreadByPos(x, y)
+    local chan = love.thread.getChannel("msg")
+    chan:push("getobject")
+    chan:push(x)
+    chan:push(y)
+    local sobject = love.thread.getChannel("request" .. threadNum):demand()
+    local objectfun, err = loadstring(sobject)
+    if err then
+        logferror("Could'not deserialize cell object %s", err)
+        return nil
+    end
+    return objectfun()
+end
+
+local mode = "continuos" -- "step"
+
+local function setMode(m)
+    --assert(m == "step" or m == "continuos")
+    mode = m
+    print("push", mode)
+    pushMsg2Threads(mode)
+end
+
+local function doStep()
+    pushMsg2Threads("step")
+end
+
+local function getStatistic()
+    return statistic
 end
 
 return {
     create = create,
-    close = close,
-    getGrid = function()
-        return grid
-    end,
+    setMode = setMode,
+    getDrawList = getDrawList,
+    getDrawLists = getDrawLists,
+    getObject = getObject,
     step = step,
-    statistic = statistic,
-    getIter = function()
-        return iter
-    end,
+    doStep = doStep,
+    getStatistic = getStatistic,
+    getIter = getIter,
     getGridSize = function()
         return gridSize
+    end,
+    getSchema = function()
+        return mtschema
     end,
 }
