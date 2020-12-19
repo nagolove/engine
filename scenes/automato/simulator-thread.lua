@@ -17,7 +17,6 @@ local cellsNum
 local initialEnergy = {}
 local iter = 0
 local statistic = {}
-local IdCounter = 0
 local meal = {}
 local stop = false
 local schema
@@ -26,6 +25,9 @@ local drawCoefficients
 local function doSetup()
     local setupName = "setup" .. threadNum
     local initialSetup = love.thread.getChannel(setupName):pop()
+
+    print("thread", threadNum)
+    print("initialSetup", inspect(initialSetup))
 
     gridSize = initialSetup.gridSize
     codeLen = initialSetup.codeLen
@@ -78,11 +80,6 @@ function genCode()
     return code
 end
 
-local function getId()
-    IdCounter = IdCounter + 1
-    return IdCounter
-end
-
 -- t.pos, t.code
 function initCell(t)
     t = t or {}
@@ -103,7 +100,6 @@ function initCell(t)
     else
         self.code = genCode()
     end
-    self.id = getId()
     self.ip = 1
     self.energy = math.random(initialEnergy[1], initialEnergy[2])
     self.mem = {}
