@@ -119,6 +119,58 @@ function actions.down(cell)
     end
 end
 
+function actions.left2(cell)
+    local pos = cell.pos
+    pushPosition(cell)
+    --print("cell", inspect(cell))
+    if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
+        pos.x = pos.x - 1
+    elseif pos.x <= 1 and not isAlive(gridSize, pos.y, schema) then
+    --elseif pos.x <= 1 and not isAliveNeighbours(gridSize, pos.y, schema.l) then
+--        getGrid()[cell.pos.x][cell.pos.y].energy = 0
+        pos.x = gridSize
+--        moveCellToThread(cell, schema.l)
+    end
+end
+
+function actions.right2(cell)
+    local pos = cell.pos
+    pushPosition(cell)
+    if pos.x < gridSize and not isAlive(pos.x + 1, pos.y) then
+        pos.x = pos.x + 1
+    elseif pos.x >= gridSize and not isAlive(1, pos.y) then
+--    elseif pos.x >= gridSize and not isAliveNeighbours(1, pos.y, schema.r) then
+--        getGrid()[cell.pos.x][cell.pos.y].energy = 0
+        pos.x = 1
+--        moveCellToThread(cell, schema.r)
+    end
+end
+
+function actions.up2(cell)
+    local pos = cell.pos
+    pushPosition(cell)
+    if pos.y > 1 and not isAlive(pos.x, pos.y - 1) then
+        pos.y = pos.y - 1
+    elseif pos.y <= 1 and not isAlive(pos.x, gridSize) then
+--    elseif pos.y <= 1 and not isAliveNeighbours(pos.x, gridSize, schema.u) then
+--        getGrid()[cell.pos.x][cell.pos.y].energy = 0
+        pos.y = gridSize
+--        moveCellToThread(cell, schema.u)
+    end
+end
+
+function actions.down2(cell)
+    local pos = cell.pos
+    pushPosition(cell)
+    if pos.y < gridSize and not isAlive(pos.x, pos.y + 1) then
+        pos.y = pos.y + 1
+--    elseif pos.y >= gridSize and not isAliveNeighbours(pos.x, 1, schema.d) then
+    elseif pos.y >= gridSize and not isAlive(pos.x, 1) then
+--        getGrid()[cell.pos.x][cell.pos.y].energy = 0
+        pos.y = 1
+--        moveCellToThread(cell, schema.d)
+    end
+end
 -- непонятно куда выкладывать значения из стека.
 -- либо другие функции должны напрямую работать со стеком или
 -- должны быть регистры в виде переменных внутри клетки.
