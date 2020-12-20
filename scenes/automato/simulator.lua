@@ -94,7 +94,8 @@ local function create(commonSetup)
     print("processorCount", processorCount)
 end
 
-local function printThreadsLog()
+
+local function getThreadsLog()
     local logChan = love.thread.getChannel("log")
     local msg = logChan:pop()
     while msg do
@@ -131,6 +132,7 @@ local function getIter()
        return 0
 end
 
+-- возвращает номер нити многопоточной схемы по координатам 
 local function findThreadByPos(x, y)
     local ix, iy = math.floor(x / gridSize), math.floor(y / gridSize)
     local rx, ry = x % gridSize, y % gridSize
@@ -141,18 +143,23 @@ end
 
 -- здеcь нужно определять в какой из потоков отправить запрос используя каналы
 -- msg1, msg2, ...
+-- функция - запрос для визуального отладчика
 local function getObject(x, y)
     local threadNum = findThreadByPos(x, y)
+
     local chan = love.thread.getChannel("msg")
     chan:push("getobject")
     chan:push(x)
     chan:push(y)
+
     local sobject = love.thread.getChannel("request" .. threadNum):demand()
     local objectfun, err = loadstring(sobject)
+
     if err then
         logferror("Could'not deserialize cell object %s", err)
         return nil
     end
+
     return objectfun()
 end
 

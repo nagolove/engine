@@ -41,7 +41,7 @@ local commonSetup = {
     gridSize = 100,
     -- количество клеток создаваемых на один поток
     cellsNum = 2000, 
-    -- разбром начальной энергии клеток
+    -- разброс начальной энергии клеток
     initialEnergy = {500, 1000},
     -- длина ленты кода
     codeLen = 32,
@@ -183,7 +183,7 @@ local function drawui()
 
     if imgui.Button("start") then
         sim.create(commonSetup)
-        nextMode()
+        sim.setMode("step")
     end
 
     imgui.Text(replaceCaret(inspect(sim.getStatistic)))

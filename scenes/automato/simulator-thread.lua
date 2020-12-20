@@ -2,53 +2,51 @@ local threadNum = ...
 print("thread", threadNum, "is running")
 
 require "love.timer"
-math.randomseed(love.timer.getTime())
 require "external"
+
+local randseed = love.timer.getTime()
+math.randomseed(randseed)
+
 
 local inspect = require "inspect"
 local serpent = require "serpent"
+
+--package.path = package.path .. ";scenes/automato/?.lua"
+--local grid = require "grid".new()
+
 -- массив всех клеток
 local cells = {}
+
 -- массив массивов [x][y] с клетками по индексам
+-- TODO Переработать интерфейс взаимодействия с сеткой на использования класса
+-- Grid на основе C-массива 2Д
 local grid = {}
+-- размер сетки
 local gridSize
+-- длина кода генерируемого новой клетке
 local codeLen
+-- сколько клеток создавать корутиной в начальном впрыске
 local cellsNum
+-- разброс границы энергии клетки при создании, массив двух элементов
 local initialEnergy = {}
+-- текущая итерация
 local iter = 0
+-- таблица общей статистики
 local statistic = {}
+-- список еды
 local meal = {}
+-- флаг остановки потока
 local stop = false
+-- схема многопоточности
 local schema
+-- кортеж координат для сдвига площадки рисования одного потока
 local drawCoefficients
-
-local function doSetup()
-    local setupName = "setup" .. threadNum
-    local initialSetup = love.thread.getChannel(setupName):pop()
-
-    print("thread", threadNum)
-    print("initialSetup", inspect(initialSetup))
-
-    gridSize = initialSetup.gridSize
-    codeLen = initialSetup.codeLen
-    cellsNum = initialSetup.cellsNum
-    initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
-
-    local sschema = love.thread.getChannel(setupName):pop()
-
-    local schemafun, err = loadstring(sschema)
-    if err then
-        error("Could'not get schema for thread")
-    end
-    local schemaRestored = schemafun()
-    print("schemaRestored", inspect(schemaRestored))
-    schema = flatCopy(schemaRestored)
-
-    drawCoefficients = flatCopy(schemaRestored.draw)
-
-    print("schema", inspect(schema))
-    print("drawCoefficients", inspect(drawCoefficients))
-end
+-- шагнуть при шаговом режиме
+local doStep = false
+-- шаговый или продолжительный режим
+local checkStep = false
+-- команды таблички управления нитью
+local commands = {}
 
 local chan = love.thread.getChannel("msg" .. threadNum)
 local data = love.thread.getChannel("data" .. threadNum)
@@ -72,6 +70,7 @@ local actions
 local removed = {}
 local experimentCoro
 
+-- генератор кода
 function genCode()
     local code = {}
     local len = #codeValues
@@ -82,6 +81,7 @@ function genCode()
 end
 
 -- t.pos, t.code
+-- конструктор клетки
 function initCell(t)
     t = t or {}
     local self = {}
@@ -131,19 +131,14 @@ function updateCell(cell)
     end
 end
 
-
 -- заполнить решетку пустыми значениями. В качестве значений используются
 -- пустые таблицы {}
-function getFalseGrid(oldGrid)
+function getFalseGrid()
     local res = {}
     for i = 1, gridSize do
         local t = {}
         for j = 1, gridSize do
-            if oldGrid then
-                t[#t + 1] = copy(oldGrid[i][j])
-            else
-                t[#t + 1] = {}
-            end
+            t[#t + 1] = {}
         end
         res[#res + 1] = t
     end
@@ -159,7 +154,9 @@ function updateGrid()
     end
 end
 
-function gatherStatistic()
+-- не работает нормально. Нужно отсылал с некоторой периодичностью в виде 
+-- сообщений в основную нить
+function gatherStatistic(cells)
     local maxEnergy = 0
     local minEnergy = initialEnergy[2]
     local sumEnergy = 0
@@ -207,7 +204,7 @@ end
 function emitFood(iter)
     --print(math.log(iter) / 1)
     for i = 1, math.log(iter) * 10 do
-        --local emited, gridcell = emitFoodInRandomPoint()
+        local emited, gridcell = emitFoodInRandomPoint()
         if not emited then
             -- здесь исследовать причины смерти яцейки
             --print("not emited gridcell", inspect(gridcell))
@@ -216,16 +213,15 @@ function emitFood(iter)
 end
 
 function saveDeadCellsLog(cells)
-    local file = io.open("removed-cells.txt", "w")
+    local filename = string.format("cells%d.gzip", threadNum)
+    local file = io.open(filename, "w")
     for _, cell in pairs(cells) do
-        file:write(string.format("pos %d, %d\n", cell.pos.x, cell.pos.y))
-        file:write(string.format("energy %d\n", cell.energy))
-        file:write(string.format("ip %d\n", cell.ip))
-        file:write(string.format("code:\n"))
-        for _, codeline in pairs(cell.code) do
-            file:write(string.format("  %s\n", codeline))
+        local celldump = serpent.dump(cell)
+        local compressedcell = love.data.compress("string", celldump, "gzip")
+        if not compressedcell then
+            error("Not compressed cell")
         end
-        file:write("\n")
+        file:write(compressedcell)
     end
     file:close()
 end
@@ -336,7 +332,7 @@ function experiment()
     grid = getFalseGrid()
 
     updateGrid()
-    statistic = gatherStatistic()
+    statistic = gatherStatistic(cells)
 
     coroutine.yield()
 
@@ -367,7 +363,8 @@ function experiment()
         statistic = gatherStatistic()
         iter = iter + 1
 
-        coroutine.yield()
+        -- возвращать сдесь какое-то состояние клеток из нити
+        coroutine.yield(stepStatistic)
     end
 
     saveDeadCellsLog(removed)
@@ -387,27 +384,9 @@ local function step()
     end
 end
 
+-- для интерфейса в другой модуль
 local function getGrid()
     return grid
-end
-
-local function create()
-    experimentCoro = coroutine.create(function()
-        local ok, errmsg = pcall(experiment)
-        if not ok then
-            logferror("Error %s", errmsg)
-        end
-    end)
-    coroutine.resume(experimentCoro)
-    --actionsModule.init(getGrid, gridSize, schema, threadNum, { initCell_fn = initCell })
-    actionsModule.init({
-        getGridFunc = getGrid,
-        gridSize = gridSize,
-        schema = schema,
-        threadNum = threadNum,
-        initCell_fn = initCell,
-    })
-    actions = actionsModule.actions
 end
 
 local function pushDrawList()
@@ -425,15 +404,11 @@ local function pushDrawList()
             food = true
         })
     end
+    -- нужное-ли условие?
     if data:getCount() < 5 then
         data:push(drawlist)
     end
 end
-
-local doStep = false
-local checkStep = false
-
-local commands = {}
 
 function commands.stop()
     stop = true
@@ -498,31 +473,80 @@ local function popCommand()
     end
 end
 
-local syncChan = love.thread.getChannel("sync")
+local function doSetup()
+    local setupName = "setup" .. threadNum
+    local initialSetup = love.thread.getChannel(setupName):pop()
 
-doSetup()
-create()
+    print("thread", threadNum)
+    print("initialSetup", inspect(initialSetup))
 
-while not stop do
-    popCommand()
+    gridSize = initialSetup.gridSize
+    codeLen = initialSetup.codeLen
+    cellsNum = initialSetup.cellsNum
+    initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
 
-    if checkStep then
-        if doStep then
+    local sschema = love.thread.getChannel(setupName):pop()
+
+    local schemafun, err = loadstring(sschema)
+    if err then
+        error("Could'not get schema for thread")
+    end
+    local schemaRestored = schemafun()
+    print("schemaRestored", inspect(schemaRestored))
+    schema = flatCopy(schemaRestored)
+
+    drawCoefficients = flatCopy(schemaRestored.draw)
+
+    print("schema", inspect(schema))
+    print("drawCoefficients", inspect(drawCoefficients))
+
+    experimentCoro = coroutine.create(function()
+        local ok, errmsg = pcall(experiment)
+        if not ok then
+            logferror("Error %s", errmsg)
+        end
+    end)
+    -- первый запуск корутины, прогревочный 
+    coroutine.resume(experimentCoro)
+
+    actionsModule.init({
+        getGridFunc = getGrid,
+        gridSize = gridSize,
+        schema = schema,
+        threadNum = threadNum,
+        initCell_fn = initCell,
+    })
+
+    -- установка ссылки на таблицу действий - язык клетки.
+    actions = actionsModule.actions
+end
+
+local function main()
+    local syncChan = love.thread.getChannel("sync")
+    while not stop do
+        popCommand()
+
+        if checkStep then
+            if doStep then
+                step()
+            end
+            love.timer.sleep(0.02)
+        else
             step()
         end
-        love.timer.sleep(0.02)
-    else
-        step()
+        pushDrawList()
+
+        local syncMsg = syncChan:demand(0.001)
+        --local syncMsg = syncChan:demand()
+        --local syncMsg = syncChan:pop()
+        --print(threadNum, syncMsg)
+
+        doStep = false
+
+        local iterChan = love.thread.getChannel("iter")
+        iterChan:push(iter)
     end
-    pushDrawList()
-
-    local syncMsg = syncChan:demand(0.001)
-    --local syncMsg = syncChan:demand()
-    --local syncMsg = syncChan:pop()
-    --print(threadNum, syncMsg)
-
-    doStep = false
-
-    local iterChan = love.thread.getChannel("iter")
-    iterChan:push(iter)
 end
+
+doSetup()
+main()
