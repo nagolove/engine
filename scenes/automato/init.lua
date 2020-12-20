@@ -98,10 +98,10 @@ function drawGrid()
     end
 end
 
-function drawStatistic()
+function drawStatisticTable()
     local y0 = 0
     gr.setColor(1, 0, 0)
-    gr.print(string.format("iteration %d", sim.getIter()), 0, y0)
+--    gr.print(string.format("iteration %d", sim.getIter()), 0, y0)
     y0 = y0 + gr.getFont():getHeight()
     local statistic = sim.statistic
     if statistic then
@@ -200,7 +200,7 @@ local function draw()
         cam:attach()
         drawGrid()
         drawCells()
-        drawStatistic()
+        --drawStatisticTable()
         cam:detach()
     elseif viewState == "graph" then
 --        drawGraphs()

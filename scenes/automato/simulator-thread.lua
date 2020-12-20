@@ -118,13 +118,14 @@ end
 -- возвращает [boolean], [cell table]
 -- isalive, cell
 function updateCell(cell)
+    -- прокрутка кода клетки по кругу
     if cell.ip >= #cell.code then
         cell.ip = 1
     end
     if cell.energy > 0 then
         actions[cell.code[cell.ip]](cell)
         cell.ip = cell.ip + 1
-        --cell.energy = cell.energy - 1
+        cell.energy = cell.energy - 1
         return true, cell
     else
         return false, cell
@@ -217,10 +218,14 @@ function saveDeadCellsLog(cells)
     local file = io.open(filename, "w")
     for _, cell in pairs(cells) do
         local celldump = serpent.dump(cell)
-        local compressedcell = love.data.compress("string", celldump, "gzip")
-        if not compressedcell then
+        local compressedcellstr = love.data.compress("string", celldump, "gzip")
+        if not compressedcellstr then
             error("Not compressed cell")
         end
+        local struct = require "struct"
+        local len = compressedcellstr:len()
+        -- записываю 4 байта длины сжатой строки
+        file:write(struct.pack("<d", compressedcellstr))
         file:write(compressedcell)
     end
     file:close()
@@ -330,7 +335,6 @@ function experiment()
     while coroutine.resume(initialEmitCoro) do end
 
     grid = getFalseGrid()
-
     updateGrid()
     statistic = gatherStatistic(cells)
 
@@ -338,36 +342,38 @@ function experiment()
 
     local postinitialEmitCoro = coroutine.create(postinitialEmit)
 
+    print("hello from coro")
+    
     while #cells > 0 do
         -- дополнительное создание клеток в зависимости от iter
         if coroutine.resume(postinitialEmitCoro) then
         end
-
-        --coroutine.resume(initialEmit, iter)
-
+        print("step of thread", threadNum)
         -- создать сколько-то еды
         emitFood(iter)
 
-        -- проход по списку клеток и вызов их программ.
+        -- проход по списку клеток и вызов их программ. уничтожение некоторых клеток
         cells = updateCells(cells)
         
-        -- проход по списку еды и проверка на съеденность
+        -- проход по списку еды и проверка на съеденность.
         meal = updateMeal(meal)
 
-        -- сброс решетки после уничтожения некоторых клеток
+        -- сброс решетки
         grid = getFalseGrid()
 
         -- обновление решетки по списку живых клеток и списку еды
         updateGrid()
 
+        -- обновить статистику за такт
         statistic = gatherStatistic()
+        
         iter = iter + 1
 
-        -- возвращать сдесь какое-то состояние клеток из нити
+        -- можно возвращать сдесь какое-то состояние клеток из нити
         coroutine.yield(stepStatistic)
     end
 
-    saveDeadCellsLog(removed)
+--    saveDeadCellsLog(removed)
 end
 
 local experimentErrorPrinted = false
