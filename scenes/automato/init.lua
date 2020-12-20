@@ -183,7 +183,11 @@ local function drawui()
 
     if imgui.Button("start") then
         sim.create(commonSetup)
-        sim.setMode("step")
+        --sim.setMode("step")
+    end
+
+    if imgui.Button("step") then
+        sim.step()
     end
 
     imgui.Text(replaceCaret(inspect(sim.getStatistic)))
@@ -310,8 +314,10 @@ return {
     getPixSize = function()
         return pixSize
     end,
+
     getMode = getMode,
     nextMode = nextMode,
+
     cam = cam, 
     pworld = pworld,
 
