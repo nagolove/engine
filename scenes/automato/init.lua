@@ -46,7 +46,7 @@ local commonSetup = {
     -- длина ленты кода
     codeLen = 32,
     -- на сколько потоков запускать
-    threadCount = 1,
+    threadCount = 2,
 }
 
 local function getMode()
@@ -203,7 +203,7 @@ local function draw()
         drawStatistic()
         cam:detach()
     elseif viewState == "graph" then
-        drawGraphs()
+--        drawGraphs()
     end
 end
 
