@@ -71,6 +71,7 @@ There are some convenience constructors for creating commonly used matrices:
 - [`Matrix:eye(n)`](#matrixeyen) creates a `n`x`n` identity matrix
 - [`Matrix:ones(m,n)`](#matrixonesrowscols) creates a `m`x`n` matrix of ones
 - [`Matrix:zeros(m,n)`](#matrixzerosrowscols) creates a `m`x`n` matrix of zeros
+- [`Matrix:diag{e1,e2,...,en}`](#matrixdiage) creates a `n`x`n` diagonal matrix with specified elements
 
 ### Basic operations
 
@@ -361,9 +362,17 @@ Returns data as a table in row-major order.
 
 Returns element-wise conversion from radians to degrees.
 
+#### `Matrix:det()`
+
+Returns the determinant of the square matrix.
+
 #### `Matrix:diag()`
 
 Returns the vector of elements on the main diagonal.
+
+#### `Matrix:diag(e)`
+
+Returns a diagonal matrix with specified elements `e` (vector or table) on the main diagonal.
 
 #### `Matrix:div(m)`
 
@@ -372,6 +381,14 @@ Returns the result of dividing the elements of this matrix by scalar value `m` o
 #### `Matrix:dot(m)`
 
 Returns the dot product with vector `m`.
+
+#### `Matrix:dropcol(j)`
+
+Returns a copy of the matrix without column `j`.
+
+#### `Matrix:droprow(i)`
+
+Returns a copy of the matrix without row `i`.
 
 #### `Matrix:eq(m)`
 
@@ -401,6 +418,10 @@ Returns a scalar (if `dim` is `nil`), a row vector (if `dim` is 1) or a column v
 
 Returns a matrix with data from the 2d table `t`.
 
+#### `Matrix:gauss(jordan)`
+
+Returns the matrix obtained by performing Gaussian elimination (or Gauss-Jordan elimination if `jordan` is not nil) on the matrix.
+
 #### `Matrix:ge(m)`
 
 Returns binary matrix obtained by comparing (`>=`) element-wise with `m` if it is a matrix, or with scalar `m`.
@@ -420,6 +441,10 @@ Returns the matrix obtained by concatenating with `m` (and any subsequent argume
 #### `Matrix:idiv(m)`
 
 Returns the result of dividing the elements of this matrix by scalar value `m` or element-wise with matrix of same size `m`, using integer division (`//`).
+
+#### `Matrix:inv()`
+
+Returns the matrix inverted using the Gauss-Jordan elimination algorithm.
 
 #### `Matrix:kron(m)`
 
@@ -480,6 +505,10 @@ Returns the result of multiplying this matrix by `m`, which can be a matrix of c
 #### `Matrix:ne(m)`
 
 Returns binary matrix obtained by comparing (~=) element-wise with `m` if it is a matrix, or with scalar `m`.
+
+#### `Matrix:nonzero()`
+
+Returns a table of indices `{i,j}` of nonzero elements.
 
 #### `Matrix:norm()`
 

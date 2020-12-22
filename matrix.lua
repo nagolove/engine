@@ -23,6 +23,11 @@ function Matrix:sameshape(m)
 end
 
 function Matrix:offset(i,j)
+    if j==nil then
+        if self._rows<1 or self._cols<1 then return end
+        local o=i
+        i,j=(i-1)//self:cols()+1,(i-1)%self:cols()+1
+    end
     if i>=1 and j>=1 and i<=self:rows() and j<=self:cols() then
         if self._t then i,j=j,i end
         return self._cols*(i-1)+j
@@ -37,31 +42,27 @@ end
 
 function Matrix:set(i,j,value)
     local offset=self:offset(i,j)
-    if not offset then return end
-    if self._copyonwrite then
-        self._copyonwrite=false
-        local d={}
-        for i,x in ipairs(self._data) do table.insert(d,x) end
-        self._data=d
+    if offset then
+        if self._copyonwrite then
+            self._copyonwrite=false
+            local d={}
+            for i,x in ipairs(self._data) do table.insert(d,x) end
+            self._data=d
+        end
+        self._data[offset]=value
     end
-    self._data[offset]=value
     return self
 end
 
 function Matrix:row(i)
-    if i<1 or i>self:rows() then return nil end
-    local data={}
-    setmetatable(data,{
-        __index=function(t,j) return self:get(i,j) end,
-        __len=function(t) return self:cols() end,
-        __newindex=function(t,j,v) self:set(i,j,v) end,
-    })
-    self._copyonwrite=true
-    return Matrix(1,self:cols(),{ref=data,copyonwrite=true})
+    if i<1 or i>self:rows() then return Matrix(0,0) end
+    local r=Matrix(1,self:cols())
+    for j=1,self:cols() do r:set(1,j,self:get(i,j)) end
+    return r
 end
 
 function Matrix:rowref(i)
-    if i<1 or i>self:rows() then return nil end
+    if i<1 or i>self:rows() then return Matrix(0,0) end
     local data={}
     setmetatable(data,{
         __index=function(t,j) return self:get(i,j) end,
@@ -86,14 +87,10 @@ function Matrix:setrow(i,m)
 end
 
 function Matrix:col(j)
-    if j<1 or j>self:cols() then return nil end
-    local data={}
-    setmetatable(data,{
-        __index=function(t,i) return self:get(i,j) end,
-        __len=function(t) return self:rows() end,
-    })
-    self._copyonwrite=true
-    return Matrix(self:rows(),1,{ref=data,copyonwrite=true})
+    if j<1 or j>self:cols() then return Matrix(0,0) end
+    local r=Matrix(self:rows(),1)
+    for i=1,self:rows() do r:set(i,1,self:get(i,j)) end
+    return r
 end
 
 function Matrix:setcol(j,m)
@@ -111,14 +108,25 @@ function Matrix:setcol(j,m)
 end
 
 function Matrix:slice(fromrow,fromcol,torow,tocol)
-    assert(fromrow<=torow and fromcol<=tocol,'bad ranges')
-    local m=Matrix(1+torow-fromrow,1+tocol-fromcol)
+    local m=Matrix(math.max(0,1+torow-fromrow),math.max(0,1+tocol-fromcol))
     for i=fromrow,torow do
         for j=fromcol,tocol do
             m:set(i-fromrow+1,j-fromcol+1,self:get(i,j) or 0)
         end
     end
     return m
+end
+
+function Matrix:droprow(i)
+    local m,n=self:rows(),self:cols()
+    assert(i>=1 and i<=m,'out of bounds')
+    return Matrix.vertcat(self:slice(1,1,i-1,n),self:slice(i+1,1,m,n))
+end
+
+function Matrix:dropcol(j)
+    local m,n=self:rows(),self:cols()
+    assert(j>=1 and j<=n,'out of bounds')
+    return Matrix.horzcat(self:slice(1,1,m,j-1),self:slice(1,j+1,m,n))
 end
 
 function Matrix:at(rowidx,colidx)
@@ -290,7 +298,7 @@ end
 function Matrix:data()
     local data={}
     setmetatable(data,{
-        __index=function(t,i) return self:get((i-1)//self:cols()+1,(i-1)%self:cols()+1) end,
+        __index=function(t,i) return self:get(i) end,
         __len=function(t) return self:rows()*self:cols() end,
     })
     return data
@@ -492,6 +500,18 @@ function Matrix:any(f)
     return false
 end
 
+function Matrix:nonzero()
+    local r={}
+    for i=1,self:rows() do
+        for j=1,self:cols() do
+            if self:get(i,j)~=0 then
+                table.insert(r,{i,j})
+            end
+        end
+    end
+    return Matrix:fromtable(r)
+end
+
 function Matrix:where(cond,x,y)
     assert(cond:sameshape(x) and cond:sameshape(y),'shape mismatch')
     return cond:times(x)+(1-cond):times(y)
@@ -536,15 +556,108 @@ function Matrix:normalized()
     return self/self:norm()
 end
 
-function Matrix:diag()
-    local r=Matrix(math.min(self:rows(),self:cols()),1)
-    for ij=1,r:rows() do r:set(ij,1,self:get(ij,ij)) end
-    return r
+function Matrix:diag(t)
+    if t then
+        -- called as static, creates a matrix from diagonal elements
+        if getmetatable(t)==Matrix then
+            assert(t:cols()==1,'argument must be a vector')
+            return Matrix:diag(t:data())
+        elseif type(t)=='table' then
+            local r=Matrix(#t,#t)
+            for i,x in ipairs(t) do r:set(i,i,x) end
+            return r
+        else
+            error('bad argument type')
+        end
+    else
+        -- called as matrix method, returns the main diagonal
+        local r=Matrix(math.min(self:rows(),self:cols()),1)
+        for ij=1,r:rows() do r:set(ij,1,self:get(ij,ij)) end
+        return r
+    end
 end
 
 function Matrix:trace()
     assert(self:rows()==self:cols(),'only defined on square matrices')
     return self:diag():sum()
+end
+
+function Matrix:gauss(jordan)
+    assert(self:cols()>=self:rows(),'number of columns must be greater or equal to the number of rows')
+    local n=self:rows()
+    local r=self:copy()
+    local det=1
+    local function swaprows(i1,i2)
+        if i1==i2 then return end
+        r1,r2=r:row(i1),r:row(i2)
+        r:setrow(i1,r2)
+        r:setrow(i2,r1)
+        det=-det
+    end
+    local function multrow(i,k)
+        r:setrow(i,k*r:row(i))
+        det=det/k
+    end
+    local function addrow(i1,k,i2)
+        r:setrow(i1,r:row(i1)+k*r:row(i2))
+    end
+    for j=1,r:rows() do
+        local pivotvalue,pivotindex=r:get(j,j),j
+        for i=j,n do
+            if math.abs(r:get(i,j))>math.abs(pivotvalue) then
+                pivotvalue,pivotindex=r:get(i,j),i
+            end
+        end
+        if pivotvalue~=0 then
+            if math.abs(pivotvalue)>math.abs(r:get(j,j)) then swaprows(j,pivotindex) end
+            multrow(j,1/r:get(j,j))
+            for i=j+1,r:rows() do
+                if r:get(i,j)~=0 then
+                    addrow(i,-r:get(i,j)/r:get(j,j),j)
+                end
+            end
+        end
+    end
+    if jordan then
+        for j=r:rows(),2,-1 do
+            for i=j-1,1,-1 do
+                addrow(i,-r:get(i,j),j)
+            end
+        end
+    end
+    det=det*r:diag():prod() -- in case some element on the diagonal is zero
+    return r,det
+end
+
+function Matrix:det()
+    assert(self:rows()==self:cols(),'only defined on square matrices')
+    local n=self:rows()
+    if n==1 then
+        return self:get(1,1)
+    elseif n==2 then
+        local a,b,c,d=table.unpack(self:data())
+        return a*d-b*c
+    elseif n==3 then
+        local a,b,c,d,e,f,g,h,i=table.unpack(self:data())
+        return a*e*i+b*f*g+c*d*h-c*e*g-a*f*h-b*d*i
+    elseif false then -- very slow method
+        local d,r1=0,self:slice(2,1,n,n)
+        for j=1,n do d=d+(-1)^(1+j)*self:get(1,j)*r1:dropcol(j):det() end
+        return d
+    else
+        local _,d=self:gauss()
+        return d
+    end
+end
+
+function Matrix:inv()
+    assert(self:rows()==self:cols(),'must be square')
+    local n=self:rows()
+    local w,d=Matrix.horzcat(self,Matrix:eye(n)):gauss(true)
+    if math.abs(d)<1e-11 then
+        error('matrix is not invertible')
+    end
+    return w:slice(1,1+n,n,n+n)
 end
 
 function Matrix:__add(m)
@@ -698,6 +811,7 @@ function Matrix:totable(format)
 end
 
 function Matrix:fromtable(t)
+    assert(type(t)=='table','bad type')
     if t.dims~=nil and t.data~=nil then
         assert(#t.dims==2,'only 2d grids are supported by this class')
         return Matrix(t.dims[1],t.dims[2],t.data)
@@ -707,10 +821,13 @@ function Matrix:fromtable(t)
         local data={}
         for i=1,rows do
             for j=1,cols do
+                assert(#t[i]==cols,'inconsistent number of columns in table data')
                 table.insert(data,t[i][j])
             end
         end
         return Matrix(rows,cols,{ref=data})
+    elseif #t==0 then
+        return Matrix(0,0)
     end
 end
 
@@ -755,8 +872,8 @@ function Matrix:print(elemwidth)
 end
 
 setmetatable(Matrix,{__call=function(self,rows,cols,data,t)
-    assert(math.type(rows)=='integer' and rows>0,'rows must be a positive integer')
-    assert(math.type(cols)=='integer' and cols>0,'cols must be a positive integer')
+    assert(math.type(rows)=='integer' and rows>=0,'rows must be a positive integer')
+    assert(math.type(cols)=='integer' and cols>=0,'cols must be a positive integer')
     local copyonwrite=false
     local datagen,origdata=function() return 0 end,data
     if type(data)=='table' then
@@ -1138,6 +1255,9 @@ if arg and #arg==1 and arg[1]=='test' then
     assert(Matrix:where(Vector:range(5):lt(3),Vector{10,20,30,40,50},Vector{5,4,3,2,1})==Vector{10,20,3,2,1})
     assert(Matrix:fromtable{{1,0,0,0}}:t():norm()==1)
     assert(Matrix(3,1,{3,4,0}):norm()==5)
+    assert(Matrix:diag{1,2,3}==Matrix(3,3,{1,0,0,0,2,0,0,0,3}))
+    assert(Matrix:diag(Vector{1,2,3})==Matrix(3,3,{1,0,0,0,2,0,0,0,3}))
+    assert(Vector{1,2,3}==Matrix(3,3,{1,0,0,0,2,0,0,0,3}):diag())
     assert(Matrix(3,1,{3,4,0}):dot(Matrix(3,1,{-4,3,5}))==0)
     assert(Matrix(3,1,{3,4,0}):data()[1]==3)
     assert(Matrix(3,1,{3,4,0}):data()[2]==4)
@@ -1161,6 +1281,11 @@ if arg and #arg==1 and arg[1]=='test' then
     i:set(2,2,9)
     i:set(3,3,9)
     assert(i==Matrix(3,3,{9,1,1,2,9,2,3,3,9}))
+    local s=Matrix(3,3,{1,2,3,4,5,6,7,8,9})
+    local temp=s:row(1)
+    s:setrow(1,s:row(2))
+    s:setrow(2,temp)
+    assert(s==Matrix(3,3,{4,5,6,1,2,3,7,8,9}))
     local m1=Matrix(2,2,{1,0,0,1})
     local m2=m1
     m2:set(1,1,6)
@@ -1227,6 +1352,8 @@ if arg and #arg==1 and arg[1]=='test' then
     m:assign(1,2,m:slice(1,1,4,1))
     m:assign(1,3,m:slice(1,1,4,1))
     m:assign(1,4,m:slice(1,1,4,1))
+    assert(Matrix(3,3,{1,1,1,2,2,2,3,3,3}):droprow(2)==Matrix(2,3,{1,1,1,3,3,3}))
+    assert(Matrix(3,3,{1,1,1,2,2,2,3,3,3}):dropcol(2)==Matrix(3,2,{1,1,2,2,3,3}))
     assert(m==Matrix(4,4,{11,11,11,11,21,21,21,21,31,31,31,31,41,41,41,41}))
     function approxEq(a,b,tol)
         tol=tol or 1e-5
@@ -1263,6 +1390,8 @@ if arg and #arg==1 and arg[1]=='test' then
     assert(not Vector{1,0,1}:all())
     assert(Vector{1,0,1}:any())
     assert(not Vector{0,0,0}:any())
+    assert(Matrix:fromtable(Matrix(3,3,{0,1,0,0,1,0,0,0,1}):nonzero())==Matrix(3,2,{1,2,2,2,3,3}))
+    assert(Matrix:fromtable(Vector{1,0,2}:nonzero())==Matrix(2,2,{1,1,3,1}))
     assert(approxEq(Vector:geomspace(1,1000,4),Vector{1,10,100,1000}))
     assert(approxEq(Vector:geomspace(1,1000,3,false),Vector{1,10,100}))
     assert(approxEq(Vector:geomspace(1,1000,4,false),Vector{1,5.62341325,31.6227766,177.827941}))
@@ -1280,5 +1409,20 @@ if arg and #arg==1 and arg[1]=='test' then
     assert(Vector{1,2,3}:binop(Vector{4,5,6},function(x,y) return 2*x-y end)==Vector{-2,-1,0})
     assert(Vector{-1,0,90,-4}:abs()==Vector{1,0,90,4})
     assert(Vector{-0.6,0.3}:acos()==Vector{math.acos(-0.6),math.acos(0.3)})
+    assert(-24==Matrix(4,4,{1,3,0,1,0,0,3,2,2,0,3,2,1,2,1,0}):det())
+    assert(0==Matrix(4,4,{0,0,0,0,1,0,3,3,1,1,1,3,1,0,3,1}):det())
+    assert(-22==Matrix(5,5,{3,2,2,1,3,0,3,0,1,3,3,0,4,3,2,2,2,1,2,2,4,3,3,1,4}):det())
+    for n,c in ipairs{0,1000,1000,500,200,100,30,10} do
+        for i=1,c do
+            local m=Matrix(n,n):random(-10,10)
+            g,d=m:gauss()
+            --assert(approxEq(m:det(),d)) -- meaningful only if using slow :det implementation
+            if math.abs(d)>1e-5 then
+                i=m:inv()
+                assert(approxEq(i*m,Matrix:eye(n)))
+                assert(approxEq(m*i,Matrix:eye(n)))
+            end
+        end
+    end
     print('tests passed')
 end

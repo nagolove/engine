@@ -3,6 +3,7 @@ print("thread", threadNum, "is running")
 
 require "love.timer"
 require "external"
+require "log"
 
 local randseed = love.timer.getTime()
 math.randomseed(randseed)
@@ -325,7 +326,7 @@ function initialEmit(iter)
 
     for i = 1, cellsNum / 100 do
         initCell()
-        coroutine.yield()
+        --coroutine.yield()
     end
 end
 
@@ -351,10 +352,13 @@ function experiment()
   print("hello from coro")
   print("#cells", #cells)
 
+  coroutine.resume(initialEmitCoro)
+
   while #cells > 0 do
     -- создание клеток
     if initialEmitCoro and not coroutine.resume(initialEmitCoro) then
         initialEmitCoro = nil
+    end
 
     print("step", iter, " of thread", threadNum)
     print("#cells", #cells)
@@ -385,6 +389,10 @@ function experiment()
     coroutine.yield()
   end
 
+  print("there is no cells in simulation")
+
+  -- здесь нить должна уснуть в цикле ??
+  
 --    saveDeadCellsLog(removed)
 end
 
@@ -395,10 +403,11 @@ local function logfwarn(...)
 end
 
 local function step()
-  local coroResult, errmsg = coroutine.resume(experimentCoro)
-  if not coroResult and not experimentErrorPrinted then
+  local ok, errmsg = coroutine.resume(experimentCoro)
+  if not ok and not experimentErrorPrinted then
     experimentErrorPrinted = true
-    logfwarn("coroutine error %s", errmsg)
+    stop = true
+    error(string.format("coroutine error %s", errmsg))
   end
 end
 
@@ -524,6 +533,7 @@ local function doSetup()
         logferror("Error %s", errmsg)
       end
     end)
+
   -- первый запуск корутины, прогревочный 
   coroutine.resume(experimentCoro)
 
