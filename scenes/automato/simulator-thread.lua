@@ -60,7 +60,7 @@ local function getCodeValues()
   local codeValues = {}
   for k, v in pairs(actionsModule.actions) do
     
-    print("k", k)
+    -- XXX
     if k == "left" then k = "left2"
     elseif k == "right" then k = "right2"
     elseif k == "up" then k = "up2"
@@ -111,6 +111,7 @@ function initCell(t)
   end
   self.ip = 1
   self.energy = math.random(initialEnergy[1], initialEnergy[2])
+  print("self.energy", self.energy)
   self.mem = {}
   self.diedCoro = coroutine.create(function()
       for i = 1, 2 do
@@ -294,38 +295,38 @@ local function cloneCell(cell, newx, newy)
   end
 end
 
-function initialEmit()
-  if threadNum == 1 then
-    for i = 1, cellsNum do
-      --coroutine.yield(initCell())
-    end
-    --elseif threadNum == 2 then
-  else
-    for i = 1, cellsNum / 100 do
-      coroutine.yield(initCell())
-    end
-  end
+function initialEmit(iter)
+    --[[
+    [if threadNum == 1 then
+    [  for i = 1, cellsNum do
+    [    --coroutine.yield(initCell())
+    [  end
+    [  --elseif threadNum == 2 then
+    [else
+    [  for i = 1, cellsNum / 100 do
+    [    coroutine.yield(initCell())
+    [  end
+    [end
+    ]]
 
-  if threadNum == 1 then
     for i = 1, 2 do
-      local steps = 5
-      --local c = initCell()
-      --cloneCell(c, 10, 10)
-      initCellOneCommandCode("right", steps)
-      initCellOneCommandCode("left", steps)
-      initCellOneCommandCode("up", steps)
-      initCellOneCommandCode("down", steps)
+        local steps = 5
+        --local c = initCell()
+        --cloneCell(c, 10, 10)
+        initCellOneCommandCode("right", steps)
+        initCellOneCommandCode("left", steps)
+        initCellOneCommandCode("up", steps)
+        initCellOneCommandCode("down", steps)
     end
-  end
-end
 
-function postinitialEmit(iter)
-  local bound = math.log(iter) / 1000
-  for i = 1, bound do
-    print("i", i)
-    coroutine.yield()
-    initCell()
-  end
+    for i = 1, cellsNum / 100 do
+        initCell()
+    end
+
+    for i = 1, cellsNum / 100 do
+        initCell()
+        coroutine.yield()
+    end
 end
 
 local function updateMeal(meal)
@@ -340,7 +341,6 @@ end
 
 function experiment()
   local initialEmitCoro = coroutine.create(initialEmit)
-  while coroutine.resume(initialEmitCoro) do end
 
   grid = getFalseGrid()
   updateGrid()
@@ -348,15 +348,17 @@ function experiment()
 
   coroutine.yield()
 
-  local postinitialEmitCoro = coroutine.create(postinitialEmit)
-
   print("hello from coro")
+  print("#cells", #cells)
 
   while #cells > 0 do
-    -- дополнительное создание клеток в зависимости от iter
-    if coroutine.resume(postinitialEmitCoro) then
-    end
-    print("step of thread", threadNum)
+    -- создание клеток
+    if initialEmitCoro and not coroutine.resume(initialEmitCoro) then
+        initialEmitCoro = nil
+
+    print("step", iter, " of thread", threadNum)
+    print("#cells", #cells)
+
     -- создать сколько-то еды
     emitFood(iter)
 
@@ -373,12 +375,14 @@ function experiment()
     updateGrid()
 
     -- обновить статистику за такт
-    statistic = gatherStatistic()
+    --statistic = gatherStatistic()
 
     iter = iter + 1
 
     -- можно возвращать сдесь какое-то состояние клеток из нити
-    coroutine.yield(stepStatistic)
+    --coroutine.yield(stepStatistic)
+    print("C", threadNum)
+    coroutine.yield()
   end
 
 --    saveDeadCellsLog(removed)
@@ -391,8 +395,8 @@ local function logfwarn(...)
 end
 
 local function step()
-  local err, errmsg = coroutine.resume(experimentCoro)
-  if not err and not experimentErrorPrinted then
+  local coroResult, errmsg = coroutine.resume(experimentCoro)
+  if not coroResult and not experimentErrorPrinted then
     experimentErrorPrinted = true
     logfwarn("coroutine error %s", errmsg)
   end
