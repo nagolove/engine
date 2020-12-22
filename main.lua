@@ -1,9 +1,12 @@
-local ok, errmsg = pcall(function()
-    require("mobdebug").start()
-  end)
-if not ok then
-  print("Mobdebug start error", errmsg)
-end
+--[[
+   [local ok, errmsg = pcall(function()
+   [    local debugger = require("mobdebug")
+   [    debugger.start()
+   [  end)
+   [if not ok then
+   [  print("Mobdebug start error", errmsg)
+   [end
+   ]]
 
 -- :setlocal foldmethod=manual
 require "imgui"
@@ -34,7 +37,8 @@ function processTLFiles(path)
 end
 
 function love.load(arg)
-  processTLFiles("")
+  --processTLFiles("")
+
   --scenes.loadScenes("scenes")
   --scenes.initLoaded()
 

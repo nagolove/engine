@@ -9,7 +9,7 @@ local scalePoints2PIX = scale.points2PIX
 local M2PIX = scale.M2PIX
 local PIX2M = scale.PIX2M
 
-local engine = require "engine"
+local engine = require "scenes/landing/engine"
 
 function init(currentScene)
     if currentScene and currentScene.pworld then

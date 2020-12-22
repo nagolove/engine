@@ -58,6 +58,7 @@ local function newDrawingRange(from, to)
     return setmetatable({}, DrawingRange_mt)
 end
 
+--[[
 local r = newDrawingRange(100, 300)
 print("r", inspect(r))
 for i = 1, 3 do
@@ -72,6 +73,8 @@ print("r", inspect(r))
 print(r.x)
 
 print("r", inspect(r))
+
+--]]
 
 return {
     newDrawingRange = newDrawingRange,

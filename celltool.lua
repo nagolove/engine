@@ -1,5 +1,5 @@
 require "log"
-local sim = require "simulator"
+local sim = require "scenes/automato/simulator"
 local gr = love.graphics
 local inspect = require "inspect"
 local cam
