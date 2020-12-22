@@ -41,8 +41,11 @@ function love.load(arg)
   --scenes.initOne("selector")
   --scenes.setCurrentScene("selector")
 
-  scenes.initOne("automato")
-  scenes.setCurrentScene("automato")
+  --scenes.initOne("automato")
+  --scenes.setCurrentScene("automato")
+  
+  scenes.initOne("fractaltree")
+  scenes.setCurrentScene("fractaltree")
 
   --scenes.initOne("hst_reader")
   --scenes.setCurrentScene("hst_reader")
