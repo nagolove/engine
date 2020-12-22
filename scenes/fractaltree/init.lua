@@ -4,8 +4,8 @@ local AVL = require "avltree"
 g, angle = love.graphics, 26 * math.pi / 180
 wid, hei = g.getWidth(), g.getHeight()
 
-local exampleTree = AVL:new{1,10,5,15,20,3,5,14,7,13,2,8,3,4,5,10,9,8,7}
-print("exampleTree:dump()", exampleTree:dump())
+--local exampleTree = AVL:new{1,10,5,15,20,3,5,14,7,13,2,8,3,4,5,10,9,8,7}
+--print("exampleTree:dump()", exampleTree:dump())
 
 local test=AVL:new{1,10,5,15,20,3,5,14,7,13,2,8,3,4,5,10,9,8,7}
 
