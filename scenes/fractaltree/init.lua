@@ -7,7 +7,9 @@ function rotate( x, y, a )
 end
 function branches( a, b, len, ang, dir )
   len = len * .76
-  if len < 5 then return end
+
+  if len < 10 then return end
+
   g.setColor( len * 16, 255 - 2 * len , 0 )
   if dir > 0 then ang = ang - angle
   else ang = ang + angle 
@@ -15,6 +17,7 @@ function branches( a, b, len, ang, dir )
   local vx, vy = rotate( 0, len, ang )
   vx = a + vx; vy = b - vy
   g.line( a, b, vx, vy )
+
   branches( vx, vy, len, ang, 1 )
   branches( vx, vy, len, ang, 0 )
 end
@@ -26,12 +29,17 @@ function createTree()
   branches( a, b, lineLen, 0, 1 ) 
   branches( a, b, lineLen, 0, 0 )
 end
-function love.load()
+local function init()
   canvas = g.newCanvas( wid, hei )
   g.setCanvas( canvas )
   createTree()
   g.setCanvas()
 end
-function love.draw()
+local function draw()
   g.draw( canvas )
 end
+
+return {
+    init = init,
+    draw = draw,
+}

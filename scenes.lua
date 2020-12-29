@@ -146,6 +146,9 @@ return {
         return currentScene
     end,
     getScenes = getScenes,
+    getSceneNames = function()
+        return scenesNames
+    end,
     setCurrentScene = setCurrentScene,
     --loadScenes = loadScenes,
     initLoaded = initLoaded,

@@ -19,6 +19,30 @@ local gr = love.graphics
 
 __FREEZE_PHYSICS__ = true
 
+-- [[
+-- Экспериментальная поддержка языка Teal.
+-- Запуск внешней программы tl для файлов *.lua в каталоге static.
+-- Каталог static - каталог для кода со статической типизацией.
+-- Структура проекта - 
+-- root
+--  main.lua
+--  static
+--      tools.tl
+--      scenes.tl
+--  scenes
+--      scene1
+--          static
+--              module1.tl
+--          module1.lua
+--          module2.lualua
+--          init.lua
+--      scene2
+--          init.lua
+--      scene3
+--          init.lua
+--          module1.lua
+--
+-- ]]
 function processTLFiles(path)
   local files = love.filesystem.getDirectoryItems(path)
   for k, v in pairs(files) do
@@ -48,11 +72,11 @@ function love.load(arg)
   --scenes.initOne("automato")
   --scenes.setCurrentScene("automato")
   
-  scenes.initOne("fractaltree")
-  scenes.setCurrentScene("fractaltree")
+  --scenes.initOne("fractaltree")
+  --scenes.setCurrentScene("fractaltree")
 
-  --scenes.initOne("hst_reader")
-  --scenes.setCurrentScene("hst_reader")
+  scenes.initOne("hst_reader")
+  scenes.setCurrentScene("hst_reader")
 
   initTools(currentScene)
 end
