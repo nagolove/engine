@@ -3,11 +3,11 @@ local serpent = require "serpent"
 require "external"
 
 local threads = {}
-local gridSize
-local mtschema
+local gridSize: number
+local mtschema: {number}
 
 -- количество потоков
-local threadCount
+local threadCount: number = -1
 
 -- режим работы - протяженный, пошаговый или стоп
 local mode = "stop" -- "step"

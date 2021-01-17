@@ -31,8 +31,7 @@ __FREEZE_PHYSICS__ = true
 --      scenes.tl
 --  scenes
 --      scene1
---          static
---              module1.tl
+--          static module1.tl
 --          module1.lua
 --          module2.lualua
 --          init.lua
@@ -43,21 +42,31 @@ __FREEZE_PHYSICS__ = true
 --          module1.lua
 --
 -- ]]
+
 function processTLFiles(path)
-  local files = love.filesystem.getDirectoryItems(path)
-  for k, v in pairs(files) do
-    local info = love.filesystem.getInfo(path .. "/" .. v)
-    local scene, fname, name
-    if info.type == "directory" then
-      fname = string.format("%s/%s%s", path, v, "/init.lua")
-      name = v
-    elseif info.type == "file" then
-      fname = path .. "/" .. v
-      name = string.match(v, "(.+)%.tl")
+    if love.system.getOS() == "Linux" then
+        local home = os.getenv("HOME")
+        print("HOME", home)
+        tlPath = home .. "/.luarocks/bin/tl"
+        print("tlPath", tlPath)
+
+        local files = love.filesystem.getDirectoryItems(path)
+        for k, v in pairs(files) do
+            local info = love.filesystem.getInfo(path .. "/" .. v)
+            local scene, fname, name
+            if info.type == "directory" then
+                fname = string.format("%s/%s%s", path, v, "/init.lua")
+                name = v
+            elseif info.type == "file" then
+                fname = path .. "/" .. v
+                name = string.match(v, "(.+)%.tl")
+            end
+            print("fname", fname)
+            print("name", name) 
+            --logf("loading scene %s", fname) 
+            --io.popen("lua5.3.exe tl check" .. fname)
+        end
     end
-    logf("loading scene %s", fname)
-    io.popen("lua5.3.exe tl check" .. fname)
-  end
 end
 
 function love.load(arg)
@@ -69,16 +78,16 @@ function love.load(arg)
   --scenes.initOne("selector")
   --scenes.setCurrentScene("selector")
 
-  --scenes.initOne("automato")
-  --scenes.setCurrentScene("automato")
+  scenes.initOne("automato")
+  scenes.setCurrentScene("automato")
   
   --scenes.initOne("fractaltree")
   --scenes.setCurrentScene("fractaltree")
 
-  scenes.initOne("hst_reader")
-  scenes.setCurrentScene("hst_reader")
+  --scenes.initOne("hst_reader")
+  --scenes.setCurrentScene("hst_reader")
 
-  initTools(currentScene)
+  --initTools(currentScene)
 end
 
 local lastGCTime = love.timer.getTime()
