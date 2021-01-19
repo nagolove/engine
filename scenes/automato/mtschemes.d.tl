@@ -1,6 +1,6 @@
-local type MtSchema = record
+global type MtSchema = record
     l: number
     r: number
     draw: {{number, number}}
 end
-return {}
+return {MtSchema}

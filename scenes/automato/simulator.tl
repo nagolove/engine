@@ -5,11 +5,12 @@ local serpent = require "serpent"
 require "love"
 require "external"
 require "log"
+require "mtschemes"
 
 local threads: {love.thread.Thread} = {}
 --local threads: {love.Thread} = {}
 local gridSize: number
-local mtschema: {number}
+local mtschema: {MtSchema}
 
 -- количество потоков
 local threadCount: number = -1
@@ -21,9 +22,9 @@ local statistic = {}
 
 local function getDrawLists(): {any}
     local list = {}
-    for k, v in pairs(threads) do
-        local sublist: any = love.thread.getChannel("data" .. k):demand()
-        for k1, v1 in pairs(sublist) do
+    for k, _ in ipairs(threads) do
+        local sublist: {any} = love.thread.getChannel("data" .. k):demand() as {any}
+        for _, v1 in ipairs(sublist) do
             table.insert(list, v1)
         end
     end
@@ -32,12 +33,17 @@ end
 
 local function pushSync()
     local syncChan = love.thread.getChannel("sync")
-    for i = 1, threadCount do
+    local i = 1
+    while i < threadCount do
+        i = i + 1
         syncChan:push("sync")
     end
+    --for i = 1, threadCount do
+        --syncChan:push("sync")
+    --end
 end
 
-local function pushMsg2Threads(t)
+local function pushMsg2Threads(t: any)
     for i = 1, threadCount do
         love.thread.getChannel("msg" .. i):push(t)
     end
@@ -56,7 +62,15 @@ local function sendStopClearChannels()
     end
 end
 
-local function create(commonSetup)
+global type CommonSetup = record
+    gridSize: number
+    cellsNum: number
+    initialEnergy: {number, number}
+    codeLen: number
+    threadCount: number
+end
+
+local function create(commonSetup: CommonSetup)
     --print(tabular(commonSetup))
     sendStopClearChannels()
     --mode = "continuos"
@@ -65,13 +79,16 @@ local function create(commonSetup)
     print("threadCount", threadCount)
 
     gridSize = commonSetup.gridSize
-    mtschema = require "mtschemes"[threadCount]
+
+    mtschema = require "mtschemes"[threadCount] as {MtSchema}
+    --mtschema = mtschemes[threadCount] as any
+
     if not mtschema then
         error(string.format("Unsupported scheme for %d threads.", threadCount))
     end
 
     for i = 1, threadCount do
-        local ok, errmsg = pcall(function()
+        local ok, errmsg: boolean, boolean = pcall(function()
             local setupName = "setup" .. i
             love.thread.getChannel(setupName):push(commonSetup)
             love.thread.getChannel(setupName):push(serpent.dump(mtschema[i]))
