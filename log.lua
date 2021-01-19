@@ -1,57 +1,55 @@
-local colors = require "ansicolors"
+local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local string = _tl_compat53 and _tl_compat53.string or string; local colors = require("ansicolors")
 
-return {
-log = function (...)
-    local args = {...}
-    local str = ""
-    for i = 1, #args do
-        local arg = args[i]
-        if str == "" then
-            str = tostring(arg)
-        else
-            str = str ..  "\t" .. tostring(arg)
-        end
-    end
-    print(colors(str))
+function log(...)
+   local args = { ... }
+   local str = ""
+   for i = 1, #args do
+      local arg = args[i]
+      if str == "" then
+         str = tostring(arg)
+      else
+         str = str .. "\t" .. tostring(arg)
+      end
+   end
+   print(colors(str))
 end
 
-logwarn = function (...)
-    local args = {...}
-    local str = ""
-    for i = 1, #args do
-        local arg = args[i]
-        if str == "" then
-            str = tostring(arg)
-        else
-            str = str ..  "\t" .. tostring(arg)
-        end
-    end
-    print(colors('%{yellow}str%{reset}'))
+function logwarn(...)
+   local args = { ... }
+   local str = ""
+   for i = 1, #args do
+      local arg = args[i]
+      if str == "" then
+         str = tostring(arg)
+      else
+         str = str .. "\t" .. tostring(arg)
+      end
+   end
+   print(colors('%{yellow}str%{reset}'))
 end
 
-logerror = function (...)
-    local args = {...}
-    local str = ""
-    for i = 1, #args do
-        local arg = args[i]
-        if str == "" then
-            str = tostring(arg)
-        else
-            str = str ..  "\t" .. tostring(arg)
-        end
-    end
-    print(colors('%{red}str%{reset}'))
+function logerror(...)
+   local args = { ... }
+   local str = ""
+   for i = 1, #args do
+      local arg = args[i]
+      if str == "" then
+         str = tostring(arg)
+      else
+         str = str .. "\t" .. tostring(arg)
+      end
+   end
+   print(colors('%{red}str%{reset}'))
 end
 
-logf = function (...)
-    print(colors(string.format(...)))
+function logf(...)
+   print(colors(string.format(...)))
 end
 
-logfwarn = function (...)
-    print(colors('%{yellow}' .. string.format(...) .. '%{reset}'))
+function logfwarn(...)
+   print(colors('%{yellow}' .. string.format(...) .. '%{reset}'))
 end
 
-logferror = function (...)
-    print(colors('%{red}' .. string.format(...) .. '%{reset}'))
+function logferror(...)
+   print(colors('%{red}' .. string.format(...) .. '%{reset}'))
 end
-}

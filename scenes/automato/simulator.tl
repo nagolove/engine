@@ -111,7 +111,7 @@ local function create(commonSetup: CommonSetup)
     --love.timer.sleep(0.5)
 
     print("threads", inspect(threads))
-    for k, v in pairs(threads) do
+    for _, v in ipairs(threads) do
         print(v:getError())
     end
 
@@ -122,10 +122,10 @@ end
 
 local function getThreadsLog()
     local logChan = love.thread.getChannel("log")
-    local msg = logChan:pop()
+    local msg: {any} = logChan:pop() as {any}
     while msg do
         print(msg[1], msg[2])
-        msg = logChan:pop()
+        msg = logChan:pop() as {any}
     end
 end
 
@@ -134,12 +134,12 @@ local function step()
         return
     end
 
-    local iterSum = 0
-    local iterChan = love.thread.getChannel("iter")
-    local value = iterChan:pop()
+    local iterSum: number = 0
+    local iterChan: love.thread.Channel = love.thread.getChannel("iter")
+    local value = iterChan:pop() as number
     while value do
         iterSum = iterSum + value
-        value = iterChan:pop()
+        value = iterChan:pop() as number
     end
     statistic.iterAverage = iterSum / threadCount
     pushSync()
