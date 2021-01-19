@@ -1,6 +1,7 @@
 local colors = require "ansicolors"
 
-function log(...)
+return {
+log = function (...)
     local args = {...}
     local str = ""
     for i = 1, #args do
@@ -14,7 +15,7 @@ function log(...)
     print(colors(str))
 end
 
-function logwarn(...)
+logwarn = function (...)
     local args = {...}
     local str = ""
     for i = 1, #args do
@@ -28,7 +29,7 @@ function logwarn(...)
     print(colors('%{yellow}str%{reset}'))
 end
 
-function logerror(...)
+logerror = function (...)
     local args = {...}
     local str = ""
     for i = 1, #args do
@@ -42,14 +43,15 @@ function logerror(...)
     print(colors('%{red}str%{reset}'))
 end
 
-function logf(...)
+logf = function (...)
     print(colors(string.format(...)))
 end
 
-function logfwarn(...)
+logfwarn = function (...)
     print(colors('%{yellow}' .. string.format(...) .. '%{reset}'))
 end
 
-function logferror(...)
+logferror = function (...)
     print(colors('%{red}' .. string.format(...) .. '%{reset}'))
 end
+}
