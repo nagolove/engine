@@ -1,8 +1,13 @@
 local inspect = require "inspect"
 local serpent = require "serpent"
+--local tabular = require "tabular"
+--local love = require("love")
+require "love"
 require "external"
+require "log"
 
-local threads = {}
+local threads: {love.thread.Thread} = {}
+--local threads: {love.Thread} = {}
 local gridSize: number
 local mtschema: {number}
 
@@ -14,10 +19,10 @@ local mode = "stop" -- "step"
 
 local statistic = {}
 
-local function getDrawLists()
+local function getDrawLists(): {any}
     local list = {}
     for k, v in pairs(threads) do
-        local sublist = love.thread.getChannel("data" .. k):demand()
+        local sublist: any = love.thread.getChannel("data" .. k):demand()
         for k1, v1 in pairs(sublist) do
             table.insert(list, v1)
         end
@@ -52,6 +57,7 @@ local function sendStopClearChannels()
 end
 
 local function create(commonSetup)
+    --print(tabular(commonSetup))
     sendStopClearChannels()
     --mode = "continuos"
 
@@ -70,12 +76,13 @@ local function create(commonSetup)
             love.thread.getChannel(setupName):push(commonSetup)
             love.thread.getChannel(setupName):push(serpent.dump(mtschema[i]))
 
-            local th = love.thread.newThread("scenes/automato/simulator-thread.lua")
+            local th: love.thread.Thread = love.thread.newThread("scenes/automato/simulator-thread.lua")
             table.insert(threads, th)
             th:start(i)
             local errmsg = th:getError()
             if errmsg then
-                logfwarn("Thread %s", errmsg)
+                --logfwarn("Thread %s", errmsg)
+                print("Thread %s", errmsg)
             end
         end)
         if not ok then
@@ -86,6 +93,7 @@ local function create(commonSetup)
     pushSync()
     --love.timer.sleep(0.5)
 
+    print("threads", inspect(threads))
     for k, v in pairs(threads) do
         print(v:getError())
     end
@@ -133,7 +141,7 @@ local function getIter()
 end
 
 -- возвращает номер нити многопоточной схемы по координатам 
-local function findThreadByPos(x, y)
+local function findThreadByPos(x: number, y: number)
     local ix, iy = math.floor(x / gridSize), math.floor(y / gridSize)
     local rx, ry = x % gridSize, y % gridSize
     for k, v in pairs(mtschema) do
@@ -153,7 +161,7 @@ local function getObject(x, y)
     chan:push(y)
 
     local sobject = love.thread.getChannel("request" .. threadNum):demand()
-    local objectfun, err = loadstring(sobject)
+    local objectfun, err: any, boolean = loadstring(sobject)
 
     if err then
         logferror("Could'not deserialize cell object %s", err)
@@ -182,6 +190,33 @@ local function getStatistic()
     return statistic
 end
 
+global type CommonSetup = record
+end
+
+global type SimulatorMode = enum
+    "step"
+    "continuos"
+end
+
+local function getSchema(): {any}
+    return mtschema
+end
+
+global type Simulator = record
+    create : function()
+    setMode : function(m: SimulatorMode)
+    getMode : function(): SimulatorMode
+    getDrawList : function()
+    getDrawLists : function()
+    getObject : function()
+    step : function()
+    doStep : function()
+    getStatistic : function()
+    getIter : function()
+    getGridSize : function()
+    getSchema : function()
+end
+
 return {
     create = create,
     setMode = setMode,
@@ -196,7 +231,5 @@ return {
     getGridSize = function()
         return gridSize
     end,
-    getSchema = function()
-        return mtschema
-    end,
+    getSchema = getSchema
 }
