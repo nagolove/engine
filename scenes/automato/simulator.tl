@@ -1,3 +1,12 @@
+global type CommonSetup = record
+end
+
+global type SimulatorMode = enum
+    "step"
+    "continuos"
+    "stop"
+end
+
 local inspect = require "inspect"
 local serpent = require "serpent"
 --local tabular = require "tabular"
@@ -18,7 +27,11 @@ local threadCount: number = -1
 -- режим работы - протяженный, пошаговый или стоп
 local mode = "stop" -- "step"
 
-local statistic = {}
+global type Statistic = record
+    iterAverage: number
+end
+
+local statistic: Statistic = {}
 
 local function getDrawLists(): {any}
     local list = {}
@@ -146,7 +159,7 @@ local function step()
 end
 
 -- FIXME Как починить счетчик итераций при работе в несколько нитей?
-local function getIter()
+local function getIter(): number
     --[[
        [local newIter = love.thread.getChannel("iter")
        [if newIter then
@@ -158,18 +171,21 @@ local function getIter()
 end
 
 -- возвращает номер нити многопоточной схемы по координатам 
-local function findThreadByPos(x: number, y: number)
+local function findThreadByPos(x: number, y: number): number
     local ix, iy = math.floor(x / gridSize), math.floor(y / gridSize)
     local rx, ry = x % gridSize, y % gridSize
-    for k, v in pairs(mtschema) do
-    end
+    --[[
+    Тут должен быть поиск по массиву mtschema для нахождения нити.
+    --]]
+    --for k, v in pairs(mtschema) do
+    --end
     return nil
 end
 
 -- здеcь нужно определять в какой из потоков отправить запрос используя каналы
 -- msg1, msg2, ...
 -- функция - запрос для визуального отладчика
-local function getObject(x, y)
+local function getObject(x: number, y: number): any
     local threadNum = findThreadByPos(x, y)
 
     local chan = love.thread.getChannel("msg")
@@ -177,8 +193,10 @@ local function getObject(x, y)
     chan:push(x)
     chan:push(y)
 
-    local sobject = love.thread.getChannel("request" .. threadNum):demand()
-    local objectfun, err: any, boolean = loadstring(sobject)
+    local sobject = love.thread.getChannel("request" .. threadNum):demand() as string
+    --local objectfun, err: function, boolean = loadstring(sobject) as {function, boolean}
+    --local objectfun, err: function, boolean = load(sobject) as {Function, boolean}
+    local objectfun, err: function, boolean = serpent.load(sobject)
 
     if err then
         logferror("Could'not deserialize cell object %s", err)
@@ -188,14 +206,14 @@ local function getObject(x, y)
     return objectfun()
 end
 
-local function setMode(m)
+local function setMode(m: SimulatorMode)
     --assert(m == "step" or m == "continuos")
     mode = m
     print("push", mode)
     pushMsg2Threads(mode)
 end
 
-local function getMode()
+local function getMode(): SimulatorMode
     return mode
 end
 
@@ -203,16 +221,8 @@ local function doStep()
     pushMsg2Threads("step")
 end
 
-local function getStatistic()
+local function getStatistic(): Statistic
     return statistic
-end
-
-global type CommonSetup = record
-end
-
-global type SimulatorMode = enum
-    "step"
-    "continuos"
 end
 
 local function getSchema(): {any}
@@ -223,30 +233,30 @@ global type Simulator = record
     create : function()
     setMode : function(m: SimulatorMode)
     getMode : function(): SimulatorMode
-    getDrawList : function()
     getDrawLists : function()
-    getObject : function()
+    getObject : function(number, number): any
     step : function()
     doStep : function()
-    getStatistic : function()
-    getIter : function()
-    getGridSize : function()
+    getStatistic : function(): Statistic
+    getIter : function(): number
+    getGridSize : function(): number
     getSchema : function()
+end
+
+local function getGridSize(): number
+    return gridSize
 end
 
 return {
     create = create,
     setMode = setMode,
     getMode = getMode,
-    getDrawList = getDrawList,
     getDrawLists = getDrawLists,
     getObject = getObject,
     step = step,
     doStep = doStep,
     getStatistic = getStatistic,
     getIter = getIter,
-    getGridSize = function()
-        return gridSize
-    end,
+    getGridSize = getGridSize,
     getSchema = getSchema
 }
