@@ -1,19 +1,16 @@
 require "external"
+require "types"
+require "mtschemes"
+require "love"
+
 local inspect = require "inspect"
 local serpent = require "serpent"
 
-global type Grid = record
-
-end
-
-
-global type GetGridFunction = function(): Grid
-
 -- функция возвращает таблицу таблиц. Для запросов вида cell = getGrid()[1][1]
-local getGrid
+local getGrid: GetGridFunction
 
 -- размер поля
-local gridSize
+local gridSize: number
 
 -- табличка с действиями клетки
 local actions = {}
@@ -21,26 +18,26 @@ local actions = {}
 -- количество энергии прибавляемое за одну съеденную ячейку "еды"
 local ENERGY = 10
 
--- функция создания клетки по координатам x, y
-local initCell
+-- функция-конструктор для создания клетки по координатам x, y
+local initCell: InitCellFunction
 
 -- счетчик 
-local allEated = 0
+local allEated: number = 0
 
 -- табличка с напралением передачи инфы о клетках выщедщих за границы поля
 -- при работе в несколько потоков
-local schema
+local schema: MtSchema
 
 -- текущий номер потока
-local threadNum
+local threadNum: number
 
-function isAlive(x, y)
+function isAlive(x: number, y: number): boolean
     local t = getGrid()[x][y]
     return t.energy and t.energy > 0
 end
 
 -- записать текущее положение клетки в ее табличку передвижений
-local function pushPosition(cell)
+local function pushPosition(cell: Cell)
     if not cell.moves then
         cell.moves = {}
     end
@@ -57,24 +54,24 @@ local function pushPosition(cell)
 end
 
 -- проверяет жива ли клетка в определенном потоке
-local function isAliveNeighbours(x, y, threadNum)
+local function isAliveNeighbours(x: number, y: number, threadNum: number): boolean
     local msgChan = love.thread.getChannel("msg" .. threadNum)
     msgChan:push("isalive")
     msgChan:push(x)
     msgChan:push(y)
-    local state = love.thread.getChannel("request" .. threadNum):demand()
+    local state: boolean = love.thread.getChannel("request" .. threadNum):demand() as boolean
     return state
 end
 
 -- отослать клетку в другой поток через канал
-local function moveCellToThread(cell, threadNum)
-    local dump = serpent.dump(cell)
+local function moveCellToThread(cell: Cell, threadNum: number)
+    local dump: string = serpent.dump(cell)
     local chan = love.thread.getChannel("msg" .. threadNum)
     chan:push("insertcell")
     chan:push(dump)
 end
 
-function actions.left(cell)
+function actions.left(cell: Cell)
     local pos = cell.pos
     pushPosition(cell)
     --print("cell", inspect(cell))
@@ -88,7 +85,7 @@ function actions.left(cell)
     end
 end
 
-function actions.right(cell)
+function actions.right(cell: Cell)
     local pos = cell.pos
     pushPosition(cell)
     if pos.x < gridSize and not isAlive(pos.x + 1, pos.y) then
@@ -101,7 +98,7 @@ function actions.right(cell)
     end
 end
 
-function actions.up(cell)
+function actions.up(cell: Cell)
     local pos = cell.pos
     pushPosition(cell)
     if pos.y > 1 and not isAlive(pos.x, pos.y - 1) then
@@ -114,7 +111,7 @@ function actions.up(cell)
     end
 end
 
-function actions.down(cell)
+function actions.down(cell: Cell)
     local pos = cell.pos
     pushPosition(cell)
     if pos.y < gridSize and not isAlive(pos.x, pos.y + 1) then
@@ -126,7 +123,7 @@ function actions.down(cell)
     end
 end
 
-function actions.left2(cell)
+function actions.left2(cell: Cell)
     local pos = cell.pos
     pushPosition(cell)
     if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
@@ -136,7 +133,7 @@ function actions.left2(cell)
     end
 end
 
-function actions.right2(cell)
+function actions.right2(cell: Cell)
     local pos = cell.pos
     pushPosition(cell)
     if pos.x < gridSize and not isAlive(pos.x + 1, pos.y) then
@@ -146,7 +143,7 @@ function actions.right2(cell)
     end
 end
 
-function actions.up2(cell)
+function actions.up2(cell: Cell)
     local pos = cell.pos
     pushPosition(cell)
     if pos.y > 1 and not isAlive(pos.x, pos.y - 1) then
@@ -156,7 +153,7 @@ function actions.up2(cell)
     end
 end
 
-function actions.down2(cell)
+function actions.down2(cell: Cell)
     local pos = cell.pos
     pushPosition(cell)
     if pos.y < gridSize and not isAlive(pos.x, pos.y + 1) then
@@ -165,15 +162,16 @@ function actions.down2(cell)
         pos.y = 1
     end
 end
+
 -- непонятно куда выкладывать значения из стека.
 -- либо другие функции должны напрямую работать со стеком или
 -- должны быть регистры в виде переменных внутри клетки.
-function actions.popmem_pos(cell)
+function actions.popmem_pos(cell: Cell)
 end
 
-function actions.pushmem_pos(cell)
-    table.insert(cell.mem, cell.pos.x)
-    table.insert(cell.mem, cell.pos.y)
+function actions.pushmem_pos(cell: Cell)
+    --table.insert(cell.mem, cell.pos.x)
+    --table.insert(cell.mem, cell.pos.y)
 end
 
 local around = {
@@ -182,7 +180,7 @@ local around = {
     {-1,  1}, {0,  1}, {1, 1},
 }
 
-local function incEat(cell)
+local function incEat(cell: Cell)
     if not cell.eated then
         cell.eated = 0
     end
@@ -192,9 +190,9 @@ end
 
 -- Проверяет на съедобность все клетки вокруг себя. Найдя съедобную - поедает
 -- ее оставаясь на месте
-function actions.eat8(cell)
+function actions.eat8(cell: Cell)
     local nx, ny = cell.pos.x, cell.pos.y
-    for k, displacement in pairs(around) do
+    for _, displacement in ipairs(around) do
         nx = nx + displacement[1]
         ny = ny + displacement[2]
 
@@ -216,8 +214,8 @@ function actions.eat8(cell)
 end
 
 -- аналогично eat8, но перемещается на место съеденной клетки.
-function actions.eat8move(cell)
-    pos = cell.pos
+function actions.eat8move(cell: Cell)
+    local pos = cell.pos
     local newt = copy(pos)
     for k, displacement in pairs(around) do
         newt.x = newt.x + displacement[1]

@@ -9,7 +9,8 @@ global type Inter = record
     bar: function()
 end
 
-local type Inter2 = record
+global type Inter2 = record
     foo: function()
     bar: function()
 end
+

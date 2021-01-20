@@ -11,6 +11,6 @@ return {
         --"scenes/automato/simulator.tl",
         --"scenes/automato/cell-actions.tl",
         --"scenes/automato/simulator-thread.tl",
-        "scenes/automato/*.tl",
+        --"scenes/automato/*.tl",
     }
 }

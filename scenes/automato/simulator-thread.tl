@@ -1,10 +1,11 @@
-local threadNum = ...
+local threadNum: number = ...
 print("thread", threadNum, "is running")
 
 require "love"
 require "love.timer"
 require "external"
 require "log"
+require "types"
 
 local randseed: number = love.timer.getTime()
 math.randomseed(randseed)
@@ -16,17 +17,13 @@ local serpent = require "serpent"
 --package.path = package.path .. ";scenes/automato/?.lua"
 --local grid = require "grid".new()
 
-global type Cell = record
-    pos: {number}
-end
-
 -- массив всех клеток
-local cells: {Cell} = {}
+local cells: Cells = {}
 
 -- массив массивов [x][y] с клетками по индексам
 -- TODO Переработать интерфейс взаимодействия с сеткой на использования класса
 -- Grid на основе C-массива 2Д
-local grid = {}
+local grid: Grid = {}
 -- размер сетки
 local gridSize: number
 -- длина кода генерируемого новой клетке
@@ -36,11 +33,11 @@ local cellsNum: number
 -- разброс границы энергии клетки при создании, массив двух элементов
 local initialEnergy: {number, number} = {-1, 0}
 -- текущая итерация
-local iter = 0
+local iter: number = 0
 -- таблица общей статистики
 local statistic: Statistic = {}
 -- список еды
-local meal = {}
+local meal: {Cell} = {}
 -- флаг остановки потока
 local stop = false
 -- схема многопоточности
@@ -119,13 +116,6 @@ function initCell(t)
   self.energy = math.random(initialEnergy[1], initialEnergy[2])
   print("self.energy", self.energy)
   self.mem = {}
-  self.diedCoro = coroutine.create(function()
-      for i = 1, 2 do
-        return coroutine.yield()
-      end
-      self.died = true
-    end)
-  self.died = false
   table.insert(cells, self)
   return self
 end
@@ -253,17 +243,6 @@ function updateCells()
     if isalive then
       table.insert(alive, c)
     else
-      local ok = true
-      local diedCell
-      while ok do
-        ok, diedCell = coroutine.resume(c.diedCoro)
-      end
-
-      if diedCell.pos then
-        print("copyed")
-        grid[diedCell.pos.x][diedCell.pos.y].died = true
-      end
-
       table.insert(removed, c)
     end
   end
@@ -475,7 +454,7 @@ function commands.isalive()
   local ok, errmsg = pcall(function()
       if x >= 1 and x <= gridSize and y >= 1 and y <= gridSize then
         local cell = grid[x][y]
-        local state = cell.energy and cell.energy > 0
+        local state: boolean = cell.energy and cell.energy > 0
         request:push(state)
       end
     end)

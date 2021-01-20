@@ -5,6 +5,18 @@ local inter = require "inter"
 --print("tabular", tabular(inter))
 --local inter = require "inter" as Inter
 
+require "example2"
+
+function compareTypes()
+    local type Type1 = {number}
+    local type Type2 = {{number, number}}
+    local type Type3 = {number}
+    local v1: Type1 = {1, 2, 3}
+    local v2: Type3 = {0, 0}
+    --v1 = v2 as Type1
+    --v1 = v2
+end
+
 local var: Inter
 local var2: Inter2
 
@@ -35,9 +47,9 @@ printSeq(a)
 printMap(b)
 
 
-local ok, errmsg: boolean, boolean = pcall(function()
-    print("from pcall")
-end)
+local zh: {{number}} = {}
+print(zh[1][2])
 
---local errmsg = false
-print(ok, errmsg)
+local x: {number} = {1}
+local y: {number} = {2}
+y = x

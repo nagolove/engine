@@ -1,11 +1,24 @@
-local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local ipairs = _tl_compat53 and _tl_compat53.ipairs or ipairs; local pairs = _tl_compat53 and _tl_compat53.pairs or pairs; local pcall = _tl_compat53 and _tl_compat53.pcall or pcall; local inter = require("inter")
+local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local ipairs = _tl_compat53 and _tl_compat53.ipairs or ipairs; local pairs = _tl_compat53 and _tl_compat53.pairs or pairs; local inter = require("inter")
 
 
 
 
 
+
+require("example2")
+
+function compareTypes()
+   local Type1 = {}
+   local Type2 = {}
+   local Type3 = {}
+   local v1 = { 1, 2, 3 }
+   local v2 = { 0, 0 }
+
+
+end
 
 local var
+local var2
 
 local inspect = require("inspect")
 
@@ -34,9 +47,9 @@ printSeq(a)
 printMap(b)
 
 
-local ok, errmsg = pcall(function()
-   print("from pcall")
-end)
+local zh = {}
+print(zh[1][2])
 
-
-print(ok, errmsg)
+local x = { 1 }
+local y = { 2 }
+y = x
