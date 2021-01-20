@@ -174,7 +174,7 @@ function actions.pushmem_pos(cell: Cell)
     --table.insert(cell.mem, cell.pos.y)
 end
 
-local around = {
+local around: {{number}} = {
     {-1, -1}, {0, -1}, {1, -1},
     {-1,  0},          {1, 0},
     {-1,  1}, {0,  1}, {1, 1},
@@ -216,8 +216,8 @@ end
 -- аналогично eat8, но перемещается на место съеденной клетки.
 function actions.eat8move(cell: Cell)
     local pos = cell.pos
-    local newt = copy(pos)
-    for k, displacement in pairs(around) do
+    local newt: Pos = copy(pos as {any: any}) as Pos
+    for _, displacement in ipairs(around) do
         newt.x = newt.x + displacement[1]
         newt.y = newt.y + displacement[2]
 
@@ -248,8 +248,10 @@ end
 -- управление возвращается.
 -- FIXME поиск должен рандоминизировать начальное положение что-бы 
 -- исключить влияние порядка обхода клеток.
-function listNeighbours(x, y, cb)
-    for k, displacement in pairs(around) do
+global type NeighboursCallback = function(number, number, any): boolean
+
+function listNeighbours(x: number, y: number, cb: NeighboursCallback)
+    for _, displacement in ipairs(around) do
         local nx, ny = x + displacement[1], y + displacement[2]
         if nx >= 1 and nx < gridSize and ny >= 1 and ny < gridSize then
             if not cb(nx, ny, getGrid()[nx][ny]) then
@@ -260,9 +262,9 @@ function listNeighbours(x, y, cb)
 end
 
 -- return code, not cell
-function mixCode(cell1, cell2)
+function mixCode(cell1: Cell, cell2: Cell): {string}
     local rnd = math.random()
-    local first, second
+    local first, second: Cell, Cell
     if rnd > 0.5 then
         first, second = cell1, cell2 
     else
@@ -270,7 +272,7 @@ function mixCode(cell1, cell2)
     end
     local newcode = {}
     local i = 1
-    local pushed
+    local pushed: boolean
 
     repeat
         pushed = false
@@ -303,24 +305,25 @@ end
 
 -- возвращает true если найдена пустая клетка, {x, y} координаты.
 -- иначе false
-function findFreePos(x, y)
-    local found
-    local pos = {}
-    listNeighbours(x, y, function(xp, yp, value)
-        if (not value.energy) and (not value.dish) then
+-- XXX not tested anymore
+function findFreePos(x: number, y: number): boolean, Pos
+    local pos: Pos = {}
+    listNeighbours(x, y, function(xp: number, yp: number, value: Cell): boolean
+        if (not value.energy) and (not value.food) then
             pos.x = xp
             pos.y = yp
-            return true, pos
+            return true
         end
+        return false
     end)
-    return false
+    return true, pos
 end
 
 -- если достаточно энергии(>0), то клетка
-function actions.cross(cell)
+function actions.cross(cell: Cell)
     if cell.energy > 0 then
         cell.wantdivide = true
-        listNeighbours(cell.pos.x, cell.pos.y, function(x, y, value)
+        listNeighbours(cell.pos.x, cell.pos.y, function(x: number, y: number, value: Cell): boolean
             if value.wantdivide then
                 local found, pos = findFreePos(cell.pos.x, cell.pos.y)
                 if found then
@@ -332,16 +335,17 @@ function actions.cross(cell)
                     initCell(t)
                 end
             end
+            return false
         end)
     end
 end
 
-function init(t)
+function init(t: CellActionsInit)
     --assert(type(getGridFunc) == "function")
     threadNum = t.threadNum
-    getGrid = t.getGridFunc
+    getGrid = t.getGrid
     gridSize = t.gridSize
-    initCell = t.initCell_fn
+    initCell = t.initCell
     schema = t.schema
     print("t", inspect(t))
     allEated = 0
@@ -350,7 +354,7 @@ end
 return {
     actions = actions,
     init = init,
-    getAllEated = function()
+    getAllEated = function(): number
         return allEated
     end,
 }

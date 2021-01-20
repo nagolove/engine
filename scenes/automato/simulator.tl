@@ -15,6 +15,7 @@ require "love"
 require "external"
 require "log"
 require "mtschemes"
+require "types"
 
 local threads: {love.thread.Thread} = {}
 --local threads: {love.Thread} = {}
@@ -26,10 +27,6 @@ local threadCount: number = -1
 
 -- режим работы - протяженный, пошаговый или стоп
 local mode = "stop" -- "step"
-
-global type Statistic = record
-    iterAverage: number
-end
 
 local statistic: Statistic = {}
 
@@ -75,14 +72,6 @@ local function sendStopClearChannels()
     end
 end
 
-global type CommonSetup = record
-    gridSize: number
-    cellsNum: number
-    initialEnergy: {number, number}
-    codeLen: number
-    threadCount: number
-end
-
 local function create(commonSetup: CommonSetup)
     --print(tabular(commonSetup))
     sendStopClearChannels()
@@ -101,7 +90,7 @@ local function create(commonSetup: CommonSetup)
     end
 
     for i = 1, threadCount do
-        local ok, errmsg: boolean, boolean = pcall(function()
+        local ok, errmsg: boolean, string = pcall(function()
             local setupName = "setup" .. i
             love.thread.getChannel(setupName):push(commonSetup)
             love.thread.getChannel(setupName):push(serpent.dump(mtschema[i]))

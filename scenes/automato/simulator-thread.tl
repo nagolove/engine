@@ -1,4 +1,4 @@
-local threadNum: number = ...
+local threadNum: number = ... as number
 print("thread", threadNum, "is running")
 
 require "love"
@@ -41,9 +41,9 @@ local meal: {Cell} = {}
 -- флаг остановки потока
 local stop = false
 -- схема многопоточности
-local schema
+local schema: MtSchema
 -- кортеж координат для сдвига площадки рисования одного потока
-local drawCoefficients
+local drawCoefficients: {number, number}
 -- шагнуть при шаговом режиме
 local doStep = false
 -- шаговый или продолжительный режим
@@ -53,15 +53,14 @@ local commands = {}
 
 local chan = love.thread.getChannel("msg" .. threadNum)
 local data = love.thread.getChannel("data" .. threadNum)
-local log = love.thread.getChannel("log")
 local request = love.thread.getChannel("request" .. threadNum)
 
 package.path = package.path .. ";scenes/automato/?.lua"
 local actionsModule = require "cell-actions"
 
-local function getCodeValues()
+local function getCodeValues(): {string}
   local codeValues = {}
-  for k, v in pairs(actionsModule.actions) do
+  for k, _ in pairs(actionsModule.actions) do
     
     -- XXX
     if k == "left" then k = "left2"
@@ -77,12 +76,12 @@ end
 
 local codeValues = getCodeValues()
 
-local actions
-local removed = {}
-local experimentCoro
+local actions: {string: function(Cell)}
+local removed: {Cell} = {}
+local experimentCoro: thread
 
 -- генератор кода
-function genCode()
+function genCode(): {string}
   local code = {}
   local len = #codeValues
   for i = 1, codeLen do
@@ -93,9 +92,9 @@ end
 
 -- t.pos, t.code
 -- конструктор клетки
-function initCell(t)
+function initCell(t: CellSetup): Cell
   t = t or {}
-  local self = {}
+  local self: Cell = {}
   self.pos = {}
   if t.pos and t.pos.x then
     self.pos.x = t.pos.x
@@ -115,14 +114,13 @@ function initCell(t)
   self.ip = 1
   self.energy = math.random(initialEnergy[1], initialEnergy[2])
   print("self.energy", self.energy)
-  self.mem = {}
   table.insert(cells, self)
   return self
 end
 
 -- возвращает [boolean], [cell table]
 -- isalive, cell
-function updateCell(cell)
+function updateCell(cell: Cell): boolean, Cell
   -- прокрутка кода клетки по кругу
   if cell.ip >= #cell.code then
     cell.ip = 1
@@ -139,7 +137,7 @@ end
 
 -- заполнить решетку пустыми значениями. В качестве значений используются
 -- пустые таблицы {}
-function getFalseGrid()
+function getFalseGrid(): Grid
   local res = {}
   for i = 1, gridSize do
     local t = {}
@@ -152,21 +150,21 @@ function getFalseGrid()
 end
 
 function updateGrid()
-  for _, v in pairs(cells) do
+  for _, v in ipairs(cells) do
     grid[v.pos.x][v.pos.y] = v
   end
-  for _, v in pairs(meal) do
+  for _, v in ipairs(meal) do
     grid[v.pos.x][v.pos.y] = v
   end
 end
 
 -- не работает нормально. Нужно отсылал с некоторой периодичностью в виде 
 -- сообщений в основную нить
-function gatherStatistic(cells)
+function gatherStatistic(cells: {Cell}): Statistic
   local maxEnergy = 0
   local minEnergy = initialEnergy[2]
   local sumEnergy = 0
-  for _, v in pairs(cells) do
+  for _, v in ipairs(cells) do
     if v.energy > maxEnergy then
       maxEnergy = v.energy
     end
@@ -175,7 +173,7 @@ function gatherStatistic(cells)
     end
     sumEnergy = sumEnergy + v.energy
   end
-  local num = #cells > 0 and #cells or 1
+  --local num = #cells > 0 and #cells or 1
   if sumEnergy == 0 then
     sumEnergy = 1
   end
@@ -188,7 +186,7 @@ function gatherStatistic(cells)
 end
 
 
-function emitFoodInRandomPoint()
+function emitFoodInRandomPoint(): boolean, Cell
   local x = math.random(1, gridSize)
   local y = math.random(1, gridSize)
   local t = grid[x][y]
@@ -207,10 +205,10 @@ function emitFoodInRandomPoint()
 end
 
 
-function emitFood(iter)
+function emitFood(iter: number)
   --print(math.log(iter) / 1)
   for i = 1, math.log(iter) * 10 do
-    local emited, gridcell = emitFoodInRandomPoint()
+    local emited, _ = emitFoodInRandomPoint()
     if not emited then
       -- здесь исследовать причины смерти яцейки
       --print("not emited gridcell", inspect(gridcell))
@@ -218,27 +216,27 @@ function emitFood(iter)
   end
 end
 
-function saveDeadCellsLog(cells)
+function saveDeadCellsLog(cells: {Cells})
   local filename = string.format("cells%d.gzip", threadNum)
   local file = io.open(filename, "w")
-  for _, cell in pairs(cells) do
-    local celldump = serpent.dump(cell)
-    local compressedcellstr = love.data.compress("string", celldump, "gzip")
+  for _, cell in ipairs(cells) do
+    local celldump: string = serpent.dump(cell)
+    local compressedcellstr: string = love.data.compress("string", "gzip", celldump)
     if not compressedcellstr then
       error("Not compressed cell")
     end
     local struct = require "struct"
-    local len = compressedcellstr:len()
+    local len: number = compressedcellstr:len()
     -- записываю 4 байта длины сжатой строки
-    file:write(struct.pack("<d", compressedcellstr))
-    file:write(compressedcell)
+    file:write(struct.pack("<d", len))
+    file:write(compressedcellstr)
   end
   file:close()
 end
 
-function updateCells()
+function updateCells(cells: {Cell}): {Cell}
   local alive = {}
-  for k, cell in pairs(cells) do
+  for _, cell in ipairs(cells) do
     local isalive, c = updateCell(cell)
     if isalive then
       table.insert(alive, c)
@@ -249,7 +247,7 @@ function updateCells()
   return alive
 end
 
-local function initCellOneCommandCode(command, steps)
+local function initCellOneCommandCode(command: string, steps: number)
   local cell = initCell()
   cell.code = {}
   for i = 1, steps do
@@ -257,15 +255,15 @@ local function initCellOneCommandCode(command, steps)
   end
 end
 
-local function cloneCell(cell, newx, newy)
+local function cloneCell(cell: Cell, newx: number, newy: number): Cell
   if not isAlive(newx, newy) then
     local new = {}
-    for k, v in pairs(cell) do
+    for k, v in pairs(cell as table) do
       if type(v) ~= "table" then
         new[k] = v
       else
         new[k] = {}
-        for k1, v1 in pairs(v) do
+        for k1, v1 in pairs(v as table) do
           new[k][k1] = v1
         end
       end
@@ -280,7 +278,7 @@ local function cloneCell(cell, newx, newy)
   end
 end
 
-function initialEmit(iter)
+function initialEmit(iter: number)
     --[[
     [if threadNum == 1 then
     [  for i = 1, cellsNum do
@@ -314,9 +312,9 @@ function initialEmit(iter)
     end
 end
 
-local function updateMeal(meal)
+local function updateMeal(meal: {Cell}): {Cell}
   local alive = {}
-  for k, dish in pairs(meal) do
+  for _, dish in ipairs(meal) do
     if dish.food == true then
       table.insert(alive, dish)
     end
@@ -325,7 +323,7 @@ local function updateMeal(meal)
 end
 
 function experiment()
-  local initialEmitCoro = coroutine.create(initialEmit)
+  local initialEmitCoro: thread = coroutine.create(initialEmit)
 
   grid = getFalseGrid()
   updateGrid()
@@ -382,10 +380,6 @@ end
 
 local experimentErrorPrinted = false
 
-local function logfwarn(...)
-  love.thread.getChannel("log"):push({threadNum, string.format(...)})
-end
-
 local function step()
   local ok, errmsg = coroutine.resume(experimentCoro)
   if not ok and not experimentErrorPrinted then
@@ -396,19 +390,19 @@ local function step()
 end
 
 -- для интерфейса в другой модуль
-local function getGrid()
+local function getGrid(): Grid
   return grid
 end
 
 local function pushDrawList()
-  local drawlist = {}
-  for k, v in pairs(cells) do
+  local drawlist: {DrawNode} = {}
+  for _, v in ipairs(cells) do
     table.insert(drawlist, { 
         x = v.pos.x + gridSize * drawCoefficients[1],
         y = v.pos.y + gridSize * drawCoefficients[2],
       })
   end
-  for k, v in pairs(meal) do
+  for _, v in ipairs(meal) do
     table.insert(drawlist, { 
         x = v.pos.x + gridSize * drawCoefficients[1],
         y = v.pos.y + gridSize * drawCoefficients[2], 
@@ -426,8 +420,8 @@ function commands.stop()
 end
 
 function commands.getobject()
-  local x, y = chan:pop(), chan:pop()
-  local ok, errmsg = pcall(function()
+  local x, y: number, number = chan:pop() as number, chan:pop() as number
+  local ok, errmsg: boolean, string = pcall(function()
       if grid then
         local cell = grid[x][y]
         if cell then
@@ -450,8 +444,8 @@ function commands.continuos()
 end
 
 function commands.isalive()
-  local x, y = chan:pop(), chan:pop()
-  local ok, errmsg = pcall(function()
+  local x, y = chan:pop() as number, chan:pop() as number  
+  local ok, errmsg: boolean, string = pcall(function()
       if x >= 1 and x <= gridSize and y >= 1 and y <= gridSize then
         local cell = grid[x][y]
         local state: boolean = cell.energy and cell.energy > 0
@@ -464,16 +458,16 @@ function commands.isalive()
 end
 
 function commands.insertcell()
-  local newcellfun, err = loadstring(chan:pop())
+  local newcellfun, err = load(chan:pop() as string)
   if err then
     error(err)
   end
-  local newcell = newcellfun()
+  local newcell: Cell = newcellfun() as Cell
   table.insert(cells, newcell)
 end
 
 local function popCommand()
-  local cmd = chan:pop()
+  local cmd = chan:pop() as string
   if cmd then
     local command = commands[cmd]
     if command then
@@ -486,7 +480,7 @@ end
 
 local function doSetup()
   local setupName = "setup" .. threadNum
-  local initialSetup = love.thread.getChannel(setupName):pop()
+  local initialSetup: CommonSetup = love.thread.getChannel(setupName):pop() as CommonSetup
 
   print("thread", threadNum)
   print("initialSetup", inspect(initialSetup))
@@ -496,23 +490,23 @@ local function doSetup()
   cellsNum = initialSetup.cellsNum
   initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
 
-  local sschema = love.thread.getChannel(setupName):pop()
+  local sschema: string = love.thread.getChannel(setupName):pop() as string
 
-  local schemafun, err = loadstring(sschema)
+  local schemafun, err = load(sschema)
   if err then
     error("Could'not get schema for thread")
   end
-  local schemaRestored = schemafun()
+  local schemaRestored: MtSchema = schemafun() as MtSchema
   print("schemaRestored", inspect(schemaRestored))
-  schema = flatCopy(schemaRestored)
+  schema = flatCopy(schemaRestored as table) as MtSchema
 
-  drawCoefficients = flatCopy(schemaRestored.draw)
+  drawCoefficients = flatCopy(schemaRestored.draw) as {number, number}
 
   print("schema", inspect(schema))
   print("drawCoefficients", inspect(drawCoefficients))
 
   experimentCoro = coroutine.create(function()
-      local ok, errmsg = pcall(experiment)
+      local ok, errmsg: boolean, string = pcall(experiment)
       if not ok then
         logferror("Error %s", errmsg)
       end
@@ -522,11 +516,11 @@ local function doSetup()
   coroutine.resume(experimentCoro)
 
   actionsModule.init({
-      getGridFunc = getGrid,
+      getGrid = getGrid,
       gridSize = gridSize,
       schema = schema,
       threadNum = threadNum,
-      initCell_fn = initCell,
+      initCell = initCell,
     })
 
   -- установка ссылки на таблицу действий - язык клетки.
@@ -548,7 +542,7 @@ local function main()
     end
     pushDrawList()
 
-    local syncMsg = syncChan:demand(0.001)
+    local syncMsg: any = syncChan:demand(0.001)
     --local syncMsg = syncChan:demand()
     --local syncMsg = syncChan:pop()
     --print(threadNum, syncMsg)

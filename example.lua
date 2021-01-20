@@ -53,3 +53,24 @@ print(zh[1][2])
 local x = { 1 }
 local y = { 2 }
 y = x
+
+local z = { 1, 2 }
+
+function foo()
+
+end
+
+
+
+
+
+function copy(t)
+   if type(t) == "table" then
+      local result = {}
+      for k, v in pairs(t) do
+         result[k] = v
+      end
+      return result
+   end
+   return t
+end

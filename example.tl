@@ -53,3 +53,25 @@ print(zh[1][2])
 local x: {number} = {1}
 local y: {number} = {2}
 y = x
+
+local z: {number, number} = {1, 2}
+
+function foo(): {number, number}
+    --return (12, 12) as {number, number}
+end
+
+--function foo(): {number, number}
+    --return 12, 12) as {number, number}
+--end
+
+function copy<T>(t:T):T
+    if t is table then 
+        local result = {}
+        for k, v in pairs(t) do
+            result[k] = v
+        end
+        return result as T
+    end
+    return t
+end
+

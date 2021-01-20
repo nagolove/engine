@@ -15,6 +15,7 @@ require("love")
 require("external")
 require("log")
 require("mtschemes")
+require("types")
 
 local threads = {}
 
@@ -26,10 +27,6 @@ local threadCount = -1
 
 
 local mode = "stop"
-
- Statistic = {}
-
-
 
 local statistic = {}
 

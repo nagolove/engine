@@ -1,14 +1,25 @@
 require "love"
+require "camera"
 
-function copy(t: any): any
-    local result = {}
-    for k, v in pairs(t) do
-        result[k] = v
+--function copy(t: table): table
+    --local result = {}
+    --for k, v in pairs(t) do
+        --result[k] = v
+    --end
+    --return result
+--end
+function copy<T>(t:T):T
+    if t is table then 
+        local result = {}
+        for k, v in pairs(t) do
+            result[k] = v
+        end
+        return result as T
     end
-    return result
+    return t
 end
 
-function flatCopy(src: any): any
+function flatCopy(src: table): table
     local dst = {}
     for k, v in pairs(src) do
         if type(v) ~= "table" and type(v) ~= "function" and type(v) ~= "thread" then
@@ -25,7 +36,9 @@ local type CameraSettings = record
     relativedy: number
 end
 
-global cameraSettings: CameraSettings = {
+local cameraSettings: CameraSettings = {}
+
+cameraSettings = {
     -- знавение в пикселях
     dx = 20,
     dy = 20,
@@ -34,14 +47,6 @@ global cameraSettings: CameraSettings = {
     relativedx = 0,
     relativedy = 0,
 }
-
-global type Camera = record
-    x: number
-    y: number
-    scale: number
-    rot: number
-    smoother: function(number, number): {number, number}
-end
 
 function controlCamera(cam: Camera)
     local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
