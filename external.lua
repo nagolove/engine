@@ -1,22 +1,12 @@
 local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local pairs = _tl_compat53 and _tl_compat53.pairs or pairs; require("love")
 require("camera")
 
-
-
-
-
-
-
-
 function copy(t)
-   if type(t) == "table" then
-      local result = {}
-      for k, v in pairs(t) do
-         result[k] = v
-      end
-      return result
+   local result = {}
+   for k, v in pairs(t) do
+      result[k] = v
    end
-   return t
+   return result
 end
 
 function flatCopy(src)

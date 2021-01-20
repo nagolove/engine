@@ -1,16 +1,8 @@
-global type CommonSetup = record
-end
-
-global type SimulatorMode = enum
-    "step"
-    "continuos"
-    "stop"
-end
-
 local inspect = require "inspect"
 local serpent = require "serpent"
+
 --local tabular = require "tabular"
---local love = require("love")
+
 require "love"
 require "external"
 require "log"
@@ -18,7 +10,6 @@ require "mtschemes"
 require "types"
 
 local threads: {love.thread.Thread} = {}
---local threads: {love.Thread} = {}
 local gridSize: number
 local mtschema: {MtSchema}
 

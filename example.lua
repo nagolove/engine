@@ -65,12 +65,62 @@ end
 
 
 function copy(t)
-   if type(t) == "table" then
-      local result = {}
-      for k, v in pairs(t) do
-         result[k] = v
-      end
-      return result
+
+   local result = {}
+   for k, v in pairs(t) do
+      result[k] = v
    end
-   return t
+   return result
+
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local Commands = {}
+
+
+
+
+
+local Cmds = {}
+
+
+
+
+
+local commands = {}
+
+commands["do3"] = function()
+   print("do3")
+end
+
+function commands.do1()    print("do1") end
+function commands.do2()    print("do2") end
+
+function process(cmd)
+   if cmd then
+      local command = commands[cmd]
+      if command then
+         command()
+      end
+   end
 end

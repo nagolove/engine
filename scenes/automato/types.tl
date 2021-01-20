@@ -49,11 +49,35 @@ global type DrawNode = record
 end
 
 global type CommonSetup = record
+    threadCount: number
     gridSize: number
     cellsNum: number
     initialEnergy: {number, number}
     codeLen: number
-    threadCount: number
+end
+
+global type ThreadCommandsStore = record
+    stop: function
+    getobject: function
+    step: function
+    continuos: function
+    isalive: function
+    insertcell: function
+end
+
+global type ThreadCommands = enum
+    "stop"
+    "getobject"
+    "step"
+    "continuos"
+    "isalive"
+    "insertcell"
+end
+
+global type SimulatorMode = enum
+    "step"
+    "continuos"
+    "stop"
 end
 
 

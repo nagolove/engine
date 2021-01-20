@@ -1,22 +1,12 @@
 require "love"
 require "camera"
 
---function copy(t: table): table
-    --local result = {}
-    --for k, v in pairs(t) do
-        --result[k] = v
-    --end
-    --return result
---end
 function copy<T>(t:T):T
-    if t is table then 
-        local result = {}
-        for k, v in pairs(t) do
-            result[k] = v
-        end
-        return result as T
+    local result = {}
+    for k, v in pairs(t as {any: any}) do
+        result[k] = v
     end
-    return t
+    return result as T
 end
 
 function flatCopy(src: table): table

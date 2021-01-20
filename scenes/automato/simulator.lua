@@ -1,14 +1,6 @@
-local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local ipairs = _tl_compat53 and _tl_compat53.ipairs or ipairs; local math = _tl_compat53 and _tl_compat53.math or math; local pcall = _tl_compat53 and _tl_compat53.pcall or pcall; local string = _tl_compat53 and _tl_compat53.string or string; local table = _tl_compat53 and _tl_compat53.table or table;  CommonSetup = {}
-
-
- SimulatorMode = {}
-
-
-
-
-
-local inspect = require("inspect")
+local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local ipairs = _tl_compat53 and _tl_compat53.ipairs or ipairs; local math = _tl_compat53 and _tl_compat53.math or math; local pcall = _tl_compat53 and _tl_compat53.pcall or pcall; local string = _tl_compat53 and _tl_compat53.string or string; local table = _tl_compat53 and _tl_compat53.table or table; local inspect = require("inspect")
 local serpent = require("serpent")
+
 
 
 require("love")
@@ -18,7 +10,6 @@ require("mtschemes")
 require("types")
 
 local threads = {}
-
 local gridSize
 local mtschema
 
@@ -71,14 +62,6 @@ local function sendStopClearChannels()
       end
    end
 end
-
- CommonSetup = {}
-
-
-
-
-
-
 
 local function create(commonSetup)
 

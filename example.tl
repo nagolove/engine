@@ -65,13 +65,64 @@ end
 --end
 
 function copy<T>(t:T):T
-    if t is table then 
+    --if t is table then 
         local result = {}
-        for k, v in pairs(t) do
+        for k, v in pairs(t as {any: any}) do
             result[k] = v
         end
         return result as T
-    end
-    return t
+    --end
+    --return t
 end
+
+--local commands: {string: function(any)} = {}
+--local commands: {string: function} = {}
+--local commands: {string: function} = {}
+
+--commands["do3"] = function()
+    --print("do3")
+--end
+
+--function commands.do1() print("do1") end
+--function commands.do2() print("do2") end
+
+--function process(cmd: string)
+    --if cmd then
+        --local command = commands[cmd]
+        --if command then
+            --command()
+        --end
+    --end
+--end
+
+local type Commands = record
+    do1: function()
+    do2: function()
+    do3: function()
+end
+
+local type Cmds = enum
+    "do1"
+    "do2"
+    "do3"
+end
+
+local commands: Commands = {}
+
+commands["do3"] = function()
+    print("do3")
+end
+
+function commands.do1() print("do1") end
+function commands.do2() print("do2") end
+
+function process(cmd: Cmds)
+    if cmd then
+        local command: function() = commands[cmd]
+        if command then
+            command()
+        end
+    end
+end
+
 

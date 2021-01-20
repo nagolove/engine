@@ -49,7 +49,7 @@ local doStep = false
 -- шаговый или продолжительный режим
 local checkStep = false
 -- команды таблички управления нитью
-local commands = {}
+local commands: ThreadCommandsStore = {}
 
 local chan = love.thread.getChannel("msg" .. threadNum)
 local data = love.thread.getChannel("data" .. threadNum)
@@ -221,7 +221,7 @@ function saveDeadCellsLog(cells: {Cells})
   local file = io.open(filename, "w")
   for _, cell in ipairs(cells) do
     local celldump: string = serpent.dump(cell)
-    local compressedcellstr: string = love.data.compress("string", "gzip", celldump)
+    local compressedcellstr = love.data.compress("string", "gzip", celldump) as string
     if not compressedcellstr then
       error("Not compressed cell")
     end
@@ -255,28 +255,32 @@ local function initCellOneCommandCode(command: string, steps: number)
   end
 end
 
+--[[ XXX Not compiled
 local function cloneCell(cell: Cell, newx: number, newy: number): Cell
-  if not isAlive(newx, newy) then
-    local new = {}
-    for k, v in pairs(cell as table) do
-      if type(v) ~= "table" then
-        new[k] = v
-      else
-        new[k] = {}
-        for k1, v1 in pairs(v as table) do
-          new[k][k1] = v1
+    if not isAlive(newx, newy) then
+        local new: Cell = {}
+        for k, v in pairs(cell as {any: any}) do
+            if type(v) ~= "table" then
+                --new[k] = v
+                new as {any: any}[k] = v
+            else
+                new as {any: any}[k] = {}
+                for k1, v1 in pairs(v as table) do
+                    --new as {any: {any}}[k][k1] = v1
+                    new as {any: any}[k][k1 as string] = v1
+                end
+            end
         end
-      end
+        new.pos.x, new.pos.y = newx, newy
+        print("cloned cell")
+        table.insert(cells, new)
+        return new
+    else
+        print("nothing in clone")
+        return nil
     end
-    new.pos.x, new.pos.y = newx, newy
-    print("cloned cell")
-    table.insert(cells, new)
-    return new
-  else
-    print("nothing in clone")
-    return nil
-  end
 end
+--]]
 
 function initialEmit(iter: number)
     --[[
@@ -467,7 +471,8 @@ function commands.insertcell()
 end
 
 local function popCommand()
-  local cmd = chan:pop() as string
+  local cmd: ThreadCommands = chan:pop() as ThreadCommands
+  --local cmd: string = chan:pop() as string
   if cmd then
     local command = commands[cmd]
     if command then
