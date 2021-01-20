@@ -20,10 +20,6 @@ global type Cell = record
     pos: {number}
 end
 
-global type Grid = record
-
-end
-
 -- массив всех клеток
 local cells: {Cell} = {}
 

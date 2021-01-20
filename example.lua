@@ -4,46 +4,10 @@ local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) 
 
 
 
-local Inter = {}
 
-
-
-
+local var
 
 local inspect = require("inspect")
-
- actions = {}
-
-
-
-
-
-
- Tool = {}
-
-
-
-
-
-function initModule(tool)
-   print("initModule", inspect(tool))
-end
-
-initModule({
-   init = function()
-   end,
-   draw = function()
-   end,
-
-
-})
-
-
-
-
-initModule({})
-
-
 
 local Map = {}
 local Seq = {}
