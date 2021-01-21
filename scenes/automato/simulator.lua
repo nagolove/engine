@@ -65,6 +65,10 @@ local function sendStopClearChannels()
    end
 end
 
+function love.threaderror(thread, errstr)
+   print("Some thread failed with " .. errstr)
+end
+
 local function create(commonSetup)
    print("--------------------------------------------")
    print("commonSetup", inspect(commonSetup))

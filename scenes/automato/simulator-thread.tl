@@ -1,30 +1,33 @@
+require "love.filesystem"
 package.path = "./scenes/automato/?.lua;" .. package.path
-package.path = "./?.lua;" .. package.path
+--package.path = "./?.lua;" .. package.path
+local inspect = require "inspect"
+local serpent = require "serpent"
 
 local threadNum: number = ... as number
 print("thread", threadNum, "is running")
 
 print("package.path", package.path)
 
-local ok, errmsg: boolean, string = pcall(function()
+print("package.loaders", inspect(package.loaders))
+
+--local ok, errmsg: boolean, string = pcall(function()
 require "love"
 require "love.timer"
 require "external"
 require "log"
-require "example"
+--require "scenes.automato.ex"
+--require "scenes.automato.types"
 require "types"
-end)
+--end)
 
-if errmsg then
-    print("errmsg", errmsg)
-end
+--if errmsg then
+    --print("errmsg", errmsg)
+--end
 print("hi1")
 
 local randseed: number = love.timer.getTime()
 math.randomseed(randseed)
-
-local inspect = require "inspect"
-local serpent = require "serpent"
 
 --package.path = package.path .. ";scenes/automato/?.lua"
 --local grid = require "grid".new()
