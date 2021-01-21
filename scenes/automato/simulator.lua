@@ -8,11 +8,8 @@ print("package.path", package.path)
 require("love")
 require("external")
 require("log")
-
 require("types")
 require("mtschemes")
-
-
 
 local threads = {}
 local gridSize

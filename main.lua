@@ -1,12 +1,4 @@
---[[
-   [local ok, errmsg = pcall(function()
-   [    local debugger = require("mobdebug")
-   [    debugger.start()
-   [  end)
-   [if not ok then
-   [  print("Mobdebug start error", errmsg)
-   [end
-   ]]
+require("mobdebug").start()
 
 -- :setlocal foldmethod=manual
 require "imgui"
@@ -19,59 +11,7 @@ local gr = love.graphics
 
 __FREEZE_PHYSICS__ = true
 
--- [[
--- Экспериментальная поддержка языка Teal.
--- Запуск внешней программы tl для файлов *.lua в каталоге static.
--- Каталог static - каталог для кода со статической типизацией.
--- Структура проекта - 
--- root
---  main.lua
---  static
---      tools.tl
---      scenes.tl
---  scenes
---      scene1
---          static module1.tl
---          module1.lua
---          module2.lualua
---          init.lua
---      scene2
---          init.lua
---      scene3
---          init.lua
---          module1.lua
---
--- ]]
-
-function processTLFiles(path)
-    if love.system.getOS() == "Linux" then
-        local home = os.getenv("HOME")
-        print("HOME", home)
-        tlPath = home .. "/.luarocks/bin/tl"
-        print("tlPath", tlPath)
-
-        local files = love.filesystem.getDirectoryItems(path)
-        for k, v in pairs(files) do
-            local info = love.filesystem.getInfo(path .. "/" .. v)
-            local scene, fname, name
-            if info.type == "directory" then
-                fname = string.format("%s/%s%s", path, v, "/init.lua")
-                name = v
-            elseif info.type == "file" then
-                fname = path .. "/" .. v
-                name = string.match(v, "(.+)%.tl")
-            end
-            print("fname", fname)
-            print("name", name) 
-            --logf("loading scene %s", fname) 
-            --io.popen("lua5.3.exe tl check" .. fname)
-        end
-    end
-end
-
 function love.load(arg)
-  --processTLFiles("")
-
   --scenes.loadScenes("scenes")
   --scenes.initLoaded()
 

@@ -1,3 +1,5 @@
+package.path = "./scenes/automato/?.lua;" .. package.path
+
 local threadNum: number = ... as number
 print("thread", threadNum, "is running")
 
