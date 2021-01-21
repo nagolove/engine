@@ -2,12 +2,14 @@ local inspect = require "inspect"
 local serpent = require "serpent"
 
 --local tabular = require "tabular"
+package.path = "./scenes/automato/?.lua;" .. package.path
+print("package.path", package.path)
 
 require "love"
 require "external"
 require "log"
-require "mtschemes"
 require "types"
+require "mtschemes"
 
 local threads: {love.thread.Thread} = {}
 local gridSize: number
