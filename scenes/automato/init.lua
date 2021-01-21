@@ -65,7 +65,7 @@ local commonSetup = {
 
    codeLen = 32,
 
-   threadCount = 2,
+   threadCount = 1,
 }
 
 local function getMode()

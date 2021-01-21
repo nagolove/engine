@@ -66,9 +66,10 @@ local function sendStopClearChannels()
 end
 
 local function create(commonSetup)
+   print("--------------------------------------------")
+   print("commonSetup", inspect(commonSetup))
 
    sendStopClearChannels()
-
 
    threadCount = commonSetup.threadCount
    print("threadCount", threadCount)
@@ -76,7 +77,7 @@ local function create(commonSetup)
    gridSize = commonSetup.gridSize
 
    mtschema = require("mtschemes")[threadCount]
-
+   print("mtschema", inspect(mtschema))
 
    if not mtschema then
       error(string.format("Unsupported scheme for %d threads.", threadCount))
@@ -106,9 +107,11 @@ local function create(commonSetup)
 
 
    print("threads", inspect(threads))
+   print("thread errors")
    for _, v in ipairs(threads) do
       print(v:getError())
    end
+   print("end thread errors")
 
    local processorCount = love.system.getProcessorCount()
    print("processorCount", processorCount)
@@ -129,15 +132,15 @@ local function step()
       return
    end
 
-   local iterSum = 0
-   local iterChan = love.thread.getChannel("iter")
-   local value = iterChan:pop()
-   while value do
-      iterSum = iterSum + value
-      value = iterChan:pop()
-   end
-   statistic.iterAverage = iterSum / threadCount
-   pushSync()
+
+
+
+
+
+
+
+
+
 end
 
 

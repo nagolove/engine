@@ -1,13 +1,24 @@
 package.path = "./scenes/automato/?.lua;" .. package.path
+package.path = "./?.lua;" .. package.path
 
 local threadNum: number = ... as number
 print("thread", threadNum, "is running")
 
+print("package.path", package.path)
+
+local ok, errmsg: boolean, string = pcall(function()
 require "love"
 require "love.timer"
 require "external"
 require "log"
+require "example"
 require "types"
+end)
+
+if errmsg then
+    print("errmsg", errmsg)
+end
+print("hi1")
 
 local randseed: number = love.timer.getTime()
 math.randomseed(randseed)
@@ -56,7 +67,7 @@ local chan = love.thread.getChannel("msg" .. threadNum)
 local data = love.thread.getChannel("data" .. threadNum)
 local request = love.thread.getChannel("request" .. threadNum)
 
-package.path = package.path .. ";scenes/automato/?.lua"
+--package.path = package.path .. ";scenes/automato/?.lua"
 local actionsModule = require "cell-actions"
 
 local function getCodeValues(): {string}
@@ -119,8 +130,6 @@ function initCell(t: CellSetup): Cell
   return self
 end
 
--- возвращает [boolean], [cell table]
--- isalive, cell
 function updateCell(cell: Cell): boolean, Cell
   -- прокрутка кода клетки по кругу
   if cell.ip >= #cell.code then
@@ -560,6 +569,8 @@ local function main()
   end
 end
 
+print("before setup")
 doSetup()
+print("after setup")
 main()
 

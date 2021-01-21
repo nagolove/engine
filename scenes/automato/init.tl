@@ -65,7 +65,7 @@ local commonSetup: CommonSetup = {
     -- длина ленты кода
     codeLen = 32,
     -- на сколько потоков запускать
-    threadCount = 2,
+    threadCount = 1,
 }
 
 local function getMode(): SimulatorMode
