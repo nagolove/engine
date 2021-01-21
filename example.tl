@@ -125,4 +125,13 @@ function process(cmd: Cmds)
     end
 end
 
+function zoo(): string, number
+    return "blah", -1
+end
 
+function goo(s: string)
+    print(s)
+end
+
+--goo(zoo as string)
+goo(zoo as string)

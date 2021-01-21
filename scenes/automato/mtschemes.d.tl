@@ -6,6 +6,6 @@ global type MtSchema = record
     r: number
     u: number
     d: number
-    draw: {{number, number}}
+    draw: {number, number}
 end
 return {MtSchema}

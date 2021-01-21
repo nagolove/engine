@@ -12,7 +12,6 @@ require "types"
 local randseed: number = love.timer.getTime()
 math.randomseed(randseed)
 
-
 local inspect = require "inspect"
 local serpent = require "serpent"
 

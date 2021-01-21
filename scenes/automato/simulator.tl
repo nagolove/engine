@@ -23,10 +23,10 @@ local mode = "stop" -- "step"
 
 local statistic: Statistic = {}
 
-local function getDrawLists(): {any}
+local function getDrawLists(): {DrawNode}
     local list = {}
     for k, _ in ipairs(threads) do
-        local sublist: {any} = love.thread.getChannel("data" .. k):demand() as {any}
+        local sublist: {DrawNode} = love.thread.getChannel("data" .. k):demand() as {DrawNode}
         for _, v1 in ipairs(sublist) do
             table.insert(list, v1)
         end
@@ -207,7 +207,7 @@ local function getStatistic(): Statistic
     return statistic
 end
 
-local function getSchema(): {any}
+local function getSchema(): {MtSchema}
     return mtschema
 end
 
