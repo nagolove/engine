@@ -32,14 +32,6 @@ local function drawBar(x, record)
     table.insert(visibleFrames, { barX + cam.x, barY + cam.y, w, h, absIndex = x})
 end
 
---local function inRect(xp, yp, x, y, w, h)
-    --if xp >= x and xp <= x + w and yp >= y and yp <= y + h then
-        --return true
-    --else
-        --return false
-    --end
---end
-
 local function mousemoved(x, y, dx, dy)
     local found = false
     for k, v in pairs(visibleFrames) do
