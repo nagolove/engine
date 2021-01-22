@@ -1,147 +1,58 @@
-local inter = require "inter"
---inter.foo()
+local histPath = [[C:/Users/dekar/Desktop/tick history/EURUSD999.hst]]
+local thread
+local selectedBar
+local threadPath = "scenes/hst_reader/file-thread.lua"
+local sx, sy = 0, 0
+local WHITE = {1, 1, 1, 1}
+local BAR_DOWN = {0.9, 0, 0}
+local BAR_UP = {0, 0.9, 0}
+local BAR_EQUAL = {0.5, 0.5, 0.5}
+local BAR_SELECTED = {0, 0.1, 1}
+local barWidth = 5
+local barHeightFactor = 100000
+local barMode = "fill"
+local ylowFactor = 5
+local barStep = math.floor(barWidth * 1.5)
+local barX, barY = sx, sy
+local visibleFrames = {}
 
---local tabular = require("tabular")
---print("tabular", tabular(inter))
---local inter = require "inter" as Inter
+local function drawBar(x, record)
+    local barColor
+    local ylow, yhigh
 
-require "example2"
-
-function compareTypes()
-    local type Type1 = {number}
-    local type Type2 = {{number, number}}
-    local type Type3 = {number}
-    local v1: Type1 = {1, 2, 3}
-    local v2: Type3 = {0, 0}
-    --v1 = v2 as Type1
-    --v1 = v2
-end
-
-local var: Inter
-local var2: Inter2
-
-local inspect = require "inspect"
-
-local type Map = {string: boolean}
-local type Seq = {number}
-
-local a: Seq = {1, 2, 3}
-local b: Map = {
-    hi = -1 or false,
-    lo = 1 or true,
-}
-
-function printMap(m: Map)
-    for k, v in pairs(m) do
-        print(k, v)
+    if record.close > record.open then
+        barColor = BAR_DOWN
+    elseif record.close < record.open then
+        barColor = BAR_UP
+    else
+        barColor = BAR_EQUAL
     end
+
+    gr.rectangle(barMode, barX, barY, w, h)
+    table.insert(visibleFrames, { barX + cam.x, barY + cam.y, w, h, absIndex = x})
 end
 
-function printSeq(arr: Seq)
-    for k, v in ipairs(arr) do
-        print(k, v)
-    end
-end
-
-printSeq(a)
-printMap(b)
-
-
-local zh: {{number}} = {}
-print(zh[1][2])
-
-local x: {number} = {1}
-local y: {number} = {2}
-y = x
-
-local z: {number, number} = {1, 2}
-
-function foo(): {number, number}
-    --return (12, 12) as {number, number}
-end
-
---function foo(): {number, number}
-    --return 12, 12) as {number, number}
---end
-
-function copy<T>(t:T):T
-    --if t is table then 
-        local result = {}
-        for k, v in pairs(t as {any: any}) do
-            result[k] = v
-        end
-        return result as T
-    --end
-    --return t
-end
-
---local commands: {string: function(any)} = {}
---local commands: {string: function} = {}
---local commands: {string: function} = {}
-
---commands["do3"] = function()
-    --print("do3")
---end
-
---function commands.do1() print("do1") end
---function commands.do2() print("do2") end
-
---function process(cmd: string)
-    --if cmd then
-        --local command = commands[cmd]
-        --if command then
-            --command()
-        --end
+--local function inRect(xp, yp, x, y, w, h)
+    --if xp >= x and xp <= x + w and yp >= y and yp <= y + h then
+        --return true
+    --else
+        --return false
     --end
 --end
 
-local type Commands = record
-    do1: function()
-    do2: function()
-    do3: function()
-end
-
-local type Cmds = enum
-    "do1"
-    "do2"
-    "do3"
-end
-
-local commands: Commands = {}
-
-commands["do3"] = function()
-    print("do3")
-end
-
-function commands.do1() print("do1") end
-function commands.do2() print("do2") end
-
-function process(cmd: Cmds)
-    if cmd then
-        local command: function() = commands[cmd]
-        if command then
-            command()
+local function mousemoved(x, y, dx, dy)
+    local found = false
+    for k, v in pairs(visibleFrames) do
+        if inRect(x, y, v[1], v[2], v[3], v[4]) then
+            --print("cam", inspect(cam))
+            selectedBar = v.absIndex
+            found = true
+            print("selected", v.absIndex)
+            break
         end
+    end
+    if not found then
+        selectedBar = nil
     end
 end
 
-function zoo(): string, number
-    return "blah", -1
-end
-
-function goo(s: string)
-    print(s)
-end
-
---goo(zoo as string)
---goo(zoo() as string)
-goo(zoo() as string)
-
-local ok, errmsg: boolean, string = pcall(function()
-    print("bee")
-end)
-
-if not ok then
-    local ok: boolean = false
-    print(ok)
-end

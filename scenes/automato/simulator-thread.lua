@@ -1,4 +1,4 @@
-local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local coroutine = _tl_compat53 and _tl_compat53.coroutine or coroutine; local ipairs = _tl_compat53 and _tl_compat53.ipairs or ipairs; local load = _tl_compat53 and _tl_compat53.load or load; local math = _tl_compat53 and _tl_compat53.math or math; local package = _tl_compat53 and _tl_compat53.package or package; local pairs = _tl_compat53 and _tl_compat53.pairs or pairs; local pcall = _tl_compat53 and _tl_compat53.pcall or pcall; local string = _tl_compat53 and _tl_compat53.string or string; local table = _tl_compat53 and _tl_compat53.table or table; require("love.filesystem")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("love.filesystem")
 package.path = "./scenes/automato/?.lua;" .. package.path
 
 
@@ -112,10 +112,10 @@ local function getCodeValues()
    for k, _ in pairs(actionsModule.actions) do
 
 
-      if k == "left" then          k = "left2"
-      elseif k == "right" then          k = "right2"
-      elseif k == "up" then          k = "up2"
-      elseif k == "down" then          k = "down2"
+      if k == "left" then k = "left2"
+      elseif k == "right" then k = "right2"
+      elseif k == "up" then k = "up2"
+      elseif k == "down" then k = "down2"
       end
 
       table.insert(codeValues, k)

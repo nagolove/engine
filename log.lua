@@ -1,4 +1,4 @@
-local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local string = _tl_compat53 and _tl_compat53.string or string; local colors = require("ansicolors")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local string = _tl_compat and _tl_compat.string or string; local colors = require("ansicolors")
 
 function log(...)
    local args = { ... }

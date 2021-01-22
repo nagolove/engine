@@ -1,4 +1,4 @@
-local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local ipairs = _tl_compat53 and _tl_compat53.ipairs or ipairs; local pairs = _tl_compat53 and _tl_compat53.pairs or pairs; local pcall = _tl_compat53 and _tl_compat53.pcall or pcall; local inter = require("inter")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local inter = require("inter")
 
 
 
@@ -113,8 +113,8 @@ commands["do3"] = function()
    print("do3")
 end
 
-function commands.do1()    print("do1") end
-function commands.do2()    print("do2") end
+function commands.do1() print("do1") end
+function commands.do2() print("do2") end
 
 function process(cmd)
    if cmd then
