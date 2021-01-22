@@ -1,5 +1,9 @@
-local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local coroutine = _tl_compat53 and _tl_compat53.coroutine or coroutine; local io = _tl_compat53 and _tl_compat53.io or io; local ipairs = _tl_compat53 and _tl_compat53.ipairs or ipairs; local load = _tl_compat53 and _tl_compat53.load or load; local math = _tl_compat53 and _tl_compat53.math or math; local package = _tl_compat53 and _tl_compat53.package or package; local pairs = _tl_compat53 and _tl_compat53.pairs or pairs; local pcall = _tl_compat53 and _tl_compat53.pcall or pcall; local string = _tl_compat53 and _tl_compat53.string or string; local table = _tl_compat53 and _tl_compat53.table or table; require("love.filesystem")
+local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local coroutine = _tl_compat53 and _tl_compat53.coroutine or coroutine; local ipairs = _tl_compat53 and _tl_compat53.ipairs or ipairs; local load = _tl_compat53 and _tl_compat53.load or load; local math = _tl_compat53 and _tl_compat53.math or math; local package = _tl_compat53 and _tl_compat53.package or package; local pairs = _tl_compat53 and _tl_compat53.pairs or pairs; local pcall = _tl_compat53 and _tl_compat53.pcall or pcall; local string = _tl_compat53 and _tl_compat53.string or string; local table = _tl_compat53 and _tl_compat53.table or table; require("love.filesystem")
 package.path = "./scenes/automato/?.lua;" .. package.path
+
+
+
+
 
 local inspect = require("inspect")
 local serpent = require("serpent")
@@ -7,9 +11,8 @@ local serpent = require("serpent")
 local threadNum = ...
 print("thread", threadNum, "is running")
 
-print("package.path", package.path)
 
-print("package.loaders", inspect(package.loaders))
+
 
 
 require("love")
@@ -17,14 +20,29 @@ require("love.timer")
 require("external")
 require("log")
 
+local ok, errmsg = pcall(function()
+   require("types")
+end)
 
-require("types")
+if not ok and errmsg then
+   print("errmsg", errmsg)
+   local path = "scenes/automato/types.lua"
+   local tmp = love.filesystem.load("scenes/automato/mtschemes.lua")
+   tmp()
+   local chunk, err = love.filesystem.load(path)
+   print("chunk", chunk)
+   if not chunk then
+      print("err", err)
+   end
+   local ok2, errmsg2 = pcall(function()
+      (chunk)()
+   end)
+   if not ok2 then
+      print("chunk error", errmsg2)
+   end
+end
 
-
-
-
-
-print("hi1")
+print("------------------- WORKER STARTED -------------------")
 
 local randseed = love.timer.getTime()
 math.randomseed(randseed)
@@ -66,12 +84,28 @@ local checkStep = false
 
 local commands = {}
 
+
 local chan = love.thread.getChannel("msg" .. threadNum)
 local data = love.thread.getChannel("data" .. threadNum)
 local request = love.thread.getChannel("request" .. threadNum)
 
 
-local actionsModule = require("cell-actions")
+print("loko1")
+local ok3, errmsg3 = pcall(function()
+   actionsModule = require("cell-actions")
+end)
+if not ok3 then
+   print("errmsg for cell-actions require", errmsg3)
+   local ok, errmsg = pcall(function()
+      local tmp = love.filesystem.load("scenes/automato/cell-actions.lua")
+      print("tmp", tmp)
+      tmp()
+   end)
+   if not ok then
+      print("errmsg", errmsg)
+   end
+end
+print("loko2")
 
 local function getCodeValues()
    local codeValues = {}
@@ -229,23 +263,25 @@ function emitFood(iter)
    end
 end
 
-function saveDeadCellsLog(cells)
-   local filename = string.format("cells%d.gzip", threadNum)
-   local file = io.open(filename, "w")
-   for _, cell in ipairs(cells) do
-      local celldump = serpent.dump(cell)
-      local compressedcellstr = love.data.compress("string", "gzip", celldump)
-      if not compressedcellstr then
-         error("Not compressed cell")
-      end
-      local struct = require("struct")
-      local len = compressedcellstr:len()
 
-      file:write(struct.pack("<d", len))
-      file:write(compressedcellstr)
-   end
-   file:close()
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function updateCells(cells)
    local alive = {}

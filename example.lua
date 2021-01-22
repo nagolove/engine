@@ -1,4 +1,4 @@
-local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local ipairs = _tl_compat53 and _tl_compat53.ipairs or ipairs; local pairs = _tl_compat53 and _tl_compat53.pairs or pairs; local inter = require("inter")
+local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local ipairs = _tl_compat53 and _tl_compat53.ipairs or ipairs; local pairs = _tl_compat53 and _tl_compat53.pairs or pairs; local pcall = _tl_compat53 and _tl_compat53.pcall or pcall; local inter = require("inter")
 
 
 
@@ -134,4 +134,14 @@ function goo(s)
 end
 
 
-goo(zoo)
+
+goo(zoo())
+
+local ok, errmsg = pcall(function()
+   print("bee")
+end)
+
+if not ok then
+   local ok = false
+   print(ok)
+end

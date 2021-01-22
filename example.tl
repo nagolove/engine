@@ -134,4 +134,14 @@ function goo(s: string)
 end
 
 --goo(zoo as string)
-goo(zoo as string)
+--goo(zoo() as string)
+goo(zoo() as string)
+
+local ok, errmsg: boolean, string = pcall(function()
+    print("bee")
+end)
+
+if not ok then
+    local ok: boolean = false
+    print(ok)
+end

@@ -1,4 +1,11 @@
-require "mtschemes"
+require "love"
+local ok, errmsg: boolean, string = pcall(function()
+    require "mtschemes"
+end)
+if not ok and errmsg then
+    local tmp: function = love.filesystem.load("scenes/automato/mtschemes.lua") as function
+    tmp()
+end
 
 global type Pos = record
     x: number
@@ -79,5 +86,3 @@ global type SimulatorMode = enum
     "continuos"
     "stop"
 end
-
-

@@ -1,30 +1,48 @@
 require "love.filesystem"
 package.path = "./scenes/automato/?.lua;" .. package.path
+
+--package.path = "../../?.lua;" .. package.path
+
 --package.path = "./?.lua;" .. package.path
+
 local inspect = require "inspect"
 local serpent = require "serpent"
 
 local threadNum: number = ... as number
 print("thread", threadNum, "is running")
 
-print("package.path", package.path)
+--print("package.path", package.path)
+--print("package.loaded", inspect(package.loaded))
+--print("package.loaders", inspect(package.loaders))
 
-print("package.loaders", inspect(package.loaders))
-
---local ok, errmsg: boolean, string = pcall(function()
 require "love"
 require "love.timer"
 require "external"
 require "log"
---require "scenes.automato.ex"
---require "scenes.automato.types"
-require "types"
---end)
 
---if errmsg then
-    --print("errmsg", errmsg)
---end
-print("hi1")
+local ok, errmsg: boolean, string = pcall(function()
+    require "types"
+end)
+
+if not ok and errmsg then
+    print("errmsg", errmsg)
+    local path: string = "scenes/automato/types.lua"
+    local tmp: function = love.filesystem.load("scenes/automato/mtschemes.lua") as function
+    tmp()
+    local chunk, err: any, string = love.filesystem.load(path)
+    print("chunk", chunk)
+    if not chunk then
+        print("err", err)
+    end
+    local ok2, errmsg2: boolean, string = pcall(function()
+        (chunk as function())()
+    end)
+    if not ok2 then
+        print("chunk error", errmsg2)
+    end
+end
+
+print("------------------- WORKER STARTED -------------------")
 
 local randseed: number = love.timer.getTime()
 math.randomseed(randseed)
@@ -66,12 +84,28 @@ local checkStep = false
 -- команды таблички управления нитью
 local commands: ThreadCommandsStore = {}
 
+
 local chan = love.thread.getChannel("msg" .. threadNum)
 local data = love.thread.getChannel("data" .. threadNum)
 local request = love.thread.getChannel("request" .. threadNum)
 
 --package.path = package.path .. ";scenes/automato/?.lua"
-local actionsModule = require "cell-actions"
+print("loko1")
+local ok3, errmsg3: boolean, string = pcall(function()
+    global actionsModule = require "cell-actions"
+end)
+if not ok3 then 
+    print("errmsg for cell-actions require", errmsg3)
+    local ok, errmsg: boolean, string = pcall(function()
+        local tmp: function = love.filesystem.load("scenes/automato/cell-actions.lua") as function
+        print("tmp", tmp)
+        tmp()
+    end)
+    if not ok then
+        print("errmsg", errmsg)
+    end
+end
+print("loko2")
 
 local function getCodeValues(): {string}
   local codeValues = {}
@@ -229,6 +263,7 @@ function emitFood(iter: number)
   end
 end
 
+--[[ XXX Выключено из-за проблем загрузкм модулей
 function saveDeadCellsLog(cells: {Cells})
   local filename = string.format("cells%d.gzip", threadNum)
   local file = io.open(filename, "w")
@@ -246,6 +281,7 @@ function saveDeadCellsLog(cells: {Cells})
   end
   file:close()
 end
+--]]
 
 function updateCells(cells: {Cell}): {Cell}
   local alive = {}
