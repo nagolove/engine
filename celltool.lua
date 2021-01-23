@@ -1,6 +1,6 @@
 require "log"
 
-package.path = "./scenes/automato/?.lua;" .. package.path
+package.path = "./scenes/automato_test/?.lua;" .. package.path
 
 local sim = require "scenes/automato/simulator"
 local gr = love.graphics

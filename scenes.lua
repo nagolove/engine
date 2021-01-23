@@ -42,7 +42,8 @@ function loadScenes(path)
     return scenes, scenesNames
 end
 
-local scenes, scenesNames = loadScenes("scenes")
+--local scenes, scenesNames = loadScenes("scenes")
+local scenes, scenesNames = {}, nil
 
 local function getScenes()
     return scenes
@@ -103,12 +104,21 @@ local function keypressed(key)
 end
 
 local function initOne(name)
-    for k, v in pairs(getScenes()) do
-        if v.name == name then
-            initOne(v)
-            break
-        end
-    end
+    --[[
+       [for k, v in pairs(getScenes()) do
+       [    if v.name == name then
+       [        initOne(v)
+       [        break
+       [    end
+       [end
+       ]]
+       local chunk = love.filesystem.load("scenes/" .. name .. "/init.lua")
+       table.insert(scenes, { 
+           scene = chunk(), 
+           name = name,
+           inited = true,
+       })
+       currentScene = scenes[#scenes].scene
 end
 
 local function mousemoved(x, y, dx, dy)
