@@ -112,7 +112,9 @@ local function initOne(name)
        [    end
        [end
        ]]
-       local chunk = love.filesystem.load("scenes/" .. name .. "/init.lua")
+       local path = "scenes/" .. name .. "/init.lua"
+       print("initOne", path)
+       local chunk = love.filesystem.load(path)
        table.insert(scenes, { 
            scene = chunk(), 
            name = name,

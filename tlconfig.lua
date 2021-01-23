@@ -1,12 +1,12 @@
 return {
     include_dir = {
-        --"scenes/automato/",
-        "scenes/automato_test/",
+        "scenes/automato/",
+        --"scenes/automato_test/",
     },
     include = {
         "*.tl",
-        --"scenes/automato/*.tl",
-        "scenes/automato_test/*.tl",
+        "scenes/automato/*.tl",
+        --"scenes/automato_test/*.tl",
         "scenes/hst_reader/*.tl",
         --"../../*.tl",
     },
@@ -15,7 +15,7 @@ return {
         --"scenes/automato/simulator.tl",
         --"scenes/automato/cell-actions.tl",
         --"scenes/automato/simulator-thread.tl",
-        "scenes/automato/*.tl",
+        --"scenes/automato/*.tl",
         "scenes/hst_reader/*.tl",
         "crash*.tl",
     }

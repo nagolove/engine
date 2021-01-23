@@ -18,11 +18,8 @@ function love.load(arg)
   --scenes.initOne("selector")
   --scenes.setCurrentScene("selector")
 
-  --scenes.initOne("automato")
-  --scenes.setCurrentScene("automato")
-  
-  scenes.initOne("automato_test")
-  --scenes.setCurrentScene("automato_test")
+  scenes.initOne("automato")
+  scenes.setCurrentScene("automato")
   
   --scenes.initOne("fractaltree")
   --scenes.setCurrentScene("fractaltree")
