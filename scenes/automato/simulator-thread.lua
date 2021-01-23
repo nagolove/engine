@@ -1,46 +1,29 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("love.filesystem")
-package.path = "./scenes/automato/?.lua;" .. package.path
-
-
-
-
-
 local inspect = require("inspect")
+package.path = "./scenes/automato/?.lua;" .. package.path
+print("package.path", package.path)
+local _, err = pcall(function()
+   print("package", inspect(package))
+end)
+print("err", err)
+
+
+print("before require")
+print("hello from simulator-thread")
+
 local serpent = require("serpent")
 
 local threadNum = ...
 print("thread", threadNum, "is running")
 
 
-
-
-
-require("love")
-require("love.timer")
+require("ex")
 require("external")
 require("log")
-
-local ok, errmsg = pcall(function()
-   require("types")
-end)
-
-if not ok and errmsg then
-   print("errmsg", errmsg)
-   local path = "scenes/automato/types.lua"
-   local tmp = love.filesystem.load("scenes/automato/mtschemes.lua")
-   tmp()
-   local chunk, err = love.filesystem.load(path)
-   print("chunk", chunk)
-   if not chunk then
-      print("err", err)
-   end
-   local ok2, errmsg2 = pcall(function()
-      (chunk)()
-   end)
-   if not ok2 then
-      print("chunk error", errmsg2)
-   end
-end
+require("love")
+require("love.timer")
+require("mtschemes")
+require("types")
 
 print("------------------- WORKER STARTED -------------------")
 

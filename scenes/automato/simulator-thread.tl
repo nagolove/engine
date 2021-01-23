@@ -1,46 +1,29 @@
 require "love.filesystem"
+local inspect = require("inspect")
 package.path = "./scenes/automato/?.lua;" .. package.path
+print("package.path", package.path)
+local _, err: boolean, string = pcall(function()
+print("package", inspect(package))
+end)
+print("err", err)
+--print("package.loaded", inspect(package.loaded))
+--print("package.loaders", inspect(package.loaders))
+print("before require")
+print("hello from simulator-thread")
 
---package.path = "../../?.lua;" .. package.path
-
---package.path = "./?.lua;" .. package.path
-
-local inspect = require "inspect"
 local serpent = require "serpent"
 
 local threadNum: number = ... as number
 print("thread", threadNum, "is running")
 
---print("package.path", package.path)
---print("package.loaded", inspect(package.loaded))
---print("package.loaders", inspect(package.loaders))
 
-require "love"
-require "love.timer"
+require "ex"
 require "external"
 require "log"
-
-local ok, errmsg: boolean, string = pcall(function()
-    require "types"
-end)
-
-if not ok and errmsg then
-    print("errmsg", errmsg)
-    local path: string = "scenes/automato/types.lua"
-    local tmp: function = love.filesystem.load("scenes/automato/mtschemes.lua") as function
-    tmp()
-    local chunk, err: any, string = love.filesystem.load(path)
-    print("chunk", chunk)
-    if not chunk then
-        print("err", err)
-    end
-    local ok2, errmsg2: boolean, string = pcall(function()
-        (chunk as function())()
-    end)
-    if not ok2 then
-        print("chunk error", errmsg2)
-    end
-end
+require "love"
+require "love.timer"
+require "mtschemes"
+require "types"
 
 print("------------------- WORKER STARTED -------------------")
 

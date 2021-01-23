@@ -88,7 +88,7 @@ local function create(commonSetup: CommonSetup)
     end
 
     for i = 1, threadCount do
-        local ok, errmsg: boolean, string = pcall(function()
+        --local ok, errmsg: boolean, string = pcall(function()
             local setupName = "setup" .. i
             love.thread.getChannel(setupName):push(commonSetup)
             love.thread.getChannel(setupName):push(serpent.dump(mtschema[i]))
@@ -101,11 +101,14 @@ local function create(commonSetup: CommonSetup)
                 --logfwarn("Thread %s", errmsg)
                 print("Thread %s", errmsg)
             end
-        end)
-        if not ok then
-            logferror("Error in creating thread %s", errmsg)
-        end
+        --end)
+        --if not ok then
+            --logferror("Error in creating thread %s", errmsg)
+        --end
     end
+
+    love.timer.sleep(2)
+    os.exit()
 
     pushSync()
     --love.timer.sleep(0.5)

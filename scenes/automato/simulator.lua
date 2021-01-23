@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local package = _tl_compat and _tl_compat.package or package; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local inspect = require("inspect")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local package = _tl_compat and _tl_compat.package or package; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local inspect = require("inspect")
 local serpent = require("serpent")
 
 
@@ -88,23 +88,23 @@ local function create(commonSetup)
    end
 
    for i = 1, threadCount do
-      local ok, errmsg = pcall(function()
-         local setupName = "setup" .. i
-         love.thread.getChannel(setupName):push(commonSetup)
-         love.thread.getChannel(setupName):push(serpent.dump(mtschema[i]))
 
-         local th = love.thread.newThread("scenes/automato/simulator-thread.lua")
-         table.insert(threads, th)
-         th:start(i)
-         local errmsg = th:getError()
-         if errmsg then
+      local setupName = "setup" .. i
+      love.thread.getChannel(setupName):push(commonSetup)
+      love.thread.getChannel(setupName):push(serpent.dump(mtschema[i]))
 
-            print("Thread %s", errmsg)
-         end
-      end)
-      if not ok then
-         logferror("Error in creating thread %s", errmsg)
+      local th = love.thread.newThread("scenes/automato/simulator-thread.lua")
+      table.insert(threads, th)
+      th:start(i)
+      local errmsg = th:getError()
+      if errmsg then
+
+         print("Thread %s", errmsg)
       end
+
+
+
+      os.exit()
    end
 
    pushSync()
