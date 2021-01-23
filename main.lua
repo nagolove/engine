@@ -1,4 +1,4 @@
-require("mobdebug").start()
+--require("mobdebug").start()
 
 -- :setlocal foldmethod=manual
 require "imgui"

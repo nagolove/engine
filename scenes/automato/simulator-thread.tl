@@ -1,3 +1,4 @@
+require("mobdebug").start()
 local threadNum: number = ... as number
 print("thread", threadNum, "is running")
 
@@ -353,8 +354,8 @@ function experiment()
         initialEmitCoro = nil
     end
 
-    print("step", iter, " of thread", threadNum)
-    print("#cells", #cells)
+    --print("step", iter, " of thread", threadNum)
+    --print("#cells", #cells)
 
     -- создать сколько-то еды
     emitFood(iter)
@@ -378,12 +379,10 @@ function experiment()
 
     -- можно возвращать сдесь какое-то состояние клеток из нити
     --coroutine.yield(stepStatistic)
-    print("C", threadNum)
     coroutine.yield()
   end
 
   print("there is no cells in simulation")
-
   -- здесь нить должна уснуть в цикле ??
   
 --    saveDeadCellsLog(removed)

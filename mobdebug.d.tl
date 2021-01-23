@@ -1,0 +1,22 @@
+global type MobDebug = record
+    setbreakpoint: function()
+    removebreakpoint: function()
+    listen: function()
+    loop: function()
+    scratchpad: function()
+    handle: function()
+    connect: function()
+    start: function()
+    on: function()
+    off: function()
+    moai: function()
+    coro: function()
+    done: function()
+    pause: function()
+    yield: function()
+    output: function()
+    onexit: function()
+    onscratch: function()
+    basedir: function()
+end
+return MobDebug
