@@ -1,11 +1,6 @@
 require "love"
-local ok, errmsg: boolean, string = pcall(function()
-    require "mtschemes"
-end)
-if not ok and errmsg then
-    local tmp: function = love.filesystem.load("scenes/automato/mtschemes.lua") as function
-    tmp()
-end
+love.filesystem.setRequirePath("scenes/automato/?.lua")
+require "mtschemes"
 
 global type Pos = record
     x: number
