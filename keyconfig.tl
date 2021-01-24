@@ -6,7 +6,7 @@ local shortcutsDown = {}
 -- love.keypressed()
 local shortcutsPressed = {}
 
-local shortcutsList = nil
+local shortcutsList = require "list"
 
 local function combo2str(comboTbl)
     local res = "["
