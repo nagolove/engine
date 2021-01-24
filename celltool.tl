@@ -3,7 +3,6 @@ require "love"
 require "camera"
 require "common"
 
---package.path = "./scenes/automato_test/?.lua;" .. package.path
 love.filesystem.setRequirePath("scenes/automato/?.lua")
 
 local imgui = require "imgui"
@@ -12,13 +11,6 @@ local gr = love.graphics
 local inspect = require "inspect"
 local cam: Camera
 local scene: Scene
-
---local scale = require "scale"
---local scalePoints2M = scale.points2M
---local scalePoints2PIX = scale.points2PIX
---local scalePoint2CameraWorldCoords = scale.point2CameraWorldCoords
---local M2PIX = scale.M2PIX
---local PIX2M = scale.PIX2M
 
 local automatoScene = require "scenes/automato/init"
 local underCursor = {}

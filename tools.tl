@@ -3,6 +3,7 @@ require "common"
 require "love"
 local imgui = require "imgui"
 
+-- нужна ли здесь динамическая загрузка? или можно обойтись require()?
 local function loadTools(): {Tool}
     local tools: {Tool} = {}
     local files = love.filesystem.getDirectoryItems("")
