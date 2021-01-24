@@ -6,6 +6,10 @@ global type Imgui = record
     Button: function(string, string|nil)
     LabelText: function(string|number, string)
     End: function()
+    ShutDown: function
+    TextInput: function(string)
+    GetWantCaptureKeyboard: function
+    KeyPressed: function(string)
 end
 
 return Imgui

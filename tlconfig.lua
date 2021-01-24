@@ -18,6 +18,7 @@ return {
         --"tools.tl",
         --"scenes/automato/*.tl",
         "scenes/hst_reader/*.tl",
+        "main.tl",
         "crash*.tl",
     }
 }

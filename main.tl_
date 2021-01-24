@@ -1,23 +1,25 @@
 --require("mobdebug").start()
 
 -- :setlocal foldmethod=manual
-require "imgui"
+require "love"
+local imgui = require "imgui"
 require "tools"
 require "log"
 require "keyconfig"
-require "menu"
+--require "menu"
 
-local inspect = require "inspect"
+--local inspect = require "inspect"
 local scenes = require "scenes"
 local gr = love.graphics
 
-__FREEZE_PHYSICS__ = true
+global __FREEZE_PHYSICS__ = true
 
 local function bindKeys()
     
 end
 
-function love.load(arg)
+--function love.load(arg: {any})
+love.load = function(arg: {string})
     bindKeys()
     --scenes.loadScenes("scenes")
     --scenes.initLoaded()
@@ -48,12 +50,12 @@ local function collectGarbage()
   end
 end
 
-function updateScene(dt)
+function updateScene(dt: number)
   collectGarbage()
   scenes.update()
 end
 
-function love.update(dt)
+love.update = function(dt: number)
   updateScene(dt)
   updateTools()
 end
@@ -69,11 +71,11 @@ function love.draw()
   --drawTools()
 end
 
-function love.quit()
-  imgui.ShutDown();
+love.quit = function(): boolean
+  imgui.ShutDown()
 end
 
-function love.textinput(t)
+love.textinput = function(t: string)
   imgui.TextInput(t)
   if not imgui.GetWantCaptureKeyboard() then
     -- Pass event to the game
@@ -82,8 +84,8 @@ end
 
 local toolsHotkeys = {"`", "f1"}
 
-function checkToolsHotkey(key)
-  for k, v in pairs(toolsHotkeys) do
+function checkToolsHotkey(key: string): boolean
+  for k, v in ipairs(toolsHotkeys) do
     if key == v then
       return true
     end
@@ -91,8 +93,8 @@ function checkToolsHotkey(key)
   return false
 end
 
-function love.keypressed(_, key)
-  imgui.KeyPressed(key)
+love.keypressed = function(x: love.keyboard.KeyConstant, scancode: love.keyboard.KeyConstant, isrepeat: boolean)
+  imgui.KeyPressed(key as string)
   if not imgui.GetWantCaptureKeyboard() then
     if checkToolsHotkey(key) then
       toggleTools()
@@ -139,4 +141,5 @@ function love.wheelmoved(x, y)
     scenes.wheelmoved(x, y)
   end
 end
+
 

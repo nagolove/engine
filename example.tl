@@ -36,3 +36,20 @@ end
 
 local a, b: string, string = "1", "2"
 print(a < b)
+
+local type Rec = record
+    fun: function(number, number)
+    fun: function(string)
+end
+local r: Rec
+
+function Rec.fun()
+    print("hihat")
+end
+
+--r.fun = function(s: string)
+--function r.fun(s: string)
+    --print("hi" .. s)
+--end
+
+r.fun()
