@@ -1,18 +1,29 @@
 -- lk.isDown()
 require "love"
 local lk = love.keyboard
+local lg = love.graphics
 
-local shortcutsDown = {}
+local record Shortcut
+    combo: {string}
+    action: function
+    description: string
+    enabled: boolean
+end
+
+-- love.keyboard.isDown()
+local shortcutsDown: {string: Shortcut} = {}
+
 -- love.keypressed()
-local shortcutsPressed = {}
+local shortcutsPressed: {string: Shortcut} = {}
 
-local shortcutsList = require "list"
+local List = require "list"
+local shortcutsList: List = nil
 
-local function combo2str(comboTbl)
+local function combo2str(comboTbl: {any: any}): string
     local res = "["
     for k, v in pairs(comboTbl) do
-        res = res .. v
-        if k < #comboTbl then
+        res = res .. v as string
+        if (k as number) < #comboTbl then
             res = res .. "+"
         end
     end
@@ -20,14 +31,14 @@ local function combo2str(comboTbl)
 end
 
 local function prepareDrawing()
-    shortcutsList = require "list":new(5, 5)
+    shortcutsList = List.new(5, 5)
     for k, v in pairs(shortcutsDown) do
         shortcutsList:add(v.description .. " " .. combo2str(v.combo), k)
     end
     for k, v in pairs(shortcutsPressed) do
         shortcutsList:add(v.description .. " " .. combo2str(v.combo), k)
     end
-    table.sort(shortcutsList.items, function(a, b)
+    table.sort(shortcutsList.items, function(a: List.Item, b: List.Item): boolean
         return a.id < b.id
     end)
     shortcutsList:done()
@@ -40,14 +51,14 @@ local function drawList()
     shortcutsList:draw()
 end
 
-local function updateList()
+local function updateList(dt: number)
     if shortcutsList then
         shortcutsList:update(dt)
     end
 end
 
 -- рисовать список шорткатов, расположенный в определенных координатах
-local function drawShortcutsList(x0, y0)
+local function drawShortcutsList(x0: number, y0: number)
     x0 = x0 and x0 or 0
     y0 = y0 and y0 or 0
     local x, y = x0, y0
@@ -56,47 +67,50 @@ local function drawShortcutsList(x0, y0)
     local delimiter = "+"
 
     -- формирует и возвращает таблицу со списком комбинаций клавиш и описания их действия
-    function makeTextList(list)
-        local textList = {}      
-        for k, v in pairs(list) do
+    function makeTextList(list: {string: Shortcut}): {any}
+        local textList: {any} = {}      
+        for _, v in pairs(list) do
             local keyCombination = ""
-            for k, keyValue in pairs(v.combo) do
+            for k, keyValue in ipairs(v.combo) do
                 if k < #v.combo then
                     keyCombination = keyValue  .. delimiter .. keyCombination
                 else
                     keyCombination = keyCombination .. keyValue 
                 end
             end
-            local common = {}
+            local common: {any} = {}
             common[#common + 1] = {1, 0, 0}                       -- index  1
             common[#common + 1] = "\"" .. keyCombination .. "\""  --        2
             common[#common + 1] = {0, 1, 0}                       --        3
             common[#common + 1] = ": " .. v.description           --        4
             table.insert(textList, common) -- строка с цветами и строками для рисовки через lg.print()
-            local textLen = string.len(common[2]) + string.len(common[4])
+            local textLen = string.len(common[2] as string) + string.len(common[4] as string)
             maxStringWidth = textLen > maxStringWidth and textLen or maxStringWidth -- определение самой длинной текстовой строки для вывода цветного фонового прямоугольника
         end
         return textList
     end
 
     -- для списка list расчитывает высоту рисуемого поля текущим шрифтом
-    function calcHeight(list)
+    function calcHeight(list: {string: Shortcut}): number
         local h = 0
-        for k, v in pairs(list) do
+        for _, _ in pairs(list) do
             h = h + lg.getFont():getHeight()
         end
         return h
     end
 
     local tmpFont = lg.getFont()
-    lg.setFont(keyBindingsFont) 
+    -- FIXME
+    --lg.setFont(keyBindingsFont) 
 
     local list1, list2 = makeTextList(shortcutsPressed), makeTextList(shortcutsDown)
 
-    -- XXX: здесь применен частный случай(workaround) - считается длина строки, потом считается ширина строки 'zzzzzzzzzzzzzzzzzz' такой длины.
+    -- XXX: здесь применен частный случай(workaround) - считается длина строки, 
+    -- потом считается ширина строки 'zzzzzzzzzzzzzzzzzz' такой длины.
     local str = ""
-    for i = 1, maxStringWidth do str = str .. "z" end
-    --
+    for i = 1, maxStringWidth do 
+        str = str .. "z" 
+    end
 
     -- расчет размера выводимого прямоугольника подложки
     local rectW, rectH = lg.getFont():getWidth(str), (calcHeight(shortcutsDown) + calcHeight(shortcutsPressed))
@@ -109,13 +123,16 @@ local function drawShortcutsList(x0, y0)
     lg.rectangle("line", x0 - delta, y0 - delta, rectW + delta, rectH + delta)
     lg.setLineWidth(oldWidth)
     lg.setColor{1, 1, 1}
-    function drawList(list)
-        for k, v in pairs(list) do
-            lg.print(v, x, y) -- выводится цветной текст
+
+    local function drawList(list: {any})
+        for _, v in ipairs(list) do
+            lg.print(v as string, x, y) -- выводится цветной текст
             y = y + lg.getFont():getHeight()
         end
     end
-    drawList(list1) drawList(list2)
+
+    drawList(list1) 
+    drawList(list2)
     lg.setFont(tmpFont)
 end
 
@@ -123,13 +140,15 @@ end
 -- bindKey({"q"}, quit)
 -- bindKey({"lshift", "x"}, changeCameraMode)
 -- use scancode
-local function bindKeyDown(stringID, keyCombination, action, description)
+local function bindKeyDown(stringID: string, keyCombination: {string}, action: function, description: string)
   assert(action, "action == nil in bindKey()")
   assert(stringID, "stringID should'not be empty")
   assert(action, "action == nil in bindKeyDown()")
 
-  --[[здесь добавить проверки в таблице keyCombination на допустимость закодированных в них сочетаний. Если сочетание клавиш используется, то вызывать
-  исключение, которое в идеале может обработать вызывающая функция.
+  --[[здесь добавить проверки в таблице keyCombination на допустимость 
+  закодированных в них сочетаний. Если сочетание клавиш используется, то 
+  вызывать исключение, которое в идеале может обработать вызывающая 
+  функция.
   --]]
 
 --  assert(shortcuts[stringID]) -- слот должен быть пустой
@@ -141,7 +160,7 @@ local function bindKeyDown(stringID, keyCombination, action, description)
     description = description, enabled = true}
 end
 
-local function bindKeyPressed(stringID, keyCombination, action, description)
+local function bindKeyPressed(stringID: string, keyCombination: {string}, action: function, description: string)
   assert(action, "action == nil in bindKeyPressed()")
   assert(description, "description == nil in bindKeyPressed()")
   shortcutsPressed[stringID] = {combo = keyCombination, action = action, 
@@ -150,8 +169,8 @@ end
 
 -- очень неподходящее название
 -- TODO: работает странно, если определить несколько горячих клавиш, к примеру f1 и f1+lshift
-local function checkPressedKeys(key)
-  for k, v in pairs(shortcutsPressed) do
+local function checkPressedKeys(key: string)
+  for _, v in pairs(shortcutsPressed) do
     if v.enabled then
       -- обрати внимание на магию - первый элемент проверяется на love.keypressed(),
       -- а последущие - как дополнительные модификаторы на lk.isDown()
@@ -160,7 +179,7 @@ local function checkPressedKeys(key)
 --    print("#shortcuts2", #shortcuts2, inspect(shortcuts2))
       for i = 2, #v.combo do
 --        print("checkKeyboardInput2", k, v.combo[i])
-        pressed = pressed and lk.isDown(v.combo[i]) -- эта строчка что делает? Добавляет проверку модификатора при нажатии клавиш.
+        pressed = pressed and lk.isDown(v.combo[i] as love.keyboard.KeyConstant) -- эта строчка что делает? Добавляет проверку модификатора при нажатии клавиш.
         if not pressed then break end
       end
       if pressed and v.action then
@@ -176,11 +195,11 @@ end
 -- установленные при помощи bindKey(). Проверка выполняется через lk.isDown()
 local function checkDownKeys()
 -- а в чем хранить значения keyCombination? как назвать глобальную переменную?
-  for k, v in pairs(shortcutsDown) do
+  for _, v in pairs(shortcutsDown) do
     if v.enabled then
       local pressed = true
-      for _, keyValue in pairs(v.combo) do
-        pressed = pressed and lk.isScancodeDown(keyValue)
+      for _, keyValue in ipairs(v.combo) do
+        pressed = pressed and lk.isScancodeDown(keyValue as love.keyboard.KeyConstant)
         if not pressed then break end -- если хоть одна клавиша в комбинации не нажата, то сбрасываю комбинацию.      
       end
       if pressed and v.action then 
@@ -191,7 +210,7 @@ local function checkDownKeys()
   end
 end
 
-local function send(stringID)
+local function send(stringID: string)
     local t = shortcutsDown[stringID]
     if t and t.enabled and t.action then
         t.action()

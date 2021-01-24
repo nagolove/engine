@@ -1,9 +1,5 @@
-﻿local inspect = require "libs.inspect"
+﻿local inspect = require "inspect"
 local linesbuf = require "kons".new()
-local pviewer = require "pviewer"
-local nback = require "nback"
-local help = require "help"
-local pallete = require "pallete"
 
 local g = love.graphics
 

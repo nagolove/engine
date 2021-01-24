@@ -4,12 +4,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-local Lock = {}
-
-
-
-
-local Bar = {}
+local List = {Lock = {}, Bar = {}, ColorType = {}, Colors = {}, Item = {}, }
 
 
 
@@ -17,17 +12,6 @@ local Bar = {}
 
 
 
-local ColorType = {}
-
-
-
-
-local Colors = {}
-
-
-
-
-local Item = {}
 
 
 
@@ -35,7 +19,23 @@ local Item = {}
 
 
 
-local List = {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -302,6 +302,5 @@ function List:draw()
    love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 
 end
-
 
 return List

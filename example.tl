@@ -33,3 +33,6 @@ end
 
 --local chunk, errmsg: any, string = myload("bee")
 --(chunk as function)()
+
+local a, b: string, string = "1", "2"
+print(a < b)
