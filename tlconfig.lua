@@ -15,7 +15,8 @@ return {
         --"scenes/automato/simulator.tl",
         --"scenes/automato/cell-actions.tl",
         --"scenes/automato/simulator-thread.tl",
-        --"scenes/automato/*.tl",
+        --"tools.tl",
+        "scenes/automato/*.tl",
         "scenes/hst_reader/*.tl",
         "crash*.tl",
     }
