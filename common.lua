@@ -20,4 +20,12 @@ require("camera")
 
 
 
+
+
+ SceneMap = {}
+
+
+
+
+
  Tool = {}

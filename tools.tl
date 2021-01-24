@@ -31,7 +31,7 @@ local tools: {Tool} = loadTools()
 
 local devshow: boolean
 
-function initTools(currentScene)
+function initTools(currentScene: Scene)
     for _, v in ipairs(tools) do
         if v.init then
             v.init(currentScene)

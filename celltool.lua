@@ -3,7 +3,6 @@ require("love")
 require("camera")
 require("common")
 
-
 love.filesystem.setRequirePath("scenes/automato/?.lua")
 
 local imgui = require("imgui")
@@ -12,13 +11,6 @@ local gr = love.graphics
 local inspect = require("inspect")
 local cam
 local scene
-
-
-
-
-
-
-
 
 local automatoScene = require("scenes/automato/init")
 local underCursor = {}
