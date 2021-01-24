@@ -77,3 +77,9 @@ require("mtschemes")
 
 
  SimulatorMode = {}
+
+
+
+
+
+ Simulator = {}

@@ -10,11 +10,11 @@ local function loadTools()
       if file:match("%.*tool%.lua") then
          local chunk, errmsg = love.filesystem.load(file)
          if chunk then
-            local ok, errmsg = pcall(function()
+            local _, chunkerrmsg = pcall(function()
                table.insert(tools, (chunk)())
             end)
             if errmsg then
-               logferror("Error in %s: %s", file, errmsg)
+               logferror("Error in %s: %s", file, chunkerrmsg)
             else
                logf("Tool %s loaded", file)
             end

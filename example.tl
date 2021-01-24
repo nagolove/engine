@@ -31,5 +31,5 @@ function myload(name: string): function(...: any): any..., string
     print(name)
 end
 
-local chunk, errmsg: any, string = myload("bee")
-(chunk as function)()
+--local chunk, errmsg: any, string = myload("bee")
+--(chunk as function)()

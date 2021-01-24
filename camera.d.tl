@@ -11,6 +11,8 @@ global type Camera = record
     move: function(Camera, number, number): Camera
     attach: function(Camera)
     detach: function(Camera)
+    worldCoords: function(Camera, number, number, number|nil, number:nil, number:nil, number:nil): number, number
+    zoom: function(Camera, number)
 end
 
 return Camera

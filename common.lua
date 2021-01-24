@@ -1,3 +1,4 @@
+require("camera")
 
 
 
@@ -7,6 +8,7 @@
 
 
  Scene = {}
+
 
 
 

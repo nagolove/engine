@@ -23,7 +23,7 @@ local mode = "stop"
 
 local statistic = {}
 
-local function getDrawLists()
+function Simulator.getDrawLists()
    local list = {}
    for k, _ in ipairs(threads) do
       local chan = love.thread.getChannel("data" .. k)
@@ -72,7 +72,7 @@ function love.threaderror(thread, errstr)
    print("Some thread failed with " .. errstr)
 end
 
-local function create(commonSetup)
+function Simulator.create(commonSetup)
    print("--------------------------------------------")
    print("commonSetup", inspect(commonSetup))
 
@@ -128,7 +128,7 @@ local function getThreadsLog()
    end
 end
 
-local function step()
+function Simulator.step()
    if mode == "stop" then
       return
    end
@@ -145,7 +145,7 @@ local function step()
 end
 
 
-local function getIter()
+function Simulator.getIter()
 
 
 
@@ -171,7 +171,7 @@ end
 
 
 
-local function getObject(x, y)
+function Simulator.getObject(x, y)
    local threadNum = findThreadByPos(x, y)
 
    local chan = love.thread.getChannel("msg")
@@ -192,57 +192,31 @@ local function getObject(x, y)
    return objectfun()
 end
 
-local function setMode(m)
+function Simulator.setMode(m)
 
    mode = m
    print("push", mode)
    pushMsg2Threads(mode)
 end
 
-local function getMode()
+function Simulator.getMode()
    return mode
 end
 
-local function doStep()
+function Simulator.doStep()
    pushMsg2Threads("step")
 end
 
-local function getStatistic()
+function Simulator.getStatistic()
    return statistic
 end
 
-local function getSchema()
+function Simulator.getSchema()
    return mtschema
 end
 
- Simulator = {}
-
-
-
-
-
-
-
-
-
-
-
-
-
-local function getGridSize()
+function Simulator.getGridSize()
    return gridSize
 end
 
-return {
-   create = create,
-   setMode = setMode,
-   getMode = getMode,
-   getDrawLists = getDrawLists,
-   getObject = getObject,
-   step = step,
-   doStep = doStep,
-   getStatistic = getStatistic,
-   getIter = getIter,
-   getGridSize = getGridSize,
-   getSchema = getSchema,
-}
+return Simulator

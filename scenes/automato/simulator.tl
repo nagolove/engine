@@ -23,7 +23,7 @@ local mode = "stop" -- "step"
 
 local statistic: Statistic = {}
 
-local function getDrawLists(): {DrawNode}
+function Simulator.getDrawLists(): {DrawNode}
     local list = {}
     for k, _ in ipairs(threads) do
         local chan = love.thread.getChannel("data" .. k)
@@ -72,7 +72,7 @@ function love.threaderror(thread: love.thread.Thread, errstr: string)
     print("Some thread failed with " .. errstr)    
 end
 
-local function create(commonSetup: CommonSetup)
+function Simulator.create(commonSetup: CommonSetup)
     print("--------------------------------------------")
     print("commonSetup", inspect(commonSetup))
 
@@ -128,7 +128,7 @@ local function getThreadsLog()
     end
 end
 
-local function step()
+function Simulator.step()
     if mode == "stop" then
         return
     end
@@ -145,7 +145,7 @@ local function step()
 end
 
 -- FIXME Как починить счетчик итераций при работе в несколько нитей?
-local function getIter(): number
+function Simulator.getIter(): number
     --[[
        [local newIter = love.thread.getChannel("iter")
        [if newIter then
@@ -171,7 +171,7 @@ end
 -- здеcь нужно определять в какой из потоков отправить запрос используя каналы
 -- msg1, msg2, ...
 -- функция - запрос для визуального отладчика
-local function getObject(x: number, y: number): any
+function Simulator.getObject(x: number, y: number): Cell
     local threadNum = findThreadByPos(x, y)
 
     local chan = love.thread.getChannel("msg")
@@ -189,60 +189,47 @@ local function getObject(x: number, y: number): any
         return nil
     end
 
-    return objectfun()
+    return objectfun() as Cell
 end
 
-local function setMode(m: SimulatorMode)
+function Simulator.setMode(m: SimulatorMode)
     --assert(m == "step" or m == "continuos")
     mode = m
     print("push", mode)
     pushMsg2Threads(mode)
 end
 
-local function getMode(): SimulatorMode
+function Simulator.getMode(): SimulatorMode
     return mode
 end
 
-local function doStep()
+function Simulator.doStep()
     pushMsg2Threads("step")
 end
 
-local function getStatistic(): Statistic
+function Simulator.getStatistic(): Statistic
     return statistic
 end
 
-local function getSchema(): {MtSchema}
+function Simulator.getSchema(): {MtSchema}
     return mtschema
 end
 
-global type Simulator = record
-    create : function()
-    setMode : function(m: SimulatorMode)
-    getMode : function(): SimulatorMode
-    getDrawLists : function()
-    getObject : function(number, number): any
-    step : function()
-    doStep : function()
-    getStatistic : function(): Statistic
-    getIter : function(): number
-    getGridSize : function(): number
-    getSchema : function()
-end
-
-local function getGridSize(): number
+function Simulator.getGridSize(): number
     return gridSize
 end
 
-return {
-    create = create,
-    setMode = setMode,
-    getMode = getMode,
-    getDrawLists = getDrawLists,
-    getObject = getObject,
-    step = step,
-    doStep = doStep,
-    getStatistic = getStatistic,
-    getIter = getIter,
-    getGridSize = getGridSize,
-    getSchema = getSchema
-}
+return Simulator
+--return {
+    --create = create,
+    --setMode = setMode,
+    --getMode = getMode,
+    --getDrawLists = getDrawLists,
+    --getObject = getObject,
+    --step = step,
+    --doStep = doStep,
+    --getStatistic = getStatistic,
+    --getIter = getIter,
+    --getGridSize = getGridSize,
+    --getSchema = getSchema
+--}

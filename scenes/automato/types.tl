@@ -81,3 +81,18 @@ global type SimulatorMode = enum
     "continuos"
     "stop"
 end
+
+global type Simulator = record
+    create: function(CommonSetup)
+    setMode : function(m: SimulatorMode)
+    getMode : function(): SimulatorMode
+    getDrawLists : function(): {DrawNode}
+    getObject : function(number, number): Cell
+    step : function()
+    doStep : function()
+    getStatistic : function(): Statistic
+    getIter : function(): number
+    getGridSize : function(): number
+    getSchema : function()
+end
+
