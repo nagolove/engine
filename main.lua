@@ -4,6 +4,8 @@
 require "imgui"
 require "tools"
 require "log"
+require "keyconfig"
+require "menu"
 
 local inspect = require "inspect"
 local scenes = require "scenes"
@@ -88,7 +90,7 @@ function love.keypressed(_, key)
   imgui.KeyPressed(key)
   if not imgui.GetWantCaptureKeyboard() then
     if checkToolsHotkey(key) then
-      --toggleTools()
+      toggleTools()
     end
     scenes.keypressed(key)
     keypressedTools(key)
