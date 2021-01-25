@@ -157,7 +157,7 @@ function Simulator.getIter(): number
 end
 
 -- возвращает номер нити многопоточной схемы по координатам 
-local function findThreadByPos(x: number, y: number): number
+function Simulator.findThreadByPos(x: number, y: number): number
     local ix, iy = math.floor(x / gridSize), math.floor(y / gridSize)
     local rx, ry = x % gridSize, y % gridSize
     --[[
@@ -172,7 +172,7 @@ end
 -- msg1, msg2, ...
 -- функция - запрос для визуального отладчика
 function Simulator.getObject(x: number, y: number): Cell
-    local threadNum = findThreadByPos(x, y)
+    local threadNum = Simulator.findThreadByPos(x, y)
 
     local chan = love.thread.getChannel("msg")
     chan:push("getobject")
@@ -220,16 +220,3 @@ function Simulator.getGridSize(): number
 end
 
 return Simulator
---return {
-    --create = create,
-    --setMode = setMode,
-    --getMode = getMode,
-    --getDrawLists = getDrawLists,
-    --getObject = getObject,
-    --step = step,
-    --doStep = doStep,
-    --getStatistic = getStatistic,
-    --getIter = getIter,
-    --getGridSize = getGridSize,
-    --getSchema = getSchema
---}

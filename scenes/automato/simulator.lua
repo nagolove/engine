@@ -157,7 +157,7 @@ function Simulator.getIter()
 end
 
 
-local function findThreadByPos(x, y)
+function Simulator.findThreadByPos(x, y)
    local ix, iy = math.floor(x / gridSize), math.floor(y / gridSize)
    local rx, ry = x % gridSize, y % gridSize
 
@@ -172,7 +172,7 @@ end
 
 
 function Simulator.getObject(x, y)
-   local threadNum = findThreadByPos(x, y)
+   local threadNum = Simulator.findThreadByPos(x, y)
 
    local chan = love.thread.getChannel("msg")
    chan:push("getobject")

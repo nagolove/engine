@@ -87,6 +87,7 @@ global type Simulator = record
     setMode : function(m: SimulatorMode)
     getMode : function(): SimulatorMode
     getDrawLists : function(): {DrawNode}
+    findThreadByPos: function(x: number, y: number): number
     getObject : function(number, number): Cell
     step : function()
     doStep : function()
