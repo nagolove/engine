@@ -11,6 +11,7 @@ global type Imgui = record
     GetWantCaptureKeyboard: function
     KeyPressed: function(string)
     Checkbox: function(string, boolean): boolean
+    SliderFloat: function(label: string, v: number, min: number, max: number, display_format: string): number, boolean
 end
 
 return Imgui

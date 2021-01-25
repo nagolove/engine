@@ -262,6 +262,7 @@ end
 
 local function initCellOneCommandCode(command, steps)
    local cell = initCell()
+   print("cell.energy", cell.energy)
    cell.code = {}
    for i = 1, steps do
       table.insert(cell.code, command)
@@ -311,16 +312,11 @@ function initialEmit(iter)
 
    for i = 1, 2 do
       local steps = 5
-
-
-
       initCellOneCommandCode("left", steps)
-
-
    end
 
-   for i = 1, cellsNum / 100 do
-      initCell()
+   for i = 1, cellsNum do
+
    end
 end
 
@@ -351,9 +347,10 @@ function experiment()
 
    while #cells > 0 do
 
-      if initialEmitCoro and not coroutine.resume(initialEmitCoro) then
-         initialEmitCoro = nil
-      end
+
+
+
+
 
 
 

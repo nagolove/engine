@@ -57,6 +57,7 @@ global type CommonSetup = record
     initialEnergy: {number, number}
     codeLen: number
     nofood: boolean
+    denergy: number
 end
 
 global type ThreadCommandsStore = record

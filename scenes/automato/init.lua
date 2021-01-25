@@ -71,7 +71,9 @@ local commonSetup = {
    threadCount = 1,
 
    nofood = false,
+   denergy = 1,
 }
+local maxCellsNum = 5000
 
 local function getMode()
    return mode
@@ -275,6 +277,13 @@ local function drawSim()
    end
 
    commonSetup.nofood = imgui.Checkbox("no food", commonSetup.nofood)
+
+   local status
+   commonSetup.cellsNum, status = imgui.SliderFloat("initial population", commonSetup.cellsNum, 0, maxCellsNum)
+   commonSetup.cellsNum = math.ceil(commonSetup.cellsNum)
+
+   commonSetup.denergy, status = imgui.SliderFloat("decrease enerby by", commonSetup.denergy, 0, 1)
+   commonSetup.denergy = math.ceil(commonSetup.denergy)
 
    if imgui.Button("reset silumation") then
       collectgarbage()

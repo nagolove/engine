@@ -128,18 +128,18 @@ function initCell(t: CellSetup): Cell
 end
 
 function updateCell(cell: Cell): boolean, Cell
-  -- прокрутка кода клетки по кругу
-  if cell.ip >= #cell.code then
-    cell.ip = 1
-  end
-  if cell.energy > 0 then
-    actions[cell.code[cell.ip]](cell)
-    cell.ip = cell.ip + 1
-    cell.energy = cell.energy - 1
-    return true, cell
-  else
-    return false, cell
-  end
+    -- прокрутка кода клетки по кругу
+    if cell.ip >= #cell.code then
+        cell.ip = 1
+    end
+    if cell.energy > 0 then
+        actions[cell.code[cell.ip]](cell)
+        cell.ip = cell.ip + 1
+        cell.energy = cell.energy - 1
+        return true, cell
+    else
+        return false, cell
+    end
 end
 
 -- заполнить решетку пустыми значениями. В качестве значений используются
@@ -262,6 +262,7 @@ end
 
 local function initCellOneCommandCode(command: string, steps: number)
   local cell = initCell()
+  print("cell.energy", cell.energy)
   cell.code = {}
   for i = 1, steps do
     table.insert(cell.code, command)
@@ -311,16 +312,11 @@ function initialEmit(iter: number)
 
     for i = 1, 2 do
         local steps = 5
-        --local c = initCell()
-        --cloneCell(c, 10, 10)
-        --initCellOneCommandCode("right", steps)
         initCellOneCommandCode("left", steps)
-        --initCellOneCommandCode("up", steps)
-        --initCellOneCommandCode("down", steps)
     end
 
-    for i = 1, cellsNum / 100 do
-        initCell()
+    for i = 1, cellsNum do
+        --initCell()
     end
 end
 
@@ -350,10 +346,11 @@ function experiment()
   print("start with", #cells, "cells")
 
   while #cells > 0 do
+
     -- создание клеток
-    if initialEmitCoro and not coroutine.resume(initialEmitCoro) then
-        initialEmitCoro = nil
-    end
+    --if initialEmitCoro and not coroutine.resume(initialEmitCoro) then
+        --initialEmitCoro = nil
+    --end
 
     --print("step", iter, " of thread", threadNum)
     --print("#cells", #cells)
