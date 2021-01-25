@@ -69,6 +69,8 @@ local commonSetup = {
    codeLen = 32,
 
    threadCount = 1,
+
+   nofood = false,
 }
 
 local function getMode()
@@ -271,6 +273,8 @@ local function drawSim()
    if imgui.Button("change mode", getMode()) then
       nextMode()
    end
+
+   commonSetup.nofood = imgui.Checkbox("no food", commonSetup.nofood)
 
    if imgui.Button("reset silumation") then
       collectgarbage()

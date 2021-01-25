@@ -56,6 +56,7 @@ global type CommonSetup = record
     cellsNum: number
     initialEnergy: {number, number}
     codeLen: number
+    nofood: boolean
 end
 
 global type ThreadCommandsStore = record

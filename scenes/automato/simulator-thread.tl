@@ -24,6 +24,7 @@ math.randomseed(randseed)
 
 --package.path = package.path .. ";scenes/automato/?.lua"
 --local grid = require "grid".new()
+local initialSetup: CommonSetup
 
 -- массив всех клеток
 local cells: Cells = {}
@@ -212,14 +213,18 @@ end
 
 
 function emitFood(iter: number)
-  --print(math.log(iter) / 1)
-  for i = 1, math.log(iter) * 10 do
-    local emited, _ = emitFoodInRandomPoint()
-    if not emited then
-      -- здесь исследовать причины смерти яцейки
-      --print("not emited gridcell", inspect(gridcell))
+    if initialSetup.nofood then
+        return
     end
-  end
+
+    --print(math.log(iter) / 1)
+    for i = 1, math.log(iter) * 10 do
+        local emited, _ = emitFoodInRandomPoint()
+        if not emited then
+            -- здесь исследовать причины смерти яцейки
+            --print("not emited gridcell", inspect(gridcell))
+        end
+    end
 end
 
 --[[ XXX Выключено из-за проблем загрузкм модулей
@@ -315,12 +320,7 @@ function initialEmit(iter: number)
     end
 
     for i = 1, cellsNum / 100 do
-        --initCell()
-    end
-
-    for i = 1, cellsNum / 100 do
-        --initCell()
-        --coroutine.yield()
+        initCell()
     end
 end
 
@@ -347,6 +347,7 @@ function experiment()
   print("#cells", #cells)
 
   coroutine.resume(initialEmitCoro)
+  print("start with", #cells, "cells")
 
   while #cells > 0 do
     -- создание клеток
@@ -377,6 +378,8 @@ function experiment()
 
     iter = iter + 1
 
+    --print("cells", #cells)
+
     -- можно возвращать сдесь какое-то состояние клеток из нити
     --coroutine.yield(stepStatistic)
     coroutine.yield()
@@ -395,7 +398,7 @@ local function step()
   if not ok and not experimentErrorPrinted then
     experimentErrorPrinted = true
     stop = true
-    error(string.format("coroutine error %s", errmsg))
+    print(string.format("coroutine error %s", errmsg))
   end
 end
 
@@ -492,7 +495,7 @@ end
 
 local function doSetup()
   local setupName = "setup" .. threadNum
-  local initialSetup: CommonSetup = love.thread.getChannel(setupName):pop() as CommonSetup
+  initialSetup = love.thread.getChannel(setupName):pop() as CommonSetup
 
   print("thread", threadNum)
   print("initialSetup", inspect(initialSetup))
@@ -566,7 +569,5 @@ local function main()
   end
 end
 
-print("before setup")
 doSetup()
-print("after setup")
 main()

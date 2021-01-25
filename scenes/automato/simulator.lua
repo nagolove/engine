@@ -174,13 +174,14 @@ end
 function Simulator.getObject(x, y)
    local threadNum = Simulator.findThreadByPos(x, y)
 
-   local chan = love.thread.getChannel("msg")
-   chan:push("getobject")
-   chan:push(x)
-   chan:push(y)
+   local mchan = love.thread.getChannel("msg")
+   mchan:push("getobject")
+   mchan:push(x)
+   mchan:push(y)
 
-   local sobject = love.thread.getChannel("request" .. threadNum):demand(0.1)
+   local rchan = love.thread.getChannel("request" .. threadNum)
 
+   local sobject = rchan:demand(0.1)
 
    if not sobject then
       return nil

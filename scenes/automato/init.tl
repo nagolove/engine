@@ -69,6 +69,8 @@ local commonSetup: CommonSetup = {
     codeLen = 32,
     -- на сколько потоков запускать
     threadCount = 1,
+    -- отключить создание пищи
+    nofood = false,
 }
 
 local function getMode(): SimulatorMode
@@ -271,6 +273,8 @@ local function drawSim()
     if imgui.Button("change mode", getMode()) then
         nextMode()
     end
+
+    commonSetup.nofood = imgui.Checkbox("no food", commonSetup.nofood)
 
     if imgui.Button("reset silumation") then
         collectgarbage()

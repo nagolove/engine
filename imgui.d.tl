@@ -10,6 +10,7 @@ global type Imgui = record
     TextInput: function(string)
     GetWantCaptureKeyboard: function
     KeyPressed: function(string)
+    Checkbox: function(string, boolean): boolean
 end
 
 return Imgui

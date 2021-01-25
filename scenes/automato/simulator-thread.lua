@@ -24,6 +24,7 @@ math.randomseed(randseed)
 
 
 
+local initialSetup
 
 
 local cells = {}
@@ -212,6 +213,10 @@ end
 
 
 function emitFood(iter)
+   if initialSetup.nofood then
+      return
+   end
+
 
    for i = 1, math.log(iter) * 10 do
       local emited, _ = emitFoodInRandomPoint()
@@ -315,12 +320,7 @@ function initialEmit(iter)
    end
 
    for i = 1, cellsNum / 100 do
-
-   end
-
-   for i = 1, cellsNum / 100 do
-
-
+      initCell()
    end
 end
 
@@ -347,6 +347,7 @@ function experiment()
    print("#cells", #cells)
 
    coroutine.resume(initialEmitCoro)
+   print("start with", #cells, "cells")
 
    while #cells > 0 do
 
@@ -379,6 +380,8 @@ function experiment()
 
 
 
+
+
       coroutine.yield()
    end
 
@@ -395,7 +398,7 @@ local function step()
    if not ok and not experimentErrorPrinted then
       experimentErrorPrinted = true
       stop = true
-      error(string.format("coroutine error %s", errmsg))
+      print(string.format("coroutine error %s", errmsg))
    end
 end
 
@@ -492,7 +495,7 @@ end
 
 local function doSetup()
    local setupName = "setup" .. threadNum
-   local initialSetup = love.thread.getChannel(setupName):pop()
+   initialSetup = love.thread.getChannel(setupName):pop()
 
    print("thread", threadNum)
    print("initialSetup", inspect(initialSetup))
@@ -566,7 +569,5 @@ local function main()
    end
 end
 
-print("before setup")
 doSetup()
-print("after setup")
 main()
