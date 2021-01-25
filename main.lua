@@ -1,11 +1,11 @@
 --require("mobdebug").start()
 
 -- :setlocal foldmethod=manual
-require "imgui"
-require "tools"
+local imgui = require "imgui"
+local tools = require "tools"
+local keyconfig = require "keyconfig"
 require "log"
-require "keyconfig"
-require "menu"
+--require "menu"
 
 local inspect = require "inspect"
 local scenes = require "scenes"
@@ -13,8 +13,13 @@ local gr = love.graphics
 
 __FREEZE_PHYSICS__ = true
 
+local showHelp = false
+
 local function bindKeys()
-    
+    keyconfig.bindKeyPressed("help", {"f1"}, function()
+        print("tools toggle")
+        showHelp = not showHelp
+    end, "show hotkeys")
 end
 
 function love.load(arg)
@@ -48,25 +53,26 @@ local function collectGarbage()
   end
 end
 
-function updateScene(dt)
-  collectGarbage()
-  scenes.update()
-end
-
 function love.update(dt)
-  updateScene(dt)
-  updateTools()
+  --tools.update()
+  keyconfig.updateList(dt)
+  collectGarbage()
+  scenes.update(dt)
 end
 
 function love.draw()
   gr.setColor{1, 1, 1}
   scenes.draw()
   gr.setColor{1, 1, 1}
+
   imgui.NewFrame()
   scenes.drawui()
   love.graphics.setColor{1, 1, 1}
   imgui.Render();
-  --drawTools()
+
+  if showHelp then
+      keyconfig.drawList()
+  end
 end
 
 function love.quit()
@@ -82,6 +88,7 @@ end
 
 local toolsHotkeys = {"`", "f1"}
 
+-- TODO Забиндить через keyconfig
 function checkToolsHotkey(key)
   for k, v in pairs(toolsHotkeys) do
     if key == v then
@@ -91,14 +98,22 @@ function checkToolsHotkey(key)
   return false
 end
 
+--[[
+-- Иерархия вызовов?
+-- keyconfig ?
+-- scenes.keypressed ?
+--]]
 function love.keypressed(_, key)
   imgui.KeyPressed(key)
   if not imgui.GetWantCaptureKeyboard() then
-    if checkToolsHotkey(key) then
-      toggleTools()
-    end
+
+    --if checkToolsHotkey(key) then
+      --tools.toggle()
+    --end
+
+    keyconfig.checkPressedKeys(key)
     scenes.keypressed(key)
-    keypressedTools(key)
+    tools.keypressed(key)
   end
 end
 
@@ -112,7 +127,7 @@ end
 function love.mousemoved(x, y, dx, dy)
   imgui.MouseMoved(x, y)
   if not imgui.GetWantCaptureMouse() then
-    mousemovedTools(x, y, dx, dy)
+    tools.mousemoved(x, y, dx, dy)
     scenes.mousemoved(x, y, dx, dy)
   end
 end
@@ -120,7 +135,7 @@ end
 function love.mousepressed(x, y, button)
   imgui.MousePressed(button)
   if not imgui.GetWantCaptureMouse() then
-    mousepressedTools(x, y, button)
+    tools.mousepressed(x, y, button)
     scenes.mousepressed(x, y, button)
   end
 end
@@ -128,7 +143,7 @@ end
 function love.mousereleased(x, y, button)
   imgui.MouseReleased(button)
   if not imgui.GetWantCaptureMouse() then
-    mousereleasedTools(x, y, button)
+    tools.mousereleased(x, y, button)
     scenes.mousereleased(x, y, button)
   end
 end

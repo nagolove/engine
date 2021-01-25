@@ -42,12 +42,20 @@ local function mousemoved(x: number, y: number, dx: number, dy: number)
 end
 
 local function getCell(pos: Pos): Cell
-    local x, y = pos.x, pos.y
-    if x + 1 >= 1 and x + 1 <= sim.getGridSize() and
-        y + 1 >= 1 and y + 1 <= sim.getGridSize() then
-        local cell = sim.getObject(x + 1, y + 1)
-        return cell
+    if not pos or not pos.x or not pos.y then
+        return nil
     end
+    --print("pos", inspect(pos))
+    print("sim.getGridSize()", sim.getGridSize())
+    local size = sim.getGridSize()
+    if size then
+        local x, y = pos.x, pos.y
+        if x + 1 >= 1 and x + 1 <= size and
+            y + 1 >= 1 and y + 1 <= size then
+                local cell = sim.getObject(x + 1, y + 1)
+                return cell
+            end
+        end
     return nil
 end
 

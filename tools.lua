@@ -31,7 +31,7 @@ local tools = loadTools()
 
 local devshow
 
-function initTools(currentScene)
+local function initTools(currentScene)
    for _, v in ipairs(tools) do
       if v.init then
          v.init(currentScene)
@@ -39,7 +39,7 @@ function initTools(currentScene)
    end
 end
 
-function updateTools()
+local function update()
    if devshow then
       for _, v in ipairs(tools) do
          if v.update then
@@ -49,7 +49,7 @@ function updateTools()
    end
 end
 
-function drawTools()
+local function draw()
    if devshow then
       imgui.NewFrame()
       for _, v in ipairs(tools) do
@@ -62,12 +62,12 @@ function drawTools()
    end
 end
 
-function toggleTools()
+local function toggle()
    print("toggleTools")
    devshow = not devshow
 end
 
-function keypressedTools(key)
+local function keypressed(key)
    if not devshow then
       return
    end
@@ -79,7 +79,7 @@ function keypressedTools(key)
    end
 end
 
-function mousemovedTools(x, y, dx, dy)
+function mousemoved(x, y, dx, dy)
    if not devshow then
       return
    end
@@ -91,7 +91,7 @@ function mousemovedTools(x, y, dx, dy)
    end
 end
 
-function mousereleasedTools(x, y, btn)
+function mousereleased(x, y, btn)
    if not devshow then
       return
    end
@@ -103,7 +103,7 @@ function mousereleasedTools(x, y, btn)
    end
 end
 
-function mousepressedTools(x, y, btn)
+function mousepressed(x, y, btn)
    if not devshow then
       return
    end
@@ -114,3 +114,14 @@ function mousepressedTools(x, y, btn)
       end
    end
 end
+
+return {
+   update = update,
+   draw = draw,
+   toggle = toggle,
+   mousepressed = mousepressed,
+   keypressed = keypressed,
+   mousemoved = mousemoved,
+   mousereleased = mousereleased,
+   mousepressed = mousepressed,
+}

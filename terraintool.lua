@@ -254,6 +254,10 @@ local function mousepressed(x, y, btn)
 
     local isDown = love.keyboard.isDown
 
+    if not cam then
+        return
+    end
+
     x, y = cam:worldCoords(x, y)
 
     if not currentLine then

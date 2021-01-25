@@ -31,7 +31,7 @@ local tools: {Tool} = loadTools()
 
 local devshow: boolean
 
-function initTools(currentScene: Scene)
+local function initTools(currentScene: Scene)
     for _, v in ipairs(tools) do
         if v.init then
             v.init(currentScene)
@@ -39,7 +39,7 @@ function initTools(currentScene: Scene)
     end
 end
 
-function updateTools()
+local function update()
     if devshow then
         for _, v in ipairs(tools) do
             if v.update then
@@ -49,7 +49,7 @@ function updateTools()
     end
 end
 
-function drawTools()
+local function draw()
     if devshow then
         imgui.NewFrame()
         for _, v in ipairs(tools) do
@@ -62,12 +62,12 @@ function drawTools()
     end
 end
 
-function toggleTools()
+local function toggle()
     print("toggleTools")
     devshow = not devshow
 end
 
-function keypressedTools(key: string)
+local function keypressed(key: string)
     if not devshow then
         return
     end
@@ -79,7 +79,7 @@ function keypressedTools(key: string)
     end
 end
 
-function mousemovedTools(x: number, y: number, dx: number, dy: number)
+function mousemoved(x: number, y: number, dx: number, dy: number)
     if not devshow then
         return
     end
@@ -91,7 +91,7 @@ function mousemovedTools(x: number, y: number, dx: number, dy: number)
     end
 end
 
-function mousereleasedTools(x: number, y: number, btn: number)
+function mousereleased(x: number, y: number, btn: number)
     if not devshow then
         return
     end
@@ -103,7 +103,7 @@ function mousereleasedTools(x: number, y: number, btn: number)
     end
 end
 
-function mousepressedTools(x: number, y: number, btn: number)
+function mousepressed(x: number, y: number, btn: number)
     if not devshow then
         return
     end
@@ -115,3 +115,13 @@ function mousepressedTools(x: number, y: number, btn: number)
     end
 end
 
+return {
+    update = update,
+    draw = draw,
+    toggle = toggle,
+    mousepressed = mousepressed,
+    keypressed = keypressed,
+    mousemoved = mousemoved,
+    mousereleased = mousereleased,
+    mousepressed = mousepressed,
+}
