@@ -174,14 +174,19 @@ end
 function Simulator.getObject(x: number, y: number): Cell
     local threadNum = Simulator.findThreadByPos(x, y)
 
-    local chan = love.thread.getChannel("msg")
-    chan:push("getobject")
-    chan:push(x)
-    chan:push(y)
+    local mchan = love.thread.getChannel("msg")
+    mchan:push("getobject")
+    mchan:push(x)
+    mchan:push(y)
 
-    local sobject = love.thread.getChannel("request" .. threadNum):demand() as string
-    --local objectfun, err: function, boolean = loadstring(sobject) as {function, boolean}
-    --local objectfun, err: function, boolean = load(sobject) as {Function, boolean}
+    local rchan = love.thread.getChannel("request" .. threadNum)
+    -- FIXME demand не дает ответа за таймаут и вешает программу
+    local sobject = rchan:demand(0.1) as string
+
+    if not sobject then
+        return nil
+    end
+
     local objectfun, err: function, boolean = serpent.load(sobject)
 
     if err then

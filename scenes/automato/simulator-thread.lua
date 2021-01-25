@@ -430,6 +430,7 @@ function commands.stop()
 end
 
 function commands.getobject()
+   print("commands.getobject")
    local x, y = chan:pop(), chan:pop()
    local ok, errmsg = pcall(function()
       if grid then

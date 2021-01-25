@@ -179,8 +179,12 @@ function Simulator.getObject(x, y)
    chan:push(x)
    chan:push(y)
 
-   local sobject = love.thread.getChannel("request" .. threadNum):demand()
+   local sobject = love.thread.getChannel("request" .. threadNum):demand(0.1)
 
+
+   if not sobject then
+      return nil
+   end
 
    local objectfun, err = serpent.load(sobject)
 

@@ -430,18 +430,19 @@ function commands.stop()
 end
 
 function commands.getobject()
-  local x, y: number, number = chan:pop() as number, chan:pop() as number
-  local ok, errmsg: boolean, string = pcall(function()
-      if grid then
-        local cell = grid[x][y]
-        if cell then
-          request:push(serpent.dump(cell))
+    print("commands.getobject")
+    local x, y: number, number = chan:pop() as number, chan:pop() as number
+    local ok, errmsg: boolean, string = pcall(function()
+        if grid then
+            local cell = grid[x][y]
+            if cell then
+                request:push(serpent.dump(cell))
+            end
         end
-      end
     end)
-  if not ok then
-    print("Error in getobject operation", errmsg)
-  end
+    if not ok then
+        print("Error in getobject operation", errmsg)
+    end
 end
 
 function commands.step()
