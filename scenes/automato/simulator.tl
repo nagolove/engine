@@ -165,7 +165,7 @@ local function findThreadByPos(x: number, y: number): number
     --]]
     --for k, v in pairs(mtschema) do
     --end
-    return nil
+    return 1
 end
 
 -- здеcь нужно определять в какой из потоков отправить запрос используя каналы

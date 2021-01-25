@@ -165,7 +165,7 @@ local function findThreadByPos(x, y)
 
 
 
-   return nil
+   return 1
 end
 
 

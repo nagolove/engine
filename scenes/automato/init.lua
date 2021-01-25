@@ -185,8 +185,6 @@ local function getCell(pos)
    if not pos or not pos.x or not pos.y then
       return nil
    end
-
-   print("sim.getGridSize()", sim.getGridSize())
    local size = sim.getGridSize()
    if size then
       local x, y = pos.x, pos.y
