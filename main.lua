@@ -86,18 +86,6 @@ function love.textinput(t)
   end
 end
 
-local toolsHotkeys = {"`", "f1"}
-
--- TODO Забиндить через keyconfig
-function checkToolsHotkey(key)
-  for k, v in pairs(toolsHotkeys) do
-    if key == v then
-      return true
-    end
-  end
-  return false
-end
-
 --[[
 -- Иерархия вызовов?
 -- keyconfig ?

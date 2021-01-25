@@ -11,10 +11,13 @@ love.filesystem.setRequirePath("scenes/automato/?.lua")
 require "external"
 require "types"
 
+package.path = package.path .. ";scenes/automato/?.lua"
+
 local imgui = require "imgui"
 local cam = require "camera".new()
 local inspect = require "inspect"
 local gr = love.graphics
+local sim = require "simulator"
 
 global type ViewState = enum
     "sim"
@@ -33,6 +36,7 @@ local record MouseCapture
 end
 
 local mouseCapture: MouseCapture
+local underCursor = {}
 
 -- канва для рисования графиков
 local graphCanvas = gr.newCanvas(gr.getWidth() * 4, gr.getHeight())
@@ -47,9 +51,6 @@ local MIN_ENERGY_COLOR = {0.6, 0.1, 1, 1}
 
 -- режим работы - непрерывный или пошаговый continuos, bystep
 local mode: SimulatorMode = "continuos"
-
-package.path = package.path .. ";scenes/automato/?.lua"
-local sim = require "simulator"
 
 -- размер клетки поля в пикселях
 local pixSize: number = 10
@@ -96,6 +97,11 @@ function drawGrid()
     else
         gr.setColor(0.5, 0.5, 0.5)
         local gridSize = sim.getGridSize()
+
+        if not gridSize then
+            return
+        end
+
         local schema = sim.getSchema()
         if schema then
             for _, v in ipairs(sim.getSchema()) do
@@ -109,7 +115,7 @@ function drawGrid()
             end
         else
             local dx, dy = 0, 0
-            for i = 0, sim.getGridSize() do
+            for i = 0, gridSize do
                 -- vert
                 gr.line(dx + i * pixSize, dy + 0, dx + i * pixSize, dy + gridSize * pixSize)
                 -- hor
@@ -175,6 +181,81 @@ local function drawGraphs()
     gr.draw(graphCanvas as gr.Drawable)
 end
 
+local function getCell(pos: Pos): Cell
+    if not pos or not pos.x or not pos.y then
+        return nil
+    end
+    --print("pos", inspect(pos))
+    print("sim.getGridSize()", sim.getGridSize())
+    local size = sim.getGridSize()
+    if size then
+        local x, y = pos.x, pos.y
+        if x + 1 >= 1 and x + 1 <= size and
+            y + 1 >= 1 and y + 1 <= size then
+                local cell = sim.getObject(x + 1, y + 1)
+                return cell
+            end
+        end
+    return nil
+end
+
+local function replaceCaret(str: string): string
+    return string.gsub(str, "\n", "") as string
+end
+
+local function drawCellInfo(cell: Cell)
+    if not cell then
+        return
+    end
+
+    local msg: string
+    for k, v in pairs(cell as {any: any}) do
+        if k ~= "code" then
+            local fmt: string
+            --local functor: function<T>(T): T = nil
+
+            --local function functor(a: number): number return a end
+            local a: any
+            local tp = type(v)
+            if tp == "number" then
+                fmt = "%d"
+                a = tonumber(a)
+            elseif tp == "table" then
+                fmt = "%s"
+                a = replaceCaret(inspect(a))
+            else
+                fmt = "%s"
+                a = tostring(a)
+            end
+            msg = string.format(fmt, a)
+            imgui.LabelText(k as string, msg)
+        end
+    end
+end
+
+local function getPixSize(): number
+    return pixSize
+end
+
+local function drawCellPath(cell: Cell)
+    if cell and cell.moves and #cell.moves >= 4 then
+        local pixels = getPixSize()
+        local half = pixels / 2
+        local prevx, prevy = cell.moves[1], cell.moves[2]
+        local i = 3
+        while i <= #cell.moves do
+            gr.setColor(1, 0, 0)
+            gr.line(prevx * pixels + half, 
+                prevy * pixels + half, 
+                cell.moves[i] * pixels + half, 
+                cell.moves[i + 1] * pixels + half)
+            prevx, prevy = cell.moves[i], cell.moves[i + 1]
+            i = i + 2
+        end
+    end
+end
+
+
 local function nextMode()
     if mode == "continuos" then
         mode = "step"
@@ -184,11 +265,7 @@ local function nextMode()
     sim.setMode(mode)
 end
 
-local function replaceCaret(str: string): string, number
-    return string.gsub(str, "\n", "")
-end
-
-local function drawui()
+local function drawSim()
     imgui.Begin("sim", false, "ImGuiWindowFlags_AlwaysAutoResize")
 
     imgui.Text(string.format("mode %s", getMode()))
@@ -213,7 +290,21 @@ local function drawui()
 
     imgui.Text(replaceCaret(inspect(sim.getStatistic)) as string)
 
+    if sim.getStatistic() and sim.getStatistic().allEated then
+        imgui.LabelText(sim.getStatistic().allEated, "all eated")
+    end
+
+    if underCursor then
+        local cell = getCell(underCursor)
+        drawCellInfo(cell)
+        drawCellPath(cell)
+    end
+
     imgui.End()
+end
+
+local function drawui()
+    drawSim()
 end
 
 local function draw()
@@ -302,6 +393,13 @@ local function update()
     
     --updateGraphic()
     checkMouse()
+
+    local isDown = love.keyboard.isDown
+    if isDown("z") then
+        cam:zoom(1.01)
+    elseif isDown("x") then
+        cam:zoom(0.99)
+    end
 end
 
 function setViewState(stateName: ViewState)
@@ -323,15 +421,30 @@ end
 
 local function init()
     math.randomseed(love.timer.getTime())
+    local mx, my = love.mouse.getPosition()
+    underCursor = {x = mx, y = my}
 end
 
 local function quit()
 end
 
+local function mousemoved(x: number, y: number, dx: number, dy: number)
+    local w, h = gr.getDimensions()
+    local tlx, tly, brx, bry = 0, 0, w, h
+
+    if cam then
+        tlx, tly = cam:worldCoords(tlx, tly)
+        brx, bry = cam:worldCoords(brx, bry)
+    end
+
+    underCursor = {
+        x = math.floor(x / getPixSize()),
+        y = math.floor(y / getPixSize())
+    }
+end
+
 return {
-    getPixSize = function(): number
-        return pixSize
-    end,
+    getPixSize = getPixSize,
 
     getMode = getMode,
     nextMode = nextMode,
@@ -347,5 +460,6 @@ return {
     drawui = drawui,
     update = update,
     keypressed = keypressed,
+    mousemoved = mousemoved,
 }
 
