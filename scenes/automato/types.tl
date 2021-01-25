@@ -16,6 +16,7 @@ global type Cell = record
     eated: number   -- сколько клетка съела других клеток
     food: boolean   -- является ли клетка едой
     wantdivide: boolean
+    id: number
 end
 
 global type CellSetup = record
@@ -54,6 +55,7 @@ global type CommonSetup = record
     threadCount: number
     gridSize: number
     cellsNum: number
+    -- разброс границы энергии клетки при создании, массив двух элементов
     initialEnergy: {number, number}
     codeLen: number
     nofood: boolean

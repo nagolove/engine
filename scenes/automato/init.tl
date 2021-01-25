@@ -283,7 +283,6 @@ local function drawSim()
     commonSetup.cellsNum = math.ceil(commonSetup.cellsNum)
 
     commonSetup.denergy, status = imgui.SliderFloat("decrease enerby by", commonSetup.denergy, 0, 1)
-    commonSetup.denergy = math.ceil(commonSetup.denergy)
 
     if imgui.Button("reset silumation") then
         collectgarbage()

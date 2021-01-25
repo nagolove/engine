@@ -40,8 +40,6 @@ local codeLen
 
 local cellsNum
 
-local initialEnergy = { -1, 0 }
-
 local iter = 0
 
 local statistic = {}
@@ -99,6 +97,8 @@ function genCode()
    return code
 end
 
+local cellId = 0
+
 
 
 function initCell(t)
@@ -121,7 +121,9 @@ function initCell(t)
       self.code = genCode()
    end
    self.ip = 1
-   self.energy = math.random(initialEnergy[1], initialEnergy[2])
+   self.id = cellId
+   cellId = cellId + 1
+   self.energy = math.random(initialSetup.initialEnergy[1], initialSetup.initialEnergy[2])
    print("self.energy", self.energy)
    table.insert(cells, self)
    return self
@@ -132,12 +134,14 @@ function updateCell(cell)
    if cell.ip >= #cell.code then
       cell.ip = 1
    end
+   print("cell", cell.id, "energy", cell.energy)
    if cell.energy > 0 then
       actions[cell.code[cell.ip]](cell)
       cell.ip = cell.ip + 1
-      cell.energy = cell.energy - 1
+      cell.energy = cell.energy - initialSetup.denergy
       return true, cell
    else
+      print("cell died with energy", cell.energy)
       return false, cell
    end
 end
@@ -169,7 +173,7 @@ end
 
 function gatherStatistic(cells)
    local maxEnergy = 0
-   local minEnergy = initialEnergy[2]
+   local minEnergy = initialSetup.initialEnergy[2]
    local sumEnergy = 0
    for _, v in ipairs(cells) do
       if v.energy > maxEnergy then
@@ -255,6 +259,7 @@ function updateCells(cells)
          table.insert(alive, c)
       else
          table.insert(removed, c)
+         print("cell removed")
       end
    end
    return alive
@@ -500,7 +505,7 @@ local function doSetup()
    gridSize = initialSetup.gridSize
    codeLen = initialSetup.codeLen
    cellsNum = initialSetup.cellsNum
-   initialEnergy[1], initialEnergy[2] = initialSetup.initialEnergy[1], initialSetup.initialEnergy[2]
+
 
    local sschema = love.thread.getChannel(setupName):pop()
 
