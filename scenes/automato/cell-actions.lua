@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local table = _tl_compat and _tl_compat.table or table; require("external")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local table = _tl_compat and _tl_compat.table or table; require("external")
 require("types")
 require("mtschemes")
 require("love")
@@ -31,10 +31,12 @@ local schema
 
 local threadNum
 
-function isAlive(x, y, threadNum)
+local function isAlive(x, y, threadNum)
    local t = getGrid()[x][y]
    return t.energy and t.energy > 0
 end
+
+local init = {}
 
 
 local function pushPosition(cell)
@@ -59,7 +61,10 @@ local function isAliveNeighbours(x, y, threadNum)
    msgChan:push("isalive")
    msgChan:push(x)
    msgChan:push(y)
-   local state = love.thread.getChannel("request" .. threadNum):demand()
+
+   local state = love.thread.getChannel("request" .. threadNum):demand(0.1)
+   print(state)
+   assert(state ~= nil)
    return state
 end
 
@@ -77,12 +82,12 @@ function actions.left(cell)
 
    if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
       pos.x = pos.x - 1
-   elseif pos.x <= 1 and not isAlive(gridSize, pos.y, schema.l) then
 
 
-      getGrid()[cell.pos.x][cell.pos.y].energy = 0
+   elseif pos.x <= 1 and not isAliveNeighbours(gridSize, pos.y, schema.l) then
+
       pos.x = gridSize
-      moveCellToThread(cell, schema.l)
+
    end
 end
 
@@ -251,7 +256,7 @@ end
 
  NeighboursCallback = {}
 
-function listNeighbours(x, y, cb)
+local function listNeighbours(x, y, cb)
    for _, displacement in ipairs(around) do
       local nx, ny = x + displacement[1], y + displacement[2]
       if nx >= 1 and nx < gridSize and ny >= 1 and ny < gridSize then
@@ -263,7 +268,7 @@ function listNeighbours(x, y, cb)
 end
 
 
-function mixCode(cell1, cell2)
+local function mixCode(cell1, cell2)
    local rnd = math.random()
    local first, second
    if rnd > 0.5 then
@@ -291,7 +296,7 @@ function mixCode(cell1, cell2)
    return newcode
 end
 
-function test_mixCode()
+local function test_mixCode()
    math.randomseed(love.timer.getTime())
    print("mixCode", inspect(mixCode({ code = { "left", "right", "up" } },
    { code = { "eat", "eat", "eat" } })))
@@ -307,7 +312,7 @@ end
 
 
 
-function findFreePos(x, y)
+local function findFreePos(x, y)
    local pos = {}
    listNeighbours(x, y, function(xp, yp, value)
       if (not value.energy) and (not value.food) then
@@ -322,32 +327,41 @@ end
 
 
 function actions.cross(cell)
-   if cell.energy > 0 then
-      cell.wantdivide = true
-      listNeighbours(cell.pos.x, cell.pos.y, function(x, y, value)
-         if value.wantdivide then
-            local found, pos = findFreePos(cell.pos.x, cell.pos.y)
-            if found then
-               local t = {
-                  pos = { x = pos.x, y = pos.y },
-                  code = mixCode(cell, getGrid()[x][y]),
-               }
-               print("new cell!")
-               initCell(t)
-            end
-         end
-         return false
-      end)
-   end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 end
 
-function init(t)
+local function init(t)
 
    threadNum = t.threadNum
    getGrid = t.getGrid
    gridSize = t.gridSize
    initCell = t.initCell
    schema = t.schema
+
+   ENERGY = t.foodenergy
+
+
+
+
+
    print("t", inspect(t))
    allEated = 0
 end

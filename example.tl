@@ -1,3 +1,16 @@
+local type Rec = record
+    n: number
+    fun: function(number, number)
+end
+
+local r: Rec = {}
+
+function foo(init: Rec)
+    for k, v in pairs(init as {any:any}) do
+        --r[k] = v
+    end
+end
+
 --local record Node
     --{Node}
     --w: number
@@ -8,48 +21,3 @@
 --z[1] = {w = 1, n = "s"}
 --z.n = "a"
 
---[[ XXX Compiler bug.
-local function inRect(x: number)
-end
-
-local v = {}
---local v:any = {}
-table.insert(v, { 1, a = 0})
-for k, v in pairs(v) do
-    print(v[1])
-end
---]]
-
-local record Tool
-    foo: function()
-end
-
-local tools :{Tool} = {}
-
---local type Load = function(name: string): function(...: any): any..., string
-function myload(name: string): function(...: any): any..., string
-    print(name)
-end
-
---local chunk, errmsg: any, string = myload("bee")
---(chunk as function)()
-
-local a, b: string, string = "1", "2"
-print(a < b)
-
-local type Rec = record
-    fun: function(number, number)
-    fun: function(string)
-end
-local r: Rec
-
-function Rec.fun()
-    print("hihat")
-end
-
---r.fun = function(s: string)
---function r.fun(s: string)
-    --print("hi" .. s)
---end
-
-r.fun()

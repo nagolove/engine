@@ -72,8 +72,11 @@ local commonSetup: CommonSetup = {
     -- отключить создание пищи
     nofood = false,
     denergy = 1,
+    foodenergy = 10,
 }
 local maxCellsNum = 5000
+
+local gridLineWidth = 1
 
 local function getMode(): SimulatorMode
     return mode
@@ -85,36 +88,55 @@ function drawCells()
         for _, v in ipairs(drawlist) do
             if v.food then
                 gr.setColor(0, 1, 0)
-                gr.rectangle("fill", (v.x - 1)* pixSize, (v.y - 1) * pixSize, pixSize, pixSize)
+                local x, y = (v.x - 1)* pixSize, (v.y - 1) * pixSize
+                local w, h = pixSize, pixSize
+                gr.rectangle("fill", x, y, w, h)
             else
                 gr.setColor(0.5, 0.5, 0.5)
-                gr.rectangle("fill", (v.x - 1)* pixSize, (v.y - 1) * pixSize, pixSize, pixSize)
+                local x, y = (v.x - 1)* pixSize, (v.y - 1) * pixSize
+                local w, h = pixSize, pixSize
+                gr.rectangle("fill", x, y, w, h)
             end
         end
     end
 end
 
 function drawGrid()
-    if sim.getMode() == "stop" then
-        gr.setColor(1, 1, 1)
-        gr.print("No simulation", 100, 100)
-    else
+    --if sim.getMode() == "stop" then
+        --gr.setColor(1, 1, 1)
+        --gr.print("No simulation", 100, 100)
+    --else
+    do
         gr.setColor(0.5, 0.5, 0.5)
-        local gridSize = sim.getGridSize()
+        local gridSize = commonSetup.gridSize
 
         if not gridSize then
             return
         end
 
-        local schema = sim.getSchema()
+        --local schema = sim.getSchema()
+        local schema: MtSchema
+        local ok, errmsg: boolean, string = pcall(function()
+            schema = require "mtschemes"[commonSetup.threadCount]
+        end)
+        if not ok then
+            print("Could'not require 'mtschemes'")
+        end
+
+        local oldWidth = {gr.getColor()}
+        gr.setLineWidth(gridLineWidth)
         if schema then
-            for _, v in ipairs(sim.getSchema()) do
-                local dx, dy = v.draw[1] * pixSize * gridSize, v.draw[2] * pixSize * gridSize
-                for i = 0, sim.getGridSize() do
+            for _, v in pairs(schema as {any: any}) do
+                local dx, dy = (v as MtSchema).draw[1] * pixSize * gridSize, (v as MtSchema).draw[2] * pixSize * gridSize
+                for i = 0, gridSize do
                     -- vert
-                    gr.line(dx + i * pixSize, dy + 0, dx + i * pixSize, dy + gridSize * pixSize)
+                    local x1, y1 = math.floor(dx + i * pixSize), math.floor(dy + 0)
+                    local x2, y2 = math.floor(dx + i * pixSize), math.floor(dy + gridSize * pixSize)
+                    gr.line(x1, y1, x2, y2)
                     -- hor
-                    gr.line(dx + 0, dy + i * pixSize, dx + gridSize * pixSize, dy + i * pixSize)
+                    x1, y1 = dx + 0, dy + i * pixSize
+                    x2, y2= dx + gridSize * pixSize, dy + i * pixSize
+                    gr.line(x1, y1, x2, y2)
                 end
             end
         else
@@ -126,6 +148,7 @@ function drawGrid()
                 gr.line(dx + 0, dy + i * pixSize, dx + gridSize * pixSize, dy + i * pixSize)
             end
         end
+        gr.setLineWidth(table.unpack(oldWidth))
     end
 end
 
@@ -279,10 +302,13 @@ local function drawSim()
     commonSetup.nofood = imgui.Checkbox("no food", commonSetup.nofood)
 
     local status: boolean
+
     commonSetup.cellsNum, status = imgui.SliderFloat("initial population", commonSetup.cellsNum, 0, maxCellsNum)
     commonSetup.cellsNum = math.ceil(commonSetup.cellsNum)
 
     commonSetup.denergy, status = imgui.SliderFloat("decrease enerby by", commonSetup.denergy, 0, 1)
+
+    commonSetup.foodenergy, status = imgui.SliderFloat("food energy", commonSetup.foodenergy, 0, 10)
 
     if imgui.Button("reset silumation") then
         collectgarbage()

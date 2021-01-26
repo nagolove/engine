@@ -1,55 +1,12 @@
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local pairs = _tl_compat and _tl_compat.pairs or pairs; local Rec = {}
 
 
 
 
+local r = {}
 
+function foo(init)
+   for k, v in pairs(init) do
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-local Tool = {}
-
-
-
-local tools = {}
-
-
-function myload(name)
-   print(name)
+   end
 end
-
-
-
-
-local a, b = "1", "2"
-print(a < b)
-
-local Rec = {}
-
-
-
-local r
-
-function Rec.fun()
-   print("hihat")
-end
-
-
-
-
-
-
-r.fun()

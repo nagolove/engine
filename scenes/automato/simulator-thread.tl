@@ -136,12 +136,14 @@ function updateCell(cell: Cell): boolean, Cell
     end
     print("cell", cell.id, "energy", cell.energy)
     if cell.energy > 0 then
-        actions[cell.code[cell.ip]](cell)
+        local code = cell.code[cell.ip]
+        print("code", code)
+        actions[code](cell)
         cell.ip = cell.ip + 1
         cell.energy = cell.energy - initialSetup.denergy
         return true, cell
     else
-        print("cell died with energy", cell.energy)
+        print("cell died with energy", cell.energy, "moves", inspect(cell.moves))
         return false, cell
     end
 end
@@ -272,6 +274,7 @@ local function initCellOneCommandCode(command: string, steps: number)
   for i = 1, steps do
     table.insert(cell.code, command)
   end
+  print("cell.code", inspect(cell.code))
 end
 
 --[[ XXX Not compiled
@@ -336,60 +339,61 @@ local function updateMeal(meal: {Cell}): {Cell}
 end
 
 function experiment()
-  local initialEmitCoro: thread = coroutine.create(initialEmit)
+    local initialEmitCoro: thread = coroutine.create(initialEmit)
 
-  grid = getFalseGrid()
-  updateGrid()
-  statistic = gatherStatistic(cells)
-
-  coroutine.yield()
-
-  print("hello from coro")
-  print("#cells", #cells)
-
-  coroutine.resume(initialEmitCoro)
-  print("start with", #cells, "cells")
-
-  while #cells > 0 do
-
-    -- создание клеток
-    --if initialEmitCoro and not coroutine.resume(initialEmitCoro) then
-        --initialEmitCoro = nil
-    --end
-
-    --print("step", iter, " of thread", threadNum)
-    --print("#cells", #cells)
-
-    -- создать сколько-то еды
-    emitFood(iter)
-
-    -- проход по списку клеток и вызов их программ. уничтожение некоторых клеток
-    cells = updateCells(cells)
-
-    -- проход по списку еды и проверка на съеденность.
-    meal = updateMeal(meal)
-
-    -- сброс решетки
     grid = getFalseGrid()
-
-    -- обновление решетки по списку живых клеток и списку еды
     updateGrid()
+    statistic = gatherStatistic(cells)
 
-    -- обновить статистику за такт
-    --statistic = gatherStatistic()
-
-    iter = iter + 1
-
-    --print("cells", #cells)
-
-    -- можно возвращать сдесь какое-то состояние клеток из нити
-    --coroutine.yield(stepStatistic)
     coroutine.yield()
-  end
 
-  print("there is no cells in simulation")
-  -- здесь нить должна уснуть в цикле ??
-  
+    print("hello from coro")
+    print("#cells", #cells)
+
+    coroutine.resume(initialEmitCoro)
+    print("start with", #cells, "cells")
+
+    --while #cells > 0 do
+    while true do
+
+        -- создание клеток
+        --if initialEmitCoro and not coroutine.resume(initialEmitCoro) then
+        --initialEmitCoro = nil
+        --end
+
+        --print("step", iter, " of thread", threadNum)
+        --print("#cells", #cells)
+
+        -- создать сколько-то еды
+        emitFood(iter)
+
+        -- проход по списку клеток и вызов их программ. уничтожение некоторых клеток
+        cells = updateCells(cells)
+
+        -- проход по списку еды и проверка на съеденность.
+        meal = updateMeal(meal)
+
+        -- сброс решетки
+        grid = getFalseGrid()
+
+        -- обновление решетки по списку живых клеток и списку еды
+        updateGrid()
+
+        -- обновить статистику за такт
+        --statistic = gatherStatistic()
+
+        iter = iter + 1
+
+        print("cells", #cells)
+
+        -- можно возвращать сдесь какое-то состояние клеток из нити
+        --coroutine.yield(stepStatistic)
+        coroutine.yield()
+    end
+
+    print("there is no cells in simulation")
+    -- здесь нить должна уснуть в цикле ??
+
 --    saveDeadCellsLog(removed)
 end
 
@@ -476,9 +480,11 @@ end
 function commands.insertcell()
   local newcellfun, err = load(chan:pop() as string)
   if err then
-    error(err)
+    error(string.format("insertcell %s", err))
   end
   local newcell: Cell = newcellfun() as Cell
+  newcell.id = cellId
+  cellId = cellId + 1
   table.insert(cells, newcell)
 end
 
@@ -533,11 +539,12 @@ local function doSetup()
   coroutine.resume(experimentCoro)
 
   actionsModule.init({
+      threadNum = threadNum,
       getGrid = getGrid,
       gridSize = gridSize,
-      schema = schema,
-      threadNum = threadNum,
       initCell = initCell,
+      schema = schema,
+      foodenergy = initialSetup.foodenergy,
     })
 
   -- установка ссылки на таблицу действий - язык клетки.

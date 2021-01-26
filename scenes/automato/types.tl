@@ -35,6 +35,8 @@ global type CellActionsInit = record
     gridSize: number
     initCell: InitCellFunction
     schema: MtSchema
+    -- сколько прибавляется энергии за съеденную еду
+    foodenergy: number
 end
 
 global type Statistic = record
@@ -60,6 +62,7 @@ global type CommonSetup = record
     codeLen: number
     nofood: boolean
     denergy: number
+    foodenergy: number
 end
 
 global type ThreadCommandsStore = record

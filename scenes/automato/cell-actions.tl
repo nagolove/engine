@@ -31,10 +31,12 @@ local schema: MtSchema
 -- текущий номер потока
 local threadNum: number
 
-function isAlive(x: number, y: number, threadNum: number|nil): boolean
+local function isAlive(x: number, y: number, threadNum: number|nil): boolean
     local t = getGrid()[x][y]
     return t.energy and t.energy > 0
 end
+
+local init: CellActionsInit = {}
 
 -- записать текущее положение клетки в ее табличку передвижений
 local function pushPosition(cell: Cell)
@@ -59,7 +61,10 @@ local function isAliveNeighbours(x: number, y: number, threadNum: number): boole
     msgChan:push("isalive")
     msgChan:push(x)
     msgChan:push(y)
-    local state: boolean = love.thread.getChannel("request" .. threadNum):demand() as boolean
+    --local state: boolean = love.thread.getChannel("request" .. threadNum):demand() as boolean
+    local state: boolean = love.thread.getChannel("request" .. threadNum):demand(0.1) as boolean
+    print(state)
+    assert(state ~= nil)
     return state
 end
 
@@ -77,12 +82,12 @@ function actions.left(cell: Cell)
     --print("cell", inspect(cell))
     if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
         pos.x = pos.x - 1
-    elseif pos.x <= 1 and not isAlive(gridSize, pos.y, schema.l) then
+    --elseif pos.x <= 1 and not isAlive(gridSize, pos.y, schema.l) then
     --print("schema", inspect(schema))
-    --elseif pos.x <= 1 and not isAliveNeighbours(gridSize, pos.y, schema.l) then
-        getGrid()[cell.pos.x][cell.pos.y].energy = 0
+    elseif pos.x <= 1 and not isAliveNeighbours(gridSize, pos.y, schema.l) then
+        --getGrid()[cell.pos.x][cell.pos.y].energy = 0
         pos.x = gridSize
-        moveCellToThread(cell, schema.l)
+        --moveCellToThread(cell, schema.l)
     end
 end
 
@@ -251,7 +256,7 @@ end
 -- исключить влияние порядка обхода клеток.
 global type NeighboursCallback = function(number, number, any): boolean
 
-function listNeighbours(x: number, y: number, cb: NeighboursCallback)
+local function listNeighbours(x: number, y: number, cb: NeighboursCallback)
     for _, displacement in ipairs(around) do
         local nx, ny = x + displacement[1], y + displacement[2]
         if nx >= 1 and nx < gridSize and ny >= 1 and ny < gridSize then
@@ -263,7 +268,7 @@ function listNeighbours(x: number, y: number, cb: NeighboursCallback)
 end
 
 -- return code, not cell
-function mixCode(cell1: Cell, cell2: Cell): {string}
+local function mixCode(cell1: Cell, cell2: Cell): {string}
     local rnd = math.random()
     local first, second: Cell, Cell
     if rnd > 0.5 then
@@ -291,7 +296,7 @@ function mixCode(cell1: Cell, cell2: Cell): {string}
     return newcode
 end
 
-function test_mixCode()
+local function test_mixCode()
     math.randomseed(love.timer.getTime())
     print("mixCode", inspect(mixCode({code={"left", "right", "up"}},
     {code={"eat", "eat", "eat"}})))
@@ -307,7 +312,7 @@ end
 -- возвращает true если найдена пустая клетка, {x, y} координаты.
 -- иначе false
 -- XXX not tested anymore
-function findFreePos(x: number, y: number): boolean, Pos
+local function findFreePos(x: number, y: number): boolean, Pos
     local pos: Pos = {}
     listNeighbours(x, y, function(xp: number, yp: number, value: Cell): boolean
         if (not value.energy) and (not value.food) then
@@ -322,6 +327,7 @@ end
 
 -- если достаточно энергии(>0), то клетка
 function actions.cross(cell: Cell)
+    --[[
     if cell.energy > 0 then
         cell.wantdivide = true
         listNeighbours(cell.pos.x, cell.pos.y, function(x: number, y: number, value: Cell): boolean
@@ -339,15 +345,23 @@ function actions.cross(cell: Cell)
             return false
         end)
     end
+    --]]
 end
 
-function init(t: CellActionsInit)
+local function init(t: CellActionsInit)
     --assert(type(getGridFunc) == "function")
     threadNum = t.threadNum
     getGrid = t.getGrid
     gridSize = t.gridSize
     initCell = t.initCell
     schema = t.schema
+
+    ENERGY = t.foodenergy
+    -- FIXME
+    --for k, v in pairs(t as table) do
+        --init[k] = v
+    --end
+
     print("t", inspect(t))
     allEated = 0
 end

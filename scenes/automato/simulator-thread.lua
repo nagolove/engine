@@ -136,12 +136,14 @@ function updateCell(cell)
    end
    print("cell", cell.id, "energy", cell.energy)
    if cell.energy > 0 then
-      actions[cell.code[cell.ip]](cell)
+      local code = cell.code[cell.ip]
+      print("code", code)
+      actions[code](cell)
       cell.ip = cell.ip + 1
       cell.energy = cell.energy - initialSetup.denergy
       return true, cell
    else
-      print("cell died with energy", cell.energy)
+      print("cell died with energy", cell.energy, "moves", inspect(cell.moves))
       return false, cell
    end
 end
@@ -272,6 +274,7 @@ local function initCellOneCommandCode(command, steps)
    for i = 1, steps do
       table.insert(cell.code, command)
    end
+   print("cell.code", inspect(cell.code))
 end
 
 
@@ -350,7 +353,8 @@ function experiment()
    coroutine.resume(initialEmitCoro)
    print("start with", #cells, "cells")
 
-   while #cells > 0 do
+
+   while true do
 
 
 
@@ -380,7 +384,7 @@ function experiment()
 
       iter = iter + 1
 
-
+      print("cells", #cells)
 
 
 
@@ -476,9 +480,11 @@ end
 function commands.insertcell()
    local newcellfun, err = load(chan:pop())
    if err then
-      error(err)
+      error(string.format("insertcell %s", err))
    end
    local newcell = newcellfun()
+   newcell.id = cellId
+   cellId = cellId + 1
    table.insert(cells, newcell)
 end
 
@@ -533,11 +539,12 @@ local function doSetup()
    coroutine.resume(experimentCoro)
 
    actionsModule.init({
+      threadNum = threadNum,
       getGrid = getGrid,
       gridSize = gridSize,
-      schema = schema,
-      threadNum = threadNum,
       initCell = initCell,
+      schema = schema,
+      foodenergy = initialSetup.foodenergy,
    })
 
 
