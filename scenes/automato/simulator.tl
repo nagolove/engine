@@ -28,9 +28,11 @@ function Simulator.getDrawLists(): {DrawNode}
     for k, _ in ipairs(threads) do
         local chan = love.thread.getChannel("data" .. k)
         if chan then
-            local sublist: {DrawNode} = chan:demand() as {DrawNode}
-            for _, v1 in ipairs(sublist) do
-                table.insert(list, v1)
+            local sublist: {DrawNode} = chan:demand(0.1) as {DrawNode}
+            if sublist then
+                for _, v1 in ipairs(sublist) do
+                    table.insert(list, v1)
+                end
             end
         end
     end

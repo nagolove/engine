@@ -28,9 +28,11 @@ function Simulator.getDrawLists()
    for k, _ in ipairs(threads) do
       local chan = love.thread.getChannel("data" .. k)
       if chan then
-         local sublist = chan:demand()
-         for _, v1 in ipairs(sublist) do
-            table.insert(list, v1)
+         local sublist = chan:demand(0.1)
+         if sublist then
+            for _, v1 in ipairs(sublist) do
+               table.insert(list, v1)
+            end
          end
       end
    end

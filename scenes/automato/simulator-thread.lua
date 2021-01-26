@@ -399,15 +399,6 @@ end
 
 local experimentErrorPrinted = false
 
-local function step()
-   local ok, errmsg = coroutine.resume(experimentCoro)
-   if not ok and not experimentErrorPrinted then
-      experimentErrorPrinted = true
-      stop = true
-      print(string.format("coroutine error %s", errmsg))
-   end
-end
-
 
 local function getGrid()
    return grid
@@ -551,30 +542,45 @@ local function doSetup()
    actions = actionsModule.actions
 end
 
+local free = false
+
+local function step()
+   local ok, errmsg = coroutine.resume(experimentCoro)
+   if not ok and not experimentErrorPrinted then
+      experimentErrorPrinted = true
+      free = true
+      print(string.format("coroutine error %s", errmsg))
+   end
+end
+
 local function main()
    local syncChan = love.thread.getChannel("sync")
    while not stop do
       popCommand()
 
-      if checkStep then
-         if doStep then
+      if not free then
+         if checkStep then
+            if doStep then
+               step()
+            end
+            love.timer.sleep(0.02)
+         else
             step()
          end
-         love.timer.sleep(0.02)
+         pushDrawList()
+
+         local syncMsg = syncChan:demand(0.001)
+
+
+
+
+         doStep = false
+
+         local iterChan = love.thread.getChannel("iter")
+         iterChan:push(iter)
       else
-         step()
+         love.timer.sleep(0.02)
       end
-      pushDrawList()
-
-      local syncMsg = syncChan:demand(0.001)
-
-
-
-
-      doStep = false
-
-      local iterChan = love.thread.getChannel("iter")
-      iterChan:push(iter)
    end
 end
 
