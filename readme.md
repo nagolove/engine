@@ -1,3 +1,9 @@
+Game engine core for on top of love2d.
+
+Project structure:
+  scenes - sub projects 'aka' scenes
+
+
 Циклическая зависимость при загрузке сцен.
 Файлы тулов не нужны на всех сценах.
 Сделать тулы отдельными. Также может быть проблема с imgui при рисовании в 
