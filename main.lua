@@ -20,6 +20,9 @@ local function bindKeys()
         print("tools toggle")
         showHelp = not showHelp
     end, "show hotkeys")
+    keyconfig.bindKeyPressed("nope", {"f2"}, function()
+        print("keybind example")
+    end, "keybind example")
 end
 
 function love.load(arg)

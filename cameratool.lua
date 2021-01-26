@@ -34,28 +34,30 @@ function drawCameraInfo()
 end
 
 local function update()
-    local isDown = love.keyboard.isDown
-    if cam then
-        local camSpeed = 25 / cam.scale
-
-        if isDown("lshift") then
-            if isDown("left") then
-                cam:move(-camSpeed, 0)
-            elseif isDown("up") then
-                cam:move(0, -camSpeed)
-            elseif isDown("right") then
-                cam:move(camSpeed, 0)
-            elseif isDown("down") then
-                cam:move(0, camSpeed)
-            end
-        end
-
-        if isDown("z") then
-            cam:zoom(1.01)
-        elseif isDown("x") then
-            cam:zoom(0.99)
-        end
-    end
+--[[
+   [    local isDown = love.keyboard.isDown
+   [    if cam then
+   [        local camSpeed = 25 / cam.scale
+   [
+   [        if isDown("lshift") then
+   [            if isDown("left") then
+   [                cam:move(-camSpeed, 0)
+   [            elseif isDown("up") then
+   [                cam:move(0, -camSpeed)
+   [            elseif isDown("right") then
+   [                cam:move(camSpeed, 0)
+   [            elseif isDown("down") then
+   [                cam:move(0, camSpeed)
+   [            end
+   [        end
+   [
+   [        if isDown("z") then
+   [            cam:zoom(1.01)
+   [        elseif isDown("x") then
+   [            cam:zoom(0.99)
+   [        end
+   [    end
+   ]]
 end
 
 return {

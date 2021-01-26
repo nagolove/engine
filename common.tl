@@ -1,4 +1,13 @@
 require "camera"
+
+function shallowCopy<T>(t: T): T
+   local copy = {}
+   for k, v in pairs(t as {any:any}) do
+      copy[k] = v
+   end
+   return copy as T
+end
+
 --function shallowCopy(t)
     --local res = {}
     --for k, v in pairs(t) do
