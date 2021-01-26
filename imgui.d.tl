@@ -12,6 +12,7 @@ global type Imgui = record
     KeyPressed: function(string)
     Checkbox: function(string, boolean): boolean
     SliderFloat: function(label: string, v: number, min: number, max: number, display_format: string): number, boolean
+    SliderInt: function(string, number, number, number): number, boolean
 end
 
 return Imgui
