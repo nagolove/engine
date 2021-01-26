@@ -31,7 +31,8 @@ local schema
 
 local threadNum
 
-local function isAlive(x, y, threadNum)
+
+local function isAlive(x, y)
    local t = getGrid()[x][y]
    return t.energy and t.energy > 0
 end
@@ -82,9 +83,9 @@ function actions.left(cell)
 
    if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
       pos.x = pos.x - 1
+   elseif pos.x <= 1 and not isAlive(gridSize, pos.y) then
 
 
-   elseif pos.x <= 1 and not isAliveNeighbours(gridSize, pos.y, schema.l) then
 
       pos.x = gridSize
 

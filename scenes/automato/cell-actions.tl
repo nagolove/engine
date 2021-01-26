@@ -31,7 +31,8 @@ local schema: MtSchema
 -- текущий номер потока
 local threadNum: number
 
-local function isAlive(x: number, y: number, threadNum: number|nil): boolean
+--local function isAlive(x: number, y: number, threadNum: number|nil): boolean
+local function isAlive(x: number, y: number): boolean
     local t = getGrid()[x][y]
     return t.energy and t.energy > 0
 end
@@ -82,9 +83,9 @@ function actions.left(cell: Cell)
     --print("cell", inspect(cell))
     if pos.x > 1 and not isAlive(pos.x - 1, pos.y) then
         pos.x = pos.x - 1
-    --elseif pos.x <= 1 and not isAlive(gridSize, pos.y, schema.l) then
+    elseif pos.x <= 1 and not isAlive(gridSize, pos.y) then
     --print("schema", inspect(schema))
-    elseif pos.x <= 1 and not isAliveNeighbours(gridSize, pos.y, schema.l) then
+    --elseif pos.x <= 1 and not isAliveNeighbours(gridSize, pos.y, schema.l) then
         --getGrid()[cell.pos.x][cell.pos.y].energy = 0
         pos.x = gridSize
         --moveCellToThread(cell, schema.l)
