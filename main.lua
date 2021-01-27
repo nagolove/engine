@@ -59,6 +59,7 @@ end
 function love.update(dt)
   --tools.update()
   keyconfig.updateList(dt)
+  keyconfig.checkDownKeys()
   collectGarbage()
   scenes.update(dt)
 end
