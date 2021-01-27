@@ -121,6 +121,9 @@ local function initOne(name)
    local chunk = love.filesystem.load(path)
    local node = {}
    node.scene = chunk()
+   if node.scene.init then
+      node.scene.init()
+   end
    node.name = name
    node.inited = true
    table.insert(scenes, node)
