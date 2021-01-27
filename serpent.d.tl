@@ -3,6 +3,6 @@ local type Serpent = record
     dump: function(a: any, opts: any): string
     line: function(a: any, opts: any): string
     block: function(a: any, opts: any): string
-    load: function(string): Function
+    load: function(string): boolean, Function
 end
 return Serpent
