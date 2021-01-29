@@ -21,3 +21,6 @@ end
 --z[1] = {w = 1, n = "s"}
 --z.n = "a"
 
+--local file: FILE
+--file = io.open("test.txt", "w")
+--file:write("great")

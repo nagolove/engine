@@ -4,6 +4,8 @@
     t.window.fullscreen = true
     --t.window.width = 1024
     --t.window.height = 768
+    t.window.borderless = true         -- Remove all border visuals from the window (boolean)
+
     t.console = true
 
     t.identity = nil                    -- The name of the save directory (string)
@@ -19,7 +21,6 @@
 
     t.window.title = "Untitled"         -- The window title (string)
     t.window.icon = nil                 -- Filepath to an image to use as the window's icon (string)
-    t.window.borderless = true         -- Remove all border visuals from the window (boolean)
     t.window.resizable = false          -- Let the window be user-resizable (boolean)
     t.window.minwidth = 1               -- Minimum window width if the window is resizable (number)
     t.window.minheight = 1              -- Minimum window height if the window is resizable (number)
