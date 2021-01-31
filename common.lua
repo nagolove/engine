@@ -8,14 +8,6 @@ function shallowCopy(t)
    return copy
 end
 
-
-
-
-
-
-
-
-
  Scene = {}
 
 

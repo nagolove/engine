@@ -8,14 +8,6 @@ function shallowCopy<T>(t: T): T
    return copy as T
 end
 
---function shallowCopy(t)
-    --local res = {}
-    --for k, v in pairs(t) do
-        --res[k] = v
-    --end
-    --return res
---end
-
 global type Scene = record
     init: function()
     quit: function()

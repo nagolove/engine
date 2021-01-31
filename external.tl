@@ -1,14 +1,7 @@
 require "love"
 require "camera"
 
-function copy<T>(t:T):T
-    local result = {}
-    for k, v in pairs(t as {any: any}) do
-        result[k] = v
-    end
-    return result as T
-end
-
+-- удалить или переписать
 function flatCopy(src: table): table
     local dst = {}
     for k, v in pairs(src) do
