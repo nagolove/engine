@@ -58,7 +58,7 @@ local function draw()
          end
       end
       love.graphics.setColor({ 1, 1, 1 })
-      imgui.Render()
+      imgui.Render();
    end
 end
 

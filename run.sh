@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
-#tl build && love .
-tl build && nlove .
+TL="~/projects/tl-master/tl"
+eval $TL --version
+eval $TL build && love .
+#tl build && nlove .
