@@ -10,3 +10,27 @@ function foo(init)
 
    end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function zoo()
+   return "blah", -1
+end
+
+function goo(s)
+   print(s)
+end
+
+goo(zoo)

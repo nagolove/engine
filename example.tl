@@ -24,3 +24,14 @@ end
 --local file: FILE
 --file = io.open("test.txt", "w")
 --file:write("great")
+
+function zoo(): string, number
+return "blah", -1
+end
+
+function goo(s: string)
+print(s)
+end
+
+goo(zoo as string)
+--goo(zoo())
