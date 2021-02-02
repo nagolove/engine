@@ -40,6 +40,7 @@ qtree.lua \
 render_scene.lua \
 scale.lua \
 scenes/automato/* \
+scenes/empty/* \
 scenes.lua \
 scenetool.lua \
 serpent.lua \

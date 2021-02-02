@@ -27,13 +27,16 @@ end
 
 function love.load(arg)
     bindKeys()
+
     --scenes.loadScenes("scenes")
     --scenes.initLoaded()
 
     --scenes.initOne("selector")
     --scenes.setCurrentScene("selector")
+    
+    scenes.initOne(arg[1] or "empty")
 
-    scenes.initOne("automato")
+    --scenes.initOne("automato")
     --scenes.setCurrentScene("automato")
 
     --scenes.initOne("fractaltree")

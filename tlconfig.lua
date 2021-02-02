@@ -6,6 +6,7 @@ return {
     include = {
         "*.tl",
         "scenes/automato/*.tl",
+        "scenes/empty/*.tl",
         --"scenes/automato_test/*.tl",
         "scenes/hst_reader/*.tl",
         --"../../*.tl",

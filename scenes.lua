@@ -120,6 +120,9 @@ local function initOne(name)
    print("initOne", path)
    local chunk = love.filesystem.load(path)
    local node = {}
+   if not chunk then
+      error("Could not load '" .. path .. "'")
+   end
    node.scene = chunk()
    if node.scene.init then
       node.scene.init()
