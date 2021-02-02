@@ -2,6 +2,11 @@
 
 ./compile.sh
 
+if [ $? -ne 0 ]
+then
+    exit
+fi
+
 apack game.zip \
 addline2mesh.lua \
 ansicolors.lua \
