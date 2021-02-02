@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+./compile.sh
+
 apack game.zip \
 addline2mesh.lua \
 ansicolors.lua \
@@ -53,6 +55,26 @@ terraintool.lua \
 Timer.lua \
 tools.lua \
 vector-light.lua \
-vector.lua
+vector.lua \
+jprof.lua \
+MessagePack.lua
 
+
+CURRENT_DIR=$(pwd)
+echo $CURRENT_DIR
+
+LOVE_ANDROID=/home/testuser/projects/love-android
 mv game.zip game.love
+cp game.love $LOVE_ANDROID/app/src/main/assets/game.love
+pushd $LOVE_ANDROID
+
+./gradlew bundleEmbed
+./gradlew assembleEmbed
+
+cp app/build/outputs/bundle/embedDebug/app-embed-debug.aab $CURRENT_DIR
+cp app/build/outputs/apk/embed/debug/app-embed-debug.apk $CURRENT_DIR
+
+popd
+adb uninstall org.love2d.android.embed
+adb install ./app-embed-debug.apk
+

@@ -1,5 +1,5 @@
 require "love"
-love.filesystem.setRequirePath("scenes/empty/?.lua")
+love.filesystem.setRequirePath("?.lua;scenes/empty/?.lua")
 
 --require "external"
 --require "common"

@@ -2,13 +2,14 @@
 
 -- :setlocal foldmethod=manual
 local imgui = require "imgui"
-local tools = require "tools"
-local keyconfig = require "keyconfig"
-require "log"
---require "menu"
+print("package.path", package.path)
 
 local inspect = require "inspect"
+local keyconfig = require "keyconfig"
 local scenes = require "scenes"
+local tools = require "tools"
+
+require "log"
 local gr = love.graphics
 
 __FREEZE_PHYSICS__ = true
@@ -34,7 +35,11 @@ function love.load(arg)
     --scenes.initOne("selector")
     --scenes.setCurrentScene("selector")
     
-    scenes.initOne(arg[1] or "empty")
+    if love.system.getOS() == "Android" then
+        scenes.initOne("automato")
+    else
+        scenes.initOne(arg[1] or "empty")
+    end
 
     --scenes.initOne("automato")
     --scenes.setCurrentScene("automato")
