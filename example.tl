@@ -35,3 +35,17 @@ end
 
 goo(zoo as string)
 --goo(zoo())
+
+local t = {
+    "hi",
+    "0",
+    "num",
+}
+
+print(table.concat(t))
+
+--[[
+function blah(): number|string
+end
+local n: number = blah()
+--]]
