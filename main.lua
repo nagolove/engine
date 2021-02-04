@@ -26,7 +26,27 @@ local function bindKeys()
     end, "keybind example")
 end
 
+function printGraphicsInfo()
+    local name, version, vendor, device = love.graphics.getRendererInfo( )
+    print(name, version, vendor, device)
+    local stats = love.graphics.getStats( )
+    print("stats", inspect(stats))
+    local features = love.graphics.getSupported( )
+    print("features", inspect(features))
+    local limits = love.graphics.getSystemLimits( )
+    print("limits", inspect(limits))
+    local texturetypes = love.graphics.getTextureTypes( )
+    print("texturetypes", inspect(texturetypes))
+    --local pointsize = love.graphics.getMaxPointSize( )
+    --print("pointsize", inspect(features))
+    local imageformats = love.graphics.getImageFormats( ) 
+    print("imageformats", inspect(imageformats))
+    local canvasformats = love.graphics.getCanvasFormats( )
+    print("canvasformats", inspect(canvasformats))
+end
+
 function love.load(arg)
+    printGraphicsInfo()
     bindKeys()
 
     --scenes.loadScenes("scenes")
