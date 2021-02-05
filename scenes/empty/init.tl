@@ -1,5 +1,6 @@
 require "love"
-love.filesystem.setRequirePath("?.lua;scenes/empty/?.lua")
+love.filesystem.setRequirePath("?.lua;?/init.lua;scenes/empty/?.lua")
+local i18n = require "i18n"
 
 --require "external"
 --require "common"
@@ -35,6 +36,19 @@ local function keypressed(key: string)
 end
 
 local function init()
+    i18n.set('en.welcome', 'welcome to this program')
+    i18n.load({
+        en = {
+            good_bye = "good-bye!",
+            age_msg = "your age is %{age}.",
+            phone_msg = {
+                one = "you have one new message.",
+                other = "you have %{count} new messages."
+            }
+        }
+    })
+    print("translated", i18n.translate('welcome'))
+    print("translated", i18n('welcome'))
 end
 
 local function quit()
