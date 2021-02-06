@@ -49,3 +49,4 @@ function blah(): number|string
 end
 local n: number = blah()
 --]]
+
