@@ -26,7 +26,7 @@ local function draw()
     gr.print("TestTest")
 end
 
-local function update(dt: number)
+local function update()
 end
 
 local function keypressed(key: string)
@@ -54,11 +54,11 @@ end
 local function quit()
 end
 
-local function mousemoved(x: number, y: number, _: number, _: number)
-end
+--local function mousemoved(x: number, y: number, _: number, _: number)
+--end
 
-local function wheelmoved(x: number, y: number)
-end
+--local function wheelmoved(x: number, y: number)
+--end
 
 return {
     init = init,
@@ -67,8 +67,8 @@ return {
     drawui = drawui,
     update = update,
     keypressed = keypressed,
-    mousemoved = mousemoved,
-    wheelmoved = wheelmoved
+    --mousemoved = mousemoved,
+    --wheelmoved = wheelmoved
 }
 
 

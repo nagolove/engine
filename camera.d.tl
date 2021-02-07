@@ -13,6 +13,7 @@ global type Camera = record
     detach: function(Camera)
     worldCoords: function(Camera, number, number, number|nil, number:nil, number:nil, number:nil): number, number
     zoom: function(Camera, number)
+    lookAt: function(Camera, number, number)
 end
 
 return Camera

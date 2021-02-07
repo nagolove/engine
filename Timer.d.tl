@@ -1,6 +1,6 @@
 global type DuringFunc = function(dt: number, time: number, delay: number)
 
-local type Timer = record
+global type Timer = record
     new: function(): Timer
     update: function(Timer, number)
     after: function(self: Timer, delay: number, action: function(number), tag:string)

@@ -20,6 +20,7 @@ return {
         --"scenes/automato/simulator-thread.tl",
         --"tools.tl",
         --"scenes/automato/*.tl",
+        "scenes/nback2/*.tl",
         "scenes/hst_reader/*.tl",
         "main.tl",
         "crash*.tl",

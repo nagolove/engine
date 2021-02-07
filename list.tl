@@ -174,7 +174,7 @@ function List:mousepressed(x: number, y: number, b: number): boolean
 
     if inside(x, y, self.x + 2, self.y + 1, self.width - 3, self.height - 3) then
         if type(self.onclick) == "function" then 
-            local tx, ty = x - self.x, y + self:getOffset() - self.y
+            local _, ty = x - self.x, y + self:getOffset() - self.y
             local index = math.floor((ty / self.sum_item_height) * #self.items)
             local item = self.items[index + 1]
             if item then
@@ -206,7 +206,7 @@ function List:mousemoved(x: number, y: number, dx: number, dy: number)
     end
 
     if inside(x, y, self.x + 2, self.y + 1, self.width - 3, self.height - 3) then
-        local tx, ty = x - self.x, y + self:getOffset() - self.y
+        local _, ty = x - self.x, y + self:getOffset() - self.y
         local index = math.floor((ty / self.sum_item_height) * #self.items)
         self.hoveritem = index + 1
         local item = self.items[index + 1]

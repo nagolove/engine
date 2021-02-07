@@ -31,13 +31,13 @@ local tools: {Tool} = loadTools()
 
 local devshow: boolean
 
-local function initTools(currentScene: Scene)
-    for _, v in ipairs(tools) do
-        if v.init then
-            v.init(currentScene)
-        end
-    end
-end
+--local function initTools(currentScene: Scene)
+    --for _, v in ipairs(tools) do
+        --if v.init then
+            --v.init(currentScene)
+        --end
+    --end
+--end
 
 local function update()
     if devshow then

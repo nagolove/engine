@@ -34,13 +34,12 @@ Calls of push() and pushi() can be chained:
 require "love"
 local g = love.graphics
 
-local record Kons 
+local record kons 
     type Item = record
         text: string
         lifetime: number
         timestamp: number
     end
-    --__index: Kons
     color: {number}
     show: boolean
     strings: {Item}
@@ -49,22 +48,28 @@ local record Kons
     strings_i_num: number
     height: number
 
-    new: function(): Kons
-    clear: function(Kons)
-    push: function(Kons, number, string, ...:any): Kons
-    pushi: function(Kons, string, ...: any): Kons
-    draw: function(Kons, x0: number, y0: number)
-    update: function()
+    new: function(): kons
+    clear: function(kons)
+    push: function(kons, number, string, ...:any): kons
+    pushi: function(kons, string, ...: any): kons
+    draw: function(kons, x0: number, y0: number)
+    update: function(kons)
+
+    --__call: function(kons): kons
 end
 
-local kons: Kons = {}
---kons.__index = kons
-local kons_mt: metatable<Kons> = {
-    __index = kons
+local kons_mt: metatable<kons> = {
+    --__call: function(kons): kons
 }
 
-function kons.new(): Kons
-    local self: Kons = {
+kons_mt.__index = kons
+
+function kons_mt.__call(self: kons): kons
+    return self.new()
+end
+
+function kons.new(): kons
+    local inst = {
         color = {1, 1, 1},
         show = true,
         strings = {},
@@ -72,7 +77,7 @@ function kons.new(): Kons
         strings_num = 0,
         strings_i_num = 0,
     }
-    return setmetatable(self, kons_mt) as Kons
+    return setmetatable(inst as kons, kons_mt) 
 end
 
 function kons:clear()
@@ -82,7 +87,7 @@ function kons:clear()
     self.strings_num = 0
 end
 
-function kons:push(lifetime: number, text: string, ...: any): Kons
+function kons:push(lifetime: number, text: string, ...: any): kons
     if type(lifetime) ~= "number" then
         error("First argument - cardinal value of text lifetime.")
     end
@@ -96,7 +101,7 @@ function kons:push(lifetime: number, text: string, ...: any): Kons
     return self
 end
 
-function kons:pushi(text: string, ...: any): Kons
+function kons:pushi(text: string, ...: any): kons
     self.strings_i[self.strings_i_num + 1] = string.format(text, ...)
     self.strings_i_num = self.strings_i_num + 1
     return self
@@ -131,7 +136,7 @@ function kons:draw(x0: number, y0: number)
 end
 
 function kons:update()
-    for k, v in pairs(self.strings) do
+    for k, v in ipairs(self.strings) do
         local time = love.timer.getTime()
         v.lifetime = v.lifetime  - (time - v.timestamp)
         if v.lifetime <= 0 then
@@ -144,7 +149,8 @@ function kons:update()
     end
 end
 
---return kons
-return setmetatable(kons, { __call = function(cls, ...)
-    return cls.new(...)
-end})
+--return setmetatable(kons, { __call = function(cls, ...)
+    --return cls.new(...)
+--end})
+
+return kons
