@@ -1,3 +1,4 @@
+require "love"
 require "camera"
 
 function shallowCopy<T>(t: T): T
@@ -6,6 +7,15 @@ function shallowCopy<T>(t: T): T
       copy[k] = v
    end
    return copy as T
+end
+
+local type anyFunc = function(any): any
+function my_setfenv(f: anyFunc, env: {any: any}): anyFunc, string
+    return load(string.dump(f), nil, nil, env)
+end
+
+function pointInRect(px: number, py: number, x: number, y: number, w: number, h: number): boolean
+    return px > x and py > y and px < x + w and py < y + h
 end
 
 global type Scene = record
@@ -38,3 +48,10 @@ global type Tool = record
     mousereleased: function(number, number, number)
     mousepressed: function(number, number, number)
 end
+
+function safeSend(shader: love.graphics.Shader, name: string, ...: any)
+  if shader:hasUniform(name) then
+    shader:send(name, (... as table))
+  end
+end
+

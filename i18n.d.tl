@@ -1,8 +1,10 @@
 local type i18n = record
+    type LoadCallback = function(any): any
     reset: function()
-    loadFile: function(path: string)
+    loadFile: function(path: string, callback: LoadCallback)
     load: function(data: any)
     getLocale: function(): string
+    setLocale: function(string)
     getFallbackLocale: function(): string
     setFallbackLocale: function(string)
     translate: function(key: string, data: any): string

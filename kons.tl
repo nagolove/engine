@@ -60,6 +60,7 @@ end
 
 local kons_mt: metatable<kons> = {
     --__call: function(kons): kons
+    --__call: function(kons): kons
 }
 
 kons_mt.__index = kons

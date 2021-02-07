@@ -2,6 +2,7 @@ return {
     include_dir = {
         "scenes/automato/",
         "scenes/nback2/",
+        "scenes/nback2/libs/",
         --"scenes/automato_test/",
     },
     include = {
@@ -20,7 +21,7 @@ return {
         --"scenes/automato/simulator-thread.tl",
         --"tools.tl",
         --"scenes/automato/*.tl",
-        "scenes/nback2/*.tl",
+        --"scenes/nback2/*.tl",
         "scenes/hst_reader/*.tl",
         "main.tl",
         "crash*.tl",

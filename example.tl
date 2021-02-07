@@ -128,3 +128,35 @@ end
 local did: kons = {}
 print(did)
 --]]
+
+--local type anyFunc = function(any): any
+--function my_setfenv(f: anyFunc, env: {any: any}): anyFunc, string
+    --return load(string.dump(f), nil, nil, env)
+--end
+
+--local code = [[
+    --print("hi")
+--]]
+--local chunk = load(code)
+--my_setfenv(chunk, { ["print"] = print})
+
+--local type Table = record
+    --x: number
+    --y: number
+--end
+
+--function checkHelper(tbl: Table): boolean
+    --local x, y = 1, 1
+    ----return tbl.x and tbl.y
+    --return x and y
+--end
+
+--print(checkHelper({x=0,y=0,w=1,h=1}))
+
+function foo(n)
+    local t = {}
+    for i = 1, n do
+        table.insert(t, 0)
+    end
+    return table.unpack(t)
+end

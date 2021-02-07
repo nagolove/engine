@@ -175,10 +175,14 @@ function i18n.load(data)
   recursiveLoad(nil, data)
 end
 
-function i18n.loadFile(path)
-  local chunk = assert(loadfile(path))
+function i18n.loadFile(path, callback)
+  local chunk
+  if callback == nil then
+    chunk = assert(loadfile(path))
+  else
+    chunk = assert(callback(path))
+  end
   local data = chunk()
-  i18n.load(data)
 end
 
 setmetatable(i18n, {__call = function(_, ...) return i18n.translate(...) end})
