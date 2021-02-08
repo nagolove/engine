@@ -153,10 +153,45 @@ print(did)
 
 --print(checkHelper({x=0,y=0,w=1,h=1}))
 
-function foo(n)
+function foo(n): number...
     local t = {}
     for i = 1, n do
         table.insert(t, 0)
     end
     return table.unpack(t)
 end
+
+local type Date = record
+    year : number
+    month : number
+    day : number
+    hour : number
+    min : number
+    sec : number
+    wday : number
+    yday : number
+    isdst : boolean
+end
+
+local d: Date = os.date("*t")
+print(d)
+--print(os.date("*t"))
+
+local type Rec = record
+x: number
+metamethod __call: function(Rec, string, number): string
+metamethod __add: function(Rec, Rec): Rec
+end
+
+local rec_mt: metatable<Rec>
+rec_mt = {
+__call = function(self: Rec, s: string, n: number): string
+   return tostring(self.x * n) .. s
+end,
+__add = function(a: Rec, b: Rec): Rec
+   local res = setmetatable({} as Rec, rec_mt)
+   res.x = a.x + b.x
+   return res
+end,
+}
+
