@@ -35,6 +35,10 @@ global type vector = record
     metamethod __mul: function(a: vector|number,b: vector|number): vector|number
     -- XXX any hack
     metamethod __add: function(a: vector,b: any): vector
+    metamethod __sub: function(a: vector,b: any): vector
+    metamethod __call : function(_: vector, x:number, y:number): vector
+
+    isvector: function(vector): boolean
 end
 
 local vector_mt: metatable<vector> = {
@@ -66,6 +70,10 @@ local function isvector(v: vector): boolean
     return type(v) == 'table' and type(v.x) == 'number' and type(v.y) == 'number'
 end
 
+function vector.isvector(v: vector): boolean
+    return type(v) == 'table' and type(v.x) == 'number' and type(v.y) == 'number'
+end
+
 function vector:clone(): vector
     return new(self.x, self.y)
 end
@@ -76,6 +84,10 @@ end
 
 function vector:__tostring(): string
     return "("..tonumber(self.x)..","..tonumber(self.y)..")"
+end
+
+function vector.__call(_: vector, x:number, y:number): vector
+    return new(x, y)
 end
 
 function vector.__unm(a: vector): vector

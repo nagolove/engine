@@ -9,6 +9,6 @@ local type i18n = record
     setFallbackLocale: function(string)
     translate: function(key: string, data: any): string
     set: function(key: string, value: string)
-    metamethod __call: function(i18n, string, string): string
+    metamethod __call: function(i18n, ...:any): string
 end
 return i18n
