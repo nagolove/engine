@@ -63,7 +63,7 @@ function love.load(arg)
     end
     --]]
 
-    scenes.initOne("hex-field")
+    scenes.initOne("hexfield")
 
     --scenes.initOne("automato")
 

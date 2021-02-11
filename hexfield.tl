@@ -1,6 +1,6 @@
 require "love"
 require "common"
-require "snippets"
+--require "snippets"
 --require "vector"
 local vec = require "vector"
 local gr = love.graphics
