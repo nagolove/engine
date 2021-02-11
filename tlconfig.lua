@@ -3,15 +3,17 @@ return {
         "scenes/automato/",
         "scenes/nback2/",
         "scenes/nback2/libs/",
+        "scenes/hex-field/"
         --"scenes/automato_test/",
     },
     include = {
         "*.tl",
         "scenes/automato/*.tl",
         "scenes/empty/*.tl",
-        "scenes/nback2/*.tl",
+        --"scenes/nback2/*.tl",
         --"scenes/automato_test/*.tl",
         "scenes/hst_reader/*.tl",
+        "scenes/hex-field/*.tl"
         --"../../*.tl",
     },
     exclude = {

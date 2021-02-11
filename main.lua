@@ -54,21 +54,22 @@ function love.load(arg)
 
     --scenes.initOne("selector")
     --scenes.setCurrentScene("selector")
-    
+   
+    --[[
     if love.system.getOS() == "Android" then
         scenes.initOne("automato")
     else
         scenes.initOne(arg[1] or "empty")
     end
+    --]]
+
+    scenes.initOne("hex-field")
 
     --scenes.initOne("automato")
-    --scenes.setCurrentScene("automato")
 
     --scenes.initOne("fractaltree")
-    --scenes.setCurrentScene("fractaltree")
 
     --scenes.initOne("hst_reader")
-    --scenes.setCurrentScene("hst_reader")
 
     --initTools(currentScene)
 end

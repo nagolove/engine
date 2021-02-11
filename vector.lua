@@ -37,6 +37,10 @@ local sqrt, cos, sin, atan2 = math.sqrt, math.cos, math.sin, math.atan2
 
 
 
+
+
+
+
 local vector_mt = {
    __index = vector,
 }
@@ -66,6 +70,10 @@ local function isvector(v)
    return type(v) == 'table' and type(v.x) == 'number' and type(v.y) == 'number'
 end
 
+function vector.isvector(v)
+   return type(v) == 'table' and type(v.x) == 'number' and type(v.y) == 'number'
+end
+
 function vector:clone()
    return new(self.x, self.y)
 end
@@ -76,6 +84,10 @@ end
 
 function vector:__tostring()
    return "(" .. tonumber(self.x) .. "," .. tonumber(self.y) .. ")"
+end
+
+function vector.__call(_, x, y)
+   return new(x, y)
 end
 
 function vector.__unm(a)
