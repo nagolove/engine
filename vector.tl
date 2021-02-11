@@ -39,14 +39,36 @@ global type vector = record
     metamethod __call : function(_: vector, x:number, y:number): vector
 
     isvector: function(vector): boolean
+    clone: function(): vector
+    unpack: function(): number, number
+    --metamethod __tostring: function(): string
+    metamethod __unm: function(a: vector): vector
+    metamethod __eq: function(a: vector,b: vector): boolean
+    metamethod __lt: function(a: vector,b: vector): boolean
+    metamethod __le: function(a: vector,b: vector): boolean
+    permul: function(a: vector,b: vector): vector
+    len2: function(): number
+    len: function(): number
+    toPolar: function(): number, number
+    dist: function(a: vector, b: vector): number
+    dist2: function(a: vector, b: vector): number
+    normalizeInplace: function(): vector
+    normalized: function(): vector
+    rotateInplace: function(phi: number): vector
+    rotated: function(phi: number): vector
+    perpendicular: function(): vector
+    projectOn: function(v: vector): vector
+    mirrorOn: function(v: vector): vector
+    cross: function(v: vector): number
+    trimInplace: function(maxLen: number): vector
+    angleTo: function(other: vector): number
+    trimmed: function(maxLen: number): vector
+    __index: metatable<vector>
 end
 
-local vector_mt: metatable<vector> = {
-    __index = vector
-}
-
 local function new(x: number,y: number): vector
-    return setmetatable({x = x or 0, y = y or 0} as vector, vector_mt)
+    vector.__index = vector as metatable<vector>
+    return setmetatable({x = x or 0, y = y or 0} as vector, vector as metatable<vector>)
 end
 local zero = new(0,0)
 
@@ -100,9 +122,10 @@ function vector.__add(a: vector,b: any): vector
     return new(a.x+c.x, a.y+c.y)
 end
 
-function vector.__sub(a: vector,b: vector): vector
-    assert(isvector(a) and isvector(b), "Sub: wrong argument types (<vector> expected)")
-    return new(a.x-b.x, a.y-b.y)
+function vector.__sub(a: vector,b: any): vector
+    local c = b as vector
+    assert(isvector(a) and isvector(c), "Sub: wrong argument types (<vector> expected)")
+    return new(a.x-c.x, a.y-c.y)
 end
 
 function vector.__mul(a: vector|number,b: vector|number): vector|number

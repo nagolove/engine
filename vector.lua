@@ -41,12 +41,38 @@ local sqrt, cos, sin, atan2 = math.sqrt, math.cos, math.sin, math.atan2
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local vector_mt = {
    __index = vector,
 }
 
 local function new(x, y)
-   return setmetatable({ x = x or 0, y = y or 0 }, vector_mt)
+   vector.__index = vector
+   return setmetatable({ x = x or 0, y = y or 0 }, vector)
 end
 local zero = new(0, 0)
 
@@ -101,8 +127,9 @@ function vector.__add(a, b)
 end
 
 function vector.__sub(a, b)
-   assert(isvector(a) and isvector(b), "Sub: wrong argument types (<vector> expected)")
-   return new(a.x - b.x, a.y - b.y)
+   local c = b
+   assert(isvector(a) and isvector(c), "Sub: wrong argument types (<vector> expected)")
+   return new(a.x - c.x, a.y - c.y)
 end
 
 function vector.__mul(a, b)

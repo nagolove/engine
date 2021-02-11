@@ -172,7 +172,19 @@ end
 function addLine(array: {{number}}, x1: number, y1: number, x2: number, y2: number)
     --TODO Оптимизировать вектора
     local len = dist(x1, y1, x2, y2)
+
     --local dirx, diry = vec(x2 - x1) / len, vec(y2 - y1) / len
+    print("array", type(array))
+    print("x1", type(x1))
+    print("y1", type(y1))
+    print("x2", type(x2))
+    print("y2", type(y2))
+    print("len", type(len))
+    --local v1: vector = vec.new(1, 1)
+    --local r:  = v1 / 2
+    --print("r", r)
+    --local dir1_d: vector= vec.new(x2 - x1, y2 - y1) / len
+
     local dir1, dir2: vector, vector = vec.new(x2 - x1, y2 - y1) / len, vec.new(x1 - x2, y1 - y2) / len
 
     local width = 3
