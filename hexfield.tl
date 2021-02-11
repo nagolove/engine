@@ -246,6 +246,7 @@ local function newHexField(startcx: number, startcy: number, map: {{number}},rad
     local result: HexField = {}
     setmetatable(result, Handler as metatable<HexField>)
 
+    -- TODO что за (6 * 3 + 6 * 6) ?
     local mesh = gr.newMesh((6 * 3 + 6 * 6) * xcount * ycount, "triangles", "dynamic")
     local meshData = {}
 

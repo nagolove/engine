@@ -10,7 +10,7 @@ return {
         "*.tl",
         "scenes/automato/*.tl",
         "scenes/empty/*.tl",
-        --"scenes/nback2/*.tl",
+        "scenes/nback2/*.tl",
         --"scenes/automato_test/*.tl",
         "scenes/hst_reader/*.tl",
         "scenes/hexfield/*.tl"

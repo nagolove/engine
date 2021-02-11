@@ -66,10 +66,6 @@ local sqrt, cos, sin, atan2 = math.sqrt, math.cos, math.sin, math.atan2
 
 
 
-local vector_mt = {
-   __index = vector,
-}
-
 local function new(x, y)
    vector.__index = vector
    return setmetatable({ x = x or 0, y = y or 0 }, vector)

@@ -39,7 +39,6 @@ function Timer.new()
 end
 
 function Timer:update(dt)
-    --print("#self.timers", #self.timers)
     for tag, timer in pairs(self.timers) do
         timer.time = timer.time + dt
 
@@ -108,7 +107,6 @@ function Timer:after(delay, action, tag)
 end
 
 function Timer:every(delay, action, count, after, tag)
-    print("every", delay)
     if type(count) == 'string' then tag, count = count, 0
     elseif type(count) == 'number' and type(after) == 'string' then tag = after
     else tag = tag or UUID() end

@@ -55,7 +55,6 @@ function love.load(arg)
     --scenes.initOne("selector")
     --scenes.setCurrentScene("selector")
    
-    --[[
     if love.system.getOS() == "Android" then
         scenes.initOne("automato")
     else
@@ -63,7 +62,9 @@ function love.load(arg)
     end
     --]]
 
-    scenes.initOne("hexfield")
+    --scenes.initOne("nback2")
+    
+    --scenes.initOne("hexfield")
 
     --scenes.initOne("automato")
 
