@@ -10,6 +10,18 @@ local record Shortcut
     enabled: boolean
 end
 
+global type KeyConfig = record
+    send: function(stringID: string)
+    bindKeyDown: function(stringID: string, keyCombination: {string}, action: function, description: string)
+    bindKeyPressed: function(stringID: string, keyCombination: {string}, action: function, description: string)
+    checkDownKeys: function()
+    checkPressedKeys: function(key: string)
+    drawList: function()
+    drawShortcutsList: function(x0: number, y0: number)
+    prepareDrawing: function()
+    updateList: function(dt: number)
+end
+
 -- love.keyboard.isDown()
 local shortcutsDown: {string: Shortcut} = {}
 
@@ -30,7 +42,7 @@ local function combo2str(comboTbl: {any: any}): string
     return res .. "]"
 end
 
-local function prepareDrawing()
+function KeyConfig.prepareDrawing()
     shortcutsList = List.new(5, 5)
     for k, v in pairs(shortcutsDown) do
         shortcutsList:add(v.description .. " " .. combo2str(v.combo), k)
@@ -44,21 +56,21 @@ local function prepareDrawing()
     shortcutsList:done()
 end
 
-local function drawList()
+function KeyConfig.drawList()
     if not shortcutsList then
-        prepareDrawing()
+        KeyConfig.prepareDrawing()
     end
     shortcutsList:draw()
 end
 
-local function updateList(dt: number)
+function KeyConfig.updateList(dt: number)
     if shortcutsList then
         shortcutsList:update(dt)
     end
 end
 
 -- рисовать список шорткатов, расположенный в определенных координатах
-local function drawShortcutsList(x0: number, y0: number)
+function KeyConfig.drawShortcutsList(x0: number, y0: number)
     x0 = x0 and x0 or 0
     y0 = y0 and y0 or 0
     local x, y = x0, y0
@@ -131,8 +143,8 @@ local function drawShortcutsList(x0: number, y0: number)
         end
     end
 
-    drawList(list1) 
-    drawList(list2)
+    --drawList(list1) 
+    --drawList(list2)
     lg.setFont(tmpFont)
 end
 
@@ -140,7 +152,7 @@ end
 -- bindKey({"q"}, quit)
 -- bindKey({"lshift", "x"}, changeCameraMode)
 -- use scancode
-local function bindKeyDown(stringID: string, keyCombination: {string}, action: function, description: string)
+function KeyConfig.bindKeyDown(stringID: string, keyCombination: {string}, action: function, description: string)
   assert(action, "action == nil in bindKey()")
   assert(stringID, "stringID should'not be empty")
   assert(action, "action == nil in bindKeyDown()")
@@ -160,7 +172,7 @@ local function bindKeyDown(stringID: string, keyCombination: {string}, action: f
     description = description, enabled = true}
 end
 
-local function bindKeyPressed(stringID: string, keyCombination: {string}, action: function, description: string)
+function KeyConfig.bindKeyPressed(stringID: string, keyCombination: {string}, action: function, description: string)
   assert(action, "action == nil in bindKeyPressed()")
   assert(description, "description == nil in bindKeyPressed()")
   shortcutsPressed[stringID] = {combo = keyCombination, action = action, 
@@ -169,48 +181,48 @@ end
 
 -- очень неподходящее название
 -- TODO: работает странно, если определить несколько горячих клавиш, к примеру f1 и f1+lshift
-local function checkPressedKeys(key: string)
-  for _, v in pairs(shortcutsPressed) do
-    if v.enabled then
-      -- обрати внимание на магию - первый элемент проверяется на love.keypressed(),
-      -- а последущие - как дополнительные модификаторы на lk.isDown()
-      local pressed = key == v.combo[1]
---    print("checkKeyboardInput2", key, v.combo[1])
---    print("#shortcuts2", #shortcuts2, inspect(shortcuts2))
-      for i = 2, #v.combo do
---        print("checkKeyboardInput2", k, v.combo[i])
-        pressed = pressed and lk.isDown(v.combo[i] as love.keyboard.KeyConstant) -- эта строчка что делает? Добавляет проверку модификатора при нажатии клавиш.
-        if not pressed then break end
-      end
-      if pressed and v.action then
---        print("call action on shortcuts2", inspect(v.combo))
-        v.action()
-      end
+function KeyConfig.checkPressedKeys(key: string)
+    for _, v in pairs(shortcutsPressed) do
+        if v.enabled then
+            -- обрати внимание на магию - первый элемент проверяется на love.keypressed(),
+            -- а последущие - как дополнительные модификаторы на lk.isDown()
+            local pressed = key == v.combo[1]
+            --    print("checkKeyboardInput2", key, v.combo[1])
+            --    print("#shortcuts2", #shortcuts2, inspect(shortcuts2))
+            for i = 2, #v.combo do
+                --        print("checkKeyboardInput2", k, v.combo[i])
+                pressed = pressed and lk.isDown(v.combo[i] as love.keyboard.KeyConstant) -- эта строчка что делает? Добавляет проверку модификатора при нажатии клавиш.
+                if not pressed then break end
+            end
+            if pressed and v.action then
+                --        print("call action on shortcuts2", inspect(v.combo))
+                shortcutsList = nil
+                v.action()
+            end
+        end
     end
-  end
 end
-
 
 -- проверка ввода. Используются значения, заранее
 -- установленные при помощи bindKey(). Проверка выполняется через lk.isDown()
-local function checkDownKeys()
+function KeyConfig.checkDownKeys()
 -- а в чем хранить значения keyCombination? как назвать глобальную переменную?
-  for _, v in pairs(shortcutsDown) do
-    if v.enabled then
-      local pressed = true
-      for _, keyValue in ipairs(v.combo) do
-        pressed = pressed and lk.isScancodeDown(keyValue as love.keyboard.KeyConstant)
-        if not pressed then break end -- если хоть одна клавиша в комбинации не нажата, то сбрасываю комбинацию.      
-      end
-      if pressed and v.action then 
---        print("call action on shortcut", inspect(v.combo))
-        v.action() 
-      end -- может какие дополнительные параметры передавать в функцию action()?
+    for _, v in pairs(shortcutsDown) do
+        if v.enabled then
+            local pressed = true
+            for _, keyValue in ipairs(v.combo) do
+                pressed = pressed and lk.isScancodeDown(keyValue as love.keyboard.KeyConstant)
+                if not pressed then break end -- если хоть одна клавиша в комбинации не нажата, то сбрасываю комбинацию.      
+            end
+            if pressed and v.action then 
+                shortcutsList = nil
+                v.action() 
+            end -- может какие дополнительные параметры передавать в функцию action()?
+        end
     end
-  end
 end
 
-local function send(stringID: string)
+function KeyConfig.send(stringID: string)
     local t = shortcutsDown[stringID]
     if t and t.enabled and t.action then
         t.action()
@@ -222,16 +234,4 @@ local function send(stringID: string)
     end
 end
 
-return {
-    bindKeyPressed = bindKeyPressed,
-    bindKeyDown = bindKeyDown,
-    checkDownKeys = checkDownKeys,
-    checkPressedKeys = checkPressedKeys,
-    shortcutsPressed = shortcutsPressed,
-    drawShortcutsList = drawShortcutsList,
-    send = send,
-
-    updateList = updateList,
-    drawList = drawList,
-}
-
+return KeyConfig

@@ -10,6 +10,18 @@ local Shortcut = {}
 
 
 
+ KeyConfig = {}
+
+
+
+
+
+
+
+
+
+
+
 
 local shortcutsDown = {}
 
@@ -30,7 +42,7 @@ local function combo2str(comboTbl)
    return res .. "]"
 end
 
-local function prepareDrawing()
+function KeyConfig.prepareDrawing()
    shortcutsList = List.new(5, 5)
    for k, v in pairs(shortcutsDown) do
       shortcutsList:add(v.description .. " " .. combo2str(v.combo), k)
@@ -44,21 +56,21 @@ local function prepareDrawing()
    shortcutsList:done()
 end
 
-local function drawList()
+function KeyConfig.drawList()
    if not shortcutsList then
-      prepareDrawing()
+      KeyConfig.prepareDrawing()
    end
    shortcutsList:draw()
 end
 
-local function updateList(dt)
+function KeyConfig.updateList(dt)
    if shortcutsList then
       shortcutsList:update(dt)
    end
 end
 
 
-local function drawShortcutsList(x0, y0)
+function KeyConfig.drawShortcutsList(x0, y0)
    x0 = x0 and x0 or 0
    y0 = y0 and y0 or 0
    local x, y = x0, y0
@@ -131,8 +143,8 @@ local function drawShortcutsList(x0, y0)
       end
    end
 
-   drawList(list1)
-   drawList(list2)
+
+
    lg.setFont(tmpFont)
 end
 
@@ -140,7 +152,7 @@ end
 
 
 
-local function bindKeyDown(stringID, keyCombination, action, description)
+function KeyConfig.bindKeyDown(stringID, keyCombination, action, description)
    assert(action, "action == nil in bindKey()")
    assert(stringID, "stringID should'not be empty")
    assert(action, "action == nil in bindKeyDown()")
@@ -160,7 +172,7 @@ local function bindKeyDown(stringID, keyCombination, action, description)
 description = description, enabled = true, }
 end
 
-local function bindKeyPressed(stringID, keyCombination, action, description)
+function KeyConfig.bindKeyPressed(stringID, keyCombination, action, description)
    assert(action, "action == nil in bindKeyPressed()")
    assert(description, "description == nil in bindKeyPressed()")
    shortcutsPressed[stringID] = { combo = keyCombination, action = action,
@@ -169,7 +181,7 @@ end
 
 
 
-local function checkPressedKeys(key)
+function KeyConfig.checkPressedKeys(key)
    for _, v in pairs(shortcutsPressed) do
       if v.enabled then
 
@@ -184,6 +196,7 @@ local function checkPressedKeys(key)
          end
          if pressed and v.action then
 
+            shortcutsList = nil
             v.action()
          end
       end
@@ -192,8 +205,7 @@ end
 
 
 
-
-local function checkDownKeys()
+function KeyConfig.checkDownKeys()
 
    for _, v in pairs(shortcutsDown) do
       if v.enabled then
@@ -203,14 +215,14 @@ local function checkDownKeys()
             if not pressed then break end
          end
          if pressed and v.action then
-
+            shortcutsList = nil
             v.action()
          end
       end
    end
 end
 
-local function send(stringID)
+function KeyConfig.send(stringID)
    local t = shortcutsDown[stringID]
    if t and t.enabled and t.action then
       t.action()
@@ -222,15 +234,4 @@ local function send(stringID)
    end
 end
 
-return {
-   bindKeyPressed = bindKeyPressed,
-   bindKeyDown = bindKeyDown,
-   checkDownKeys = checkDownKeys,
-   checkPressedKeys = checkPressedKeys,
-   shortcutsPressed = shortcutsPressed,
-   drawShortcutsList = drawShortcutsList,
-   send = send,
-
-   updateList = updateList,
-   drawList = drawList,
-}
+return KeyConfig

@@ -109,19 +109,12 @@ end
 
 local function initOne(name)
 
-
-
-
-
-
-
-
    local path = "scenes/" .. name .. "/init.lua"
-   print("initOne", path)
-   local chunk = love.filesystem.load(path)
+   print(string.format("initOne '%s'", path))
+   local chunk, errmsg = love.filesystem.load(path)
    local node = {}
    if not chunk then
-      error("Could not load '" .. path .. "'")
+      error(string.format("Could not load '%s': %s", path, errmsg))
    end
    node.scene = chunk()
    if node.scene.init then

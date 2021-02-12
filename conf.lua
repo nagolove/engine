@@ -4,8 +4,8 @@
     t.window.fullscreen = true
     --t.window.width = 1024
     --t.window.height = 768
-    --t.window.borderless = true         -- Remove all border visuals from the window (boolean)
-    t.window.borderless = false         -- Remove all border visuals from the window (boolean)
+    t.window.borderless = true         -- Remove all border visuals from the window (boolean)
+    --t.window.borderless = false         -- Remove all border visuals from the window (boolean)
 
     t.console = true
 
@@ -35,10 +35,10 @@
     t.window.highdpi = false            -- Enable high-dpi mode for the window on a Retina display (boolean)
     t.window.usedpiscale = true         -- Enable automatic DPI scaling when highdpi is set to true as well (boolean)
 
-    --t.window.x = nil                    -- The x-coordinate of the window's position in the specified display (number)
-    --t.window.y = nil                    -- The y-coordinate of the window's position in the specified display (number)
-    t.window.x = 983                    -- The x-coordinate of the window's position in the specified display (number)
-    t.window.y = 49                    -- The y-coordinate of the window's position in the specified display (number)
+    t.window.x = nil                    -- The x-coordinate of the window's position in the specified display (number)
+    t.window.y = nil                    -- The y-coordinate of the window's position in the specified display (number)
+    --t.window.x = 983                    -- The x-coordinate of the window's position in the specified display (number)
+    --t.window.y = 49                    -- The y-coordinate of the window's position in the specified display (number)
 
     t.modules.audio = true              -- Enable the audio module (boolean)
     t.modules.data = true               -- Enable the data module (boolean)

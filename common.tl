@@ -1,5 +1,8 @@
 require "love"
 require "camera"
+require "keyconfig"
+
+--local inspect = require "inspect"
 
 function shallowCopy<T>(t: T): T
    local copy = {}
@@ -47,6 +50,62 @@ global type Tool = record
     mousemoved: function(number, number, number, number)
     mousereleased: function(number, number, number)
     mousepressed: function(number, number, number)
+end
+
+local type CameraSettings = record
+    dx: number
+    dy: number
+    relativedx: number
+    relativedy: number
+end
+
+local cameraSettings: CameraSettings = {}
+
+cameraSettings = {
+    -- знавение в пикселях
+    dx = 20,
+    dy = 20,
+
+    -- значение в пикселях сглаженное относительно значения scale камеры
+    relativedx = 0,
+    relativedy = 0,
+}
+
+function bindCameraControl(keyconfig: KeyConfig, cam: Camera)
+
+    keyconfig.bindKeyDown("zoomout", {"z"}, function()
+        print("zoout")
+        cam:zoom(1.01)
+    end, "zoom camera out")
+
+    keyconfig.bindKeyDown("zoomin", {"x"}, function()
+        cam:zoom(0.99)
+    end, "zoom camera in")
+
+    keyconfig.bindKeyDown("camleft", {"left"}, function()
+        local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
+        cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
+        cam:move(-reldx, 0)
+    end, "move left")
+
+    keyconfig.bindKeyDown("camright", {"right"}, function()
+        local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
+        cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
+        cam:move(reldx, 0)
+    end, "move right")
+
+    keyconfig.bindKeyDown("camup", {"up"}, function()
+        local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
+        cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
+        cam:move(0, -reldy)
+    end, "move up")
+    
+    keyconfig.bindKeyDown("camdown", {"down"}, function()
+        local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
+        cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
+        cam:move(0, reldy)
+    end, "move down")
+
 end
 
 function safeSend(shader: love.graphics.Shader, name: string, ...: any)

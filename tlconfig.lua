@@ -1,19 +1,25 @@
 return {
     include_dir = {
         "scenes/automato/",
+
         "scenes/nback2/",
         "scenes/nback2/libs/",
-        "scenes/hexfield/"
+
+        "scenes/hexfield/",
+        "scenes/slog-example/",
         --"scenes/automato_test/",
     },
     include = {
         "*.tl",
         "scenes/automato/*.tl",
         "scenes/empty/*.tl",
-        "scenes/nback2/*.tl",
+
+        --"scenes/nback2/*.tl",
         --"scenes/automato_test/*.tl",
+        
         "scenes/hst_reader/*.tl",
-        "scenes/hexfield/*.tl"
+        "scenes/hexfield/*.tl",
+        "scenes/slog-example/*.tl",
         --"../../*.tl",
     },
     exclude = {

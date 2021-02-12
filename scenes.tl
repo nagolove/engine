@@ -108,29 +108,22 @@ local function keypressed(key: string)
 end
 
 local function initOne(name: string)
-    --[[
-       [for k, v in pairs(getScenes()) do
-       [    if v.name == name then
-       [        initOne(v)
-       [        break
-       [    end
-       [end
-       ]]
-       local path = "scenes/" .. name .. "/init.lua"
-       print("initOne", path)
-       local chunk = love.filesystem.load(path)
-       local node: SceneMap = {}
-       if not chunk then
-           error("Could not load '" .. path .. "'")
-       end
-       node.scene = chunk() as Scene
-       if node.scene.init then
-           node.scene.init()
-       end
-       node.name = name
-       node.inited = true
-       table.insert(scenes, node)
-       currentScene = scenes[#scenes].scene
+    -- TODO поддержка вложенных каталогов
+    local path = "scenes/" .. name .. "/init.lua"
+    print(string.format("initOne '%s'", path))
+    local chunk, errmsg = love.filesystem.load(path)
+    local node: SceneMap = {}
+    if not chunk then
+        error(string.format("Could not load '%s': %s", path, errmsg))
+    end
+    node.scene = chunk() as Scene
+    if node.scene.init then
+        node.scene.init()
+    end
+    node.name = name
+    node.inited = true
+    table.insert(scenes, node)
+    currentScene = scenes[#scenes].scene
 end
 
 local function mousemoved(x: number, y: number, dx: number, dy: number)

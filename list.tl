@@ -30,7 +30,9 @@ local record List
 
     type Item = record 
         title: string
-        tooltip: string
+        message: string
+        colors: {number}
+        --tooltip: string
         id: string
         list: List
         isdrawable: boolean
@@ -86,15 +88,23 @@ function List.new(x: number, y: number, w: number, h: number): List
     return o
 end
 
-function List:add(title: string, id: string, tooltip: string): List.Item
+-- list:add("text %C
+function List:add2(message: string, id: string, ...: {number}): List.Item
+    --print("tooltip", tooltip)
+    --os.exit()
+    local item: List.Item = {}
+    item.message = message
+    item.id = id
+    table.insert(self.items, item)
+    return self.items[#self.items]
+end
+
+function List:add(title: string, id: string): List.Item
+    --print("tooltip", tooltip)
+    --os.exit()
     local item: List.Item = {}
     item.title = title
     item.id = id
-    if type(tooltip) == "string" then
-        item.tooltip = tooltip
-    else
-        item.tooltip = ""
-    end
     table.insert(self.items, item)
     return self.items[#self.items]
 end
@@ -303,5 +313,75 @@ function List:draw()
 
 end
 
-return List
+function List:draw2()
+    if not self.visible then return end
 
+    love.graphics.setLineWidth(1)
+    love.graphics.setLineStyle("rough")
+    love.graphics.setColor(self.windowcolor)
+
+    -- Get interval to display
+    local start_i = math.floor(self:getOffset() / (self.item_height + 1)) + 1
+    local end_i = start_i + math.floor(self.height / (self.item_height + 1)) + 1
+    if end_i > #self.items then 
+        end_i = #self.items
+    end
+
+    love.graphics.setScissor(self.x, self.y, self.width, self.height)
+
+    -- Items
+    local rx, ry, rw, rh: number, number, number, number
+    local colorset: List.ColorType
+    for i = start_i,end_i do
+        if i == self.hoveritem then
+            colorset = self.colors.hover
+        else
+            colorset = self.colors.normal
+        end
+
+        rx, ry, rw, rh = self:getItemRect(i)
+        love.graphics.setColor(colorset.bg)
+        love.graphics.rectangle("fill", rx, ry, rw, rh)
+
+        love.graphics.setColor(colorset.fg)
+        --love.graphics.print(self.items[i].title, rx + 10, ry + 5) 
+        local colors: {number} = self.items[i].colors
+        local t: {any} = {}
+        for i, color in ipairs(colors) do
+            --table.insert(t, )
+        end
+        love.graphics.print(t as {table}, rx + 10, ry + 5) 
+
+        local item = self.items[i]
+        if item.list and item.isdrawable then
+            item.list.x = rx + rw
+            item.list.y = ry
+            item.list:draw()
+        end
+    end
+
+    love.graphics.setScissor()
+
+    -- Bar
+    if self:hasBar() then
+        if self.hoveritem == -1 or self.bar.lock ~= nil then
+            colorset = self.colors.hover
+        else
+            colorset = self.colors.normal
+        end
+        
+        rx, ry, rw, rh = self:getBarRect()
+        love.graphics.setColor(colorset.bg)
+        love.graphics.rectangle("fill", rx, ry, rw, rh)
+    end
+
+    -- Border
+    love.graphics.setColor(self.bordercolor)
+    if self.bar then
+        love.graphics.rectangle("line", self.x + self.width, self.y, self.bar.width, self.height)
+    end
+    love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
+
+end
+
+return List
