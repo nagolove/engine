@@ -1,6 +1,5 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; require("love")
 require("camera")
-require("keyconfig")
 
 
 
@@ -51,63 +50,6 @@ end
 
 
 
-
-local CameraSettings = {}
-
-
-
-
-
-
-local cameraSettings = {}
-
-cameraSettings = {
-
-   dx = 20,
-   dy = 20,
-
-
-   relativedx = 0,
-   relativedy = 0,
-}
-
-function bindCameraControl(keyconfig, cam)
-
-   keyconfig.bindKeyDown("zoomout", { "z" }, function()
-      print("zoout")
-      cam:zoom(1.01)
-   end, "zoom camera out")
-
-   keyconfig.bindKeyDown("zoomin", { "x" }, function()
-      cam:zoom(0.99)
-   end, "zoom camera in")
-
-   keyconfig.bindKeyDown("camleft", { "left" }, function()
-      local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
-      cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
-
-      cam:move(-reldx, 0)
-   end, "move left")
-
-   keyconfig.bindKeyDown("camright", { "right" }, function()
-      local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
-      cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
-      cam:move(reldx, 0)
-   end, "move right")
-
-   keyconfig.bindKeyDown("camup", { "up" }, function()
-      local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
-      cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
-      cam:move(0, -reldy)
-   end, "move up")
-
-   keyconfig.bindKeyDown("camdown", { "down" }, function()
-      local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
-      cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
-      cam:move(0, reldy)
-   end, "move down")
-
-end
 
 function safeSend(shader, name, ...)
    if shader:hasUniform(name) then

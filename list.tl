@@ -1,5 +1,7 @@
 require "love"
 
+local gr = love.graphics
+
 ----------------------
 -- List object
 ----------------------
@@ -29,7 +31,6 @@ local record List
     end
 
     type Item = record 
-        title: string
         message: string
         colors: {number}
         --tooltip: string
@@ -54,6 +55,32 @@ local record List
     visible: boolean
 
     getBarRect: function(List, number, number, number, number)
+    onclick: function(self: List, index: number, button: number)
+
+    new: function(x: number, y: number, w: number, h: number): List
+
+    --[[
+    Добавить в список клавишу.
+    ]]
+    add: function(List, message: string, ...: {number}): List.Item
+    -- закрыть список для добавления
+    done: function(List)
+
+    hasBar: function(List): boolean
+    getBarRatio: function(List): number
+    getOffset: function(List): number
+    getBarRect: function(List): number, number, number, number
+    getItemRect: function(List, i: number): number, number, number, number
+
+    update: function(List, dt: number)
+
+    mousepressed: function(List, x: number, y: number, b: number): boolean
+    mousereleased: function(List, _: number, _: number, b: number)
+    mousemoved: function(List, x: number, y: number, dx: number, dy: number)
+    wheelmoved: function(List, _: number, y: number)
+
+    draw: function(List)
+    draw2: function(List)
 end
 
 function inside(mx: number, my: number, x: number, y: number, w: number, h: number): boolean
@@ -88,23 +115,13 @@ function List.new(x: number, y: number, w: number, h: number): List
     return o
 end
 
--- list:add("text %C
-function List:add2(message: string, id: string, ...: {number}): List.Item
-    --print("tooltip", tooltip)
+-- list:add("сбросить управление %C%C)
+function List:add(message: string, ...: {number}): List.Item
+    --print("itooltip", tooltip)
     --os.exit()
     local item: List.Item = {}
+    -- сообщение с форматированием
     item.message = message
-    item.id = id
-    table.insert(self.items, item)
-    return self.items[#self.items]
-end
-
-function List:add(title: string, id: string): List.Item
-    --print("tooltip", tooltip)
-    --os.exit()
-    local item: List.Item = {}
-    item.title = title
-    item.id = id
     table.insert(self.items, item)
     return self.items[#self.items]
 end
@@ -125,12 +142,12 @@ function List:done()
     local maxLen, maxLenIdx = 0, 1
     --print(inspect(self.items))
     for k, v in ipairs(self.items) do
-        if type(v) == "table" and v.title and #v.title > maxLen then
-            maxLen = #v.title
+        if type(v) == "table" and v.message and #v.message > maxLen then
+            maxLen = #v.message
             maxLenIdx = k
         end
     end
-    local longestStr = self.items[maxLenIdx].title .. string.rep(" ", 10)
+    local longestStr = self.items[maxLenIdx].message .. string.rep(" ", 10)
     self.width = love.graphics.getFont():getWidth(longestStr)
     print("self.sum_item_height", self.sum_item_height)
     print("self.width", self.width)
@@ -275,11 +292,14 @@ function List:draw()
         end
 
         rx, ry, rw, rh = self:getItemRect(i)
-        love.graphics.setColor(colorset.bg)
-        love.graphics.rectangle("fill", rx, ry, rw, rh)
+        gr.setColor(colorset.bg)
+        gr.rectangle("fill", rx, ry, rw, rh)
 
-        love.graphics.setColor(colorset.fg)
-        love.graphics.print(self.items[i].title, rx + 10, ry + 5) 
+        gr.setColor(colorset.fg)
+
+        ----
+        gr.print(self.items[i].message, rx + 10, ry + 5) 
+        ----
 
         local item = self.items[i]
         if item.list and item.isdrawable then

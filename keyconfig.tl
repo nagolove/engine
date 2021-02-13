@@ -1,21 +1,39 @@
 -- lk.isDown()
 require "love"
+require "common"
 local lk = love.keyboard
-local lg = love.graphics
+--local gr = love.graphics
 
-local record Shortcut
+global type ActionFunc = function(Shortcut): boolean, Shortcut
+
+global type Shortcut = record
+    -- сочетание клавиш. Сперва идут модификаторы, потом основные кнопки
     combo: {string}
-    action: function
+    -- вызывается при нажатии
+    action: ActionFunc
+    -- строковое описание что делает сочетание клавиш и в каком состоянии 
+    -- вызывается
     description: string
+    -- флаг временного отключения
     enabled: boolean
+end
+
+global type BindType = enum
+    "keypressed"
+    "isdown"
 end
 
 global type KeyConfig = record
     send: function(stringID: string)
-    bindKeyDown: function(stringID: string, keyCombination: {string}, action: function, description: string)
-    bindKeyPressed: function(stringID: string, keyCombination: {string}, action: function, description: string)
-    checkDownKeys: function()
-    checkPressedKeys: function(key: string)
+
+    bind: function(BindType, combo: {string}, ActionFunc, string, string|nil)
+
+    bindKeyDown: function(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
+    bindKeyPressed: function(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
+
+    update: function()
+    keypressed: function(key: string)
+
     drawList: function()
     drawShortcutsList: function(x0: number, y0: number)
     prepareDrawing: function()
@@ -23,10 +41,10 @@ global type KeyConfig = record
 end
 
 -- love.keyboard.isDown()
-local shortcutsDown: {string: Shortcut} = {}
+local shortcutsDown: {Shortcut} = {}
 
 -- love.keypressed()
-local shortcutsPressed: {string: Shortcut} = {}
+local shortcutsPressed: {Shortcut} = {}
 
 local List = require "list"
 local shortcutsList: List = nil
@@ -44,10 +62,10 @@ end
 
 function KeyConfig.prepareDrawing()
     shortcutsList = List.new(5, 5)
-    for k, v in pairs(shortcutsDown) do
+    for k, v in ipairs(shortcutsDown) do
         shortcutsList:add(v.description .. " " .. combo2str(v.combo), k)
     end
-    for k, v in pairs(shortcutsPressed) do
+    for k, v in ipairs(shortcutsPressed) do
         shortcutsList:add(v.description .. " " .. combo2str(v.combo), k)
     end
     table.sort(shortcutsList.items, function(a: List.Item, b: List.Item): boolean
@@ -69,6 +87,7 @@ function KeyConfig.updateList(dt: number)
     end
 end
 
+--[[
 -- рисовать список шорткатов, расположенный в определенных координатах
 function KeyConfig.drawShortcutsList(x0: number, y0: number)
     x0 = x0 and x0 or 0
@@ -143,16 +162,23 @@ function KeyConfig.drawShortcutsList(x0: number, y0: number)
         end
     end
 
-    --drawList(list1) 
-    --drawList(list2)
+    drawList(list1) 
+    drawList(list2)
     lg.setFont(tmpFont)
+end
+--]]
+
+function KeyConfig.bind(btype: BindType, combo: {string}, action: ActionFunc, description: string, id: string|nil)
+    if btype == "keypressed" then
+    elseif btype == "isdown" then
+    end
 end
 
 -- usage example:
 -- bindKey({"q"}, quit)
 -- bindKey({"lshift", "x"}, changeCameraMode)
 -- use scancode
-function KeyConfig.bindKeyDown(stringID: string, keyCombination: {string}, action: function, description: string)
+function KeyConfig.bindKeyDown(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
   assert(action, "action == nil in bindKey()")
   assert(stringID, "stringID should'not be empty")
   assert(action, "action == nil in bindKeyDown()")
@@ -172,7 +198,7 @@ function KeyConfig.bindKeyDown(stringID: string, keyCombination: {string}, actio
     description = description, enabled = true}
 end
 
-function KeyConfig.bindKeyPressed(stringID: string, keyCombination: {string}, action: function, description: string)
+function KeyConfig.bindKeyPressed(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
   assert(action, "action == nil in bindKeyPressed()")
   assert(description, "description == nil in bindKeyPressed()")
   shortcutsPressed[stringID] = {combo = keyCombination, action = action, 
@@ -181,7 +207,7 @@ end
 
 -- очень неподходящее название
 -- TODO: работает странно, если определить несколько горячих клавиш, к примеру f1 и f1+lshift
-function KeyConfig.checkPressedKeys(key: string)
+function KeyConfig.keypressed(key: string)
     for _, v in pairs(shortcutsPressed) do
         if v.enabled then
             -- обрати внимание на магию - первый элемент проверяется на love.keypressed(),
@@ -197,7 +223,10 @@ function KeyConfig.checkPressedKeys(key: string)
             if pressed and v.action then
                 --        print("call action on shortcuts2", inspect(v.combo))
                 shortcutsList = nil
-                v.action()
+                local rebuildlist, newShortcut: boolean, Shortcut = v.action(v)
+                if rebuildlist then
+                    v = shallowCopy(newShortcut)
+                end
             end
         end
     end
@@ -205,7 +234,7 @@ end
 
 -- проверка ввода. Используются значения, заранее
 -- установленные при помощи bindKey(). Проверка выполняется через lk.isDown()
-function KeyConfig.checkDownKeys()
+function KeyConfig.update()
 -- а в чем хранить значения keyCombination? как назвать глобальную переменную?
     for _, v in pairs(shortcutsDown) do
         if v.enabled then
@@ -216,6 +245,8 @@ function KeyConfig.checkDownKeys()
             end
             if pressed and v.action then 
                 shortcutsList = nil
+                -- параметры передачи:
+
                 v.action() 
             end -- может какие дополнительные параметры передавать в функцию action()?
         end

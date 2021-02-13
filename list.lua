@@ -1,10 +1,37 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("love")
 
+local gr = love.graphics
+
 
 
 
 
 local List = {Lock = {}, Bar = {}, ColorType = {}, Colors = {}, Item = {}, }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -89,22 +116,12 @@ function List.new(x, y, w, h)
 end
 
 
-function List:add2(message, id, ...)
+function List:add(message, ...)
 
 
    local item = {}
+
    item.message = message
-   item.id = id
-   table.insert(self.items, item)
-   return self.items[#self.items]
-end
-
-function List:add(title, id)
-
-
-   local item = {}
-   item.title = title
-   item.id = id
    table.insert(self.items, item)
    return self.items[#self.items]
 end
@@ -125,12 +142,12 @@ function List:done()
    local maxLen, maxLenIdx = 0, 1
 
    for k, v in ipairs(self.items) do
-      if type(v) == "table" and v.title and #v.title > maxLen then
-         maxLen = #v.title
+      if type(v) == "table" and v.message and #v.message > maxLen then
+         maxLen = #v.message
          maxLenIdx = k
       end
    end
-   local longestStr = self.items[maxLenIdx].title .. string.rep(" ", 10)
+   local longestStr = self.items[maxLenIdx].message .. string.rep(" ", 10)
    self.width = love.graphics.getFont():getWidth(longestStr)
    print("self.sum_item_height", self.sum_item_height)
    print("self.width", self.width)
@@ -275,11 +292,14 @@ function List:draw()
       end
 
       rx, ry, rw, rh = self:getItemRect(i)
-      love.graphics.setColor(colorset.bg)
-      love.graphics.rectangle("fill", rx, ry, rw, rh)
+      gr.setColor(colorset.bg)
+      gr.rectangle("fill", rx, ry, rw, rh)
 
-      love.graphics.setColor(colorset.fg)
-      love.graphics.print(self.items[i].title, rx + 10, ry + 5)
+      gr.setColor(colorset.fg)
+
+
+      gr.print(self.items[i].message, rx + 10, ry + 5)
+
 
       local item = self.items[i]
       if item.list and item.isdrawable then

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table
 require("love")
 local lk = love.keyboard
 local lg = love.graphics
@@ -70,83 +70,85 @@ function KeyConfig.updateList(dt)
 end
 
 
-function KeyConfig.drawShortcutsList(x0, y0)
-   x0 = x0 and x0 or 0
-   y0 = y0 and y0 or 0
-   local x, y = x0, y0
-
-   local maxStringWidth = 0
-   local delimiter = "+"
-
-
-   function makeTextList(list)
-      local textList = {}
-      for _, v in pairs(list) do
-         local keyCombination = ""
-         for k, keyValue in ipairs(v.combo) do
-            if k < #v.combo then
-               keyCombination = keyValue .. delimiter .. keyCombination
-            else
-               keyCombination = keyCombination .. keyValue
-            end
-         end
-         local common = {}
-         common[#common + 1] = { 1, 0, 0 }
-         common[#common + 1] = "\"" .. keyCombination .. "\""
-         common[#common + 1] = { 0, 1, 0 }
-         common[#common + 1] = ": " .. v.description
-         table.insert(textList, common)
-         local textLen = string.len(common[2]) + string.len(common[4])
-         maxStringWidth = textLen > maxStringWidth and textLen or maxStringWidth
-      end
-      return textList
-   end
-
-
-   function calcHeight(list)
-      local h = 0
-      for _, _ in pairs(list) do
-         h = h + lg.getFont():getHeight()
-      end
-      return h
-   end
-
-   local tmpFont = lg.getFont()
 
 
 
-   local list1, list2 = makeTextList(shortcutsPressed), makeTextList(shortcutsDown)
 
 
 
-   local str = ""
-   for i = 1, maxStringWidth do
-      str = str .. "z"
-   end
-
-
-   local rectW, rectH = lg.getFont():getWidth(str), (calcHeight(shortcutsDown) + calcHeight(shortcutsPressed))
-
-   lg.rectangle("fill", x0, y0, rectW, rectH)
-   local oldWidth = lg.getLineWidth()
-   local delta = 1
-   lg.setLineWidth(3)
-   lg.setColor({ 1, 0, 1 })
-   lg.rectangle("line", x0 - delta, y0 - delta, rectW + delta, rectH + delta)
-   lg.setLineWidth(oldWidth)
-   lg.setColor({ 1, 1, 1 })
-
-   local function drawList(list)
-      for _, v in ipairs(list) do
-         lg.print(v, x, y)
-         y = y + lg.getFont():getHeight()
-      end
-   end
 
 
 
-   lg.setFont(tmpFont)
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -216,6 +218,8 @@ function KeyConfig.checkDownKeys()
          end
          if pressed and v.action then
             shortcutsList = nil
+
+
             v.action()
          end
       end
