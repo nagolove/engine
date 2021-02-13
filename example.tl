@@ -22,3 +22,31 @@ simulatorRender.draw()
 
 --]]
 
+--local chanels: {string:love.thread.Channel} = initChannels()
+require "love"
+
+local type ChannelsTypes = enum
+    "cellrequest" -- = love.thread.getChannel("cellrequest" .. threadNum)
+    "data" -- = love.thread.getChannel("data" .. threadNum)
+    "msg" -- = love.thread.getChannel("msg" .. threadNum)
+    "object" -- = love.thread.getChannel("object" .. threadNum)
+    "ready" -- = love.thread.getChannel("ready" .. threadNum)
+    "request" -- = love.thread.getChannel("request" .. threadNum)
+    "state" -- = love.thread.getChannel("state" .. threadNum)
+end
+local type Channels = {string: love.thread.Channel}
+
+local threadNum = 5
+
+local function initChannels(): Channels
+    local result: Channels = {}
+    for _, v in ipairs(ChannelsTypes as {string}) do
+        result[v] = love.thread.getChannel(v .. tostring(threadNum))
+    end
+    return result
+end
+
+local chanels: Channels = initChannels()
+
+chanels.cellrequest:push()
+chanels.cellrequest:pop()

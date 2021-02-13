@@ -1,20 +1,19 @@
---require("mobdebug").start()
-
 -- :setlocal foldmethod=manual
-local imgui = require "imgui"
+--require "mobdebug".start()
 print("package.path", package.path)
 
+local imgui = require "imgui"
 local inspect = require "inspect"
 local keyconfig = require "keyconfig"
 local scenes = require "scenes"
 local tools = require "tools"
 
-require "log"
+local showHelp = false
 local gr = love.graphics
 
-__FREEZE_PHYSICS__ = true
+require "log"
 
-local showHelp = false
+--__FREEZE_PHYSICS__ = true
 
 local function bindKeys()
     keyconfig.bindKeyPressed("help", {"f1"}, function()

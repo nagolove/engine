@@ -85,6 +85,7 @@ function bindCameraControl(keyconfig: KeyConfig, cam: Camera)
     keyconfig.bindKeyDown("camleft", {"left"}, function()
         local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
         cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
+        -- когда идет нажатие повлиять на цвет части текста
         cam:move(-reldx, 0)
     end, "move left")
 
