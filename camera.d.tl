@@ -14,6 +14,7 @@ global type Camera = record
     worldCoords: function(Camera, number, number, number|nil, number:nil, number:nil, number:nil): number, number
     zoom: function(Camera, number)
     lookAt: function(Camera, number, number)
+    position: function(Camera): number, number
 end
 
 return Camera

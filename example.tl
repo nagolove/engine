@@ -22,6 +22,7 @@ simulatorRender.draw()
 
 --]]
 
+--[[
 --local chanels: {string:love.thread.Channel} = initChannels()
 require "love"
 
@@ -50,3 +51,20 @@ local chanels: Channels = initChannels()
 
 chanels.cellrequest:push()
 chanels.cellrequest:pop()
+
+-- ]]
+
+--global type ChannelsTypes = enum
+local ChannelsTypes: {string} = {
+    "cellrequest", 
+    "data", 
+    "msg", 
+    "object",
+    "ready",
+    "request",
+    "state",
+}
+
+for i, v in ipairs(ChannelsTypes as {string}) do
+    print(i, v)
+end

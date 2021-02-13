@@ -23,9 +23,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-require("love")
-
-local ChannelsTypes = {}
 
 
 
@@ -34,19 +31,40 @@ local ChannelsTypes = {}
 
 
 
-local Channels = {}
 
-local threadNum = 5
 
-local function initChannels()
-   local result = {}
-   for _, v in ipairs(ChannelsTypes) do
-      result[v] = love.thread.getChannel(v .. tostring(threadNum))
-   end
-   return result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local ChannelsTypes = {
+   "cellrequest",
+   "data",
+   "msg",
+   "object",
+   "ready",
+   "request",
+   "state",
+}
+
+for i, v in ipairs(ChannelsTypes) do
+   print(i, v)
 end
-
-local chanels = initChannels()
-
-chanels.cellrequest:push()
-chanels.cellrequest:pop()
