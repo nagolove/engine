@@ -29,8 +29,8 @@ global type KeyConfig = record
 
     bind: function(BindType, combo: {string}, ActionFunc, string, string|nil)
 
-    bindKeyDown: function(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
-    bindKeyPressed: function(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
+    --bindKeyDown: function(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
+    --bindKeyPressed: function(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
 
     update: function()
     keypressed: function(key: string)
