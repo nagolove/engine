@@ -63,7 +63,7 @@ local record List
     Добавить в список клавишу.
     ]]
     add: function(List, message: string, ...: {number}): List.Item
-    -- закрыть список для добавления
+    -- закрыть список для добавления и произвести форматирование по ширине
     done: function(List)
 
     hasBar: function(List): boolean

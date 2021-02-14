@@ -24,6 +24,7 @@ global type BindType = enum
 end
 
 global type KeyConfig = record
+    -- послать нажатие по идентификатору
     send: function(stringID: string)
 
     bind: function(BindType, combo: {string}, ActionFunc, string, string|nil)
@@ -62,14 +63,19 @@ end
 
 function KeyConfig.prepareDrawing()
     shortcutsList = List.new(5, 5)
-    for k, v in ipairs(shortcutsDown) do
-        shortcutsList:add(v.description .. " " .. combo2str(v.combo), k)
+    for _, v in ipairs(shortcutsDown) do
+        local message: string = v.description .. " " .. combo2str(v.combo)
+        shortcutsList:add(message)
     end
-    for k, v in ipairs(shortcutsPressed) do
-        shortcutsList:add(v.description .. " " .. combo2str(v.combo), k)
+    for _, v in ipairs(shortcutsPressed) do
+        local message: string = v.description .. " " .. combo2str(v.combo)
+        shortcutsList:add(message)
     end
+    -- XXX Почему сортировка идет по id? сортировать разными способами по 
+    -- сочетаниям клавиш к примеру
     table.sort(shortcutsList.items, function(a: List.Item, b: List.Item): boolean
-        return a.id < b.id
+        --return a.id < b.id
+        return a.message > b.message
     end)
     shortcutsList:done()
 end
@@ -168,47 +174,30 @@ function KeyConfig.drawShortcutsList(x0: number, y0: number)
 end
 --]]
 
+local ids: {string: Shortcut} = {}
+
 function KeyConfig.bind(btype: BindType, combo: {string}, action: ActionFunc, description: string, id: string|nil)
-    if btype == "keypressed" then
-    elseif btype == "isdown" then
+    description = description or ""
+    local map = {
+        ["keypressed"] = shortcutsPressed,
+        ["isdown"] = shortcutsDown,
+    }
+    local list: {Shortcut} = map[btype]
+    table.insert(list, {
+        combo = shallowCopy(combo),
+        action = action, 
+        description = description,
+        enabled = true
+    })
+    if id then
+        ids[id] = list[#list]
     end
-end
-
--- usage example:
--- bindKey({"q"}, quit)
--- bindKey({"lshift", "x"}, changeCameraMode)
--- use scancode
-function KeyConfig.bindKeyDown(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
-  assert(action, "action == nil in bindKey()")
-  assert(stringID, "stringID should'not be empty")
-  assert(action, "action == nil in bindKeyDown()")
-
-  --[[здесь добавить проверки в таблице keyCombination на допустимость 
-  закодированных в них сочетаний. Если сочетание клавиш используется, то 
-  вызывать исключение, которое в идеале может обработать вызывающая 
-  функция.
-  --]]
-
---  assert(shortcuts[stringID]) -- слот должен быть пустой
---  assert(description, "description == nil in bindKey()")
-  -- извлечь из keyCombination значения
-  -- проверить на дубликаты
-  description = description and description or ""
-  shortcutsDown[stringID] = {combo = keyCombination, action = action, 
-    description = description, enabled = true}
-end
-
-function KeyConfig.bindKeyPressed(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
-  assert(action, "action == nil in bindKeyPressed()")
-  assert(description, "description == nil in bindKeyPressed()")
-  shortcutsPressed[stringID] = {combo = keyCombination, action = action, 
-    description = description, enabled = true}
 end
 
 -- очень неподходящее название
 -- TODO: работает странно, если определить несколько горячих клавиш, к примеру f1 и f1+lshift
 function KeyConfig.keypressed(key: string)
-    for _, v in pairs(shortcutsPressed) do
+    for _, v in ipairs(shortcutsPressed) do
         if v.enabled then
             -- обрати внимание на магию - первый элемент проверяется на love.keypressed(),
             -- а последущие - как дополнительные модификаторы на lk.isDown()
@@ -225,6 +214,7 @@ function KeyConfig.keypressed(key: string)
                 shortcutsList = nil
                 local rebuildlist, newShortcut: boolean, Shortcut = v.action(v)
                 if rebuildlist then
+                    -- XXX переписывается ли указатель на таблицу v?
                     v = shallowCopy(newShortcut)
                 end
             end
@@ -236,7 +226,7 @@ end
 -- установленные при помощи bindKey(). Проверка выполняется через lk.isDown()
 function KeyConfig.update()
 -- а в чем хранить значения keyCombination? как назвать глобальную переменную?
-    for _, v in pairs(shortcutsDown) do
+    for _, v in ipairs(shortcutsDown) do
         if v.enabled then
             local pressed = true
             for _, keyValue in ipairs(v.combo) do
@@ -253,14 +243,12 @@ function KeyConfig.update()
     end
 end
 
-function KeyConfig.send(stringID: string)
-    local t = shortcutsDown[stringID]
-    if t and t.enabled and t.action then
-        t.action()
-    else
-        t = shortcutsPressed[stringID]
-        if t and t.enabled and t.action then 
-            t.action() 
+function KeyConfig.send(id: string)
+    local sc: Shortcut = ids[id]
+    if sc and sc.enabled and sc.action then
+        local rebuildlist, newsc = sc.action()
+        if rebuildlist then
+            ids[id] = shallowCopy(newsc)
         end
     end
 end
