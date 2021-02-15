@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table; require("love")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local table = _tl_compat and _tl_compat.table or table; require("love")
 require("common")
 
 local lk = love.keyboard
@@ -6,6 +6,7 @@ local inspect = require("inspect")
 
 
  KeyConfig = {BindAccord = {}, Shortcut = {}, }
+
 
 
 
@@ -217,11 +218,31 @@ function KeyConfig.bind(
    end
 end
 
+function KeyConfig.printBinds()
+   print("keypressed:")
+   for _, stroke in ipairs(shortcutsPressed) do
+      print("stroke", inspect(stroke))
+   end
+   print("end keypressed:")
+   print("isdown:")
+   for _, stroke in ipairs(shortcutsDown) do
+      print("stroke", inspect(stroke))
+   end
+   print("end isdown:")
+end
+
 
 
 function KeyConfig.keypressed(key)
    for i, stroke in ipairs(shortcutsPressed) do
       if stroke.enabled then
+
+         print("stroke.combo.key", stroke.combo.key)
+         if stroke.combo.key == "left" then
+            os.exit()
+            stroke.action(stroke)
+         end
+
          local combo = stroke.combo
          local pressed = key == combo.key
          if not pressed then
@@ -253,6 +274,12 @@ function KeyConfig.update()
       if stroke.enabled then
          print("stroke", inspect(stroke))
          local combo = stroke.combo
+
+         if combo.key == "left" then
+            os.exit()
+            stroke.action(stroke)
+         end
+
          local pressed = lk.isScancodeDown(combo.key)
          if not pressed then
             break

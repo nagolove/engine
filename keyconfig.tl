@@ -40,6 +40,7 @@ global type KeyConfig = record
 
     --bindKeyDown: function(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
     --bindKeyPressed: function(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
+    printBinds: function()
 
     update: function()
     keypressed: function(key: string)
@@ -217,11 +218,31 @@ function KeyConfig.bind(
     end
 end
 
+function KeyConfig.printBinds()
+    print("keypressed:")
+    for _, stroke in ipairs(shortcutsPressed) do
+        print("stroke", inspect(stroke))
+    end
+    print("end keypressed:")
+    print("isdown:")
+    for _, stroke in ipairs(shortcutsDown) do
+        print("stroke", inspect(stroke))
+    end
+    print("end isdown:")
+end
+
 -- TODO: работает странно, если определить несколько горячих клавиш, 
 -- к примеру f1 и f1+lshift
 function KeyConfig.keypressed(key: string)
     for i, stroke in ipairs(shortcutsPressed) do
         if stroke.enabled then
+
+            print("stroke.combo.key", stroke.combo.key)
+            if stroke.combo.key == "left" then
+                os.exit()
+                stroke.action(stroke)
+            end
+
             local combo = stroke.combo
             local pressed = key == combo.key
             if not pressed then 
@@ -251,8 +272,14 @@ end
 function KeyConfig.update()
     for i, stroke in ipairs(shortcutsDown) do
         if stroke.enabled then
-            print("stroke", inspect(stroke))
+            print("isdown stroke", inspect(stroke))
             local combo = stroke.combo
+
+            if combo.key == "left" then
+                os.exit()
+                stroke.action(stroke)
+            end
+
             local pressed = lk.isScancodeDown(combo.key as love.keyboard.KeyConstant)
             if not pressed then 
                 break 

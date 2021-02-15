@@ -87,6 +87,7 @@ function love.load(arg)
     --scenes.initOne("hst_reader")
 
     --initTools(currentScene)
+    KeyConfig.printBinds()
 end
 
 local lastGCTime = love.timer.getTime()
