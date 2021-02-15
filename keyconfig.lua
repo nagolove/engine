@@ -1,16 +1,11 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table
-require("love")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table; require("love")
+require("common")
+
 local lk = love.keyboard
-local lg = love.graphics
-
-local Shortcut = {}
+local inspect = require("inspect")
 
 
-
-
-
-
- KeyConfig = {}
+ KeyConfig = {BindAccord = {}, Shortcut = {}, }
 
 
 
@@ -21,6 +16,42 @@ local Shortcut = {}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local Shortcut = KeyConfig.Shortcut
+local ActionFunc = KeyConfig.ActionFunc
 
 
 local shortcutsDown = {}
@@ -31,27 +62,37 @@ local shortcutsPressed = {}
 local List = require("list")
 local shortcutsList = nil
 
-local function combo2str(comboTbl)
+local function combo2str(stroke)
    local res = "["
-   for k, v in pairs(comboTbl) do
-      res = res .. v
-      if (k) < #comboTbl then
-         res = res .. "+"
+   if stroke.mod then
+      for k, key in ipairs(stroke.mod) do
+         res = res .. key
+         if k < #stroke.mod then
+            res = res .. " + "
+         end
       end
+      res = res .. " + " .. stroke.key
+   else
+      res = stroke.key
    end
    return res .. "]"
 end
 
 function KeyConfig.prepareDrawing()
    shortcutsList = List.new(5, 5)
-   for k, v in pairs(shortcutsDown) do
-      shortcutsList:add(v.description .. " " .. combo2str(v.combo), k)
+   for _, v in ipairs(shortcutsDown) do
+      local message = v.description .. " " .. combo2str(v.combo)
+      shortcutsList:add(message)
    end
-   for k, v in pairs(shortcutsPressed) do
-      shortcutsList:add(v.description .. " " .. combo2str(v.combo), k)
+   for _, v in ipairs(shortcutsPressed) do
+      local message = v.description .. " " .. combo2str(v.combo)
+      shortcutsList:add(message)
    end
+
+
    table.sort(shortcutsList.items, function(a, b)
-      return a.id < b.id
+
+      return a.message > b.message
    end)
    shortcutsList:done()
 end
@@ -150,90 +191,97 @@ end
 
 
 
+local ids = {}
 
+function KeyConfig.bind(
+   btype,
+   combo,
+   action,
+   description,
+   id)
 
-
-
-function KeyConfig.bindKeyDown(stringID, keyCombination, action, description)
-   assert(action, "action == nil in bindKey()")
-   assert(stringID, "stringID should'not be empty")
-   assert(action, "action == nil in bindKeyDown()")
-
-
-
-
-
-
-
-
-
-
-
-   description = description and description or ""
-   shortcutsDown[stringID] = { combo = keyCombination, action = action,
-description = description, enabled = true, }
-end
-
-function KeyConfig.bindKeyPressed(stringID, keyCombination, action, description)
-   assert(action, "action == nil in bindKeyPressed()")
-   assert(description, "description == nil in bindKeyPressed()")
-   shortcutsPressed[stringID] = { combo = keyCombination, action = action,
-description = description, enabled = true, }
+   description = description or ""
+   local map = {
+      ["keypressed"] = shortcutsPressed,
+      ["isdown"] = shortcutsDown,
+   }
+   local list = map[btype]
+   table.insert(list, {
+      combo = shallowCopy(combo),
+      action = action,
+      description = description,
+      enabled = true,
+   })
+   if id then
+      ids[id] = list[#list]
+   end
 end
 
 
 
-function KeyConfig.checkPressedKeys(key)
-   for _, v in pairs(shortcutsPressed) do
-      if v.enabled then
-
-
-         local pressed = key == v.combo[1]
-
-
-         for i = 2, #v.combo do
-
-            pressed = pressed and lk.isDown(v.combo[i])
-            if not pressed then break end
+function KeyConfig.keypressed(key)
+   for i, stroke in ipairs(shortcutsPressed) do
+      if stroke.enabled then
+         local combo = stroke.combo
+         local pressed = key == combo.key
+         if not pressed then
+            break
          end
-         if pressed and v.action then
-
-            shortcutsList = nil
-            v.action()
+         print("keypressed stroke", inspect(stroke))
+         if combo.mod then
+            for _, mod in ipairs(combo.mod) do
+               pressed = pressed and lk.isDown(mod)
+               if not pressed then
+                  break
+               end
+            end
+         end
+         if pressed and stroke.action then
+            local rebuildlist, newShortcut = stroke.action(stroke)
+            if rebuildlist then
+               shortcutsList = nil
+               shortcutsPressed[i] = shallowCopy(newShortcut)
+            end
          end
       end
    end
 end
 
 
-
-function KeyConfig.checkDownKeys()
-
-   for _, v in pairs(shortcutsDown) do
-      if v.enabled then
-         local pressed = true
-         for _, keyValue in ipairs(v.combo) do
-            pressed = pressed and lk.isScancodeDown(keyValue)
-            if not pressed then break end
+function KeyConfig.update()
+   for i, stroke in ipairs(shortcutsDown) do
+      if stroke.enabled then
+         print("stroke", inspect(stroke))
+         local combo = stroke.combo
+         local pressed = lk.isScancodeDown(combo.key)
+         if not pressed then
+            break
          end
-         if pressed and v.action then
+         if combo.mod then
+            for _, keyValue in ipairs(combo.mod) do
+               pressed = pressed and lk.isScancodeDown(keyValue)
+               if not pressed then
+                  break
+               end
+            end
+         end
+         if pressed and stroke.action then
             shortcutsList = nil
-
-
-            v.action()
+            local rebuildlist, newShortcut = stroke.action(stroke)
+            if rebuildlist then
+               shortcutsDown[i] = shallowCopy(newShortcut)
+            end
          end
       end
    end
 end
 
-function KeyConfig.send(stringID)
-   local t = shortcutsDown[stringID]
-   if t and t.enabled and t.action then
-      t.action()
-   else
-      t = shortcutsPressed[stringID]
-      if t and t.enabled and t.action then
-         t.action()
+function KeyConfig.send(id)
+   local sc = ids[id]
+   if sc and sc.enabled and sc.action then
+      local rebuildlist, newsc = sc.action()
+      if rebuildlist then
+         ids[id] = shallowCopy(newsc)
       end
    end
 end

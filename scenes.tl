@@ -118,7 +118,9 @@ local function initOne(name: string)
     end
     node.scene = chunk() as Scene
     if node.scene.init then
+        print("------------ ↓↓↓↓↓↓↓↓↓↓ init ↓↓↓↓↓↓↓↓↓↓ ------------")
         node.scene.init()
+        print("------------ ↑↑↑↑↑↑↑↑↑↑ init ↑↑↑↑↑↑↑↑↑↑ ------------")
     end
     node.name = name
     node.inited = true

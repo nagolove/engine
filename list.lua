@@ -83,6 +83,8 @@ local List = {Lock = {}, Bar = {}, ColorType = {}, Colors = {}, Item = {}, }
 
 
 
+
+
 function inside(mx, my, x, y, w, h)
    return mx >= x and mx <= (x + w) and my >= y and my <= (y + h)
 end

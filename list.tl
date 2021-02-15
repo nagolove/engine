@@ -72,6 +72,8 @@ local record List
     getBarRect: function(List): number, number, number, number
     getItemRect: function(List, i: number): number, number, number, number
 
+    -- нужно вызывать только когда список активен в отрисовке и используется
+    -- ввод.
     update: function(List, dt: number)
 
     mousepressed: function(List, x: number, y: number, b: number): boolean

@@ -1,5 +1,7 @@
-require "keyconfig"
 require "camera"
+require "keyconfig"
+
+local inspect = require "inspect"
 
 local type CameraSettings = record
     dx: number
@@ -20,11 +22,16 @@ cameraSettings = {
     relativedy = 0,
 }
 
-local function bindCameraControl(keyconfig: KeyConfig, cam: Camera)
+local Shortcut = KeyConfig.Shortcut
 
-    keyconfig.bind(
-        "isdown",
-        {"z"},
+local function bindCameraControl(camera: Camera)
+    local cam = camera
+    print("bindCameraControl", inspect(cam))
+
+    KeyConfig.bind(
+        --"isdown",
+        "keypressed",
+        { key = "z" },
         function(sc: Shortcut): boolean, Shortcut
             print("zoout")
             cam:zoom(1.01)
@@ -36,9 +43,9 @@ local function bindCameraControl(keyconfig: KeyConfig, cam: Camera)
         "zoomout"
     )
 
-    keyconfig.bind(
+    KeyConfig.bind(
         "isdown",
-        {"x"},
+        { key = "x" },
         function(sc: Shortcut): boolean, Shortcut
             cam:zoom(0.99)
             return false, sc
@@ -47,10 +54,10 @@ local function bindCameraControl(keyconfig: KeyConfig, cam: Camera)
         "zoomin"
     )
 
-    keyconfig.bind(
+    KeyConfig.bind(
         "isdown",
-        {"left"},
-        function(sc:Shortcut): boolean, Shortcut
+        { key = "left" },
+        function(sc: Shortcut): boolean, Shortcut
             local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
             cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
             -- когда идет нажатие повлиять на цвет части текста
@@ -61,10 +68,10 @@ local function bindCameraControl(keyconfig: KeyConfig, cam: Camera)
         "camleft"
     )
 
-    keyconfig.bind(
+    KeyConfig.bind(
         "isdown",
-        {"right"},
-        function(sc: Shortcut): boolean, Shortcut
+        { key = "right" },
+        function(sc: KeyConfig.Shortcut): boolean, KeyConfig.Shortcut
             local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
             cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
             cam:move(reldx, 0)
@@ -74,10 +81,10 @@ local function bindCameraControl(keyconfig: KeyConfig, cam: Camera)
         "camright"
     )
 
-    keyconfig.bind(
+    KeyConfig.bind(
         "isdown",
-        {"up"},
-        function(sc: Shortcut): boolean, Shortcut
+        { key = "up" },
+        function(sc: KeyConfig.Shortcut): boolean, KeyConfig.Shortcut
             local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
             cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
             cam:move(0, -reldy)
@@ -87,10 +94,10 @@ local function bindCameraControl(keyconfig: KeyConfig, cam: Camera)
         "camup"
     )
 
-    keyconfig.bind(
+    KeyConfig.bind(
         "isdown",
-        {"down"},
-        function(sc: Shortcut): boolean, Shortcut
+        { key = "down" },
+        function(sc: KeyConfig.Shortcut): boolean, KeyConfig.Shortcut
             local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
             cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
             cam:move(0, reldy)
@@ -99,7 +106,6 @@ local function bindCameraControl(keyconfig: KeyConfig, cam: Camera)
         "move down",
         "camdown"
     )
-
 end
 
 return {

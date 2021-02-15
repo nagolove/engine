@@ -16,13 +16,28 @@ require "log"
 --__FREEZE_PHYSICS__ = true
 
 local function bindKeys()
-    keyconfig.bindKeyPressed("help", {"f1"}, function()
-        print("tools toggle")
-        showHelp = not showHelp
-    end, "show hotkeys")
-    keyconfig.bindKeyPressed("nope", {"f2"}, function()
-        print("keybind example")
-    end, "keybind example")
+    keyconfig.bind(
+        "keypressed",
+        { key = "f1" }, 
+        function(sc)
+            print("tools toggle")
+            showHelp = not showHelp
+            return false, sc
+        end, 
+        "show hotkeys and documentation",
+        "help"
+    )
+
+    keyconfig.bind(
+        "isdown",
+        { key = "f2" }, 
+        function(sc)
+            print("keybind example")
+            return false, sc
+        end, 
+        "keybind example",
+        "nope"
+    )
 end
 
 function printGraphicsInfo()
@@ -77,6 +92,7 @@ end
 local lastGCTime = love.timer.getTime()
 local GCPeriod = 1 * 60 * 5 -- 5 mins
 
+-- сборка мусора по таймеру
 local function collectGarbage()
   local now = love.timer.getTime()
   if now - lastGCTime > GCPeriod then
@@ -86,14 +102,17 @@ local function collectGarbage()
 end
 
 function love.update(dt)
-  --tools.update()
-  keyconfig.updateList(dt)
-  keyconfig.checkDownKeys()
-  collectGarbage()
-  scenes.update(dt)
+    --tools.update()
+    if showHelp then
+        keyconfig.updateList(dt)
+    end
+    keyconfig.update()
+    collectGarbage()
+    scenes.update(dt)
 end
 
 function love.draw()
+
   gr.setColor{1, 1, 1}
   scenes.draw()
   gr.setColor{1, 1, 1}
@@ -127,12 +146,7 @@ end
 function love.keypressed(_, key)
   imgui.KeyPressed(key)
   if not imgui.GetWantCaptureKeyboard() then
-
-    --if checkToolsHotkey(key) then
-      --tools.toggle()
-    --end
-
-    keyconfig.checkPressedKeys(key)
+    keyconfig.keypressed(key)
     scenes.keypressed(key)
     tools.keypressed(key)
   end
