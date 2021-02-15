@@ -45,9 +45,11 @@ global type KeyConfig = record
     update: function()
     keypressed: function(key: string)
 
-    drawList: function()
-    drawShortcutsList: function(x0: number, y0: number)
+    draw: function()
+    --drawShortcutsList: function(x0: number, y0: number)
     prepareDrawing: function()
+
+    -- вызывать только если активна отрисовка
     updateList: function(dt: number)
 end
 
@@ -98,7 +100,7 @@ function KeyConfig.prepareDrawing()
     shortcutsList:done()
 end
 
-function KeyConfig.drawList()
+function KeyConfig.draw()
     if not shortcutsList then
         KeyConfig.prepareDrawing()
     end
@@ -153,6 +155,7 @@ end
 -- TODO: работает странно, если определить несколько горячих клавиш, 
 -- к примеру f1 и f1+lshift
 function KeyConfig.keypressed(key: string)
+    print("KeyConfig.keypressed(", key, ")")
     for i, stroke in ipairs(shortcutsPressed) do
         if stroke.enabled then
 
@@ -164,23 +167,22 @@ function KeyConfig.keypressed(key: string)
 
             local combo = stroke.combo
             local pressed = key == combo.key
-            if not pressed then 
-                break 
-            end
-            print("keypressed stroke", inspect(stroke))
-            if combo.mod then
-                for _, mod in ipairs(combo.mod) do
-                    pressed = pressed and lk.isDown(mod as love.keyboard.KeyConstant)
-                    if not pressed then 
-                        break 
+            if pressed then 
+                --print("keypressed stroke", inspect(stroke))
+                if combo.mod then
+                    for _, mod in ipairs(combo.mod) do
+                        pressed = pressed and lk.isDown(mod as love.keyboard.KeyConstant)
+                        if not pressed then 
+                            break 
+                        end
                     end
                 end
-            end
-            if pressed and stroke.action then
-                local rebuildlist, newShortcut: boolean, Shortcut = stroke.action(stroke)
-                if rebuildlist then
-                    shortcutsList = nil
-                    shortcutsPressed[i] = shallowCopy(newShortcut)
+                if pressed and stroke.action then
+                    local rebuildlist, newShortcut: boolean, Shortcut = stroke.action(stroke)
+                    if rebuildlist then
+                        shortcutsList = nil
+                        shortcutsPressed[i] = shallowCopy(newShortcut)
+                    end
                 end
             end
         end
@@ -191,33 +193,35 @@ end
 function KeyConfig.update()
     for i, stroke in ipairs(shortcutsDown) do
         if stroke.enabled then
-            print("isdown stroke", inspect(stroke))
+            --print("isdown stroke", inspect(stroke))
             local combo = stroke.combo
 
-            if combo.key == "left" then
-                os.exit()
-                stroke.action(stroke)
-            end
+            --print("combo.key", combo.key)
+            --if combo.key == "left" then
+                --os.exit()
+                --stroke.action(stroke)
+            --end
 
             local pressed = lk.isScancodeDown(combo.key as love.keyboard.KeyConstant)
-            if not pressed then 
-                break 
+            if pressed then 
+                --print("isScancodeDown", combo.key)
+                if combo.mod then
+                    for _, keyValue in ipairs(combo.mod) do
+                        pressed = pressed and lk.isScancodeDown(keyValue as love.keyboard.KeyConstant)
+                        if not pressed then 
+                            break 
+                        end 
+                    end
+                end
+                if pressed and stroke.action then 
+                    --print("called")
+                    local rebuildlist, newShortcut: boolean, Shortcut = stroke.action(stroke)
+                    if rebuildlist then
+                        shortcutsList = nil
+                        shortcutsDown[i] = shallowCopy(newShortcut)
+                    end
+                end
             end 
-            if combo.mod then
-                for _, keyValue in ipairs(combo.mod) do
-                    pressed = pressed and lk.isScancodeDown(keyValue as love.keyboard.KeyConstant)
-                    if not pressed then 
-                        break 
-                    end 
-                end
-            end
-            if pressed and stroke.action then 
-                shortcutsList = nil
-                local rebuildlist, newShortcut: boolean, Shortcut = stroke.action(stroke)
-                if rebuildlist then
-                    shortcutsDown[i] = shallowCopy(newShortcut)
-                end
-            end
         end
     end
 end

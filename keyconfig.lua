@@ -51,6 +51,8 @@ local inspect = require("inspect")
 
 
 
+
+
 local Shortcut = KeyConfig.Shortcut
 local ActionFunc = KeyConfig.ActionFunc
 
@@ -98,7 +100,7 @@ function KeyConfig.prepareDrawing()
    shortcutsList:done()
 end
 
-function KeyConfig.drawList()
+function KeyConfig.draw()
    if not shortcutsList then
       KeyConfig.prepareDrawing()
    end
@@ -110,87 +112,6 @@ function KeyConfig.updateList(dt)
       shortcutsList:update(dt)
    end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 local ids = {}
 
@@ -234,6 +155,7 @@ end
 
 
 function KeyConfig.keypressed(key)
+   print("KeyConfig.keypressed(", key, ")")
    for i, stroke in ipairs(shortcutsPressed) do
       if stroke.enabled then
 
@@ -245,23 +167,22 @@ function KeyConfig.keypressed(key)
 
          local combo = stroke.combo
          local pressed = key == combo.key
-         if not pressed then
-            break
-         end
-         print("keypressed stroke", inspect(stroke))
-         if combo.mod then
-            for _, mod in ipairs(combo.mod) do
-               pressed = pressed and lk.isDown(mod)
-               if not pressed then
-                  break
+         if pressed then
+
+            if combo.mod then
+               for _, mod in ipairs(combo.mod) do
+                  pressed = pressed and lk.isDown(mod)
+                  if not pressed then
+                     break
+                  end
                end
             end
-         end
-         if pressed and stroke.action then
-            local rebuildlist, newShortcut = stroke.action(stroke)
-            if rebuildlist then
-               shortcutsList = nil
-               shortcutsPressed[i] = shallowCopy(newShortcut)
+            if pressed and stroke.action then
+               local rebuildlist, newShortcut = stroke.action(stroke)
+               if rebuildlist then
+                  shortcutsList = nil
+                  shortcutsPressed[i] = shallowCopy(newShortcut)
+               end
             end
          end
       end
@@ -272,31 +193,33 @@ end
 function KeyConfig.update()
    for i, stroke in ipairs(shortcutsDown) do
       if stroke.enabled then
-         print("stroke", inspect(stroke))
+
          local combo = stroke.combo
 
-         if combo.key == "left" then
-            os.exit()
-            stroke.action(stroke)
-         end
+
+
+
+
+
 
          local pressed = lk.isScancodeDown(combo.key)
-         if not pressed then
-            break
-         end
-         if combo.mod then
-            for _, keyValue in ipairs(combo.mod) do
-               pressed = pressed and lk.isScancodeDown(keyValue)
-               if not pressed then
-                  break
+         if pressed then
+
+            if combo.mod then
+               for _, keyValue in ipairs(combo.mod) do
+                  pressed = pressed and lk.isScancodeDown(keyValue)
+                  if not pressed then
+                     break
+                  end
                end
             end
-         end
-         if pressed and stroke.action then
-            shortcutsList = nil
-            local rebuildlist, newShortcut = stroke.action(stroke)
-            if rebuildlist then
-               shortcutsDown[i] = shallowCopy(newShortcut)
+            if pressed and stroke.action then
+
+               local rebuildlist, newShortcut = stroke.action(stroke)
+               if rebuildlist then
+                  shortcutsList = nil
+                  shortcutsDown[i] = shallowCopy(newShortcut)
+               end
             end
          end
       end

@@ -28,15 +28,16 @@ local function bindCameraControl(camera: Camera)
     local cam = camera
     print("bindCameraControl", inspect(cam))
 
+    -- не прямой а квадратичный зум?
+    --local zoomStartTime = 0
+    --local zoomDirection = 0 -- -1 or 1
+    --local zoomFactor = 0.001
+
     KeyConfig.bind(
-        --"isdown",
-        "keypressed",
+        "isdown",
         { key = "z" },
         function(sc: Shortcut): boolean, Shortcut
-            print("zoout")
             cam:zoom(1.01)
-            -- false - не пересобирать список
-            -- true - пересобирать список
             return false, sc
         end,
         "zoom camera out",
@@ -75,6 +76,7 @@ local function bindCameraControl(camera: Camera)
             local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
             cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
             cam:move(reldx, 0)
+            print("camera right")
             return false, sc
         end,
         "move right",

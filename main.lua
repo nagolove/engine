@@ -4,7 +4,6 @@ print("package.path", package.path)
 
 local imgui = require "imgui"
 local inspect = require "inspect"
-local keyconfig = require "keyconfig"
 local scenes = require "scenes"
 local tools = require "tools"
 
@@ -12,11 +11,12 @@ local showHelp = false
 local gr = love.graphics
 
 require "log"
+require "keyconfig"
 
 --__FREEZE_PHYSICS__ = true
 
 local function bindKeys()
-    keyconfig.bind(
+    KeyConfig.bind(
         "keypressed",
         { key = "f1" }, 
         function(sc)
@@ -28,7 +28,7 @@ local function bindKeys()
         "help"
     )
 
-    keyconfig.bind(
+    KeyConfig.bind(
         "isdown",
         { key = "f2" }, 
         function(sc)
@@ -105,9 +105,9 @@ end
 function love.update(dt)
     --tools.update()
     if showHelp then
-        keyconfig.updateList(dt)
+        KeyConfig.updateList(dt)
     end
-    keyconfig.update()
+    KeyConfig.update()
     collectGarbage()
     scenes.update(dt)
 end
@@ -124,7 +124,7 @@ function love.draw()
   imgui.Render();
 
   if showHelp then
-      keyconfig.drawList()
+      KeyConfig.draw()
   end
 end
 
@@ -147,7 +147,7 @@ end
 function love.keypressed(_, key)
   imgui.KeyPressed(key)
   if not imgui.GetWantCaptureKeyboard() then
-    keyconfig.keypressed(key)
+    KeyConfig.keypressed(key)
     scenes.keypressed(key)
     tools.keypressed(key)
   end
