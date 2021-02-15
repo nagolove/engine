@@ -1,6 +1,7 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local table = _tl_compat and _tl_compat.table or table; require("love")
 
 local gr = love.graphics
+local fontsize = 23
 
 
 
@@ -94,7 +95,7 @@ end
 
 function List.new(x, y)
    local self = {
-      font = gr.newFont("fonts/DroidSansMono.ttf", 23),
+      font = gr.newFont("fonts/DroidSansMono.ttf", fontsize),
    }
 
    self = setmetatable(self, { __index = List })

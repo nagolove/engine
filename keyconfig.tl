@@ -12,6 +12,8 @@ global type KeyConfig = record
         mod: {string}
         -- клавиша
         key: string
+        -- клавиша мыши
+        mousekey: string
     end
 
     type Shortcut = record

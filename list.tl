@@ -1,6 +1,7 @@
 require "love"
 
 local gr = love.graphics
+local fontsize = 23
 
 ----------------------
 -- List object
@@ -94,7 +95,7 @@ end
 
 function List.new(x: number, y: number): List
     local self: List = {
-        font = gr.newFont("fonts/DroidSansMono.ttf", 23)
+        font = gr.newFont("fonts/DroidSansMono.ttf", fontsize)
     }
 
     self = setmetatable(self, { __index = List })
