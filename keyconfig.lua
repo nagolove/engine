@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local table = _tl_compat and _tl_compat.table or table; require("love")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table; require("love")
 require("common")
 
 local lk = love.keyboard
@@ -66,7 +66,7 @@ local List = require("list")
 local shortcutsList = nil
 
 local function combo2str(stroke)
-   local res = "["
+   local res = ""
    if stroke.mod then
       for k, key in ipairs(stroke.mod) do
          res = res .. key
@@ -78,17 +78,21 @@ local function combo2str(stroke)
    else
       res = stroke.key
    end
-   return res .. "]"
+   return '[' .. res .. ']'
 end
 
 function KeyConfig.prepareDrawing()
    shortcutsList = List.new(5, 5)
    for _, v in ipairs(shortcutsDown) do
       local message = v.description .. " " .. combo2str(v.combo)
+
+      print("message", message)
       shortcutsList:add(message)
    end
    for _, v in ipairs(shortcutsPressed) do
       local message = v.description .. " " .. combo2str(v.combo)
+
+      print("message", message)
       shortcutsList:add(message)
    end
 
@@ -158,17 +162,10 @@ function KeyConfig.keypressed(key)
    print("KeyConfig.keypressed(", key, ")")
    for i, stroke in ipairs(shortcutsPressed) do
       if stroke.enabled then
-
-         print("stroke.combo.key", stroke.combo.key)
-         if stroke.combo.key == "left" then
-            os.exit()
-            stroke.action(stroke)
-         end
-
          local combo = stroke.combo
          local pressed = key == combo.key
          if pressed then
-
+            print("keypressed stroke", inspect(stroke))
             if combo.mod then
                for _, mod in ipairs(combo.mod) do
                   pressed = pressed and lk.isDown(mod)

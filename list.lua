@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("love")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local table = _tl_compat and _tl_compat.table or table; require("love")
 
 local gr = love.graphics
 
@@ -85,36 +85,45 @@ local List = {Lock = {}, Bar = {}, ColorType = {}, Colors = {}, Item = {}, }
 
 
 
+
+
+
 function inside(mx, my, x, y, w, h)
    return mx >= x and mx <= (x + w) and my >= y and my <= (y + h)
 end
 
-function List.new(x, y, w, h)
-   local o = {}
-   setmetatable(o, { __index = List })
+function List.new(x, y)
+   local self = {
+      font = gr.newFont("fonts/DroidSansMono.ttf", 23),
+   }
 
-   o.items = {}
-   o.hoveritem = 0
-   o.onclick = nil
+   self = setmetatable(self, { __index = List })
 
-   o.x = x
-   o.y = y
+   self.items = {}
+   self.hoveritem = 0
+   self.onclick = nil
 
-   o.width = w or 100
-   o.height = h or 100
+   self.x = x
+   self.y = y
 
-   o.item_height = 23
-   o.sum_item_height = 0
+   self.width = 1
+   self.height = 1
 
-   o.bar = { size = 20, pos = 0, maxpos = 0, width = 15, lock = nil }
 
-   o.colors = {}
-   o.colors.normal = { bg = { 0.19, 0.61, 0.88 }, fg = { 0.77, 0.91, 1 } }
-   o.colors.hover = { bg = { 0.28, 0.51, 0.66 }, fg = { 1, 1, 1 } }
-   o.windowcolor = { 0.19, 0.61, 0.88 }
-   o.bordercolor = { 0.28, 0.51, 0.66 }
-   o.visible = true
-   return o
+   print("self.item_height", self.font:getHeight())
+   self.item_height = self.font:getHeight()
+   self.sum_item_height = 0
+
+   self.bar = { size = 20, pos = 0, maxpos = 0, width = 20, lock = nil }
+
+
+   self.colors = {}
+   self.colors.normal = { bg = { 0.19, 0.61, 0.88 }, fg = { 0.77, 0.91, 1 } }
+   self.colors.hover = { bg = { 0.28, 0.51, 0.66 }, fg = { 1, 1, 1 } }
+   self.windowcolor = { 0.19, 0.61, 0.88 }
+   self.bordercolor = { 0.28, 0.51, 0.66 }
+   self.visible = true
+   return self
 end
 
 
@@ -140,6 +149,7 @@ function List:done()
 
    self.sum_item_height = (self.item_height + 1) * #self.items + 2
 
+
    self.height = self.sum_item_height
    local maxLen, maxLenIdx = 0, 1
 
@@ -149,8 +159,9 @@ function List:done()
          maxLenIdx = k
       end
    end
-   local longestStr = self.items[maxLenIdx].message .. string.rep(" ", 10)
-   self.width = love.graphics.getFont():getWidth(longestStr)
+
+
+   self.width = self.font:getWidth(self.items[maxLenIdx].message)
    print("self.sum_item_height", self.sum_item_height)
    print("self.width", self.width)
    print("self.height", self.height)
@@ -263,28 +274,55 @@ function List:getBarRect()
 end
 
 function List:getItemRect(i)
-   return self.x + 2, self.y + ((self.item_height + 1) * (i - 1) + 1) - self:getOffset(),
-   self.width - 3, self.item_height
+   return
+self.x + 2,
+   self.y + ((self.item_height + 1) * (i - 1) + 1) - self:getOffset(),
+   self.width - 3,
+   self.item_height
 end
 
-function List:draw()
-   if not self.visible then return end
+function List:setupPush()
+   self.prevfont = gr.getFont()
+   gr.setLineWidth(1)
+   gr.setLineStyle("rough")
+   gr.setColor(self.windowcolor)
+   gr.setFont(self.font)
+   gr.setScissor(self.x, self.y, self.width, self.height)
+end
 
-   love.graphics.setLineWidth(1)
-   love.graphics.setLineStyle("rough")
-   love.graphics.setColor(self.windowcolor)
+function List:setupPop()
+   love.graphics.setScissor()
+   gr.setFont(self.prevfont)
+end
+
+function List:border()
+   gr.setColor(self.bordercolor)
+   if self.bar then
+      gr.rectangle("line", self.x + self.width, self.y, self.bar.width, self.height)
+   end
+   gr.rectangle("line", self.x, self.y, self.width, self.height)
+end
 
 
+function List:getInterval()
    local start_i = math.floor(self:getOffset() / (self.item_height + 1)) + 1
    local end_i = start_i + math.floor(self.height / (self.item_height + 1)) + 1
    if end_i > #self.items then
       end_i = #self.items
    end
+   return start_i, end_i
+end
 
-   love.graphics.setScissor(self.x, self.y, self.width, self.height)
+function List:draw()
+   if not self.visible then
+      return
+   end
+
+   self:setupPush()
 
 
    local rx, ry, rw, rh
+   local start_i, end_i = self:getInterval()
    local colorset
    for i = start_i, end_i do
       if i == self.hoveritem then
@@ -300,7 +338,8 @@ function List:draw()
       gr.setColor(colorset.fg)
 
 
-      gr.print(self.items[i].message, rx + 10, ry + 5)
+
+      gr.print(self.items[i].message, rx, ry)
 
 
       local item = self.items[i]
@@ -312,7 +351,6 @@ function List:draw()
    end
 
    love.graphics.setScissor()
-
 
    if self:hasBar() then
       if self.hoveritem == -1 or self.bar.lock ~= nil then
@@ -327,11 +365,25 @@ function List:draw()
    end
 
 
-   love.graphics.setColor(self.bordercolor)
-   if self.bar then
-      love.graphics.rectangle("line", self.x + self.width, self.y, self.bar.width, self.height)
-   end
-   love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
+   self:border()
+   self:setupPop()
+end
+
+
+function List:bar()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 end
 
@@ -386,11 +438,11 @@ function List:draw2()
 
 
    if self:hasBar() then
-      if self.hoveritem == -1 or self.bar.lock ~= nil then
-         colorset = self.colors.hover
-      else
-         colorset = self.colors.normal
-      end
+
+
+
+
+
 
       rx, ry, rw, rh = self:getBarRect()
       love.graphics.setColor(colorset.bg)
@@ -400,7 +452,7 @@ function List:draw2()
 
    love.graphics.setColor(self.bordercolor)
    if self.bar then
-      love.graphics.rectangle("line", self.x + self.width, self.y, self.bar.width, self.height)
+
    end
    love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 

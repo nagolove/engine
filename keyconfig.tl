@@ -66,7 +66,7 @@ local List = require "list"
 local shortcutsList: List = nil
 
 local function combo2str(stroke: KeyConfig.BindAccord): string
-    local res = "["
+    local res = ""
     if stroke.mod then
         for k, key in ipairs(stroke.mod) do
             res = res .. key
@@ -78,17 +78,21 @@ local function combo2str(stroke: KeyConfig.BindAccord): string
     else
         res = stroke.key
     end
-    return res .. "]"
+    return '[' .. res .. ']'
 end
 
 function KeyConfig.prepareDrawing()
     shortcutsList = List.new(5, 5)
     for _, v in ipairs(shortcutsDown) do
         local message: string = v.description .. " " .. combo2str(v.combo)
+        --local message: string = "hhhh"
+        print("message", message)
         shortcutsList:add(message)
     end
     for _, v in ipairs(shortcutsPressed) do
         local message: string = v.description .. " " .. combo2str(v.combo)
+        --local message: string = "uuuuuuuu"
+        print("message", message)
         shortcutsList:add(message)
     end
     -- XXX Почему сортировка идет по id? сортировать разными способами по 
@@ -158,17 +162,10 @@ function KeyConfig.keypressed(key: string)
     print("KeyConfig.keypressed(", key, ")")
     for i, stroke in ipairs(shortcutsPressed) do
         if stroke.enabled then
-
-            print("stroke.combo.key", stroke.combo.key)
-            if stroke.combo.key == "left" then
-                os.exit()
-                stroke.action(stroke)
-            end
-
             local combo = stroke.combo
             local pressed = key == combo.key
             if pressed then 
-                --print("keypressed stroke", inspect(stroke))
+                print("keypressed stroke", inspect(stroke))
                 if combo.mod then
                     for _, mod in ipairs(combo.mod) do
                         pressed = pressed and lk.isDown(mod as love.keyboard.KeyConstant)
