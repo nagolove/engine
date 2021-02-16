@@ -167,7 +167,7 @@ function KeyConfig.keypressed(key)
          local combo = stroke.combo
          local pressed = key == combo.key
          if pressed then
-            print("keypressed stroke", inspect(stroke))
+
             if combo.mod then
                for _, mod in ipairs(combo.mod) do
                   pressed = pressed and lk.isDown(mod)
@@ -194,13 +194,6 @@ function KeyConfig.update()
       if stroke.enabled then
 
          local combo = stroke.combo
-
-
-
-
-
-
-
          local pressed = lk.isScancodeDown(combo.key)
          if pressed then
 
@@ -213,7 +206,6 @@ function KeyConfig.update()
                end
             end
             if pressed and stroke.action then
-
                local rebuildlist, newShortcut = stroke.action(stroke)
                if rebuildlist then
                   shortcutsList = nil

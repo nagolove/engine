@@ -167,7 +167,7 @@ function KeyConfig.keypressed(key: string)
             local combo = stroke.combo
             local pressed = key == combo.key
             if pressed then 
-                print("keypressed stroke", inspect(stroke))
+                --print("keypressed stroke", inspect(stroke))
                 if combo.mod then
                     for _, mod in ipairs(combo.mod) do
                         pressed = pressed and lk.isDown(mod as love.keyboard.KeyConstant)
@@ -194,13 +194,6 @@ function KeyConfig.update()
         if stroke.enabled then
             --print("isdown stroke", inspect(stroke))
             local combo = stroke.combo
-
-            --print("combo.key", combo.key)
-            --if combo.key == "left" then
-                --os.exit()
-                --stroke.action(stroke)
-            --end
-
             local pressed = lk.isScancodeDown(combo.key as love.keyboard.KeyConstant)
             if pressed then 
                 --print("isScancodeDown", combo.key)
@@ -213,7 +206,6 @@ function KeyConfig.update()
                     end
                 end
                 if pressed and stroke.action then 
-                    --print("called")
                     local rebuildlist, newShortcut: boolean, Shortcut = stroke.action(stroke)
                     if rebuildlist then
                         shortcutsList = nil
