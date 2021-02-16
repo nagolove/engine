@@ -161,7 +161,7 @@ end
 -- TODO: работает странно, если определить несколько горячих клавиш, 
 -- к примеру f1 и f1+lshift
 function KeyConfig.keypressed(key: string)
-    print("KeyConfig.keypressed(", key, ")")
+    --print("KeyConfig.keypressed(", key, ")")
     for i, stroke in ipairs(shortcutsPressed) do
         if stroke.enabled then
             local combo = stroke.combo

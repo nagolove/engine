@@ -161,7 +161,7 @@ end
 
 
 function KeyConfig.keypressed(key)
-   print("KeyConfig.keypressed(", key, ")")
+
    for i, stroke in ipairs(shortcutsPressed) do
       if stroke.enabled then
          local combo = stroke.combo
