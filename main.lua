@@ -9,6 +9,7 @@ local tools = require "tools"
 
 local showHelp = false
 local gr = love.graphics
+local imguiFontSize = 22
 
 require "log"
 require "keyconfig"
@@ -88,7 +89,7 @@ function love.load(arg)
 
     --initTools(currentScene)
     KeyConfig.printBinds()
-    imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", 15)
+    imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", imguiFontSize)
 end
 
 local lastGCTime = love.timer.getTime()

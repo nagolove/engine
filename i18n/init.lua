@@ -1,5 +1,7 @@
 local i18n = {}
 
+local inspect = require "inspect"
+
 local store
 local locale
 local pluralizeFunction
@@ -183,6 +185,9 @@ function i18n.loadFile(path, callback)
     chunk = assert(callback(path))
   end
   local data = chunk()
+  i18n.load(data)
+  print("i18n", inspect(i18n))
+  print("locale", inspect(locale))
 end
 
 setmetatable(i18n, {__call = function(_, ...) return i18n.translate(...) end})
