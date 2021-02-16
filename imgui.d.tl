@@ -25,6 +25,7 @@ global type Imgui = record
 
     -- return values number??
     Combo: function(label: string, current_item: number, items: {string}, items_count: number, popup_max_height_in_items: number|nil): number, boolean
+    SameLine: function()
 end
 
 return Imgui

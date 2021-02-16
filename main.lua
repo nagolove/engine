@@ -88,6 +88,7 @@ function love.load(arg)
 
     --initTools(currentScene)
     KeyConfig.printBinds()
+    imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", 15)
 end
 
 local lastGCTime = love.timer.getTime()
