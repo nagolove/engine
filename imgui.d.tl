@@ -25,6 +25,8 @@ global type Imgui = record
 
     -- return values number??
     Combo: function(label: string, current_item: number, items: {string}, items_count: number, popup_max_height_in_items: number|nil): number, boolean
+    --InputTextMultiline: function(label: string, buf: string, 200, 300, 200)
+    InputTextMultiline: function(label: string, buf: string, number, number, number): string, boolean
     SameLine: function()
 end
 
