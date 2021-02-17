@@ -11,6 +11,24 @@ function shallowCopy<T>(t: T): T
    return copy as T
 end
 
+-- source http://lua-users.org/wiki/CopyTable 
+function deepCopy<T>(orig: T): T
+    local orig_type = type(orig)
+    if orig_type == 'table' then
+        local copy = {}
+        copy = {}
+        for orig_key, orig_value in pairs(orig as {any:any}) do
+            copy[deepCopy(orig_key as T)] = deepCopy(orig_value as T)
+        end
+        --setmetatable(copy as T, deepCopy(getmetatable(orig) as T))
+        setmetatable(copy as T, deepCopy(getmetatable(orig) as T) as metatable<T>)
+        return copy as T
+    else 
+        return orig
+    end
+end
+
+
 local type anyFunc = function(any): any
 function my_setfenv(f: anyFunc, env: {any: any}): anyFunc, string
     return load(string.dump(f), nil, nil, env)

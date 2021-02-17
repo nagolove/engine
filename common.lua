@@ -11,6 +11,24 @@ function shallowCopy(t)
    return copy
 end
 
+
+function deepCopy(orig)
+   local orig_type = type(orig)
+   if orig_type == 'table' then
+      local copy = {}
+      copy = {}
+      for orig_key, orig_value in pairs(orig) do
+         copy[deepCopy(orig_key)] = deepCopy(orig_value)
+      end
+
+      setmetatable(copy, deepCopy(getmetatable(orig)))
+      return copy
+   else
+      return orig
+   end
+end
+
+
 local anyFunc = {}
 function my_setfenv(f, env)
    return load(string.dump(f), nil, nil, env)
