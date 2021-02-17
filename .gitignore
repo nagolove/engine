@@ -1,3 +1,6 @@
+.nvimlog
+.vim-bookmarks
+*.zip
 *.log
 *.out
 session.vim
