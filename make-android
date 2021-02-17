@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Добавить избирательность сцены
+
 ./compile.sh
 
 if [ $? -ne 0 ]

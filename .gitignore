@@ -1,0 +1,7 @@
+*.log
+*.out
+session.vim
+game.love
+*.apk
+*.aab
+scenes/*
