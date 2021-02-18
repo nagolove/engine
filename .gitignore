@@ -4,6 +4,7 @@
 *.log
 *.out
 session.vim
+Session.vim
 game.love
 *.apk
 *.aab
