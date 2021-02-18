@@ -1,3 +1,5 @@
+-- TODO запись результато в строчку, а не файл. Для использования с
+-- love.filesystem.write()
 --[[
 	ProFi v1.3, by Luke Perkin 2012. MIT Licence http://www.opensource.org/licenses/mit-license.php.
 	
