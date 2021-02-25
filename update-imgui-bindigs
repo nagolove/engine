@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+cp ~/projects/imgui-bindings-fix/love-imgui.so imgui.so
+cp ~/projects/imgui-bindings-fix/src/lua-bindings/imgui.d.tl .

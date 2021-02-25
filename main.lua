@@ -3,6 +3,7 @@
 print("package.path", package.path)
 
 local imgui = require "imgui"
+--local imgui = require "love-imgui"
 local inspect = require "inspect"
 local scenes = require "scenes"
 local tools = require "tools"
