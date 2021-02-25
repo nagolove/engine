@@ -1,3 +1,7 @@
 #!/usr/bin/env bash
+pushd .
+cd ~/projects/imgui-bindings-fix
+make clean && make -j6
+popd
 cp ~/projects/imgui-bindings-fix/love-imgui.so imgui.so
 cp ~/projects/imgui-bindings-fix/src/lua-bindings/imgui.d.tl .
