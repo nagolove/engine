@@ -7,7 +7,7 @@ return {
 
         "scenes/hexfield/",
         "scenes/slog-example/",
-        --"scenes/automato_test/",
+        "scenes/imgui-bindings/",
     },
     include = {
         "*.tl",
@@ -15,7 +15,7 @@ return {
         "scenes/empty/*.tl",
 
         --"scenes/nback2/*.tl",
-        --"scenes/automato_test/*.tl",
+        "scenes/imgui-bindings/*.tl",
         
         "scenes/hst_reader/*.tl",
         "scenes/hexfield/*.tl",

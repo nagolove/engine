@@ -1,3 +1,5 @@
+local jit = require "jit"
+jit.off()
 -- :setlocal foldmethod=manual
 --require "mobdebug".start()
 print("package.path", package.path)

@@ -12,14 +12,14 @@ local textValue = "text"
 --
 -- LOVE callbacks
 --
-function love.load(arg)
+local function init()
 end
 
-function love.update(dt)
+local function update(dt: number)
     imgui.NewFrame()
 end
 
-function love.draw()
+local function draw()
 
     -- Menu
     if imgui.BeginMainMenuBar() then
@@ -71,54 +71,61 @@ function love.quit()
     imgui.ShutDown()
 end
 
---
--- User inputs
---
-function love.textinput(t)
+local function textinput(t: string)
     imgui.TextInput(t)
     if not imgui.GetWantCaptureKeyboard() then
         -- Pass event to the game
     end
 end
 
-function love.keypressed(key)
+local function keypressed(key: string)
     imgui.KeyPressed(key)
     if not imgui.GetWantCaptureKeyboard() then
         -- Pass event to the game
     end
 end
 
-function love.keyreleased(key)
+local function keyreleased(key: string)
     imgui.KeyReleased(key)
     if not imgui.GetWantCaptureKeyboard() then
         -- Pass event to the game
     end
 end
 
-function love.mousemoved(x, y)
+local function mousemoved(x: number, y: number)
     imgui.MouseMoved(x, y)
     if not imgui.GetWantCaptureMouse() then
         -- Pass event to the game
     end
 end
 
-function love.mousepressed(x, y, button)
+local function mousepressed(_: number, _: number, button: number)
     imgui.MousePressed(button)
     if not imgui.GetWantCaptureMouse() then
         -- Pass event to the game
     end
 end
 
-function love.mousereleased(x, y, button)
+local function mousereleased(_: number, _: number, button: number)
     imgui.MouseReleased(button)
     if not imgui.GetWantCaptureMouse() then
         -- Pass event to the game
     end
 end
 
-function love.wheelmoved(x, y)
+local function wheelmoved(_: number, y: number)
     imgui.WheelMoved(y)
     if not imgui.GetWantCaptureMouse() then
         -- Pass event to the game
     end
 end
+
+return {
+    textinput = textinput,
+    keypressed = keypressed,
+    keyreleased = keyreleased,
+    mousemoved = mousemoved,
+    mousepressed = mousepressed,
+    mousereleased = mousereleased,
+    wheelmoved = wheelmoved,
+}
