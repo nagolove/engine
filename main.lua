@@ -64,6 +64,7 @@ function printGraphicsInfo()
 end
 
 function love.load(arg)
+    imgui.Init()
     printGraphicsInfo()
     bindKeys()
 
@@ -84,7 +85,7 @@ function love.load(arg)
     
     --scenes.initOne("hexfield")
 
-    --scenes.initOne("automato")
+    scenes.initOne("automato")
 
     --scenes.initOne("fractaltree")
 
@@ -92,7 +93,8 @@ function love.load(arg)
 
     --initTools(currentScene)
     KeyConfig.printBinds()
-    imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", imguiFontSize)
+    --imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", imguiFontSize)
+    imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
 end
 
 local lastGCTime = love.timer.getTime()

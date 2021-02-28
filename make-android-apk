@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+
+# Добавить избирательность сцены
+
+./compile
+
+# Проверка возвращаемого значения предыдущей команды.
+# Если код возврата не равен 0, то прервать дальнейшую сборку
+if [ $? -ne 0 ]
+then
+    echo "Not compiled"
+    exit
+fi
+
+#apack game.zip \
+#addline2mesh.lua \
+#ansicolors.lua \
+#assets \
+#box2dtool.lua \
+#camera.lua \
+#cameratool.lua \
+#celltool.lua \
+#colorselector.lua \
+#common.lua \
+#compat53 \
+#conf.lua \
+#debug.lua \
+#docks \
+#drawing_bitmap.lua \
+#external.lua \
+#fonts \
+#gfx \
+#hotkeystool.lua \
+#hsx.lua \
+#inspect.lua \
+#inter.lua \
+#keyconfig.lua \
+#kons.lua \
+#list.lua \
+#log.lua \
+#main.lua \
+#matrix.lua \
+#menu.lua \
+#mobdebug.lua \
+#neural_network.lua \
+#NeuralNetwork.lua \
+#particlestool.lua \
+#profi.lua \
+#qtree.lua \
+#render_scene.lua \
+#scale.lua \
+#scenes/automato/* \
+#scenes/empty/* \
+#scenes.lua \
+#scenetool.lua \
+#serpent.lua \
+#ship.lua \
+#shiptool.lua \
+#struct.lua \
+#tabular.lua \
+#terrain.lua \
+#terraintool.lua \
+#Timer.lua \
+#tools.lua \
+#vector-light.lua \
+#vector.lua \
+#jprof.lua \
+#MessagePack.lua
+
+sources=$(find . -name "*.lua")
+sources="$sources ./fonts/*"
+# Linux only
+sources="$sources ./imgui.so"
+echo $sources
+rm game.zip
+pushd .
+rm game/* -rf
+rmdir game
+popd
+apack game.zip $sources
+#exit
+
+CURRENT_DIR=$(pwd)
+echo $CURRENT_DIR
+
+LOVE_ANDROID=/home/testuser/projects/love-android
+mv game.zip game.love
+mv game.love $LOVE_ANDROID/app/src/main/assets/game.love
+pushd $LOVE_ANDROID
+
+./gradlew bundleEmbed
+./gradlew assembleEmbed
+
+cp app/build/outputs/bundle/embedDebug/app-embed-debug.aab $CURRENT_DIR
+cp app/build/outputs/apk/embed/debug/app-embed-debug.apk $CURRENT_DIR
+
+popd
+adb uninstall org.love2d.android.embed
+adb install ./app-embed-debug.apk
+
