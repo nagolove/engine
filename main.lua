@@ -1,4 +1,5 @@
 local jit = require "jit"
+--_G['print'] = function() end
 jit.off()
 -- :setlocal foldmethod=manual
 --require "mobdebug".start()
