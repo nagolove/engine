@@ -1,0 +1,10 @@
+break main
+disable $bpnum
+break /home/testuser/projects/love/src/love.cpp:265
+disable $bpnum
+break /home/testuser/projects/love/src/love.cpp:220
+disable $bpnum
+break /home/testuser/projects/love/src/love.cpp:220
+disable $bpnum
+break /home/testuser/projects/love/src/love.cpp:224
+disable $bpnum
