@@ -68,3 +68,36 @@ local ChannelsTypes = {
 for i, v in ipairs(ChannelsTypes) do
    print(i, v)
 end
+
+
+
+local Car = {}
+
+
+
+
+
+
+local Car_mt = {
+   __index = Car,
+}
+
+function Car.new()
+   local self = {}
+   return setmetatable(self, Car_mt)
+end
+
+function Car:draw()
+
+   self.w = 0
+end
+
+local function inherit(class)
+
+end
+
+
+
+local c1, c2 = Car.new(), Car.new()
+c1:draw()
+c2:draw()
