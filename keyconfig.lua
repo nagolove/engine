@@ -65,6 +65,7 @@ local shortcutsDown = {}
 local shortcutsPressed = {}
 
 local List = require("list")
+local imgui = require('imgui')
 local shortcutsList = nil
 
 local function combo2str(stroke)
