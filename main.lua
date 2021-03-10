@@ -137,7 +137,8 @@ function love.draw()
 end
 
 function love.quit()
-  imgui.ShutDown();
+    scenes.quit()
+    imgui.ShutDown();
 end
 
 function love.textinput(t)

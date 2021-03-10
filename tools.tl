@@ -103,7 +103,7 @@ function mousereleased(x: number, y: number, btn: number)
     end
 end
 
-function mousepressed(x: number, y: number, btn: number)
+local function mousepressed(x: number, y: number, btn: number)
     if not devshow then
         return
     end
@@ -123,5 +123,4 @@ return {
     keypressed = keypressed,
     mousemoved = mousemoved,
     mousereleased = mousereleased,
-    mousepressed = mousepressed,
 }

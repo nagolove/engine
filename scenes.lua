@@ -158,6 +158,12 @@ local function wheelmoved(x, y)
    end
 end
 
+local function quit()
+   if currentScene and currentScene.quit then
+      currentScene.quit()
+   end
+end
+
 local function getCurrentScene()
    return currentScene
 end
@@ -183,4 +189,5 @@ return {
    mousereleased = mousereleased,
    mousepressed = mousepressed,
    wheelmoved = wheelmoved,
+   quit = quit,
 }
