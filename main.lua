@@ -83,13 +83,9 @@ function love.load(arg)
     --]]
 
     --scenes.initOne("nback2")
-    
     --scenes.initOne("hexfield")
-
-    scenes.initOne("automato")
-
+    --scenes.initOne("automato")
     --scenes.initOne("fractaltree")
-
     --scenes.initOne("hst_reader")
 
     --initTools(currentScene)

@@ -2,15 +2,16 @@ return {
     include_dir = {
         "scenes/automato/",
 
-        "scenes/nback2/",
-        "scenes/nback2/libs/",
+        --"scenes/nback2/",
+        --"scenes/nback2/libs/",
 
         "scenes/hexfield/",
         "scenes/slog-example/",
         "scenes/imgui-bindings/",
     },
+    --source = {
     include = {
-        "*.tl",
+        --"*.tl",
         "scenes/automato/*.tl",
         "scenes/empty/*.tl",
 
@@ -20,6 +21,7 @@ return {
         "scenes/hst_reader/*.tl",
         "scenes/hexfield/*.tl",
         "scenes/slog-example/*.tl",
+        "scenes/code_shader/*.tl"
         --"../../*.tl",
     },
     exclude = {
