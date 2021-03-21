@@ -8,10 +8,12 @@ return {
         "scenes/hexfield/",
         "scenes/slog-example/",
         "scenes/imgui-bindings/",
+        "scenes/fractaltree/",
     },
     --source = {
     include = {
         --"*.tl",
+        "scenes/fractaltree/*.tl",
         "scenes/automato/*.tl",
         "scenes/empty/*.tl",
 
