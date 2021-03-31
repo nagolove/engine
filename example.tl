@@ -92,10 +92,6 @@ function Car:draw()
     self.w = 0
 end
 
-local function inherit(class: any)
-
-end
-
 --local UAZ = inherit(Car)
 
 local c1, c2 = Car.new(), Car.new()

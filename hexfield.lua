@@ -109,8 +109,8 @@ local function newHexPolygon(cx, cy, rad)
    local hex = setmetatable({}, Hex_mt)
 
    local d = math.pi * 2 / 6
-   local c = 0
-   for i = 1, 7 do
+   local c = 0.0
+   for _ = 1, 7 do
       local x, y = cx + math.sin(c) * rad, cy + math.cos(c) * rad
       table.insert(hex, x)
       table.insert(hex, y)

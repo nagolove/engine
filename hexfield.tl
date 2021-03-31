@@ -109,8 +109,8 @@ local function newHexPolygon(cx: number, cy: number, rad: number): Hex
     local hex = setmetatable({} as Hex, Hex_mt)
 
     local d = math.pi * 2 / 6
-    local c = 0
-    for i = 1, 7 do
+    local c = 0.0
+    for _ = 1, 7 do
         local x, y = cx + math.sin(c) * rad, cy + math.cos(c) * rad
         table.insert(hex, x)
         table.insert(hex, y)
@@ -239,7 +239,7 @@ local function newHexField(startcx: number, startcy: number, map: {{number}},rad
         end
     end
 
-    function Handler:get(x: number, y: number): number
+    function Handler:get(x: integer, y: integer): number
         return Handler.map[x][y] or nil
     end
 

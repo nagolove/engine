@@ -128,7 +128,8 @@ function List.new(x, y)
 end
 
 
-function List:add(message, ...)
+
+function List:add(message)
 
 
    local item = {}
@@ -420,11 +421,11 @@ function List:draw2()
 
       love.graphics.setColor(colorset.fg)
 
-      local colors = self.items[i].colors
-      local t = {}
-      for i, color in ipairs(colors) do
 
-      end
+      local t = {}
+
+
+
       love.graphics.print(t, rx + 10, ry + 5)
 
       local item = self.items[i]

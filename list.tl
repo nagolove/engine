@@ -128,7 +128,8 @@ function List.new(x: number, y: number): List
 end
 
 -- list:add("сбросить управление %C%C)
-function List:add(message: string, ...: {number}): List.Item
+--function List:add(message: string, ...: {number}): List.Item
+function List:add(message: string): List.Item
     --print("itooltip", tooltip)
     --os.exit()
     local item: List.Item = {}
@@ -340,10 +341,10 @@ function List:draw()
 
         ----
         --gr.print(self.items[i].message, rx + 10, ry + 5) 
-        gr.print(self.items[i].message, rx, ry) 
+        gr.print(self.items[i as integer].message, rx, ry) 
         ----
 
-        local item = self.items[i]
+        local item = self.items[i as integer]
         if item.list and item.isdrawable then
             item.list.x = rx + rw
             item.list.y = ry
@@ -420,11 +421,11 @@ function List:draw2()
 
         love.graphics.setColor(colorset.fg)
         --love.graphics.print(self.items[i].title, rx + 10, ry + 5) 
-        local colors: {number} = self.items[i].colors
+        --local colors: {number} = self.items[i].colors
         local t: {any} = {}
-        for i, color in ipairs(colors) do
-            --table.insert(t, )
-        end
+        --for i, color in ipairs(colors) do
+            ----table.insert(t, )
+        --end
         love.graphics.print(t as {table}, rx + 10, ry + 5) 
 
         local item = self.items[i]

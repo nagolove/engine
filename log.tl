@@ -4,11 +4,11 @@ function log(...: any)
     local args = {...}
     local str = ""
     for i = 1, #args do
-        local arg: any = args[i]
+        local curarg: any = args[i]
         if str == "" then
-            str = tostring(arg)
+            str = tostring(curarg)
         else
-            str = str ..  "\t" .. tostring(arg)
+            str = str ..  "\t" .. tostring(curarg)
         end
     end
     print(colors(str))
@@ -18,11 +18,11 @@ function logwarn(...: any)
     local args = {...}
     local str = ""
     for i = 1, #args do
-        local arg: any = args[i]
+        local curarg: any = args[i]
         if str == "" then
-            str = tostring(arg)
+            str = tostring(curarg)
         else
-            str = str ..  "\t" .. tostring(arg)
+            str = str ..  "\t" .. tostring(curarg)
         end
     end
     print(colors('%{yellow}str%{reset}'))
@@ -32,11 +32,11 @@ function logerror(...: any)
     local args = {...}
     local str = ""
     for i = 1, #args do
-        local arg = args[i]
+        local curarg = args[i]
         if str == "" then
-            str = tostring(arg)
+            str = tostring(curarg)
         else
-            str = str ..  "\t" .. tostring(arg)
+            str = str ..  "\t" .. tostring(curarg)
         end
     end
     print(colors('%{red}str%{reset}'))

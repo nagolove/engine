@@ -12,7 +12,7 @@ return {
     },
     --source = {
     include = {
-        --"*.tl",
+        "*.tl",
         "scenes/fractaltree/*.tl",
         "scenes/automato/*.tl",
         "scenes/empty/*.tl",

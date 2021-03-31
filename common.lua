@@ -104,7 +104,7 @@ function pointInPolygon(pgon, tx, ty)
    local y1 = pgon[#pgon]
    local cur_quad = getQuad(tx, ty, x1, y1)
    local next_quad
-   local total = 0
+   local total = 0.0
 
    for i = 1, #pgon, 2 do
       local x2 = pgon[i]

@@ -44,8 +44,8 @@ local record kons
     show: boolean
     strings: {Item}
     strings_i: {string}
-    strings_num: number
-    strings_i_num: number
+    strings_num: integer
+    strings_i_num: integer
     height: number
 
     new: function(): kons

@@ -65,7 +65,7 @@ local shortcutsDown: {Shortcut} = {}
 local shortcutsPressed: {Shortcut} = {}
 
 local List = require "list"
-local imgui = require 'imgui'
+--local imgui = require 'imgui'
 local shortcutsList: List = nil
 
 local function combo2str(stroke: KeyConfig.BindAccord): string
