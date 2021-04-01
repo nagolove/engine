@@ -1,25 +1,26 @@
 
-local files = {
-    "asm.tl", 
-    "cell-actions.tl", 
-    "cell.tl", 
-    "ex.tl", 
-    "graph-render.tl", 
-    "graphics-render.tl", 
-    "init.tl", 
-    "mtschemes.d.tl", 
-    "simulator-render.tl", 
-    "simulator-thread.tl", 
-    "simulator.tl", 
-    "types.tl", 
-}
-
-for k, v in pairs(files) do
-    --files[k] = "scenes/automato/" .. v
-    files[k] = "scenes\\automato\\" .. v
+function getAutomatoFiles()
+    local files = {
+        "asm.tl", 
+        "cell-actions.tl", 
+        "cell.tl", 
+        "ex.tl", 
+        "graph-render.tl", 
+        "graphics-render.tl", 
+        "init.tl", 
+        "simulator-render.tl", 
+        "simulator-thread.tl", 
+        "simulator.tl", 
+        "types.tl", 
+    }
+    for k, v in pairs(files) do
+        --files[k] = "scenes/automato/" .. v
+        files[k] = "scenes\\automato\\" .. v
+    end
+    return files
 end
 
---files = {}
+local files = getAutomatoFiles()
 
 return {
     include_dir = {
