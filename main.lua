@@ -3,6 +3,7 @@ local jit = require "jit"
 jit.off()
 -- :setlocal foldmethod=manual
 --require "mobdebug".start()
+package.package = package.path .. ";./?/init.lua"
 print("package.path", package.path)
 
 local imgui = require "imgui"

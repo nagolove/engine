@@ -47,7 +47,7 @@ return {
         --"scenes/code_shader/*.tl",
         --"../../*.tl",
     },
-    files = files,
+    --files = files,
     exclude = {
         "*tabular.tl",
         --"scenes/automato/simulator.tl",
