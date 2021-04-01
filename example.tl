@@ -1,4 +1,5 @@
 
+--[[
 global type Statistic = record
 
     enum Types
@@ -30,4 +31,4 @@ global formatMods: {Statistic.Types:string} = {
     ['percentAreaFilled'] = '%f',
     ['stepsPerSecond'] = '%d',
 }
-
+--]]
