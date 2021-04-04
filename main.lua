@@ -1,3 +1,10 @@
+print = function() end
+
+local t = {}
+for i = 1, 100000 do
+    table.insert(t, i)
+end
+
 local jit = require "jit"
 --_G['print'] = function() end
 jit.off()
@@ -18,6 +25,11 @@ local imguiFontSize = 22
 
 require "log"
 require "keyconfig"
+
+local argparse = require "argparse"
+local parser = argparse()
+
+love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
 
 --__FREEZE_PHYSICS__ = true
 

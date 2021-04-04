@@ -1,3 +1,7 @@
+local file = io.open("uname -a")
+print(file)
+--local osKindStream = io.popen("uname -a")
+--print(osKind:read("*a"))
 
 local files = {
     "asm.tl", 
@@ -16,13 +20,23 @@ local files = {
 
 for k, v in pairs(files) do
     --files[k] = "scenes/automato/" .. v
-    files[k] = "scenes\\automato\\" .. v
+    --files[k] = "scenes\\automato\\" .. v
+    files[k] = "scenes/automato/" .. v
 end
 
 --files = {}
 
 return {
+    --skip_compat53 = true,
+    --gen_target = "5.1",
+    --global_env_def = "love",
+    source_dir = "src",
+    --build_dir = "app",
     include_dir = {
+        --"assets",
+        "lib",
+        "src",
+        "include",
         "scenes/automato/",
 
         --"scenes/nback2/",
@@ -34,10 +48,10 @@ return {
         "scenes/fractaltree/",
     },
     include = {
-        "scenes/fractaltree/*.tl",
-        "scenes/automato/*.tl",
-        "scenes/empty/*.tl",
-        "*.tl",
+        --"scenes/fractaltree/*.tl",
+        --"scenes/automato/*.tl",
+        --"scenes/empty/*.tl",
+        --"*.tl",
 
         --"scenes/nback2/*.tl",
         --"scenes/imgui-bindings/*.tl",
@@ -47,7 +61,7 @@ return {
         --"scenes/code_shader/*.tl",
         --"../../*.tl",
     },
-    --files = files,
+    files = files,
     exclude = {
         "*tabular.tl",
         --"scenes/automato/simulator.tl",
