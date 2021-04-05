@@ -1,7 +1,10 @@
-local file = io.open("uname -a")
-print(file)
---local osKindStream = io.popen("uname -a")
---print(osKind:read("*a"))
+local file = io.popen("uname -a")
+local is_linux = false
+if file then
+    if file:read("*a"):match("Linux.*") then
+        is_linux = true
+    end
+end
 
 local files = {
     "asm.tl", 
@@ -30,7 +33,7 @@ return {
     --skip_compat53 = true,
     --gen_target = "5.1",
     --global_env_def = "love",
-    source_dir = "src",
+    --source_dir = "src",
     --build_dir = "app",
     include_dir = {
         --"assets",
@@ -49,9 +52,10 @@ return {
     },
     include = {
         --"scenes/fractaltree/*.tl",
-        --"scenes/automato/*.tl",
+        "scenes/automato/*.tl",
         --"scenes/empty/*.tl",
-        --"*.tl",
+        "src/*.tl",
+        "*.tl",
 
         --"scenes/nback2/*.tl",
         --"scenes/imgui-bindings/*.tl",
@@ -61,7 +65,7 @@ return {
         --"scenes/code_shader/*.tl",
         --"../../*.tl",
     },
-    files = files,
+    --files = files,
     exclude = {
         "*tabular.tl",
         --"scenes/automato/simulator.tl",

@@ -1,4 +1,4 @@
-print = function() end
+--print = function() end
 
 local t = {}
 for i = 1, 100000 do
@@ -13,6 +13,9 @@ jit.off()
 package.package = package.path .. ";./?/init.lua"
 print("package.path", package.path)
 
+PROF_CAPTURE = true
+
+local prof = require "jprof"
 local imgui = require "imgui"
 --local imgui = require "love-imgui"
 local inspect = require "inspect"
@@ -120,34 +123,48 @@ local function collectGarbage()
 end
 
 function love.update(dt)
+    prof.push("frame")
     --tools.update()
     if showHelp then
         KeyConfig.updateList(dt)
     end
     KeyConfig.update()
     collectGarbage()
+
+    prof.push("zone1")
     scenes.update(dt)
+    prof.pop("zone1")
+
 end
 
 function love.draw()
 
-  gr.setColor{1, 1, 1}
-  scenes.draw()
-  gr.setColor{1, 1, 1}
+    prof.push("scenes")
+    gr.setColor{1, 1, 1}
+    scenes.draw()
+    gr.setColor{1, 1, 1}
+    prof.pop("scenes")
 
-  imgui.NewFrame()
-  scenes.drawui()
-  love.graphics.setColor{1, 1, 1}
-  imgui.Render();
+    prof.push("imgui")
+    imgui.NewFrame()
+    scenes.drawui()
+    love.graphics.setColor{1, 1, 1}
+    imgui.Render();
+    prof.pop("imgui")
 
-  if showHelp then
-      KeyConfig.draw()
-  end
+    if showHelp then
+        KeyConfig.draw()
+    end
+
+    prof.pop("frame")
 end
 
 function love.quit()
     scenes.quit()
     imgui.ShutDown();
+    print("1")
+    prof.write("prof.mpack")
+    print("2")
 end
 
 function love.textinput(t)

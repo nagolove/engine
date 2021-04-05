@@ -1,4 +1,4 @@
-print("client thread start")
+printLog("client thread start")
 
 local chan = love.thread.getChannel("log")
 local inspect = require "inspect"
