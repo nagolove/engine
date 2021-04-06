@@ -1,14 +1,14 @@
 
 function getAutomatoFiles()
     local files = {
-        "asm.tl", 
-        "cell-actions.tl", 
-        "cell.tl", 
-        "ex.tl", 
-        "graph-render.tl", 
-        "graphics-render.tl", 
-        "init.tl", 
-        "simulator-render.tl", 
+        "asm.tl",           -- движок ассемблера для клеток
+        "cell-actions.tl",  -- обработка команд клетки
+        "cell.tl",          -- класс клетки
+        "ex.tl",            -- экспериментальная функциональность
+        "graph-render.tl",      -- рисование 3д-графиков
+        "graphics-render.tl",   -- рисование 2д-анимации
+        "init.tl",              -- заглавная сцена загрузки 
+        "simulator-render.tl",  -- 
         "simulator-thread.tl", 
         "simulator.tl", 
         "types.tl", 
@@ -48,7 +48,7 @@ return {
         --"scenes/code_shader/*.tl",
         --"../../*.tl",
     },
-    --files = files,
+    files = files,
     exclude = {
         "*tabular.tl",
         --"scenes/automato/simulator.tl",
