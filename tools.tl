@@ -1,8 +1,4 @@
-require "log"
-require "common"
-require "love"
-local imgui = require "imgui"
-
+--[[
 -- нужна ли здесь динамическая загрузка? или можно обойтись require()?
 local function loadTools(): {Tool}
     local tools: {Tool} = {}
@@ -124,3 +120,4 @@ return {
     mousemoved = mousemoved,
     mousereleased = mousereleased,
 }
+--]]

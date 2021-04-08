@@ -1,11 +1,14 @@
+local nullLog: boolean = false
+
 function printLog(...:any)
     --local args = {table.unpack(...)} as {any}
     --local strbuf = ""
     --for _, v in ipairs(args) do
         --strbuf = strbuf .. tostring(v)
     --end
-
-    --print(...)
+    if not nullLog then
+        print(...)
+    end
 end
 
 local colors = require "ansicolors" as function(a: any): any
