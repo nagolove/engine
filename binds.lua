@@ -76,7 +76,6 @@ local function bindCameraControl(camera)
       local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
       cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
       cam:move(reldx, 0)
-      print("camera right")
       return false, sc
    end,
    "move right",

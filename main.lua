@@ -152,13 +152,13 @@ function love.update(dt)
     --]]
 
     --prof.push("zone1")
-    --scenes.update(dt)
+    scenes.update(dt)
     --prof.pop("zone1")
 
 end
 
 function love.draw()
-    gr.print(string.format("%d fps", love.timer.getFPS()))
+    --gr.print(string.format("%d fps", love.timer.getFPS()))
     --testDraw()
 
     --prof.push("scenes")
