@@ -23,6 +23,7 @@ cameraSettings = {
 }
 
 local Shortcut = KeyConfig.Shortcut
+local animTimer = require "Timer".new()
 
 local function bindCameraControl(camera: Camera)
     local cam = camera
@@ -55,60 +56,30 @@ local function bindCameraControl(camera: Camera)
         "zoomin"
     )
 
-    KeyConfig.bind(
-        "isdown",
-        { key = "left" },
-        function(sc: Shortcut): boolean, Shortcut
+    local function makeMoveFunction(xc: number, yc: number): function(sc: Shortcut): boolean, Shortcut
+        return function(sc: Shortcut): boolean, Shortcut
             local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
             cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
             -- когда идет нажатие повлиять на цвет части текста
-            cam:move(-reldx, 0)
+            animTimer:during(0.4, function(_: number, time: number, delay: number)
+                --print("dt, timer, delay", dt, time, delay)
+                cam:move(-reldx * (delay - time) * xc, -reldy * (delay - time) * yc)
+            end)
             return true, sc
-        end,
-        "move left",
-        "camleft"
-    )
+        end
+    end
 
-    KeyConfig.bind(
-        "isdown",
-        { key = "right" },
-        function(sc: KeyConfig.Shortcut): boolean, KeyConfig.Shortcut
-            local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
-            cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
-            cam:move(reldx, 0)
-            return false, sc
-        end,
-        "move right",
-        "camright"
-    )
+    KeyConfig.bind( "isdown", { key = "left" }, makeMoveFunction(1., 0), "move left", "camleft")
+    KeyConfig.bind( "isdown", { key = "right" }, makeMoveFunction(-1.0, 0.), "move right", "camright") 
+    KeyConfig.bind( "isdown", { key = "up" }, makeMoveFunction(0., 1.), "move up", "camup") 
+    KeyConfig.bind( "isdown", { key = "down" }, makeMoveFunction(0., -1.), "move down", "camdown")
+end
 
-    KeyConfig.bind(
-        "isdown",
-        { key = "up" },
-        function(sc: KeyConfig.Shortcut): boolean, KeyConfig.Shortcut
-            local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
-            cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
-            cam:move(0, -reldy)
-            return false, sc
-        end,
-        "move up",
-        "camup"
-    )
-
-    KeyConfig.bind(
-        "isdown",
-        { key = "down" },
-        function(sc: KeyConfig.Shortcut): boolean, KeyConfig.Shortcut
-            local reldx, reldy = cameraSettings.dx / cam.scale, cameraSettings.dy / cam.scale
-            cameraSettings.relativedx, cameraSettings.relativedy = reldx, reldy
-            cam:move(0, reldy)
-            return false, sc
-        end,
-        "move down",
-        "camdown"
-    )
+local function cameraControlUpdate(dt: number)
+    animTimer:update(dt)
 end
 
 return {
     bindCameraControl = bindCameraControl,
+    cameraControlUpdate = cameraControlUpdate,
 }
