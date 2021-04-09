@@ -34,26 +34,28 @@ local function bindCameraControl(camera)
 
 
 
-   KeyConfig.bind(
-   "isdown",
-   { key = "z" },
-   function(sc)
-      cam:zoom(1.01)
-      return false, sc
-   end,
-   "zoom camera out",
-   "zoomout")
 
 
-   KeyConfig.bind(
-   "isdown",
-   { key = "x" },
-   function(sc)
-      cam:zoom(0.99)
-      return false, sc
-   end,
-   "zoom camera in",
-   "zoomin")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
    local function makeMoveFunction(xc, yc)

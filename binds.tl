@@ -34,6 +34,7 @@ local function bindCameraControl(camera: Camera)
     --local zoomDirection = 0 -- -1 or 1
     --local zoomFactor = 0.001
 
+    --[[
     KeyConfig.bind(
         "isdown",
         { key = "z" },
@@ -55,6 +56,7 @@ local function bindCameraControl(camera: Camera)
         "zoom camera in",
         "zoomin"
     )
+    --]]
 
     local function makeMoveFunction(xc: number, yc: number): function(sc: Shortcut): boolean, Shortcut
         return function(sc: Shortcut): boolean, Shortcut
