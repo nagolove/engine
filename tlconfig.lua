@@ -6,6 +6,8 @@ if file then
     end
 end
 
+print("is_linux", is_linux)
+
 local files = {
     "asm.tl", 
     "cell-actions.tl", 
@@ -32,7 +34,7 @@ end
 return {
     --skip_compat53 = true,
     --gen_target = "5.1",
-    --global_env_def = "love",
+    global_env_def = "love",
     --source_dir = "src",
     --build_dir = "app",
     include_dir = {
@@ -41,8 +43,10 @@ return {
         "src",
         "include",
         "scenes/automato/",
+        "",
 
-        --"scenes/nback2/",
+        "scenes/nback2/",
+        "scenes/button_test/",
         --"scenes/nback2/libs/",
 
         "scenes/hexfield/",
@@ -58,6 +62,8 @@ return {
         "*.tl",
 
         --"scenes/nback2/*.tl",
+        "scenes/button_test/*.tl",
+
         --"scenes/imgui-bindings/*.tl",
         --"scenes/hst_reader/*.tl",
         --"scenes/hexfield/*.tl",
