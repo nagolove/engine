@@ -90,9 +90,12 @@ function storeGooi(): Gooi
 end
 --]]
 
-local type Button = record
-    type Callback = function(Button)
+require "love"
+require "common"
 
+local gr = love.graphics
+
+global type Button = record
     new: function(title: string, x: number, y: number, w: number, h: number): Button
     draw: function()
     update: function(dt: number)
@@ -102,9 +105,15 @@ local type Button = record
     y: number
     w: number
     h: number
-    color: {number}
+    bgColor: {number}
+    font: gr.Font
 
-    onRelease: function(f: Callback)
+    onMouseReleased: function(Button)
+
+    mousePressed: function(Button, x: number, y: number, btn: number)
+    mouseReleased: function(Button, x: number, y: number, btn: number)
+    keyPressed: function(Button, key: string)
+    keyReleased: function(Button, key: string)
 end
 
 local Button_mt: metatable<Button> = {
@@ -118,17 +127,35 @@ function Button.new(title: string, x: number, y: number, w: number, h: number): 
     o.y = y
     o.w = w
     o.h = h
-    o.color = {0.5, 0.1, 0.}
+    o.bgColor = {0.5, 0.1, 0.}
     return o
 end
 
 function Button:draw()
-    love.graphics.setColor(self.color)
+    local prevColor = {gr.getColor()}
+    local prevFont = gr.getFont()
+    love.graphics.setColor(self.bgColor)
     love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
+    if self.font then
+        gr.setFont(self.font)
+    end
+    gr.setColor(prevColor)
+    gr.setFont(prevFont)
 end
 
-function Button:update(dt: number)
-    
+function Button:update(_: number)
+    local mx, my: number = love.mouse.getPosition()
+    -- это можно обрабатывать реже
+    if pointInRect(mx, my, self.x, self.y, self.w, self.h) then
+        print("hovered")
+    end
+end
+
+--function Button:mouseReleased(x: number, y: number, btn: number)
+function Button:mouseReleased(_: number, _: number, _tn: number)
+    if self.onMouseReleased then
+        self:onMouseReleased()
+    end
 end
 
 return Button

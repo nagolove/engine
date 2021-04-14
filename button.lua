@@ -90,7 +90,16 @@
 
 
 
-local Button = {}
+require("love")
+require("common")
+
+local gr = love.graphics
+
+ Button = {}
+
+
+
+
 
 
 
@@ -118,17 +127,35 @@ function Button.new(title, x, y, w, h)
    o.y = y
    o.w = w
    o.h = h
-   o.color = { 0.5, 0.1, 0. }
+   o.bgColor = { 0.5, 0.1, 0. }
    return o
 end
 
 function Button:draw()
-   love.graphics.setColor(self.color)
+   local prevColor = { gr.getColor() }
+   local prevFont = gr.getFont()
+   love.graphics.setColor(self.bgColor)
    love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
+   if self.font then
+      gr.setFont(self.font)
+   end
+   gr.setColor(prevColor)
+   gr.setFont(prevFont)
 end
 
-function Button:update(dt)
+function Button:update(_)
+   local mx, my = love.mouse.getPosition()
 
+   if pointInRect(mx, my, self.x, self.y, self.w, self.h) then
+      print("hovered")
+   end
+end
+
+
+function Button:mouseReleased(_, _, _tn)
+   if self.onMouseReleased then
+      self:onMouseReleased()
+   end
 end
 
 return Button

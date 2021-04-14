@@ -43,11 +43,11 @@ return {
         "src",
         "include",
         "scenes/automato/",
-        "",
+        --"",
 
         "scenes/nback2/",
         "scenes/button_test/",
-        --"scenes/nback2/libs/",
+        "scenes/nback2/libs/",
 
         "scenes/hexfield/",
         "scenes/slog-example/",
@@ -61,7 +61,7 @@ return {
         "src/*.tl",
         "*.tl",
 
-        --"scenes/nback2/*.tl",
+        "scenes/nback2/*.tl",
         "scenes/button_test/*.tl",
 
         --"scenes/imgui-bindings/*.tl",
