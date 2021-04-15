@@ -32,3 +32,24 @@ global formatMods: {Statistic.Types:string} = {
     ['stepsPerSecond'] = '%d',
 }
 --]]
+
+
+local type Layout = record
+    x: number
+    -- some constructor
+    new: function(): Layout
+end
+
+function Layout.new(): Layout
+    return {}
+end
+
+local l: Layout = Layout.new()
+-- dynamically add field for record instance
+--(l as {any:any}).z = Layout.new()
+
+--((l as {any:any}).z as Layout) = Layout.new()
+--print((((l as {any:any}).z) as Layout).x )
+--((l as {any:any}).z as Layout).x = 0
+--((l as {any:any}).z as Layout).x = 1
+

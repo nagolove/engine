@@ -33,6 +33,7 @@ local record List
     end
 
     type Item = record 
+        data: any
         message: string
         colors: {number}
         --tooltip: string
@@ -49,7 +50,6 @@ local record List
     hoveritem: number
     item_height: number
     items: {Item}
-    onclick: function(self: List, index: number, button: number)
     prevfont: gr.Font
     sum_item_height: number
     visible: boolean
@@ -59,6 +59,7 @@ local record List
     y: number
 
     getBarRect: function(List, number, number, number, number)
+    -- TODO use integer instead number
     onclick: function(self: List, index: number, button: number)
 
     new: function(x: number, y: number): List
