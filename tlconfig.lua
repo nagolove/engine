@@ -1,12 +1,13 @@
 local file = io.popen("uname -a")
 local is_linux = false
+local is_windows = true
 if file then
     if file:read("*a"):match("Linux.*") then
         is_linux = true
+        is_window = false
     end
 end
 
-<<<<<<< HEAD
 function getAutomatoFiles()
     local files = {
         "asm.tl",           -- движок ассемблера для клеток
@@ -22,39 +23,24 @@ function getAutomatoFiles()
         "types.tl", 
     }
     for k, v in pairs(files) do
-        --files[k] = "scenes/automato/" .. v
-        files[k] = "scenes\\automato\\" .. v
+        if is_windows then
+            --files[k] = "scenes/automato/" .. v
+            files[k] = "scenes\\automato\\" .. v
+        else
+            files[k] = "scenes/automato/" .. v
+        end
     end
     return files
-=======
-local files = {
-    "asm.tl", 
-    "cell-actions.tl", 
-    "cell.tl", 
-    "ex.tl", 
-    "graph-render.tl", 
-    "graphics-render.tl", 
-    "init.tl", 
-    "mtschemes.d.tl", 
-    "simulator-render.tl", 
-    "simulator-thread.tl", 
-    "simulator.tl", 
-    "types.tl", 
-}
-
-for k, v in pairs(files) do
-    --files[k] = "scenes/automato/" .. v
-    --files[k] = "scenes\\automato\\" .. v
-    files[k] = "scenes/automato/" .. v
->>>>>>> 58573c8d36176a2098a9bd6d90e83887f3f1e2a3
 end
+
+print("is_linux", is_linux)
 
 local files = getAutomatoFiles()
 
 return {
     --skip_compat53 = true,
     --gen_target = "5.1",
-    --global_env_def = "love",
+    global_env_def = "love",
     --source_dir = "src",
     --build_dir = "app",
     include_dir = {
@@ -63,9 +49,11 @@ return {
         "src",
         "include",
         "scenes/automato/",
+        --"",
 
-        --"scenes/nback2/",
-        --"scenes/nback2/libs/",
+        "scenes/nback2/",
+        "scenes/button_test/",
+        "scenes/nback2/libs/",
 
         "scenes/hexfield/",
         "scenes/slog-example/",
@@ -79,7 +67,10 @@ return {
         "src/*.tl",
         "*.tl",
 
-        --"scenes/nback2/*.tl",
+        "scenes/nback2/*.tl",
+        "scenes/button_test/*.tl",
+        --"scenes/hst_reader/*.tl",
+
         --"scenes/imgui-bindings/*.tl",
         --"scenes/hst_reader/*.tl",
         --"scenes/hexfield/*.tl",
@@ -96,7 +87,6 @@ return {
         --"tools.tl",
         --"scenes/automato/*.tl",
         --"scenes/nback2/*.tl",
-        --"scenes/hst_reader/*.tl",
         --"main.tl",
         --"crash*.tl",
     }

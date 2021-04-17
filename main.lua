@@ -1,26 +1,43 @@
---print = function() end
+local flag = false
 
+function testDraw()
+    if flag then
+        for i = 1, 1000 do
+            local w, h = love.graphics.getDimensions()
+            x, y = math.random(1, w), math.random(1, h)
+            a = math.deg(i)
+            local qw, qh = 64, 64
+            love.graphics.rectangle("fill", x, y, qw, qh)
+        end
+    end
+end
+
+--local profi = require "profi"
+--[[
 local t = {}
 for i = 1, 100000 do
     table.insert(t, i)
 end
+--]]
 
 local jit = require "jit"
 --_G['print'] = function() end
-jit.off()
+--jit.on()
 -- :setlocal foldmethod=manual
 --require "mobdebug".start()
 package.package = package.path .. ";./?/init.lua"
 print("package.path", package.path)
 
-PROF_CAPTURE = true
+--PROF_CAPTURE = true
 
-local prof = require "jprof"
+--local prof = require "jprof"
 local imgui = require "imgui"
 --local imgui = require "love-imgui"
 local inspect = require "inspect"
 local scenes = require "scenes"
-local tools = require "tools"
+local imgui = require "imgui"
+
+--local tools = require "tools"
 
 local showHelp = false
 local gr = love.graphics
@@ -115,56 +132,63 @@ local GCPeriod = 1 * 60 * 5 -- 5 mins
 
 -- сборка мусора по таймеру
 local function collectGarbage()
-  local now = love.timer.getTime()
-  if now - lastGCTime > GCPeriod then
-    collectgarbage()
-    lastGCTime = now
-  end
+    local now = love.timer.getTime()
+    if now - lastGCTime > GCPeriod then
+        collectgarbage()
+        lastGCTime = now
+    end
 end
 
 function love.update(dt)
-    prof.push("frame")
+    --prof.push("frame")
     --tools.update()
+    
     if showHelp then
         KeyConfig.updateList(dt)
     end
     KeyConfig.update()
     collectGarbage()
 
-    prof.push("zone1")
+    --]]
+
+    --prof.push("zone1")
     scenes.update(dt)
-    prof.pop("zone1")
+    --prof.pop("zone1")
 
 end
 
 function love.draw()
+    --gr.print(string.format("%d fps", love.timer.getFPS()))
+    --testDraw()
 
-    prof.push("scenes")
+    --prof.push("scenes")
     gr.setColor{1, 1, 1}
     scenes.draw()
     gr.setColor{1, 1, 1}
-    prof.pop("scenes")
+    --prof.pop("scenes")
 
-    prof.push("imgui")
+    --prof.push("imgui")
     imgui.NewFrame()
     scenes.drawui()
-    love.graphics.setColor{1, 1, 1}
+    --love.graphics.setColor{1, 1, 1}
     imgui.Render();
-    prof.pop("imgui")
+    --prof.pop("imgui")
 
     if showHelp then
         KeyConfig.draw()
     end
 
-    prof.pop("frame")
+    --prof.pop("frame")
+    ----]]
 end
 
 function love.quit()
     scenes.quit()
     imgui.ShutDown();
-    print("1")
-    prof.write("prof.mpack")
-    print("2")
+    --print("1")
+    --prof.write("prof.mpack")
+    --print("2")
+    --profi:writeReport("automato.txt")
 end
 
 function love.textinput(t)
@@ -179,13 +203,18 @@ end
 -- keyconfig ?
 -- scenes.keypressed ?
 --]]
+
 function love.keypressed(_, key)
-  imgui.KeyPressed(key)
-  if not imgui.GetWantCaptureKeyboard() then
-    KeyConfig.keypressed(key)
-    scenes.keypressed(key)
-    tools.keypressed(key)
-  end
+    if key == "q" then
+        flag = not flag
+    end
+
+    imgui.KeyPressed(key)
+    if not imgui.GetWantCaptureKeyboard() then
+        KeyConfig.keypressed(key)
+        scenes.keypressed(key)
+        --tools.keypressed(key)
+    end
 end
 
 function love.keyreleased(_, key)
@@ -198,7 +227,7 @@ end
 function love.mousemoved(x, y, dx, dy)
   imgui.MouseMoved(x, y)
   if not imgui.GetWantCaptureMouse() then
-    tools.mousemoved(x, y, dx, dy)
+    --tools.mousemoved(x, y, dx, dy)
     scenes.mousemoved(x, y, dx, dy)
   end
 end
@@ -206,7 +235,7 @@ end
 function love.mousepressed(x, y, button)
   imgui.MousePressed(button)
   if not imgui.GetWantCaptureMouse() then
-    tools.mousepressed(x, y, button)
+    --tools.mousepressed(x, y, button)
     scenes.mousepressed(x, y, button)
   end
 end
@@ -214,7 +243,7 @@ end
 function love.mousereleased(x, y, button)
   imgui.MouseReleased(button)
   if not imgui.GetWantCaptureMouse() then
-    tools.mousereleased(x, y, button)
+    --tools.mousereleased(x, y, button)
     scenes.mousereleased(x, y, button)
   end
 end
@@ -225,4 +254,3 @@ function love.wheelmoved(x, y)
     scenes.wheelmoved(x, y)
   end
 end
-
