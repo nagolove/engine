@@ -1,3 +1,13 @@
+function printLog(...:any)
+    --local args = {table.unpack(...)} as {any}
+    --local strbuf = ""
+    --for _, v in ipairs(args) do
+        --strbuf = strbuf .. tostring(v)
+    --end
+
+    --print(...)
+end
+
 local colors = require "ansicolors" as function(a: any): any
 
 function log(...: any)
@@ -54,3 +64,6 @@ function logferror(...: any)
     print(colors('%{red}' .. string.format(... as string) .. '%{reset}'))
 end
 
+--return {
+    --printLog = printLog
+--}

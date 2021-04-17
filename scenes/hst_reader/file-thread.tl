@@ -1,15 +1,16 @@
-require "external"
+--require "external"
 
-local struct = require "struct"
+require "love"
+--local struct = require "struct"
 --local histPath = "c:/users/dekar/AppData/Roaming/MetaQuotes/Terminal/287469DEA9630EA94D0715D755974F1B/history/Alpari-Demo/EURUSD999.hst"
 local histPath = [[C:/Users/dekar/Desktop/tick history/EURUSD999.hst]]
-local imgui = require "imgui"
+--local imgui = require "imgui"
 local cam = require "camera".new()
 local inspect = require "inspect"
 local gr = love.graphics
 local kons = require "kons".new()
-local thread
-local selectedBar
+local thread: love.thread.Thread
+local selectedBar = nil
 
 --package.path = package.path .. ";scenes/hst_reader/?.lua"
 local threadPath = "scenes/hst_reader/file-thread.lua"
@@ -42,9 +43,14 @@ local barStep = math.floor(barWidth * 1.5)
 local barX, barY = sx, sy
 local visibleFrames = {}
 
+global type Record = record 
+    open: number
+    close: number
+end
+
 local function drawBar(x, record)
-    local barColor
-    local ylow, yhigh
+    local barColor: {number}
+    local ylow, yhigh: number = 0., 0.
 
     if record.close > record.open then
         barColor = BAR_DOWN
@@ -88,7 +94,7 @@ local msgChannel = love.thread.getChannel("msg")
 
 local w, h = gr.getDimensions()
 local maxHorizontalBars = math.floor(w / barStep)
-print("maxHorizontalBars", maxHorizontalBars)
+printLog("maxHorizontalBars", maxHorizontalBars)
 
 local function updateMaxHorizontalBars()
     local w, h = gr.getDimensions()
@@ -99,7 +105,7 @@ end
 package.path = package.path .. ";scenes/hst_reader/?.lua"
 local drawingRange = require "drawingrange".newDrawingRange(1, maxHorizontalBars)
 
-print("drawingRange", inspect(drawingRange))
+printLogLog("drawingRange", inspect(drawingRange))
 
 local function draw()
     cam:attach()
@@ -266,8 +272,8 @@ end
 return {
     cam = cam, 
 
-    PIX2M = PIX2M,
-    M2PIX = M2PIX,
+    --PIX2M = PIX2M,
+    --M2PIX = M2PIX,
 
     init = init,
     quit = quit,
