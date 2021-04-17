@@ -3,9 +3,9 @@
 echo "bla-bla"
 
 REM tl build
-
-if errorlevel 0 (
-    echo "TA-TA-TA"
-) else (
-    echo "ooooooooooo"
-)
+love . %1 %2 %3
+REM if errorlevel 0 (
+    REM echo "TA-TA-TA"
+REM ) else (
+    REM echo "ooooooooooo"
+REM )

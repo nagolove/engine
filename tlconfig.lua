@@ -1,35 +1,41 @@
 local file = io.popen("uname -a")
 local is_linux = false
+local is_windows = true
 if file then
     if file:read("*a"):match("Linux.*") then
         is_linux = true
+        is_window = false
     end
+end
+
+function getAutomatoFiles()
+    local files = {
+        "asm.tl",           -- движок ассемблера для клеток
+        "cell-actions.tl",  -- обработка команд клетки
+        "cell.tl",          -- класс клетки
+        "ex.tl",            -- экспериментальная функциональность
+        "graph-render.tl",      -- рисование 3д-графиков
+        "graphics-render.tl",   -- рисование 2д-анимации
+        "init.tl",              -- заглавная сцена загрузки 
+        "simulator-render.tl",  -- 
+        "simulator-thread.tl", 
+        "simulator.tl", 
+        "types.tl", 
+    }
+    for k, v in pairs(files) do
+        if is_windows then
+            --files[k] = "scenes/automato/" .. v
+            files[k] = "scenes\\automato\\" .. v
+        else
+            files[k] = "scenes/automato/" .. v
+        end
+    end
+    return files
 end
 
 print("is_linux", is_linux)
 
-local files = {
-    "asm.tl", 
-    "cell-actions.tl", 
-    "cell.tl", 
-    "ex.tl", 
-    "graph-render.tl", 
-    "graphics-render.tl", 
-    "init.tl", 
-    "mtschemes.d.tl", 
-    "simulator-render.tl", 
-    "simulator-thread.tl", 
-    "simulator.tl", 
-    "types.tl", 
-}
-
-for k, v in pairs(files) do
-    --files[k] = "scenes/automato/" .. v
-    --files[k] = "scenes\\automato\\" .. v
-    files[k] = "scenes/automato/" .. v
-end
-
---files = {}
+local files = getAutomatoFiles()
 
 return {
     --skip_compat53 = true,
@@ -63,6 +69,7 @@ return {
 
         "scenes/nback2/*.tl",
         "scenes/button_test/*.tl",
+        --"scenes/hst_reader/*.tl",
 
         --"scenes/imgui-bindings/*.tl",
         --"scenes/hst_reader/*.tl",
@@ -71,7 +78,7 @@ return {
         --"scenes/code_shader/*.tl",
         --"../../*.tl",
     },
-    --files = files,
+    files = files,
     exclude = {
         "*tabular.tl",
         --"scenes/automato/simulator.tl",
@@ -80,7 +87,6 @@ return {
         --"tools.tl",
         --"scenes/automato/*.tl",
         --"scenes/nback2/*.tl",
-        --"scenes/hst_reader/*.tl",
         --"main.tl",
         --"crash*.tl",
     }
