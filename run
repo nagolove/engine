@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
+
 #TL="~/projects/tl-master/tl"
+
 name=$(uname -a)
-#echo "n = $name"
-#exit
 if [[ $name =~ "Linux" ]]; then
     echo "Linux"
-    #TL="tl"
+    TL="tl"
 else
     echo "Win"
-    #TL="tl.bat"
+    TL="tl.bat"
 fi
 
 exit
 
 eval $TL --version
-#eval $TL build && love . $1 $2 $3
 eval $TL build && love . $1 $2 $3
 #eval $TL --wdisable unused build && love . $1 $2 $3
-#tl build && nlove .
