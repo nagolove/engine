@@ -1,5 +1,6 @@
 local file = io.popen("uname -a")
-local is_windows, is_linux
+local is_windows = false
+local is_linux = false
 if file then
     if file:read("*a"):match("Linux.*") then
         is_linux = true
@@ -8,6 +9,8 @@ if file then
         is_linux = false
         is_windows = false
     end
+else
+    error("No file opened.")
 end
 print("is_linux", is_linux)
 print("is_windows", is_windows)
@@ -39,7 +42,12 @@ end
 
 print("is_linux", is_linux)
 
-local files = getAutomatoFiles()
+local files = nil
+if is_windows then
+    files = getAutomatoFiles()
+end
+
+print("files", files)
 
 return {
     --skip_compat53 = true,
@@ -59,6 +67,7 @@ return {
         "scenes/button_test/",
         "scenes/nback2/libs/",
 
+        "scenes/wavegrid/",
         "scenes/hexfield/",
         "scenes/slog-example/",
         "scenes/imgui-bindings/",
@@ -73,6 +82,8 @@ return {
 
         "scenes/nback2/*.tl",
         "scenes/button_test/*.tl",
+        "scenes/fractaltree/*.tl",
+        "scenes/wavegrid/*.tl",
         --"scenes/hst_reader/*.tl",
 
         --"scenes/imgui-bindings/*.tl",
@@ -82,7 +93,7 @@ return {
         --"scenes/code_shader/*.tl",
         --"../../*.tl",
     },
-    files = files,
+    --files = files,
     exclude = {
         "*tabular.tl",
         --"scenes/automato/simulator.tl",
