@@ -1,5 +1,5 @@
 require "log"
---local inspect = require "inspect"
+local inspect = require "inspect"
 local getTime = love.timer.getTime
 local gr = love.graphics
 
@@ -10,9 +10,21 @@ package.path = package.path .. ";scenes/wavegrid/?.lua"
 
 local record WaveGrid 
     new: function(dimx: integer, dimy: integer, dimsize: integer): WaveGrid
-    grid: {{WaveGrid}}
+
+    updateVertices: function(WaveGrid)
+
+    record Node
+        {number}
+        x: number
+        y: number
+    end
+
+    grid: {{Node}}
     dimsize: integer
     mesh: gr.Mesh
+    timestamp: number
+    counter: integer
+
     record Vertex
         x: number
         y: number
@@ -23,9 +35,14 @@ local record WaveGrid
         b: number
         a: number
         --metamethod __call: function(Vertex, {number}): Vertex
+        metamethod __call: function({number}): WaveGrid.Vertex
+        --function WaveGrid.Vertex.__call(verts_arr: {number}): WaveGrid.Vertex
         new: function({number}): Vertex
     end
     vertices: {Vertex}
+
+    getVerticesToNumbers: function(Vertex, verts: {Vertex}): {number}
+
 end
 
 local Vertex_mt:metatable<WaveGrid.Vertex> = {
@@ -33,7 +50,7 @@ local Vertex_mt:metatable<WaveGrid.Vertex> = {
     __index = WaveGrid.Vertex,
 }
 
-function Vertex_mt.new(verts_arr: {number}): WaveGrid.Vertex
+function WaveGrid.Vertex.new(verts_arr: {number}): WaveGrid.Vertex
     local self = setmetatable({} as WaveGrid.Vertex, Vertex_mt)
     self.x = verts_arr[1]
     self.y = verts_arr[2]
@@ -62,14 +79,24 @@ end
     --end
 --}
 
-function Vertex_mt.__call(verts_arr: {number}): WaveGrid.Vertex
-end
+--function Vertex_mt.__call(verts_arr: {number}): WaveGrid.Vertex
+    --local self = setmetatable({} as WaveGrid.Vertex, Vertex_mt)
+    --self.x = verts_arr[1]
+    --self.y = verts_arr[2]
+    --self.u = verts_arr[3]
+    --self.v = verts_arr[4]
+    --self.r = verts_arr[5]
+    --self.g = verts_arr[6]
+    --self.b = verts_arr[7]
+    --self.a = verts_arr[8]
+    --return self
+--end
 
 local WaveGrid_mt: metatable<WaveGrid> = {
     __index = WaveGrid,
 }
 
-function WaveGrid.new(dimx: integer, dimy: integer, dimsize: integer)
+function WaveGrid.new(dimx: integer, dimy: integer, dimsize: integer): WaveGrid
     local self = setmetatable({} as WaveGrid, WaveGrid_mt)
     self.grid = {}
     self.dimsize = dimsize
@@ -97,17 +124,7 @@ function WaveGrid.new(dimx: integer, dimy: integer, dimsize: integer)
     self.mesh = gr.newMesh(dimx * dimy * 6, "triangles", "dynamic")
     self.vertices = {}
     for _ = 1, dimx * dimy * 6 do
-        table.insert(self.vertices, WaveGrid.Vertex {0, 0, 0, 0, 1, 1, 1, 1})
-        --[[
-           [table.insert(self.vertices, 0)
-           [table.insert(self.vertices, 0)
-           [table.insert(self.vertices, 0) -- u
-           [table.insert(self.vertices, 0) -- v
-           [table.insert(self.vertices, 1) -- r
-           [table.insert(self.vertices, 1) -- g
-           [table.insert(self.vertices, 1) -- b
-           [table.insert(self.vertices, 1) -- a
-           ]]
+        table.insert(self.vertices, WaveGrid.Vertex.new({0, 0, 0, 0, 1, 1, 1, 1}))
     end
     self:updateVertices()
     self.timestamp = getTime()
@@ -116,7 +133,15 @@ function WaveGrid.new(dimx: integer, dimy: integer, dimsize: integer)
     return self
 end
 
-function printVertices(vertices)
+function WaveGrid:getVerticesToNumbers(verts: {WaveGrid.Vertex}): {{number}}
+    local result: {{number}} = {}
+    for _, v in ipairs(verts) do
+        table.insert(result, { v.x, v.y, v.u, v.v, v.r, v.g, v.b, v.a, })
+    end
+    return result
+end
+
+function printVertices(_: {WaveGrid.Vertex})
     --[[
        [local i = 1
        [while i <= #vertices do
@@ -131,22 +156,36 @@ function printVertices(vertices)
 end
 
 function WaveGrid:updateVertices()
+    -- переношу из сетки в вершины координаты
     for i = 1, #self.grid do
         local c = #self.grid[1]
         for j = 1, c do
             local cell = self.grid[i][j]
+
+            --self.vertices[(i * c + j) * 8].x = cell[1]
+            --self.vertices[(i * c + j) * 8].y = cell[1]
+            print("cell", inspect(cell))
+            print("len", #self.grid[i])
+
+            self.vertices[(i * c + j) * 8 + 1].x = cell[1]
+            self.vertices[(i * c + j) * 8 + 2].y = cell[2]
+--self.vertices[(i * c + j) * 8 + 1].x = cell[1]
+--self.vertices[(i * c + j) * 8 + 2].y = cell[2]
+
             --self.vertices[(i * c + j) * 8 + 1] = cell[1]
             --self.vertices[(i * c + j) * 8 + 2] = cell[2]
             --self.vertices[(i * c + j) * 8 + 1] = cell[1]
             --self.vertices[(i * c + j) * 8 + 2] = cell[2]
-            print(cell[1], cell[2])
+
+            --print(cell[1][1], cell[2])
         end
     end
-    self.mesh:setVertices(self.vertices, 1)
+    --self.mesh:setVertices(self.vertices, 1)
+    self.mesh:setVertices(self:getVerticesToNumbers(self.vertices), 1)
     printVertices(self.vertices)
 end
 
-function WaveGrid:update(dt)
+function WaveGrid:update(_: number)
     local now = getTime()
     --print(now - self.timestamp)
     if now - self.timestamp > 0.010 then
@@ -176,28 +215,29 @@ function WaveGrid:draw()
     for i = 1, #self.grid do
         local c = #self.grid[1]
         for j = 1, c do
-            local gr = love.graphics
             local cell = self.grid[i][j]
             gr.setColor{0.5, 0.5, 0.75}
             gr.polygon("line", cell[1], cell[2], cell[3], cell[4], cell[5], 
                 cell[6], cell[7], cell[8])
         end
     end
-    gr.draw(self.mesh, 100, 100)
+    gr.draw(self.mesh as gr.Drawable, 100, 100)
 
-    mesh1:draw()
+    --mesh1:draw()
 end
+
+local waveGrid: WaveGrid
 
 function init()
-    waveGrid = WaveGrid:new(4, 4, 16)
+    waveGrid = WaveGrid.new(4, 4, 16)
 end
 
-function draw()
+local function draw()
     waveGrid:draw()
-    mesh1:draw()
+    --mesh1:draw()
 end
 
-function update(dt)
+function update(dt: number)
     local lk = love.keyboard
     local assoc = {
         ["left"] = {-1, 0},
@@ -205,16 +245,17 @@ function update(dt)
         ["up"] = {0, -1},
         ["down"] = {0, 1},
     }
-    for k, v in pairs(assoc) do
-        if lk.isDown(k) then
-            mesh1:move(v[1], v[2])
-        end
-    end
+
+    --for k, v in pairs(assoc) do
+        --if lk.isDown(k) then
+            --mesh1:move(v[1], v[2])
+        --end
+    --end
 
     waveGrid:update(dt)
 end
 
-function keypressed (_, k)
+function keypressed (k: string)
     if k == "escape" then
         love.event.quit()
     end
