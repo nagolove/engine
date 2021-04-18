@@ -1,12 +1,16 @@
 local file = io.popen("uname -a")
-local is_linux = false
-local is_windows = true
+local is_windows, is_linux
 if file then
     if file:read("*a"):match("Linux.*") then
         is_linux = true
         is_window = false
+    else
+        is_linux = false
+        is_windows = false
     end
 end
+print("is_linux", is_linux)
+print("is_windows", is_windows)
 
 function getAutomatoFiles()
     local files = {
