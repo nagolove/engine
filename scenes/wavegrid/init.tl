@@ -166,6 +166,7 @@ function WaveGrid:updateVertices()
             --self.vertices[(i * c + j) * 8].y = cell[1]
             print("cell", inspect(cell))
             print("len", #self.grid[i])
+            print("index", (i * c + j) * 8 + 1)
 
             self.vertices[(i * c + j) * 8 + 1].x = cell[1]
             self.vertices[(i * c + j) * 8 + 2].y = cell[2]
