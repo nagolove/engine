@@ -166,10 +166,11 @@ function WaveGrid:updateVertices()
             --self.vertices[(i * c + j) * 8].y = cell[1]
             print("cell", inspect(cell))
             print("len", #self.grid[i])
-            print("index", (i * c + j) * 8 + 1)
+            local n = 1
+            print("index", (i * c + j) * n + 1)
 
-            self.vertices[(i * c + j) * 8 + 1].x = cell[1]
-            self.vertices[(i * c + j) * 8 + 2].y = cell[2]
+            self.vertices[(i * c + j) * n + 1].x = cell[1]
+            self.vertices[(i * c + j) * n + 2].y = cell[2]
 --self.vertices[(i * c + j) * 8 + 1].x = cell[1]
 --self.vertices[(i * c + j) * 8 + 2].y = cell[2]
 
@@ -212,17 +213,30 @@ function WaveGrid:update(_: number)
     end
 end
 
+local dx, dy = 0., 0.
+
 function WaveGrid:draw()
+    gr.push()
+    local w, h = gr.getDimensions()
+    local dx_loc, dy_loc = w / 2, h / 2
+    gr.translate(dx + dx_loc, dy + dy_loc)
+    local c = 3.
+    gr.scale(c, c)
+
     for i = 1, #self.grid do
         local c = #self.grid[1]
         for j = 1, c do
             local cell = self.grid[i][j]
             gr.setColor{0.5, 0.5, 0.75}
-            gr.polygon("line", cell[1], cell[2], cell[3], cell[4], cell[5], 
-                cell[6], cell[7], cell[8])
+            gr.polygon("line", cell[1], cell[2], cell[3], cell[4], cell[5], cell[6], cell[7], cell[8])
         end
     end
-    gr.draw(self.mesh as gr.Drawable, 100, 100)
+
+    gr.pop()
+
+    --]]
+
+    --gr.draw(self.mesh as gr.Drawable, 100, 100)
 
     --mesh1:draw()
 end
@@ -239,6 +253,7 @@ local function draw()
 end
 
 function update(dt: number)
+    --[[
     local lk = love.keyboard
     local assoc = {
         ["left"] = {-1, 0},
@@ -246,7 +261,15 @@ function update(dt: number)
         ["up"] = {0, -1},
         ["down"] = {0, 1},
     }
+    --]]
 
+    local lk = love.keyboard
+    if lk.isDown("left") then
+        dx = dx + 1
+    elseif lk.isDown("right") then
+        dx = dx - 1
+        print(dx)
+    end
     --for k, v in pairs(assoc) do
         --if lk.isDown(k) then
             --mesh1:move(v[1], v[2])
