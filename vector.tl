@@ -30,6 +30,7 @@ local sqrt, cos, sin, atan2 = math.sqrt, math.cos, math.sin, math.atan2
 global type vector = record
     x: number
     y: number
+    new: function(): vector
     --metamethod __tostring: function(vector): string
     metamethod __div: function(a: vector,b: number): vector
     metamethod __mul: function(a: vector|number,b: vector|number): vector|number
@@ -64,6 +65,11 @@ global type vector = record
     angleTo: function(other: vector): number
     trimmed: function(maxLen: number): vector
     __index: metatable<vector>
+end
+
+function vector.new(x: number, y: number): vector
+    vector.__index = vector as metatable<vector>
+    return setmetatable({x = x or 0, y = y or 0} as vector, vector as metatable<vector>)
 end
 
 local function new(x: number,y: number): vector

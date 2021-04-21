@@ -66,6 +66,12 @@ local sqrt, cos, sin, atan2 = math.sqrt, math.cos, math.sin, math.atan2
 
 
 
+
+function vector.new(x, y)
+   vector.__index = vector
+   return setmetatable({ x = x or 0, y = y or 0 }, vector)
+end
+
 local function new(x, y)
    vector.__index = vector
    return setmetatable({ x = x or 0, y = y or 0 }, vector)

@@ -72,6 +72,7 @@ return {
         "scenes/slog-example/",
         "scenes/imgui-bindings/",
         "scenes/fractaltree/",
+        "scenes/timers_animations_tl/",
     },
     include = {
         --"scenes/fractaltree/*.tl",
@@ -84,6 +85,7 @@ return {
         "scenes/button_test/*.tl",
         "scenes/fractaltree/*.tl",
         "scenes/wavegrid/*.tl",
+        "scenes/timers_animations_tl/*.tl",
         --"scenes/hst_reader/*.tl",
 
         --"scenes/imgui-bindings/*.tl",
