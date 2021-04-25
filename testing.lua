@@ -9,6 +9,7 @@ local function writeCanvas2Disk(
    cnv,
    name,
    maxFilesNum)
+   maxFilesNum = maxFilesNum or 60 * 3
 
    assert(string.find(name, '%%d') ~= nil)
    if not names[name] then

@@ -8,7 +8,8 @@ local names: {string: number} = {}
 local function writeCanvas2Disk(
     cnv: love.graphics.Canvas,
     name: string, 
-    maxFilesNum: number)
+    maxFilesNum: integer)
+    maxFilesNum = maxFilesNum or 60 * 3
 
     assert(string.find(name, '%%d') ~= nil)
     if not names[name] then

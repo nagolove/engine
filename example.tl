@@ -44,7 +44,7 @@ function Layout.new(): Layout
     return {}
 end
 
-local l: Layout = Layout.new()
+--local l: Layout = Layout.new()
 -- dynamically add field for record instance
 --(l as {any:any}).z = Layout.new()
 
