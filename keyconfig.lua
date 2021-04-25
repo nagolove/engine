@@ -174,17 +174,15 @@ function KeyConfig.bind(
    description,
    id)
 
-   description = description or ""
    local map = {
       ["keypressed"] = shortcutsPressed,
       ["isdown"] = shortcutsDown,
    }
    local list = map[btype]
-
    if KeyConfig.checkExistHotkey(list, combo) then
-
       assert('hotkey ' .. KeyConfig.getHotkeyString(combo))
    end
+   description = description or ""
    table.insert(list, {
       combo = shallowCopy(combo),
       action = action,
@@ -194,6 +192,7 @@ function KeyConfig.bind(
    if id then
       ids[id] = list[#list]
    end
+   KeyConfig.prepareDrawing()
 end
 
 function KeyConfig.printBinds()

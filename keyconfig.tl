@@ -36,30 +36,27 @@ global type KeyConfig = record
         "isdown"
     end
 
-    -- EXTERNAL INTERFACE
+    -- EXTERNAL INTERFACE --
 
     -- послать нажатие по идентификатору
     send: function(id: string)
-
+    -- зарегистрировать комбинацию клавиш и кнопок мыши
     bind: function(BindType, combo: BindAccord, ActionFunc, string, string|nil)
-
-    --bindKeyDown: function(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
-    --bindKeyPressed: function(stringID: string, keyCombination: {string}, action: ActionFunc, description: string)
+    -- распечатать в консоль все зарегистрированные хоткеи
     printBinds: function()
 
     update: function()
     keypressed: function(key: string)
 
+    -- рисовать красивый список с навигацией и подробной справкой
     draw: function()
-    --drawShortcutsList: function(x0: number, y0: number)
-    prepareDrawing: function()
 
     -- вызывать только если активна отрисовка
     updateList: function(dt: number)
 
-    -- INTERNAL 
+    -- INTERNAL --
 
-    --checkExistHotkey: function(BindAccord): boolean
+    prepareDrawing: function()
     checkExistHotkey: function(list: {Shortcut}, combo: KeyConfig.BindAccord): boolean
     getHotkeyString: function(combo: KeyConfig.BindAccord): string
     -- сравнить два массива клавиш-модификаторов
@@ -174,17 +171,15 @@ function KeyConfig.bind(
     description: string, 
     id: string|nil)
 
-    description = description or ""
     local map = {
         ["keypressed"] = shortcutsPressed,
         ["isdown"] = shortcutsDown,
     }
     local list: {Shortcut} = map[btype]
-    -- добавить assert проверку на существование хоткея в коллекции
     if KeyConfig.checkExistHotkey(list, combo) then
-    --if KeyConfig.checkExistHotkey(list) then
         assert('hotkey ' .. KeyConfig.getHotkeyString(combo))
     end
+    description = description or ""
     table.insert(list, {
         combo = shallowCopy(combo),
         action = action, 
@@ -194,6 +189,9 @@ function KeyConfig.bind(
     if id then
         ids[id] = list[#list]
     end
+    -- обновить визуальный список
+    -- XXX частый вызов может замедлить программу
+    KeyConfig.prepareDrawing()
 end
 
 function KeyConfig.printBinds()
