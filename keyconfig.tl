@@ -135,20 +135,23 @@ end
 local ids: {string: Shortcut} = {}
 
 function KeyConfig.compareMod(mod1: {string}, mod2: {string}): boolean
-    if #mod1 ~= #mod2 then
-        return false
-    else
-        for i = 1, #mod1 do
-            if mod1[i] ~= mod2[i] then
-                return false
+    if mod1 and mod2 then
+        if #mod1 ~= #mod2 then
+            return false
+        else
+            for i = 1, #mod1 do
+                if mod1[i] ~= mod2[i] then
+                    return false
+                end
             end
         end
+        return true
     end
-    return true
 end
 
 function KeyConfig.checkExistHotkey(list: {Shortcut}, combo: KeyConfig.BindAccord): boolean
     for _, shortcut in ipairs(list) do
+        print("shortcut.combo.mod, combo.mod)", shortcut.combo.mod, combo.mod)
         if KeyConfig.compareMod(shortcut.combo.mod, combo.mod) and shortcut.combo.key == combo.key then
             return true
         end
