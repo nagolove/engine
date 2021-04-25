@@ -122,6 +122,7 @@ end
 
 local ids = {}
 
+
 function KeyConfig.bind(
    btype,
    combo,

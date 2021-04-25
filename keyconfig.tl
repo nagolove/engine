@@ -53,6 +53,11 @@ global type KeyConfig = record
 
     -- вызывать только если активна отрисовка
     updateList: function(dt: number)
+
+    checkExistHotkey: function(BindAccord): boolean
+    getHotkeyString: function(combo: KeyConfig.BindAccord): string
+
+    test: function(shortcuts: {Shortcut}, isPressed: IsPressed)
 end
 
 local Shortcut = KeyConfig.Shortcut
@@ -122,6 +127,16 @@ end
 
 local ids: {string: Shortcut} = {}
 
+function KeyConfig.checkExistHokey(
+    list: {Shortcut}, 
+    combo: KeyConfig.BindAccord): boolean
+    if 
+end
+
+function KeyConfig.getHotkeyString(combo: KeyConfig.BindAccord): string
+    return "[" .. combo.mod .. "] + " .. combo.key
+end
+
 function KeyConfig.bind(
     btype: KeyConfig.BindType,
     combo: KeyConfig.BindAccord,
@@ -135,6 +150,10 @@ function KeyConfig.bind(
         ["isdown"] = shortcutsDown,
     }
     local list: {Shortcut} = map[btype]
+    -- добавить assert проверку на существование хоткея в коллекции
+    if checkExistHokey(list) then
+        assert('hotkey ' .. getHotkeyString(combo))
+    end
     table.insert(list, {
         combo = shallowCopy(combo),
         action = action, 
@@ -159,19 +178,16 @@ function KeyConfig.printBinds()
     print("end isdown:")
 end
 
--- TODO: работает странно, если определить несколько горячих клавиш, 
--- к примеру f1 и f1+lshift
-function KeyConfig.keypressed(key: string)
-    --print("KeyConfig.keypressed(", key, ")")
-    for i, stroke in ipairs(shortcutsPressed) do
+function KeyConfig.test(shortcuts: {Shortcut}, isPressed: IsPressed)
+    for i, stroke in ipairs(shortcuts) do
         if stroke.enabled then
             local combo = stroke.combo
-            local pressed = key == combo.key
+            local pressed = isPressed(combo.key)
             if pressed then 
                 --print("keypressed stroke", inspect(stroke))
                 if combo.mod then
                     for _, mod in ipairs(combo.mod) do
-                        pressed = pressed and lk.isDown(mod as love.keyboard.KeyConstant)
+                        pressed = pressed and lk.isScancodeDown(str as love.keyboard.KeyConstant)
                         if not pressed then 
                             break 
                         end
@@ -181,7 +197,7 @@ function KeyConfig.keypressed(key: string)
                     local rebuildlist, newShortcut: boolean, Shortcut = stroke.action(stroke)
                     if rebuildlist then
                         shortcutsList = nil
-                        shortcutsPressed[i] = shallowCopy(newShortcut)
+                        shortcuts[i] = shallowCopy(newShortcut)
                     end
                 end
             end
@@ -189,33 +205,25 @@ function KeyConfig.keypressed(key: string)
     end
 end
 
+-- TODO: работает странно, если определить несколько горячих клавиш, 
+-- к примеру f1 и f1+lshift
+function KeyConfig.keypressed(key: string)
+    test(
+        shortcutsPressed, 
+        function(str: string): boolean
+            return key == str
+        end
+    )
+end
+
 -- Проверка выполняется через lk.isDown()
 function KeyConfig.update()
-    for i, stroke in ipairs(shortcutsDown) do
-        if stroke.enabled then
-            --print("isdown stroke", inspect(stroke))
-            local combo = stroke.combo
-            local pressed = lk.isScancodeDown(combo.key as love.keyboard.KeyConstant)
-            if pressed then 
-                --print("isScancodeDown", combo.key)
-                if combo.mod then
-                    for _, keyValue in ipairs(combo.mod) do
-                        pressed = pressed and lk.isScancodeDown(keyValue as love.keyboard.KeyConstant)
-                        if not pressed then 
-                            break 
-                        end 
-                    end
-                end
-                if pressed and stroke.action then 
-                    local rebuildlist, newShortcut: boolean, Shortcut = stroke.action(stroke)
-                    if rebuildlist then
-                        shortcutsList = nil
-                        shortcutsDown[i] = shallowCopy(newShortcut)
-                    end
-                end
-            end 
+    test(
+        shortcutsDown, 
+        function(str: string): boolean
+            return lk.isScancodeDown(combo.key as love.keyboard.KeyConstant)
         end
-    end
+    )
 end
 
 function KeyConfig.send(id: string)
