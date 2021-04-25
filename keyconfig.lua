@@ -1,11 +1,23 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table; require("love")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table; require("love")
 require("common")
 
-local lk = love.keyboard
-local inspect = require("inspect")
 
+local inspect = require("inspect")
+local lk = love.keyboard
+local IsPressed = {}
 
  KeyConfig = {BindAccord = {}, Shortcut = {}, }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -122,6 +134,35 @@ end
 
 local ids = {}
 
+function KeyConfig.compareMod(mod1, mod2)
+   if #mod1 ~= #mod2 then
+      return false
+   else
+      for i = 1, #mod1 do
+         if mod1[i] ~= mod2[i] then
+            return false
+         end
+      end
+   end
+   return true
+end
+
+function KeyConfig.checkExistHotkey(list, combo)
+   for _, shortcut in ipairs(list) do
+      if KeyConfig.compareMod(shortcut.combo.mod, combo.mod) and shortcut.combo.key == combo.key then
+         return true
+      end
+   end
+   return false
+end
+
+function KeyConfig.getHotkeyString(combo)
+   local mod_str = ""
+   for _, v in ipairs(combo.mod) do
+      mod_str = mod_str .. v
+   end
+   return "[" .. mod_str .. "] + " .. combo.key
+end
 
 function KeyConfig.bind(
    btype,
@@ -136,6 +177,11 @@ function KeyConfig.bind(
       ["isdown"] = shortcutsDown,
    }
    local list = map[btype]
+
+   if KeyConfig.checkExistHotkey(list, combo) then
+
+      assert('hotkey ' .. KeyConfig.getHotkeyString(combo))
+   end
    table.insert(list, {
       combo = shallowCopy(combo),
       action = action,
@@ -160,19 +206,16 @@ function KeyConfig.printBinds()
    print("end isdown:")
 end
 
-
-
-function KeyConfig.keypressed(key)
-
-   for i, stroke in ipairs(shortcutsPressed) do
+function KeyConfig.test(shortcuts, isPressed)
+   for i, stroke in ipairs(shortcuts) do
       if stroke.enabled then
          local combo = stroke.combo
-         local pressed = key == combo.key
+         local pressed = isPressed(combo.key)
          if pressed then
 
             if combo.mod then
                for _, mod in ipairs(combo.mod) do
-                  pressed = pressed and lk.isDown(mod)
+                  pressed = pressed and lk.isScancodeDown(mod)
                   if not pressed then
                      break
                   end
@@ -182,7 +225,7 @@ function KeyConfig.keypressed(key)
                local rebuildlist, newShortcut = stroke.action(stroke)
                if rebuildlist then
                   shortcutsList = nil
-                  shortcutsPressed[i] = shallowCopy(newShortcut)
+                  shortcuts[i] = shallowCopy(newShortcut)
                end
             end
          end
@@ -191,32 +234,24 @@ function KeyConfig.keypressed(key)
 end
 
 
+
+function KeyConfig.keypressed(key)
+   KeyConfig.test(
+   shortcutsPressed,
+   function(str)
+      return key == str
+   end)
+
+end
+
+
 function KeyConfig.update()
-   for i, stroke in ipairs(shortcutsDown) do
-      if stroke.enabled then
+   KeyConfig.test(
+   shortcutsDown,
+   function(str)
+      return lk.isScancodeDown(str)
+   end)
 
-         local combo = stroke.combo
-         local pressed = lk.isScancodeDown(combo.key)
-         if pressed then
-
-            if combo.mod then
-               for _, keyValue in ipairs(combo.mod) do
-                  pressed = pressed and lk.isScancodeDown(keyValue)
-                  if not pressed then
-                     break
-                  end
-               end
-            end
-            if pressed and stroke.action then
-               local rebuildlist, newShortcut = stroke.action(stroke)
-               if rebuildlist then
-                  shortcutsList = nil
-                  shortcutsDown[i] = shallowCopy(newShortcut)
-               end
-            end
-         end
-      end
-   end
 end
 
 function KeyConfig.send(id)

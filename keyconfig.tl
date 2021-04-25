@@ -1,9 +1,10 @@
 require "love"
 require "common"
 
-local lk = love.keyboard
-local inspect = require "inspect"
 --local gr = love.graphics
+local inspect = require "inspect"
+local lk = love.keyboard
+local type IsPressed = function(str: string): boolean
 
 global type KeyConfig = record
 
@@ -35,6 +36,8 @@ global type KeyConfig = record
         "isdown"
     end
 
+    -- EXTERNAL INTERFACE
+
     -- послать нажатие по идентификатору
     send: function(id: string)
 
@@ -54,9 +57,13 @@ global type KeyConfig = record
     -- вызывать только если активна отрисовка
     updateList: function(dt: number)
 
-    checkExistHotkey: function(BindAccord): boolean
-    getHotkeyString: function(combo: KeyConfig.BindAccord): string
+    -- INTERNAL 
 
+    --checkExistHotkey: function(BindAccord): boolean
+    checkExistHotkey: function(list: {Shortcut}, combo: KeyConfig.BindAccord): boolean
+    getHotkeyString: function(combo: KeyConfig.BindAccord): string
+    -- сравнить два массива клавиш-модификаторов
+    compareMod: function(mod1: {string}, mod2: {string}): boolean
     test: function(shortcuts: {Shortcut}, isPressed: IsPressed)
 end
 
@@ -127,14 +134,34 @@ end
 
 local ids: {string: Shortcut} = {}
 
-function KeyConfig.checkExistHokey(
-    list: {Shortcut}, 
-    combo: KeyConfig.BindAccord): boolean
-    if 
+function KeyConfig.compareMod(mod1: {string}, mod2: {string}): boolean
+    if #mod1 ~= #mod2 then
+        return false
+    else
+        for i = 1, #mod1 do
+            if mod1[i] ~= mod2[i] then
+                return false
+            end
+        end
+    end
+    return true
+end
+
+function KeyConfig.checkExistHotkey(list: {Shortcut}, combo: KeyConfig.BindAccord): boolean
+    for _, shortcut in ipairs(list) do
+        if KeyConfig.compareMod(shortcut.combo.mod, combo.mod) and shortcut.combo.key == combo.key then
+            return true
+        end
+    end
+    return false
 end
 
 function KeyConfig.getHotkeyString(combo: KeyConfig.BindAccord): string
-    return "[" .. combo.mod .. "] + " .. combo.key
+    local mod_str = ""
+    for _, v in ipairs(combo.mod) do
+        mod_str = mod_str .. v
+    end
+    return "[" .. mod_str .. "] + " .. combo.key
 end
 
 function KeyConfig.bind(
@@ -151,8 +178,9 @@ function KeyConfig.bind(
     }
     local list: {Shortcut} = map[btype]
     -- добавить assert проверку на существование хоткея в коллекции
-    if checkExistHokey(list) then
-        assert('hotkey ' .. getHotkeyString(combo))
+    if KeyConfig.checkExistHotkey(list, combo) then
+    --if KeyConfig.checkExistHotkey(list) then
+        assert('hotkey ' .. KeyConfig.getHotkeyString(combo))
     end
     table.insert(list, {
         combo = shallowCopy(combo),
@@ -187,7 +215,7 @@ function KeyConfig.test(shortcuts: {Shortcut}, isPressed: IsPressed)
                 --print("keypressed stroke", inspect(stroke))
                 if combo.mod then
                     for _, mod in ipairs(combo.mod) do
-                        pressed = pressed and lk.isScancodeDown(str as love.keyboard.KeyConstant)
+                        pressed = pressed and lk.isScancodeDown(mod as love.keyboard.KeyConstant)
                         if not pressed then 
                             break 
                         end
@@ -208,7 +236,7 @@ end
 -- TODO: работает странно, если определить несколько горячих клавиш, 
 -- к примеру f1 и f1+lshift
 function KeyConfig.keypressed(key: string)
-    test(
+    KeyConfig.test(
         shortcutsPressed, 
         function(str: string): boolean
             return key == str
@@ -218,10 +246,10 @@ end
 
 -- Проверка выполняется через lk.isDown()
 function KeyConfig.update()
-    test(
+    KeyConfig.test(
         shortcutsDown, 
         function(str: string): boolean
-            return lk.isScancodeDown(combo.key as love.keyboard.KeyConstant)
+            return lk.isScancodeDown(str as love.keyboard.KeyConstant)
         end
     )
 end
