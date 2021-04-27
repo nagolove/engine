@@ -53,6 +53,7 @@ return {
         "scenes/slog-example/",
         "scenes/imgui-bindings/",
         "scenes/fractaltree/",
+        "scenes/lsystem/",
     },
     include = {
         --"scenes/fractaltree/*.tl",
@@ -63,6 +64,7 @@ return {
 
         "scenes/nback2/*.tl",
         "scenes/button_test/*.tl",
+        "scenes/lsystem/",
 
         --"scenes/imgui-bindings/*.tl",
         --"scenes/hst_reader/*.tl",

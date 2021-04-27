@@ -64,9 +64,6 @@ local IsPressed = {}
 
 
 
-
-
-
 local Shortcut = KeyConfig.Shortcut
 local ActionFunc = KeyConfig.ActionFunc
 
@@ -192,6 +189,8 @@ function KeyConfig.bind(
    if id then
       ids[id] = list[#list]
    end
+
+
    KeyConfig.prepareDrawing()
 end
 
