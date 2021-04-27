@@ -56,7 +56,7 @@ return {
         "scenes/lsystem/",
     },
     include = {
-        --"scenes/fractaltree/*.tl",
+        "scenes/fractaltree/*.tl",
         "scenes/automato/*.tl",
         --"scenes/empty/*.tl",
         "src/*.tl",
@@ -64,7 +64,7 @@ return {
 
         "scenes/nback2/*.tl",
         "scenes/button_test/*.tl",
-        "scenes/lsystem/",
+        "scenes/lsystem/*.tl",
 
         --"scenes/imgui-bindings/*.tl",
         --"scenes/hst_reader/*.tl",
