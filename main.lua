@@ -111,6 +111,11 @@ function love.load(arg)
     if love.system.getOS() == "Android" then
         scenes.initOne("automato")
     else
+        --TODO : добавить загрузку произвольной сцены по пути.
+        -- К примеру `./run ./some/local/path/to/directory/with/init.tl`
+        -- Где `init.tl` представляет собой основной модуль сцены, 
+        -- экспортирующий соответствующий интерфейс.
+        -- Вопрос: какой интерфейс? Выделить `Module`
         scenes.initOne(arg[1] or "empty")
     end
     --]]
