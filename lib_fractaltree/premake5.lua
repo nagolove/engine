@@ -11,7 +11,7 @@ project "crc32"
     --targetname "crc32"
     postbuildcommands { "mv libcrc32.so crc32.so" }
     targetdir "."
-    language "C"
+    language "C++"
     includedirs {
         "/usr/include/luajit-2.1",
     }
