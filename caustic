@@ -1,0 +1,13 @@
+#!/usr/bin/env lua
+local parser = require "argparse"()
+local inspect = require "inspect"
+local args = parser:parse()
+
+--[[
+Добавить команды:
+    run
+    runc
+    build
+--]]
+
+print(inspect(parser))
