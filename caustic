@@ -10,4 +10,8 @@ local args = parser:parse()
     build
 --]]
 
-print(inspect(parser))
+-- run scne_name
+local run_command = parser:command "run"
+run_command:argument "scene"
+
+print(inspect(run_command))
