@@ -26,6 +26,7 @@ local jit = require "jit"
 -- :setlocal foldmethod=manual
 --require "mobdebug".start()
 package.package = package.path .. ";./?/init.lua"
+package.cpath = package.cpath .. ";?.so"
 print("package.path", package.path)
 
 --PROF_CAPTURE = true
