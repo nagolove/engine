@@ -2,6 +2,13 @@ require "love"
 require "camera"
 
 --local inspect = require "inspect"
+function separateByZeros(arr: {string}): string, integer
+    local tmp = ""
+    for _, v in ipairs(arr) do
+        tmp = tmp .. v .. "\0"
+    end
+    return tmp, #arr
+end
 
 function shallowCopy<T>(t: T): T
    local copy = {}

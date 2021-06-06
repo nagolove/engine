@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
-local parser = require "argparse"()
+--local parser = require "argparse"()
 local inspect = require "inspect"
-local args = parser:parse()
+--local args = parser:parse()
 
 --[[
 Добавить команды:
@@ -10,8 +10,17 @@ local args = parser:parse()
     build
 --]]
 
+--[[
 -- run scne_name
 local run_command = parser:command "run"
+print("run_command", inspect(run_command))
 run_command:argument "scene"
 
 print(inspect(run_command))
+--]]
+
+-- Как работает argparser?
+
+local parser = require "argparse"("hhhhh", "An example.")
+parser:argument("run", "scene")
+

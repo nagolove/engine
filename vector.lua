@@ -72,6 +72,14 @@ local function new(x, y)
 end
 local zero = new(0, 0)
 
+function vector:len()
+   return sqrt(self.x * self.x + self.y * self.y)
+end
+
+function vector:toPolar()
+   return atan2(self.x, self.y), self:len()
+end
+
 local function fromPolar(angle, radius)
    radius = radius or 1
    return new(cos(angle) * radius, sin(angle) * radius)
@@ -163,14 +171,6 @@ end
 
 function vector:len2()
    return self.x * self.x + self.y * self.y
-end
-
-function vector:len()
-   return sqrt(self.x * self.x + self.y * self.y)
-end
-
-function vector:toPolar()
-   return atan2(self.x, self.y), self:len()
 end
 
 function vector.dist(a, b)
