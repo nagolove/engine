@@ -235,6 +235,7 @@ function Block:processActions(dt)
    if self.action and not self:action(dt) then
 
 
+      print("to remove")
       if #self.actions >= 1 then
          table.remove(self.actions)
          self.action = self.actions[#self.actions]
