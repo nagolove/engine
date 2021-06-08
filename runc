@@ -6,8 +6,11 @@ eval $TL --version
 function0()
 {
     #(tl build)
-    ($TL)
-    local t1=$?
+    local tl_build="$TL build"
+    echo $tl_build
+    #($tl_build)
+    $tl_build
+    local teal_result=$?
 
     #(exit 0)
     #(exit 1)
@@ -22,7 +25,7 @@ function0()
     #eval $TL --wdisable unused build && love . $1 $2 $3
     #tl build && nlove .
 
-    if [[ t1 -eq 0 ]]; then
+    if [[ teal_result -eq 0 ]]; then
         echo 'compiled.'
         love . $1 $2 $3 $4
     else
