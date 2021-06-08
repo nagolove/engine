@@ -1,8 +1,33 @@
 #!/usr/bin/env bash
-#TL="~/projects/tl-master/tl"
+
 TL="tl"
 eval $TL --version
-#eval $TL build && love . $1 $2 $3
-eval $TL build && love . $1 $2 $3
-#eval $TL --wdisable unused build && love . $1 $2 $3
-#tl build && nlove .
+
+function0()
+{
+    #(tl build)
+    ($TL)
+    local t1=$?
+
+    #(exit 0)
+    #(exit 1)
+    #(exit -1)
+    #TL="~/projects/tl-master/tl"
+    #eval $TL build && love . $1 $2 $3
+    #eval $TL build && love . $1 $2 $3
+    #if test $Tl -eq 0; then
+    #$TL="tl build"
+    #echo "res"$t1
+    #echo $t1
+    #eval $TL --wdisable unused build && love . $1 $2 $3
+    #tl build && nlove .
+
+    if [[ t1 -eq 0 ]]; then
+        echo 'compiled.'
+        love . $1 $2 $3 $4
+    else
+        echo 'not compiled.'
+    fi
+}
+
+function0 "$1" "$2" "$3" "$4"
