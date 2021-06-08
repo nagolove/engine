@@ -4,42 +4,76 @@
 -- угол экрана. Там он исчезает и можно снова кликать в любой точке мышкой(до
 -- момента исчезновения мышь становиться заблокированной).
 
+require "vector"
+
 local lt = love.timer
 local lg = love.graphics
-local vector = require "vector"
 local inspect = require "inspect"
-local linesbuf = require "kons".new(0, 0)
+local linesbuf = require "kons".new()
 
 -- двунаправленный список с блоками
-local blks = nil
-local lastBlock = nil
+local blks: Block = nil
 
-local Block = {}
-Block.__index = Block
+local record Block
+    new: function(x: number, y: number): Block
+
+    -- возвращают истину если не завершены, если завершены, то возвращают ложь.
+    processEliminate: function(Block, dt: number): boolean
+    setupEliminate: function(Block, dt: number): boolean
+    processToCorner: function(Block, dt: number): boolean
+    setupCorner: function(Block, dt: number): boolean
+    processRotation: function(Block, dt: number): boolean
+    setupAngle: function(Block, dt: number): boolean
+    processToCenter: function(Block, dt: number): boolean
+
+    next: Block
+    prev: Block
+
+    x: number
+    y: number
+    toCorner: vector
+
+    angle: number
+    zeroAngle: number
+    angleDelta: number
+
+    timestamp: number
+    alphaDelta: number
+    color: {number}
+    exposition: number
+    actions: {Callback}
+    action: Callback
+end
+
+local type Callback = function(self: Block, dt: number): boolean
+
+local Block_mt: metatable<Block> = {
+    __index = Block,
+}
 
 --[[
 -- Есть четыре состояния, в котором может прибывать блок. Причем состояния
 -- переключаются между собой в определенном порядке, из одного состояния
--- выходит следущее. Можно описать матрицей переходов. Хмм. С другой стороны - 
+-- выходит следущее. Можно описать матрицей переходов. С другой стороны - 
 -- состояния здесь линейны, их можно расположить в ряд - из левого выходит
 -- правое. Что если обработчики состояния записать в таблицу?
 --]]
 
-function randomRange(min, max)
+function randomRange(min: number, max: number): number
     return min + (max - min) * math.random()
 end
 
 -- положение в пикселях
-function Block:new(x, y)
-    local self = {
+function Block.new(x: number, y: number): Block
+    local self = setmetatable({
         x = x, 
         y = y,
         angle = 0, -- угол в радианах
         color = {randomRange(0.6, 1), randomRange(0.6, 1), 
                  randomRange(0.6, 1), 1},
         exposition = randomRange(300, 1000), -- время анимации альфа канала до 0
-    }
-    setmetatable(self, Block)
+    } as Block, Block_mt)
+
     -- тут нужно установить начальный обработчик. Все обработчики возвращают
     -- истину если их нужно запускать еще раз и ложь если они закончили свое
     -- выполнение
@@ -59,8 +93,7 @@ function Block:new(x, y)
         self.prev = nil
         self.next = nil
     else
-        --TODO сделать добавление нового элемента не через цикл, а через
-        --указатель на последний элемент
+        --TODO сделать добавление нового элемента не через цикл, а через указатель на последний элемент
         local n = blks
         while n.next do
             n = n.next
@@ -74,7 +107,7 @@ function Block:new(x, y)
     return self
 end
 
-function Block:setupAngle(dt)
+function Block:setupAngle(_: number): boolean
     -- скорость поворота
     local rotationVelocity = randomRange(0.6, 1)
     self.zeroAngle = self.angle
@@ -84,7 +117,7 @@ function Block:setupAngle(dt)
     return false
 end
 
-function Block:processRotation(dt)
+function Block:processRotation(dt: number): boolean
     local ret = false
     --print("Block:processRotation()")
     --print("self", inspect(self))
@@ -99,7 +132,7 @@ function Block:processRotation(dt)
 end
 
 -- return true if not completed, else return false
-function Block:processToCenter(dt)
+function Block:processToCenter(dt: number): boolean
     -- [[
     -- Здесь нужно задать движение к центру от текущих координат 
     -- прямоугольника.
@@ -112,14 +145,14 @@ function Block:processToCenter(dt)
 
     local speed = 50
     -- текущее положение
-    local pos = vector(self.x, self.y)
+    local pos = vector.new(self.x, self.y)
     -- конечная точка
-    local to = vector(w / 2, h / 2)
+    local to = vector.new(w / 2, h / 2)
     -- еденичный вектор движения в нужном направлении
     local dir = (to - pos):normalizeInplace()
 
     if (to - pos):len() > 1 then
-        pos = pos + dir * dt * speed
+        pos = pos + dir * (dt * speed)
         self.x, self.y = pos:unpack()
         ret = true
     end
@@ -127,7 +160,7 @@ function Block:processToCenter(dt)
     return ret
 end
 
-function Block:setupCorner(dt)
+function Block:setupCorner(_: number): boolean
     local w, h = lg.getDimensions()
     local x, y = randomRange(0, w), randomRange(0, h)
     --local corners = {vector(0, 0), vector(w, 0), vector(w, h), vector(0, h)}
@@ -136,39 +169,38 @@ function Block:setupCorner(dt)
     else
         y = 0
     end
-    --self.toCorner = corners[math.random(1, 4)]
-    self.toCorner = vector(x, y)
+    self.toCorner = vector.new(x, y)
     return false
 end
 
-function Block:processToCorner(dt)
+function Block:processToCorner(dt: number): boolean
     local ret = false
     local speed = 70
-    local pos = vector(self.x, self.y)
+    local pos = vector.new(self.x, self.y)
     local to = self.toCorner
     local dir = (to - pos):normalizeInplace()
     if (to - pos):len() > 1 then
-        pos = pos + dir * dt * speed
+        pos = pos + dir * (dt * speed)
         self.x, self.y = pos:unpack()
         ret = true
     end
     return ret
 end
 
-function Block:setupEliminate(dt)
+function Block:setupEliminate(_: number): boolean
     self.timestamp = love.timer.getTime()
     self.alphaDelta = self.color[4] / self.exposition
     return false
 end
 
-function Block:processEliminate(dt)
+function Block:processEliminate(_: number): boolean
     local ret = false
     local time = lt.getTime()
     if time - self.timestamp < self.exposition then
         self.color[4] = self.color[4] - self.alphaDelta
         ret = true
     end
-    print("processEliminate() == false")
+    --print("processEliminate() == false")
     return ret
 end
 
@@ -199,14 +231,16 @@ function Block:draw()
     lg.circle("fill", self.x, self.y, 3)
 end
 
-function Block:update(dt)
+function Block:processActions(dt: number)
     if self.action and not self:action(dt) then
         -- выкидываю дествие из стека как завершенное
         --print("table action removed")
+        print("to remove")
         if #self.actions >= 1 then
             table.remove(self.actions)
             self.action = self.actions[#self.actions]
-            print("self.actions", inspect(self.actions))
+            print("remove")
+            --print("self.actions", inspect(self.actions))
         else
             --print("blk = nil")
             --blk = nil
@@ -220,10 +254,10 @@ function Block:update(dt)
                 blks = nil
                 self = nil
             else
-                local prev = self.prev
-                local next = self.next
-                prev.next = self.next
-                next.prev = self.prev
+                local prev2 = self.prev
+                local next2 = self.next
+                prev2.next = self.next
+                next2.prev = self.prev
                 self = nil
                 print("removed self from center")
             end
@@ -231,11 +265,15 @@ function Block:update(dt)
     end
 end
 
-function love.load()
+function Block:update(dt: number)
+    self:processActions(dt)
+end
+
+local function init()
     math.randomseed(os.clock())
 end
 
-function love.draw()
+local function draw()
     if blks then
         local n = blks
         while n.next do
@@ -247,7 +285,7 @@ function love.draw()
     linesbuf:draw()
 end
 
-function love.update(dt)
+local function update(dt: number)
     if blks then
         local n = blks
         while n.next do
@@ -256,35 +294,23 @@ function love.update(dt)
         end
     end
     if love.mouse.isDown(1) then
-        Block:new(love.mouse.getPosition())
+        --Block.new(love.mouse.getPosition())
     end
-    linesbuf:update(dt)
+    linesbuf:update()
 end
 
--- почему происходит значительная задержка между кликом мыши и появлением
--- квадратика на экране? Точки клика и появления квадратика могут не совпадать.
-function love.mousepressed(x, y, button)
+local function mousemoved(x: number, y: number)
     --print("mousepressed", x, y)
     --Block:new(x, y)
     linesbuf:push(2, "mousepressed(%d, %d)", x, y)
-    --Block:new(love.mouse.getPosition())
+    if love.mouse.isDown(1) then
+        Block.new(love.mouse.getPosition())
+    end
 end
 
---[[
-   [function love.keypressed(_, scancode)
-   [    -- переключение режимов экрана
-   [    if love.keyboard.isDown("ralt", "lalt") and key == "return" then
-   [        -- код дерьмовый, но работает
-   [        if screenmode == "fs" then
-   [            love.window.setmode(800, 600, {fullscreen = false})
-   [            screenmode = "win"
-   [            --dispatchwindowresize(love.graphics.getDimensions())
-   [        else
-   [            love.window.setmode(0, 0, {fullscreen = true,
-   [                                       fullscreentype = "exclusive"})
-   [            screenmode = "fs"
-   [            --dispatchwindowresize(love.graphics.getDimensions())
-   [        end
-   [    end
-   [end
-   ]]
+return {
+    init = init,
+    draw = draw,
+    update = update,
+    mousemoved = mousemoved,
+}
