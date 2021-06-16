@@ -63,7 +63,7 @@ return {
         "scenes/automato/",
         --"",
 
-        "scenes/nback2/",
+        "scenes/nback3/",
         "scenes/button_test/",
         "scenes/nback2/libs/",
 
@@ -82,7 +82,7 @@ return {
         "src/*.tl",
         "*.tl",
 
-        "scenes/nback2/*.tl",
+        "scenes/nback3/*.tl",
         "scenes/button_test/*.tl",
         "scenes/lsystem/*.tl",
         "scenes/fractaltree/*.tl",
