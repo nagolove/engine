@@ -66,3 +66,9 @@ end
 
 print(replaceCodes("${red}text"))
 --]]
+
+local function f_max<T>(a: T, b: T): boolean
+    return a>b 
+end
+
+print(f_max(2, 3))
