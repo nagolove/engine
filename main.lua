@@ -26,12 +26,18 @@ local jit = require "jit"
 -- :setlocal foldmethod=manual
 --require "mobdebug".start()
 package.package = package.path .. ";./?/init.lua"
-package.cpath = package.cpath .. ";?.so"
+--package.cpath = package.cpath .. ";?.so"
 print("package.path", package.path)
 
 --PROF_CAPTURE = true
 
+print('1 getCRequirePath() = ', love.filesystem.getCRequirePath())
+--love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";./lib/?.dll")
+love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
+print('2 getCRequirePath() = ', love.filesystem.getCRequirePath())
+
 --local prof = require "jprof"
+--local imgui_nil = require "imgui_nil"
 local imgui = require "imgui"
 --local imgui = require "love-imgui"
 local inspect = require "inspect"

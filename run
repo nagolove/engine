@@ -4,7 +4,7 @@
 TL="tl"
 echo "Teal version "$($TL --version)
 #eval $TL build && love . $1 $2 $3
-love . $1 $2 $3
+#love . $1 $2 $3
 
 #name=$(uname -a)
 #if [[ $name =~ "Linux" ]]; then
@@ -16,6 +16,7 @@ love . $1 $2 $3
 #fi
 
 #eval $TL --version
+eval $TL build && love . $1 $2 $3
 #eval $TL build && love . $1 $2 $3
 #eval $TL build && love . $1 $2 $3
 #eval $TL --wdisable unused build && love . $1 $2 $3
