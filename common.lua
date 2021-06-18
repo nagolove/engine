@@ -1,6 +1,14 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; require("love")
 require("camera")
 
+function colprint(str)
+   if type(str) ~= 'string' then
+      error(string.format('Runtime type mismatch. %s instead of string', type(str)))
+   end
+   local ansicolors = require("ansicolors2").ansicolors
+   print(ansicolors("%{blue cyanbg}" .. string.rep('>', 10) .. str))
+end
+
 
 function separateByZeros(arr)
    local tmp = ""

@@ -53,3 +53,16 @@ end
 --((l as {any:any}).z as Layout).x = 0
 --((l as {any:any}).z as Layout).x = 1
 
+--[[
+local function replaceCodes(str: string): string
+    -- разбери шаблон
+    str = string.gsub(str,"(%%{(.-)})", 
+        function(_: string, str: string): string
+            return escapeKeys(str) 
+        end
+    )
+    return str
+end
+
+print(replaceCodes("${red}text"))
+--]]

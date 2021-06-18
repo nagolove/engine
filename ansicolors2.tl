@@ -1,7 +1,8 @@
--- ansicolors.lua v1.0.2 (2012-08)
+-- based on ansicolors.lua v1.0.2 (2012-08)
 
 -- Copyright (c) 2009 Rob Hoelz <rob@hoelzro.net>
 -- Copyright (c) 2011 Enrique García Cota <enrique.garcia.cota@gmail.com>
+-- Copyright (c) 2021 Den Karandeev <dekar.own@gmail.com>
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +21,6 @@
 -- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
-
---[[
 
 -- support detection
 local function isWindows(): boolean
@@ -85,7 +84,7 @@ end
 
 local function replaceCodes(str: string): string
     str = string.gsub(str,"(%%{(.-)})", 
-        function(_, str: string): string
+        function(_: string, str: string): string
             return escapeKeys(str) 
         end
     )
@@ -94,12 +93,24 @@ end
 
 -- public
 
-local function ansicolors( str )
+local function ansicolors(str: string): string
   str = tostring(str or '')
-
   return replaceCodes('%{reset}' .. str .. '%{reset}')
 end
 
-
-return setmetatable({noReset = replaceCodes}, {__call = function (_, str) return ansicolors (str) end})
+--[[
+return setmetatable(
+    {
+        noReset = replaceCodes
+    },
+    {
+        __call = function (_: string, str: string): string 
+            return ansicolors (str) 
+        end
+    }
+)
 --]]
+
+return {
+    ansicolors = ansicolors,
+}

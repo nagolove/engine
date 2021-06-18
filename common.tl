@@ -1,6 +1,14 @@
 require "love"
 require "camera"
 
+function colprint(str: string)
+    if type(str) ~= 'string' then
+        error(string.format('Runtime type mismatch. %s instead of string', type(str)))
+    end
+    local ansicolors = require "ansicolors2".ansicolors
+    print(ansicolors("%{blue cyanbg}" .. string.rep('>', 10) .. str))
+end
+
 --local inspect = require "inspect"
 function separateByZeros(arr: {string}): string, integer
     local tmp = ""
