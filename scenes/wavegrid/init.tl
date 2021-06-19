@@ -220,8 +220,8 @@ function WaveGrid:draw()
     local w, h = gr.getDimensions()
     local dx_loc, dy_loc = w / 2, h / 2
     gr.translate(dx + dx_loc, dy + dy_loc)
-    local c = 3.
-    gr.scale(c, c)
+    local scale = 3.
+    gr.scale(scale, scale)
 
     for i = 1, #self.grid do
         local c = #self.grid[1]
