@@ -1,10 +1,10 @@
 ﻿function love.conf(t)
-    --t.window.width = 1920
-    --t.window.height = 1080
+    t.window.width = 1920
+    t.window.height = 1080
 
     t.window.fullscreen = false
-    t.window.width = 1024
-    t.window.height = 768
+    --t.window.width = 1024
+    --t.window.height = 768
     --t.window.borderless = true         -- Remove all border visuals from the window (boolean)
     t.window.borderless = false         -- Remove all border visuals from the window (boolean)
 
