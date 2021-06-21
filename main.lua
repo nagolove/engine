@@ -98,12 +98,13 @@ local function searchArg(arg, paramName)
     print(inspect(arg))
     print(inspect(paramName))
 
-    for k, v in pairs(arg) do
-        print(k, v)
+    for _, v in pairs(arg) do
+        if v == paramName then
+            return true
+        end
     end
 
-    local found = false
-    return found
+    return false
 end
 
 -- поиск команды на запуск сцены. Возвращает строку команды или nilю
@@ -139,13 +140,6 @@ function love.load(arg)
     printGraphicsInfo()
     bindKeys()
 
-    --scenes.loadScenes("scenes")
-    --scenes.initLoaded()
-
-    --scenes.initOne("selector")
-    --scenes.setCurrentScene("selector")
-
-    colprint(inspect(scenes.getScenes()))
     if searchArg(arg, '--debug') then
         require "mobdebug".start()
     end
