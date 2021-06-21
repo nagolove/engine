@@ -27,10 +27,10 @@ function0()
 
     if [[ teal_result -eq 0 ]]; then
         echo 'compiled.'
-        love . $1 $2 $3 $4
+        love . $1 $2 $3 $4 $5 $6 $7 $8 $9
     else
         echo 'not compiled.'
     fi
 }
 
-function0 "$1" "$2" "$3" "$4"
+function0 "$1" "$2" "$3" "$4" "$5" "$6" "$8" "$8" "$9"

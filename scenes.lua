@@ -46,8 +46,8 @@ function loadScenes(path)
    return scenes, scenesNames
 end
 
+local scenes, scenesNames = loadScenes("scenes")
 
-local scenes, scenesNames = {}, {}
 local currentScene = nil
 
 local function getScenes()

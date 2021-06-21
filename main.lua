@@ -1,5 +1,5 @@
+--[[
 local flag = false
-
 function testDraw()
     if flag then
         for i = 1, 1000 do
@@ -11,50 +11,36 @@ function testDraw()
         end
     end
 end
-
---local profi = require "profi"
---[[
-local t = {}
-for i = 1, 100000 do
-    table.insert(t, i)
-end
 --]]
 
-local jit = require "jit"
---_G['print'] = function() end
---jit.on()
--- :setlocal foldmethod=manual
---require "mobdebug".start()
 package.package = package.path .. ";./?/init.lua"
---package.cpath = package.cpath .. ";?.so"
 print("package.path", package.path)
 
 --PROF_CAPTURE = true
 
-print('1 getCRequirePath() = ', love.filesystem.getCRequirePath())
---love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";./lib/?.dll")
-love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
-print('2 getCRequirePath() = ', love.filesystem.getCRequirePath())
+if love.system.getOS() == 'Windows' then
+    print('1 getCRequirePath() = ', love.filesystem.getCRequirePath())
+    love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
+    print('2 getCRequirePath() = ', love.filesystem.getCRequirePath())
+end
 
---local prof = require "jprof"
---local imgui_nil = require "imgui_nil"
-local imgui = require "imgui"
+--local argparse = require "argparse"
 --local imgui = require "love-imgui"
+--local imgui_nil = require "imgui_nil"
+--local parser = argparse()
+--local prof = require "jprof"
+--local tools = require "tools"
+local imgui = require "imgui"
 local inspect = require "inspect"
 local scenes = require "scenes"
-local imgui = require "imgui"
 
---local tools = require "tools"
+require "common"
+require "log"
+require "keyconfig"
 
 local showHelp = false
 local gr = love.graphics
 local imguiFontSize = 22
-
-require "log"
-require "keyconfig"
-
-local argparse = require "argparse"
-local parser = argparse()
 
 love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
 
@@ -104,6 +90,50 @@ function printGraphicsInfo()
     print("canvasformats", inspect(canvasformats))
 end
 
+-- поиск аргумента командой строки. Возвращает истину или ложь.
+local function searchArg(arg, paramName)
+    if type(paramName) ~= 'string' then
+        error(string.format('searchArg() paramName =  "%s"', paramName or ""))
+    end
+    print(inspect(arg))
+    print(inspect(paramName))
+
+    for k, v in pairs(arg) do
+        print(k, v)
+    end
+
+    local found = false
+    return found
+end
+
+-- поиск команды на запуск сцены. Возвращает строку команды или nilю
+local function findCommand(arg)
+    local commands = {}
+    for i = 1, #arg do
+        local s = arg[i]
+        local ok, errmsg = pcall(function()
+            if string.sub(s, 1, 1) ~= '-' and string.sub(s, 2, 2) ~= '-' then
+                table.insert(commands, s)
+            end
+        end)
+    end
+
+    --print('commands', inspect(commands))
+    if #commands > 1 then
+        colprint('More then one command, sorry.')
+        return nil
+    end
+
+    local list = scenes.getScenes()
+    for _, v in pairs(list) do
+        if v.name == commands[1] then
+            return commands[1]
+        end
+    end
+
+    return nil
+end
+
 function love.load(arg)
     imgui.Init()
     printGraphicsInfo()
@@ -114,26 +144,25 @@ function love.load(arg)
 
     --scenes.initOne("selector")
     --scenes.setCurrentScene("selector")
-   
-    if love.system.getOS() == "Android" then
-        scenes.initOne("automato")
-    else
-        --TODO : добавить загрузку произвольной сцены по пути.
-        -- К примеру `./run ./some/local/path/to/directory/with/init.tl`
-        -- Где `init.tl` представляет собой основной модуль сцены, 
-        -- экспортирующий соответствующий интерфейс.
-        -- Вопрос: какой интерфейс? Выделить `Module`
-        scenes.initOne(arg[1] or "empty")
+
+    colprint(inspect(scenes.getScenes()))
+    if searchArg(arg, '--debug') then
+        require "mobdebug".start()
     end
-    --]]
 
-    --scenes.initOne("nback2")
-    --scenes.initOne("hexfield")
-    --scenes.initOne("automato")
-    --scenes.initOne("fractaltree")
-    --scenes.initOne("hst_reader")
+    local sceneName = findCommand(arg) 
 
-    --initTools(currentScene)
+    --TODO : добавить загрузку произвольной сцены по пути.
+    -- К примеру `./run ./some/local/path/to/directory/with/init.tl`
+    -- Где `init.tl` представляет собой основной модуль сцены, 
+    -- экспортирующий соответствующий интерфейс.
+    -- Вопрос: какой интерфейс? Выделить `Module`
+    if sceneName then
+        scenes.initOne(sceneName)
+    else
+        scenes.initOne("empty")
+    end
+
     KeyConfig.printBinds()
     --imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", imguiFontSize)
     imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
@@ -152,55 +181,32 @@ local function collectGarbage()
 end
 
 function love.update(dt)
-    --prof.push("frame")
-    --tools.update()
-    
     if showHelp then
         KeyConfig.updateList(dt)
     end
     KeyConfig.update()
     collectGarbage()
 
-    --]]
-
-    --prof.push("zone1")
     scenes.update(dt)
-    --prof.pop("zone1")
-
 end
 
 function love.draw()
-    --gr.print(string.format("%d fps", love.timer.getFPS()))
-    --testDraw()
-
-    --prof.push("scenes")
     gr.setColor{1, 1, 1}
     scenes.draw()
     gr.setColor{1, 1, 1}
-    --prof.pop("scenes")
 
-    --prof.push("imgui")
     imgui.NewFrame()
     scenes.drawui()
-    --love.graphics.setColor{1, 1, 1}
     imgui.Render();
-    --prof.pop("imgui")
 
     if showHelp then
         KeyConfig.draw()
     end
-
-    --prof.pop("frame")
-    ----]]
 end
 
 function love.quit()
     scenes.quit()
     imgui.ShutDown();
-    --print("1")
-    --prof.write("prof.mpack")
-    --print("2")
-    --profi:writeReport("automato.txt")
 end
 
 function love.textinput(t)

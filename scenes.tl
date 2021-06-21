@@ -46,8 +46,8 @@ function loadScenes(path: string): {SceneMap}, {string}
     return scenes, scenesNames
 end
 
---local scenes, scenesNames = loadScenes("scenes")
-local scenes, scenesNames: {SceneMap}, {string} = {}, {}
+local scenes, scenesNames = loadScenes("scenes")
+--local scenes, scenesNames: {SceneMap}, {string} = {}, {}
 local currentScene: Scene = nil
 
 local function getScenes(): {SceneMap}
