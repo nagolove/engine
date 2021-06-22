@@ -185,13 +185,6 @@ function love.update(dt)
         love.window.setTitle(love.timer.getFPS())
     end
 
-    for n, a, b, c, d, e, f in love.event.poll() do
-        print('n, a, b, c, d, e, f', n, a, b, c, d, e, f)
-        --if n == "quit" then
-           ---- Quit!
-        --end	
-    end
-
     if showHelp then
         KeyConfig.updateList(dt)
     end
@@ -299,6 +292,7 @@ function love.run()
 		if love.event then
 			love.event.pump()
 			for name, a,b,c,d,e,f in love.event.poll() do
+                print('n, a, b, c, d, e, f', n, a, b, c, d, e, f)
 				if name == "quit" then
 					if not love.quit or not love.quit() then
 						return a or 0
