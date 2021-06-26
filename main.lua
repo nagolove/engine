@@ -30,7 +30,15 @@ end
 --local parser = argparse()
 --local prof = require "jprof"
 --local tools = require "tools"
-local imgui = require "imgui"
+
+local imgui = nil
+local ok, errmsg = pcall(function()
+    imgui = require 'imgui'
+end)
+if not ok then
+    print('error:', errmsg)
+end
+
 local inspect = require "inspect"
 local scenes = require "scenes"
 
