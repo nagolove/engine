@@ -32,11 +32,13 @@ end
 --local tools = require "tools"
 
 local imgui = nil
+IMGUI_USE_STUB = false
 local ok, errmsg = pcall(function()
     imgui = require 'imgui'
 end)
 if not ok then
     print('error:', errmsg)
+    IMGUI_USE_STUB = true
 end
 
 local inspect = require "inspect"
@@ -144,7 +146,10 @@ local function findCommand(arg)
 end
 
 function love.load(arg)
-    imgui.Init()
+    if not IMGUI_USE_STUB then
+        imgui.Init()
+        imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
+    end
     printGraphicsInfo()
     bindKeys()
 
@@ -167,7 +172,6 @@ function love.load(arg)
 
     KeyConfig.printBinds()
     --imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", imguiFontSize)
-    imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
 end
 
 local lastGCTime = love.timer.getTime()
@@ -207,9 +211,11 @@ function love.draw()
     scenes.draw()
     gr.setColor{1, 1, 1}
 
-    imgui.NewFrame()
-    scenes.drawui()
-    imgui.Render();
+    if not IMGUI_USE_STUB then
+        imgui.NewFrame()
+        scenes.drawui()
+        imgui.Render();
+    end
 
     if showHelp then
         KeyConfig.draw()
@@ -218,14 +224,18 @@ end
 
 function love.quit()
     scenes.quit()
-    imgui.ShutDown();
+    if not IMGUI_USE_STUB then
+        imgui.ShutDown();
+    end
 end
 
 function love.textinput(t)
-  imgui.TextInput(t)
-  if not imgui.GetWantCaptureKeyboard() then
-    -- Pass event to the game
-  end
+    if not IMGUI_USE_STUB then
+        imgui.TextInput(t)
+        if not imgui.GetWantCaptureKeyboard() then
+            -- Pass event to the game
+        end
+    end
 end
 
 --[[
@@ -239,50 +249,62 @@ function love.keypressed(_, key)
         flag = not flag
     end
 
-    imgui.KeyPressed(key)
-    if not imgui.GetWantCaptureKeyboard() then
-        KeyConfig.keypressed(key)
-        scenes.keypressed(key)
-        --tools.keypressed(key)
+    if not IMGUI_USE_STUB then
+        imgui.KeyPressed(key)
+        if not imgui.GetWantCaptureKeyboard() then
+            KeyConfig.keypressed(key)
+            scenes.keypressed(key)
+            --tools.keypressed(key)
+        end
     end
 end
 
 function love.keyreleased(_, key)
-  imgui.KeyReleased(key)
-  if not imgui.GetWantCaptureKeyboard() then
-    scenes.keyreleased(key)
-  end
+    if not IMGUI_USE_STUB then
+        imgui.KeyReleased(key)
+        if not imgui.GetWantCaptureKeyboard() then
+            scenes.keyreleased(key)
+        end
+    end
 end
 
 function love.mousemoved(x, y, dx, dy)
-  imgui.MouseMoved(x, y)
-  if not imgui.GetWantCaptureMouse() then
-    --tools.mousemoved(x, y, dx, dy)
-    scenes.mousemoved(x, y, dx, dy)
-  end
+    if not IMGUI_USE_STUB then
+        imgui.MouseMoved(x, y)
+        if not imgui.GetWantCaptureMouse() then
+            --tools.mousemoved(x, y, dx, dy)
+            scenes.mousemoved(x, y, dx, dy)
+        end
+    end
 end
 
 function love.mousepressed(x, y, button)
-  imgui.MousePressed(button)
-  if not imgui.GetWantCaptureMouse() then
-    --tools.mousepressed(x, y, button)
-    scenes.mousepressed(x, y, button)
-  end
+    if not IMGUI_USE_STUB then
+        imgui.MousePressed(button)
+        if not imgui.GetWantCaptureMouse() then
+            --tools.mousepressed(x, y, button)
+            scenes.mousepressed(x, y, button)
+        end
+    end
 end
 
 function love.mousereleased(x, y, button)
-  imgui.MouseReleased(button)
-  if not imgui.GetWantCaptureMouse() then
-    --tools.mousereleased(x, y, button)
-    scenes.mousereleased(x, y, button)
-  end
+    if not IMGUI_USE_STUB then
+        imgui.MouseReleased(button)
+        if not imgui.GetWantCaptureMouse() then
+            --tools.mousereleased(x, y, button)
+            scenes.mousereleased(x, y, button)
+        end
+    end
 end
 
 function love.wheelmoved(x, y)
-  imgui.WheelMoved(y)
-  if not imgui.GetWantCaptureMouse() then
-    scenes.wheelmoved(x, y)
-  end
+    if not IMGUI_USE_STUB then
+        imgui.WheelMoved(y)
+        if not imgui.GetWantCaptureMouse() then
+            scenes.wheelmoved(x, y)
+        end
+    end
 end
 
 function love.run()
