@@ -158,6 +158,7 @@ function love.load(arg)
     end
 
     local sceneName = findCommand(arg) 
+    print('sceneName', sceneName)
 
     --TODO : добавить загрузку произвольной сцены по пути.
     -- К примеру `./run ./some/local/path/to/directory/with/init.tl`
