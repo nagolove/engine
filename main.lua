@@ -145,6 +145,19 @@ local function findCommand(arg)
     return nil
 end
 
+local function printAvaibleScenes()
+    local list = scenes.getScenes()
+    local tmp = {}
+    for _, v in ipairs(list) do
+        print('-------', v.name)
+        table.insert(tmp, v.name)
+    end
+    print(inspect(tmp))
+    print(inspect(table.concat(tmp, ',')))
+    print("AVAIBLE SCENES: " .. table.concat(tmp, ','))
+    colprint("AVAIBLE SCENES: " .. table.concat(tmp, ','))
+end
+
 function love.load(arg)
     if not IMGUI_USE_STUB then
         imgui.Init()
@@ -157,8 +170,17 @@ function love.load(arg)
         require "mobdebug".start()
     end
 
+    if searchArg(arg, '--dev') then
+        local fhd_width  = 1920
+        local fhd_height = 1080
+        local space = 20 -- in pixels.
+        love.window.setPosition(fhd_width + space, space)
+    end
+
+
     local sceneName = findCommand(arg) 
-    print('sceneName', sceneName)
+
+    printAvaibleScenes()
 
     --TODO : добавить загрузку произвольной сцены по пути.
     -- К примеру `./run ./some/local/path/to/directory/with/init.tl`
@@ -188,14 +210,14 @@ local function collectGarbage()
 end
 
 local lastWindowHeaderUpdateTime = love.timer.getTime()
-local quant = 1
-
+local quant = 1 -- shoud be in s seconds. Real unit measure is unknown.
+local titlePrefix = "caustic engine "
 local fpsAccum = 0
 
 function love.update(dt)
     local now = love.timer.getTime()
     if now - lastWindowHeaderUpdateTime > quant then
-        love.window.setTitle(love.timer.getFPS())
+        love.window.setTitle(titlePrefix .. love.timer.getFPS())
     end
 
     if showHelp then
@@ -323,7 +345,7 @@ function love.run()
 		if love.event then
 			love.event.pump()
 			for name, a,b,c,d,e,f in love.event.poll() do
-                print('n, a, b, c, d, e, f', n, a, b, c, d, e, f)
+                --print('n, a, b, c, d, e, f', n, a, b, c, d, e, f)
 				if name == "quit" then
 					if not love.quit or not love.quit() then
 						return a or 0
