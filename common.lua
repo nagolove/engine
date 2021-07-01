@@ -19,11 +19,21 @@ function separateByZeros(arr)
 end
 
 function shallowCopy(t)
-   local copy = {}
-   for k, v in pairs(t) do
-      copy[k] = v
+   if type(t) == "table" then
+      local copy = {}
+      for k, v in pairs(t) do
+         copy[k] = v
+      end
+      return copy
+   elseif type(t) == "string" then
+      return t
+   elseif type(t) == "number" then
+      return t
+   elseif type(t) == "boolean" then
+      return t
+   elseif type(t) == "function" then
+      return t
    end
-   return copy
 end
 
 
