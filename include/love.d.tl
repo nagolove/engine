@@ -2165,6 +2165,7 @@ global type love = record
 			setSleepingAllowed: function(self: World, allow: boolean)
 			translateOrigin: function(self: World, x: number, y: number)
 			update: function(self: World, dt: number, velocityiterations: number, positioniterations: number)
+            setCallbacks: function(beginContact: any, endContact: any, preSolve: any, postSolve: any)
 		end
 
 		getDistance: function(fixture1: Fixture, fixture2: Fixture): number, number, number, number, number
