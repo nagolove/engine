@@ -10,9 +10,7 @@ local CameraSettings = {}
 
 
 
-local cameraSettings = {}
-
-cameraSettings = {
+local cameraSettings = {
 
    dx = 20,
    dy = 20,

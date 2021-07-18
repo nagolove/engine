@@ -10,9 +10,7 @@ local type CameraSettings = record
     relativedy: number
 end
 
-local cameraSettings: CameraSettings = {}
-
-cameraSettings = {
+local cameraSettings: CameraSettings = {
     -- знавение в пикселях
     dx = 20,
     dy = 20,
