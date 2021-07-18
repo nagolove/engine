@@ -190,6 +190,7 @@ function love.load(arg)
     if sceneName then
         scenes.initOne(sceneName)
     else
+        colprint("Empty scene will be runned.")
         scenes.initOne("empty")
     end
 
