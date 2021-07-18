@@ -796,8 +796,8 @@ global type love = record
 		type Shader = record
 			getWarnings: function(self: Shader): string
 			hasUniform: function(self: Shader, name: string): boolean
-			send: function(self: Shader, name: string, ...: number)
 			send: function(self: Shader, name: string, ...: table)
+			send: function(self: Shader, name: string, ...: number)
 			send: function(self: Shader, name: string, ...: {{number}})
 			send: function(self: Shader, name: string, texture: Texture)
 			send: function(self: Shader, name: string, ...: boolean)
