@@ -117,7 +117,7 @@ local function searchArg(arg, paramName)
     return false
 end
 
--- поиск команды на запуск сцены. Возвращает строку команды или nilю
+-- поиск команды на запуск сцены. Возвращает строку команды или nil.
 local function findCommand(arg)
     local commands = {}
     for i = 1, #arg do
