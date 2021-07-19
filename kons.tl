@@ -139,13 +139,15 @@ end
 function kons:update()
     for k, v in ipairs(self.strings) do
         local time = love.timer.getTime()
-        v.lifetime = v.lifetime  - (time - v.timestamp)
-        if v.lifetime <= 0 then
-            self.strings[k] = self.strings[self.strings_num]
-            self.strings[self.strings_num] = nil
-            self.strings_num = self.strings_num - 1
-        else
-            v.timestamp = time
+        if v then
+            v.lifetime = v.lifetime  - (time - v.timestamp)
+            if v.lifetime <= 0 then
+                self.strings[k] = self.strings[self.strings_num]
+                self.strings[self.strings_num] = nil
+                self.strings_num = self.strings_num - 1
+            else
+                v.timestamp = time
+            end
         end
     end
 end
