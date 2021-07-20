@@ -209,6 +209,11 @@ function KeyConfig.bind(
    KeyConfig.prepareDrawing()
 end
 
+function KeyConfig.unbind(id)
+
+   print("TO DO unbind FUNCTION")
+end
+
 function KeyConfig.printBinds()
    print("keypressed:")
    for _, stroke in ipairs(shortcutsPressed) do
