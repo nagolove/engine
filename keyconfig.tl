@@ -1,3 +1,6 @@
+-- vim: fdm=marker
+-- vim: set colorcolumn=85
+
 require "love"
 require "common"
 
@@ -9,15 +12,18 @@ local type IsPressed = function(str: string): boolean
 global type KeyConfig = record
 
     type BindAccord = record
+        -- {{{
         -- список модификаторов
         mod: {string}
         -- клавиша
         key: string
         -- клавиша мыши
         mousekey: string
+        -- }}}
     end
 
     type Shortcut = record
+        -- {{{
         -- сочетание клавиш. Сперва идут модификаторы, потом основные кнопки
         combo: BindAccord
         -- вызывается при нажатии
@@ -27,6 +33,7 @@ global type KeyConfig = record
         description: string
         -- флаг временного отключения
         enabled: boolean
+        -- }}}
     end
 
     type ActionFunc = function(Shortcut): boolean, Shortcut
@@ -40,12 +47,18 @@ global type KeyConfig = record
 
     -- послать нажатие по идентификатору
     send: function(id: string)
-    -- зарегистрировать комбинацию клавиш и кнопок мыши
-    bind: function(BindType, combo: BindAccord, ActionFunc, string, string|nil)
+    -- зарегистрировать комбинацию клавиш 
+    bind: function( btype: BindType, 
+                    combo: BindAccord, 
+                    action: ActionFunc, 
+                    description: string, 
+                    id: string|nil)
+    unbind: function(id: string)
     -- распечатать в консоль все зарегистрированные хоткеи
     printBinds: function()
-
+    -- вызывать для обновления внутренниего состояния "isdown"
     update: function()
+    -- вызывать для обновления внутренниего состояния "keypressed"
     keypressed: function(key: string)
 
     -- рисовать красивый список с навигацией и подробной справкой
@@ -54,7 +67,7 @@ global type KeyConfig = record
     -- вызывать только если активна отрисовка
     updateList: function(dt: number)
 
-    -- INTERNAL --
+    -- INTERNAL ↓↓ -- INTERNAL -- ↓↓ INTERNAL --
 
     prepareDrawing: function()
     checkExistHotkey: function(list: {Shortcut}, combo: KeyConfig.BindAccord): boolean
@@ -62,6 +75,8 @@ global type KeyConfig = record
     -- сравнить два массива клавиш-модификаторов
     compareMod: function(mod1: {string}, mod2: {string}): boolean
     test: function(shortcuts: {Shortcut}, isPressed: IsPressed)
+
+    -- INTERNAL -- ↑↑ INTERNAL ↑↑ -- INTERNAL --
 end
 
 local Shortcut = KeyConfig.Shortcut

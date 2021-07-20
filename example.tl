@@ -1,74 +1,73 @@
+local type IsPressed = function(str: string): boolean
 
---[[
-global type Statistic = record
+local type KeyConfig_ = record
 
-    enum Types
-        'allEated'
-        'maxEnergy'
-        'minEnergy'
-        'midEnergy'
-        "cells"
-        "iterations"
-        "meals"
-        "born"
-        "died"
-        'percentAreaFilled'
-        'stepsPerSecond'
+    type BindAccord = record
+        mod: {string}
+        key: string
+        mousekey: string
     end
-
+    type Shortcut = record
+        combo: BindAccord
+        action: ActionFunc
+        description: string
+        enabled: boolean
+    end
+    type ActionFunc = function(Shortcut): boolean, Shortcut
+    type BindType = enum
+        "keypressed"
+        "isdown"
+    end
+    bind: function( btype: BindType, 
+                    combo: BindAccord, 
+                    action: ActionFunc, 
+                    description: string, 
+                    id: string|nil)
 end
 
-global formatMods: {Statistic.Types:string} = {
-    ['allEated'] = '%d',
-    ['maxEnergy'] = '%d',
-    ['minEnergy'] = '%d',
-    ['midEnergy'] = '%d',
-    ['cells'] = '%d',
-    ['iterations'] = '%d',
-    ['meals'] = '%d',
-    ['born'] = '%d',
-    ['died'] = '%d',
-    ['percentAreaFilled'] = '%f',
-    ['stepsPerSecond'] = '%d',
-}
---]]
+local Shortcut = KeyConfig_.Shortcut
+local ActionFunc = KeyConfig_.ActionFunc
 
+function KeyConfig_.bind(
+    _: KeyConfig_.BindType,
+    _: KeyConfig_.BindAccord,
+    _: ActionFunc, 
+    _: string, 
+    _: string|nil)
 
-local type Layout = record
-    x: number
-    -- some constructor
-    new: function(): Layout
+    -- do something ..
 end
 
-function Layout.new(): Layout
-    return {}
+local record Tank
+    left: function(Tank)
+    right: function(Tank)
+    up: function(Tank)
+    down: function(Tank)
 end
 
---local l: Layout = Layout.new()
--- dynamically add field for record instance
---(l as {any:any}).z = Layout.new()
+function Tank:left() end
+function Tank:right() end
+function Tank:down() end
 
---((l as {any:any}).z as Layout) = Layout.new()
---print((((l as {any:any}).z) as Layout).x )
---((l as {any:any}).z as Layout).x = 0
---((l as {any:any}).z as Layout).x = 1
+local playerTank: Tank
 
---[[
-local function replaceCodes(str: string): string
-    -- разбери шаблон
-    str = string.gsub(str,"(%%{(.-)})", 
-        function(_: string, str: string): string
-            return escapeKeys(str) 
-        end
+local function bindDirection(direction: string)
+    KeyConfig_.bind(
+        "isdown", { key = direction },
+        function(sc: Shortcut): boolean, Shortcut
+            local enum E
+                "left"
+                "right"
+                "down"
+                "up"
+            end
+            playerTank[direction as E](playerTank)
+            return false, sc
+        end,
+        "move tank " .. direction, 
+        "mt" .. direction
     )
-    return str
+    --]]
 end
 
-print(replaceCodes("${red}text"))
---]]
-
---local function f_max<T>(a: T, b: T): boolean
-    --return a>b 
---end
-
---print(f_max(2, 3))
+--bindDirection("left")
