@@ -1,3 +1,4 @@
+--[[
 local type IsPressed = function(str: string): boolean
 
 local type KeyConfig_ = record
@@ -61,13 +62,14 @@ local function bindDirection(direction: string)
                 "down"
                 "up"
             end
-            playerTank[direction as E](playerTank)
+            --playerTank[direction as E](playerTank)
             return false, sc
         end,
         "move tank " .. direction, 
         "mt" .. direction
     )
-    --]]
 end
+
+--]]
 
 --bindDirection("left")
