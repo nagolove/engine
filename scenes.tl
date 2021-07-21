@@ -178,6 +178,12 @@ function getSceneNames(): {string}
     return scenesNames
 end
 
+local function textinput(text: string)
+    if currentScene and currentScene.textinput then
+        currentScene.textinput(text)
+    end
+end
+
 return {
     getScenes = getScenes,
     getCurrentScene = getCurrentScene,
@@ -189,6 +195,7 @@ return {
     update = update,
     draw = draw,
     drawui = drawui,
+    textinput = textinput,
     keypressed = keypressed,
     keyreleased = keyreleased,
     mousemoved = mousemoved,

@@ -1,6 +1,8 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table
 
 
+DEBUG_KEYCONFIG = false
+
 require("love")
 require("common")
 
@@ -113,13 +115,17 @@ function KeyConfig.prepareDrawing()
    for _, v in ipairs(shortcutsDown) do
       local message = v.description .. " " .. combo2str(v.combo)
 
-      print("message", message)
+      if DEBUG_KEYCONFIG then
+         print("message", message)
+      end
       shortcutsList:add(message)
    end
    for _, v in ipairs(shortcutsPressed) do
       local message = v.description .. " " .. combo2str(v.combo)
 
-      print("message", message)
+      if DEBUG_KEYCONFIG then
+         print("message", message)
+      end
       shortcutsList:add(message)
    end
 
@@ -163,7 +169,9 @@ end
 
 function KeyConfig.checkExistHotkey(list, combo)
    for _, shortcut in ipairs(list) do
-      print("shortcut.combo.mod, combo.mod)", shortcut.combo.mod, combo.mod)
+      if DEBUG_KEYCONFIG then
+         print("shortcut.combo.mod, combo.mod)", shortcut.combo.mod, combo.mod)
+      end
       if KeyConfig.compareMod(shortcut.combo.mod, combo.mod) and shortcut.combo.key == combo.key then
          return true
       end

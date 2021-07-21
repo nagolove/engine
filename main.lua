@@ -262,6 +262,7 @@ function love.textinput(t)
         imgui.TextInput(t)
         if not imgui.GetWantCaptureKeyboard() then
             -- Pass event to the game
+            scenes.textinput()
         end
     end
 end

@@ -10,6 +10,7 @@ global type Scene = record
     mousemoved: function(number, number, number, number)
     mousepressed: function(number, number, number)
     mousereleased: function(number, number, number)
+    textinput: function(text: string)
     resize: function(neww: integer, newh: integer)
     keypressed: function(string)
     keyreleased: function(string)
