@@ -5,8 +5,10 @@ global DEBUG_KEYCONFIG = false
 
 require "love"
 require "common"
+require "list"
 
 --local gr = love.graphics
+local List = require "list"
 local inspect = require "inspect"
 local lk = love.keyboard
 local type IsPressed = function(str: string): boolean
@@ -70,6 +72,9 @@ global type KeyConfig = record
     -- вызывать только если активна отрисовка
     updateList: function(dt: number)
 
+    getListObject: function(): List
+    setListSetupCallback: function(f: function(list: List))
+
     -- INTERNAL ↓↓ -- INTERNAL -- ↓↓ INTERNAL --
 
     prepareDrawing: function()
@@ -85,13 +90,15 @@ end
 local Shortcut = KeyConfig.Shortcut
 local ActionFunc = KeyConfig.ActionFunc
 
+-- Указатель на функцию обратного вызова применяемую после пересоздания списка.
+local shortcutsListCallback: function(list: List)
+
 -- love.keyboard.isDown()
 local shortcutsDown: {Shortcut} = {}
 
 -- love.keypressed()
 local shortcutsPressed: {Shortcut} = {}
 
-local List = require "list"
 --local imgui = require 'imgui'
 local shortcutsList: List = nil
 
@@ -116,6 +123,10 @@ local function combo2str(stroke: KeyConfig.BindAccord): string
         res = stroke.key
     end
     return '[' .. res .. ']'
+end
+
+function KeyConfig.getListObject(): List
+    return shortcutsList
 end
 
 function KeyConfig.prepareDrawing()
@@ -143,6 +154,10 @@ function KeyConfig.prepareDrawing()
         return a.message > b.message
     end)
     shortcutsList:done()
+    if shortcutsListCallback then
+        print("shortcutsListCallback called")
+        shortcutsListCallback(shortcutsList)
+    end
 end
 
 function KeyConfig.draw()
@@ -156,6 +171,16 @@ function KeyConfig.updateList(dt: number)
     if shortcutsList then
         shortcutsList:update(dt)
     end
+end
+
+function KeyConfig.setListSetupCallback(f: function(list: List))
+    if not f then
+        error("f should'not be nil")
+    end
+    if type(f) ~= "function" then
+        error("f type is not a function, " .. type(f))
+    end
+    shortcutsListCallback = f
 end
 
 function KeyConfig.compareMod(mod1: {string}, mod2: {string}): boolean

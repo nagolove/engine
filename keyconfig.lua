@@ -5,8 +5,10 @@ DEBUG_KEYCONFIG = false
 
 require("love")
 require("common")
+require("list")
 
 
+local List = require("list")
 local inspect = require("inspect")
 local lk = love.keyboard
 local IsPressed = {}
@@ -82,8 +84,14 @@ local IsPressed = {}
 
 
 
+
+
+
 local Shortcut = KeyConfig.Shortcut
 local ActionFunc = KeyConfig.ActionFunc
+
+
+local shortcutsListCallback
 
 
 local shortcutsDown = {}
@@ -91,7 +99,6 @@ local shortcutsDown = {}
 
 local shortcutsPressed = {}
 
-local List = require("list")
 
 local shortcutsList = nil
 
@@ -116,6 +123,10 @@ local function combo2str(stroke)
       res = stroke.key
    end
    return '[' .. res .. ']'
+end
+
+function KeyConfig.getListObject()
+   return shortcutsList
 end
 
 function KeyConfig.prepareDrawing()
@@ -143,6 +154,10 @@ function KeyConfig.prepareDrawing()
       return a.message > b.message
    end)
    shortcutsList:done()
+   if shortcutsListCallback then
+      print("shortcutsListCallback called")
+      shortcutsListCallback(shortcutsList)
+   end
 end
 
 function KeyConfig.draw()
@@ -156,6 +171,16 @@ function KeyConfig.updateList(dt)
    if shortcutsList then
       shortcutsList:update(dt)
    end
+end
+
+function KeyConfig.setListSetupCallback(f)
+   if not f then
+      error("f should'not be nil")
+   end
+   if type(f) ~= "function" then
+      error("f type is not a function, " .. type(f))
+   end
+   shortcutsListCallback = f
 end
 
 function KeyConfig.compareMod(mod1, mod2)

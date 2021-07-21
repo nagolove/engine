@@ -157,3 +157,4 @@ function pointInPolygon(pgon: {number}, tx: number, ty: number): boolean
 
     return (math.abs(total)==4)
 end
+
