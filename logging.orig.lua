@@ -1,0 +1,385 @@
+local logging = {}
+
+-- valve global to local lua
+local IsDedicatedServer = IsDedicatedServer or function() return false end
+local IsInToolsMode = IsInToolsMode or function() return false end
+local IsServer = IsServer or function() return false end
+local IsClient = IsClient or function() return false end
+local IsConsole = function () return (not IsDedicatedServer() and not IsInToolsMode()) end
+local Time = Time or function () return os.time() end
+
+function logging:getLogger(nameLogger)
+	local newObj = {}
+	self.__index = self
+	local t = setmetatable(newObj, self)
+	t.prefix = nameLogger
+	return t
+end
+
+function logging:printTable(t, showlevel)
+	if type(t) ~= "table" then print(tostring(t)) end
+	showlevel = showlevel or 7
+	print '{'
+	local rows = self:get_table(t, 2, showlevel, {})
+	for _, row in pairs(rows) do
+		print(row)
+	end
+	print '}'
+end
+
+
+function logging:extract_rows(rows, row, data, shift)
+	if type(data) == 'table' then
+		if data[1] ~= nil then
+			rows[#rows+1] = row
+			for _, vd in pairs(data) do
+				rows[#rows+1] = shift..vd
+			end
+			row = shift;
+		end
+	else
+		row = row..data
+	end
+	return row
+end
+
+function logging:get_table(t, indent, showlevel, done)
+	if type(t) ~= "table" then return tostring(t) end
+	if showlevel < 1 then return '...' end
+	done[t] = true -- deprecated recursion __index
+	local l = {}
+	for k, v in pairs(t) do
+		if k ~= 'FDesc' then
+			table.insert(l, k)
+		end
+	end
+	table.sort(l)
+
+	local rows = {}
+	local row = ''
+	local shift = string.rep(' ', indent)
+	local shift2 = string.rep(' ', indent-2)
+	local shift3 = string.rep(' ', indent+2)
+	local data
+
+	for _, k in ipairs(l) do
+		local v = t[k]
+		row = shift..k.." = ("..type(v)..") "
+		if type(v) == 'table' and not done[v] then
+			done[v] = true
+			row = row..'{'
+			data = self:get_table(v, indent+2, showlevel-1, done)
+			row = self:extract_rows(rows, row, data, shift2)
+			if getmetatable(v) ~= nil then
+				rows[#rows+1] = row
+				row = shift3..'getmetatable = {'
+				data = self:get_table(getmetatable(v), indent, showlevel-1, done)
+				row = self:extract_rows(rows, row, data, shift3)..'}'
+				rows[#rows+1] = row
+				row = shift
+			end
+			row = row..'}'
+		elseif type(v) == 'userdata' and not done[v] then
+			done[v] = true
+			local meta = (getmetatable(v) and getmetatable(v).__index) or getmetatable(v)
+			if meta ~= nil then
+				row = row..'= {'
+				data = self:get_table(meta, indent+4, showlevel-1, done)
+				row = self:extract_rows(rows, row, data, shift3)
+				rows[#rows+1] = row..'}'
+				row = shift
+			else
+				row = row..tostring(v)
+			end
+		else
+			if t.FDesc and t.FDesc[k] then
+				row = row..tostring(v)..' FDesc'
+				-- local meta = (getmetatable(t.FDesc[k]) and getmetatable(t.FDesc[k]).__index) or getmetatable(t.FDesc[k])
+				-- rows[#rows+1] = row..tostring(v)..' FDesc '..type(t.FDesc[k])..tostring(meta)
+				-- row = shift..tostring(t.FDesc[k])
+			else
+				row = row..tostring(v)
+			end
+		end
+		rows[#rows+1] = row
+	end
+	return rows
+end
+
+function logging:getMode()
+	local side = ""
+	if IsDedicatedServer() then
+		side = "DEDICATE"
+	elseif IsInToolsMode() then
+		side = "TOOLS"
+	elseif IsConsole() then
+		side = "CONSOLE"
+	end
+	if IsServer() then
+		side = side .. "_SERVER"
+	elseif IsClient() then
+		side = side .. "_CLIENT"
+	end
+	return side
+end
+
+local function splitPath(path)
+	-- нарезаем путь, path - путь, file - имя файла, parent - родительская директория
+	if path == "=(tail call)" then return {path = "", parent="", file="lambda"} end
+	local sep = "\\"
+	local s1 = path:find("@", 0)
+	if s1 ~= nil then
+		path = path:sub(s1 + 1)
+	end
+	local s = path:find(sep, 0)
+	if s == nil then
+		s = path:find("/", 0)
+		if s ~= nil then
+			sep = "/"
+		end
+	end
+
+	local left = ""
+	local right = path
+	local parent = ""
+	local s0 = 0
+	while s ~= nil do
+		left = path:sub(0, s - 1)
+		parent = path:sub(s0+1, s - 1)
+		right = path:sub(s + 1)
+		--print(left.."---"..parent.."---"..right)
+		s0 = s
+		s = path:find(sep, s+1)
+	end
+	local withparent = right
+	if parent ~= nil and parent ~= '.' and parent ~= "" then
+		withparent = parnt .. '/'.. right
+	end
+
+	return {
+		path = left,
+		parent = parent,
+		file = right,
+		withparent = withparent
+	}
+end
+
+function logging:linesource(level)
+	local level = level or 3
+	local info = debug.getinfo(level, "Sln")
+	local res = {parent='', file='', line=0, withparent=''}
+	-- print((info == nil and "nil" or self:table({info = info})))
+	if not info then return res end
+	local tmp = splitPath(info.source)
+	res.line = info.currentline
+	res.parent = tmp.parent
+	res.withparent = tmp.withparent
+	res.fname = tmp.file
+	return res
+end
+
+--[[
+	debug.getinfo(level, 'Sln')
+
+info:
+  currentline: 17
+  lastlinedefined: 23
+  linedefined: 16
+  name: init
+  namewhat: method
+  short_src: scripts\vscripts\events.lua
+  source: @scripts\vscripts\events.lua
+  what: Lua
+
+]]--
+
+function logging:traceback(level)
+	local res = 'stack traceback:\n\t'
+	local level = level or 3
+	local sep = '\n\t'
+	while true do
+		local info = debug.getinfo(level, "Sln")
+		-- print((info == nil and "nil" or self:table({info = info})))
+		if not info then break end
+		--if not info then return end
+		if info.what == "C" then   -- is a C function?
+			res = res .. "C function"
+		elseif info.what == "tail" then
+			res = res .. "lambda function"
+		else   -- a Lua function
+			local tmp = splitPath(info.source)
+			local path = tmp.parent
+			local fname = tmp.file
+			local line = info.currentline
+
+			local source = fname
+			if path ~= nil and path ~= '.' and path ~= "" then
+				source = path.."/"..fname
+			end
+			local method = "in main chunk"
+			if info.namewhat == 'method' then
+				method = string.format("in function %s", info.name)
+			end
+			res = string.format("%s%s:%d %s", res, source, line, method)
+		end
+	 	level = level + 1
+		res = res..sep
+		--sep = '\n\t'
+	end
+	return res
+end
+
+function logging:print(LOGLEVEL, msg, trace)
+	-- self.prefix
+	local mode = self:getMode()
+	print(string.format("[%s][%05.2f] %-8s %-40s [%s:%d]",
+		mode, Time(), LOGLEVEL, msg, trace.withparent, trace.line
+	))
+end
+
+
+function logging:showtable(msg, lvl, showlevel)
+	if type(msg) == 'table' then
+		showlevel = showlevel or 7
+		lvl = lvl or 0
+		local rows = self:get_table(msg, lvl, showlevel, {})
+		return rows
+	else
+		return msg
+	end
+end
+
+function logging:debug(msg, showtablekeys, shifttable)
+	-- print("--- debug --- ")
+	-- showtablekeys = showtablekeys or true
+	local mode = self:getMode()
+	local LOGLEVEL = 'DEBUG'
+	local trace = self:linesource()
+	if type(msg) == 'table' then
+		print(string.format("[%s][%05.2f] %-8s ", mode, Time(), LOGLEVEL))
+		-- self:printTable(msg)
+		shifttable = shifttable or 2
+		local sh = string.rep(' ', shifttable)
+		for key, row in pairs(msg) do
+			if showtablekeys then
+				print(sh .. key .. tostring(row))
+			else
+				print(sh .. tostring(row))
+			end
+		end
+
+		print(string.format("[%s:%d]",	trace.withparent, trace.line))
+	else
+		print(string.format("[%s][%05.2f] %-8s %-40s [%s:%d]",
+			mode, Time(), LOGLEVEL, msg, trace.withparent, trace.line
+		))
+	end
+end
+
+function logging:error(msg)
+	local LOGLEVEL = 'ERROR'
+	local trace = self:linesource()
+	local mode = self:getMode()
+	print(string.format("[%s][%05.2f] %-8s %-40s [%s:%d]",
+		mode, Time(), LOGLEVEL, msg, trace.withparent, trace.line
+	))
+	print(self:traceback())
+end
+
+return logging
+
+
+--[[
+
+DOCUMENTATION
+
+log:debug(message, showkey in table mesage, shift row in table message)
+log:error(message)
+
+log:showtable({Game = Game}) - return pretty lines for table
+
+
+```lua
+log:debug(log:showtable({Game = Game}), false)
+```
+
+```
+[TOOLS_SERVER][54.40] DEBUG    
+  Game = (table) {
+    count = (number) 1
+    models = (table) {}
+    name = (string) my game
+    players = (table) {}
+    render = (table) {
+      getmetatable = {
+        __index = (table) table: 0x002e9460
+        createBonus1 = (function) function: 0x00314540
+        createExplosion = (function) function: 0x00314568
+        createModel = (function) function: 0x002f29d8
+        createObstruction = (function) function: 0x002f29f8
+        createParticle = (function) function: 0x002f6c28
+        createTrigger = (function) function: 0x00312060
+        createWall = (function) function: 0x002ec048
+        debug = (function) function: 0x00317760
+        new = (function) function: 0x002e9488
+      }
+    }
+    rounds = (table) {}
+  
+    getmetatable = {
+    Activate = (function) function: 0x00314438
+    OnThink = (function) function: 0x002eeca0
+    __index = (table) table: 0x002faef0
+    close = (function) function: 0x002f1308
+    init = (function) function: 0x002fb3c8
+    new = (function) function: 0x00309c38
+    restart = (function) function: 0x002f64d0
+    setRender = (function) function: 0x0030f1c8
+    setThink = (function) function: 0x002c7e98
+    start = (function) function: 0x002fafb8
+    testScene = (function) function: 0x002f7b40
+    }
+  }
+[vscripts/addon_game_mode.lua:25]
+```
+
+--------------------
+
+```lua
+log:debug({Game = Game})
+```
+
+```
+[TOOLS_SERVER][54.40] DEBUG    
+  table: 0x0031a758
+[vscripts/addon_game_mode.lua:26]
+```
+
+--------------------
+
+```lua
+log:debug(Game)
+```
+
+```
+[TOOLS_SERVER][54.40] DEBUG
+  table: 0x002eaeb8
+  table: 0x002eaee0
+  table: 0x002d1540
+  1
+  my game
+  table: 0x0031a780
+[vscripts/addon_game_mode.lua:27]
+```
+
+--------------------
+
+```lua
+log:debug('LUA_VERSION ' .._VERSION)
+```
+
+```
+[TOOLS_SERVER][54.40] DEBUG    LUA_VERSION Lua 5.1                      [vscripts/addon_game_mode.lua:29]
+```
+
+--]]
