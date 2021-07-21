@@ -1,6 +1,38 @@
 require "love"
 require "camera"
 
+global type Scene = record
+    init: function()
+    quit: function()
+    update: function(number|nil)
+    draw: function()
+    drawui: function()
+    mousemoved: function(number, number, number, number)
+    mousepressed: function(number, number, number)
+    mousereleased: function(number, number, number)
+    resize: function(neww: integer, newh: integer)
+    keypressed: function(string)
+    keyreleased: function(string)
+    wheelmoved: function(number, number)
+    getCamera: function(): Camera
+end
+
+global type SceneMap = record
+    scene: Scene
+    name: string
+    inited: boolean
+end
+
+global type Tool = record
+    init: function(Scene)
+    update: function()
+    draw: function()
+    keypressed: function(key: string)
+    mousemoved: function(number, number, number, number)
+    mousereleased: function(number, number, number)
+    mousepressed: function(number, number, number)
+end
+
 function colprint(str: string)
     if type(str) ~= 'string' then
         error(string.format('Runtime type mismatch. %s instead of string', type(str)))
@@ -61,37 +93,6 @@ end
 
 function pointInRect(px: number, py: number, x: number, y: number, w: number, h: number): boolean
     return px > x and py > y and px < x + w and py < y + h
-end
-
-global type Scene = record
-    init: function()
-    quit: function()
-    update: function(number|nil)
-    draw: function()
-    drawui: function()
-    mousemoved: function(number, number, number, number)
-    mousepressed: function(number, number, number)
-    mousereleased: function(number, number, number)
-    keypressed: function(string)
-    keyreleased: function(string)
-    wheelmoved: function(number, number)
-    getCamera: function(): Camera
-end
-
-global type SceneMap = record
-    scene: Scene
-    name: string
-    inited: boolean
-end
-
-global type Tool = record
-    init: function(Scene)
-    update: function()
-    draw: function()
-    keypressed: function(key: string)
-    mousemoved: function(number, number, number, number)
-    mousereleased: function(number, number, number)
-    mousepressed: function(number, number, number)
 end
 
 function safeSend(shader: love.graphics.Shader, name: string, ...: any)

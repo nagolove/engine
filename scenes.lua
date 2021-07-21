@@ -89,6 +89,12 @@ local function update(dt)
    end
 end
 
+local function resize(neww, newh)
+   if currentScene and currentScene.resize then
+      currentScene.resize(neww, newh)
+   end
+end
+
 local function draw()
    if currentScene and currentScene.draw then
       currentScene.draw()
@@ -189,5 +195,6 @@ return {
    mousereleased = mousereleased,
    mousepressed = mousepressed,
    wheelmoved = wheelmoved,
+   resize = resize,
    quit = quit,
 }

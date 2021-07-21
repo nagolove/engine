@@ -230,6 +230,10 @@ function love.update(dt)
     scenes.update(dt)
 end
 
+function love.resize(w, h)
+    scenes.resize(w, h)
+end
+
 function love.draw()
     gr.setColor{1, 1, 1}
     scenes.draw()
