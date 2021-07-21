@@ -1,6 +1,8 @@
 -- vim: fdm=marker
 -- vim: set colorcolumn=85
 
+global DEBUG_KEYCONFIG = false
+
 require "love"
 require "common"
 
@@ -113,13 +115,17 @@ function KeyConfig.prepareDrawing()
     for _, v in ipairs(shortcutsDown) do
         local message: string = v.description .. " " .. combo2str(v.combo)
         --local message: string = "hhhh"
-        print("message", message)
+        if DEBUG_KEYCONFIG then
+            print("message", message)
+        end
         shortcutsList:add(message)
     end
     for _, v in ipairs(shortcutsPressed) do
         local message: string = v.description .. " " .. combo2str(v.combo)
         --local message: string = "uuuuuuuu"
-        print("message", message)
+        if DEBUG_KEYCONFIG then
+            print("message", message)
+        end
         shortcutsList:add(message)
     end
     -- XXX Почему сортировка идет по id? сортировать разными способами по 
@@ -163,7 +169,9 @@ end
 
 function KeyConfig.checkExistHotkey(list: {Shortcut}, combo: KeyConfig.BindAccord): boolean
     for _, shortcut in ipairs(list) do
-        print("shortcut.combo.mod, combo.mod)", shortcut.combo.mod, combo.mod)
+        if DEBUG_KEYCONFIG then
+            print("shortcut.combo.mod, combo.mod)", shortcut.combo.mod, combo.mod)
+        end
         if KeyConfig.compareMod(shortcut.combo.mod, combo.mod) and shortcut.combo.key == combo.key then
             return true
         end
