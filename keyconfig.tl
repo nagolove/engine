@@ -35,6 +35,7 @@ global type KeyConfig = record
         description: string
         -- флаг временного отключения
         enabled: boolean
+        id: string
         -- }}}
     end
 
@@ -94,6 +95,13 @@ local List = require "list"
 --local imgui = require 'imgui'
 local shortcutsList: List = nil
 
+local record BindReference
+    index: integer
+    list: {Shortcut}
+end
+
+local ids: {string: BindReference} = {}
+
 local function combo2str(stroke: KeyConfig.BindAccord): string
     local res = ""
     if stroke.mod then
@@ -150,8 +158,6 @@ function KeyConfig.updateList(dt: number)
     end
 end
 
-local ids: {string: Shortcut} = {}
-
 function KeyConfig.compareMod(mod1: {string}, mod2: {string}): boolean
     if mod1 and mod2 then
         if #mod1 ~= #mod2 then
@@ -207,10 +213,16 @@ function KeyConfig.bind(
         combo = shallowCopy(combo),
         action = action, 
         description = description,
-        enabled = true
+        enabled = true,
+        id = id,
     })
     if id then
-        ids[id] = list[#list]
+        print("id", id)
+        print("ids[id]", inspect(ids[id]))
+        if ids[id] then
+            --error("Double bind " .. inspect(list[#list]))
+        end
+        ids[id] = { index = #list, list = list }
     end
     -- обновить визуальный список
     -- XXX частый вызов может замедлить программу
@@ -220,6 +232,22 @@ end
 function KeyConfig.unbind(id: string)
     -- FIXME
     print("TO DO unbind FUNCTION")
+    local ref = ids[id]
+    if ref then
+        local s: string = ""
+        for _, v in ipairs(ref.list) do
+            s = s .. "," .. inspect(v)
+        end
+        print("list before " .. s)
+
+        table.remove(ref.list, ref.index)
+
+        s = ""
+        for _, v in ipairs(ref.list) do
+            s = s .. "," .. inspect(v)
+        end
+        print("list after " .. s)
+    end
 end
 
 function KeyConfig.printBinds()
@@ -284,11 +312,12 @@ function KeyConfig.update()
 end
 
 function KeyConfig.send(id: string)
-    local sc: Shortcut = ids[id]
+    local ref: BindReference = ids[id]
+    local sc = ref.list[ref.index]
     if sc and sc.enabled and sc.action then
         local rebuildlist, newsc = sc.action()
         if rebuildlist then
-            ids[id] = shallowCopy(newsc)
+            ref.list[ref.index] = shallowCopy(newsc)
         end
     end
 end

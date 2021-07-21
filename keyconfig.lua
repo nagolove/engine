@@ -81,6 +81,7 @@ local IsPressed = {}
 
 
 
+
 local Shortcut = KeyConfig.Shortcut
 local ActionFunc = KeyConfig.ActionFunc
 
@@ -93,6 +94,13 @@ local shortcutsPressed = {}
 local List = require("list")
 
 local shortcutsList = nil
+
+local BindReference = {}
+
+
+
+
+local ids = {}
 
 local function combo2str(stroke)
    local res = ""
@@ -150,8 +158,6 @@ function KeyConfig.updateList(dt)
    end
 end
 
-local ids = {}
-
 function KeyConfig.compareMod(mod1, mod2)
    if mod1 and mod2 then
       if #mod1 ~= #mod2 then
@@ -208,9 +214,15 @@ function KeyConfig.bind(
       action = action,
       description = description,
       enabled = true,
+      id = id,
    })
    if id then
-      ids[id] = list[#list]
+      print("id", id)
+      print("ids[id]", inspect(ids[id]))
+      if ids[id] then
+
+      end
+      ids[id] = { index = #list, list = list }
    end
 
 
@@ -220,6 +232,22 @@ end
 function KeyConfig.unbind(id)
 
    print("TO DO unbind FUNCTION")
+   local ref = ids[id]
+   if ref then
+      local s = ""
+      for _, v in ipairs(ref.list) do
+         s = s .. "," .. inspect(v)
+      end
+      print("list before " .. s)
+
+      table.remove(ref.list, ref.index)
+
+      s = ""
+      for _, v in ipairs(ref.list) do
+         s = s .. "," .. inspect(v)
+      end
+      print("list after " .. s)
+   end
 end
 
 function KeyConfig.printBinds()
@@ -284,11 +312,12 @@ function KeyConfig.update()
 end
 
 function KeyConfig.send(id)
-   local sc = ids[id]
+   local ref = ids[id]
+   local sc = ref.list[ref.index]
    if sc and sc.enabled and sc.action then
       local rebuildlist, newsc = sc.action()
       if rebuildlist then
-         ids[id] = shallowCopy(newsc)
+         ref.list[ref.index] = shallowCopy(newsc)
       end
    end
 end
