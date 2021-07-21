@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-#TL="tl"
-TL="$HOME/projects/tl/tl"
+TL="tl"
+#TL="$HOME/projects/tl/tl"
 eval $TL --version
 
 function0()
