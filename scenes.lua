@@ -2,6 +2,8 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 require("log")
 require("common")
 
+local inspect = require("inspect")
+
 
 function loadScenes(path)
    local scenes = {}
@@ -34,19 +36,20 @@ function loadScenes(path)
             table.insert(scenesNames, name)
          else
             if chunkerrmsg then
-               logferror("Error: %s", errmsg)
+               logferror("Error: %s", chunkerrmsg)
             else
                logferror("No file for loading: %s", fname)
             end
          end
       else
-         logferror("Could'not load %s", fname, errmsg)
+         logferror("Could'not load %s, error: %s", fname, errmsg)
       end
    end
    return scenes, scenesNames
 end
 
 local scenes, scenesNames = loadScenes("scenes")
+print("scenes", inspect(scenes))
 
 local currentScene = nil
 

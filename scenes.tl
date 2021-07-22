@@ -2,6 +2,8 @@ require "love"
 require "log"
 require "common"
 
+local inspect = require "inspect"
+
 -- возвращает таблицу вида {scene, name} со сцена из указанного каталога
 function loadScenes(path: string): {SceneMap}, {string}
     local scenes: {SceneMap} = {}
@@ -34,19 +36,20 @@ function loadScenes(path: string): {SceneMap}, {string}
                 table.insert(scenesNames, name)
             else
                 if chunkerrmsg then
-                    logferror("Error: %s", errmsg)
+                    logferror("Error: %s", chunkerrmsg)
                 else
                     logferror("No file for loading: %s", fname)
                 end
             end
         else
-            logferror("Could'not load %s", fname, errmsg)
+            logferror("Could'not load %s, error: %s", fname, errmsg)
         end
     end
     return scenes, scenesNames
 end
 
 local scenes, scenesNames = loadScenes("scenes")
+print("scenes", inspect(scenes))
 --local scenes, scenesNames: {SceneMap}, {string} = {}, {}
 local currentScene: Scene = nil
 

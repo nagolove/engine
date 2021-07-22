@@ -105,8 +105,7 @@ local function searchArg(arg, paramName)
     if type(paramName) ~= 'string' then
         error(string.format('searchArg() paramName =  "%s"', paramName or ""))
     end
-    print(inspect(arg))
-    print(inspect(paramName))
+    print("searchArg", paramName)
 
     for _, v in pairs(arg) do
         if v == paramName then
@@ -177,8 +176,9 @@ function love.load(arg)
         love.window.setPosition(fhd_width + space, space)
     end
 
+    print("love.load() arg", inspect(arg))
 
-    local sceneName = findCommand(arg) 
+    local sceneName = findCommand(arg)
 
     printAvaibleScenes()
 
@@ -187,6 +187,7 @@ function love.load(arg)
     -- Где `init.tl` представляет собой основной модуль сцены, 
     -- экспортирующий соответствующий интерфейс.
     -- Вопрос: какой интерфейс? Выделить `Module`
+    print("sceneName", sceneName)
     if sceneName then
         scenes.initOne(sceneName)
     else

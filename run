@@ -16,7 +16,10 @@ echo "Teal version "$($TL --version)
 #fi
 
 #eval $TL --version
-love . $1 $2 $3 $4 $5 $6 $7 $8 $9
+
+#love . $1 $2 $3 $4 $5 $6 $7 $8 $9
+love . "$@"
+
 #eval $TL build && love . $1 $2 $3
 #eval $TL build && love . $1 $2 $3
 #eval $TL --wdisable unused build && love . $1 $2 $3
