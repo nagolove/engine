@@ -39,19 +39,31 @@ Calls of push() and pushi() can be chained:
 --]]
 
 require "love"
+require "common"
+
 local g = love.graphics
 
 local record kons 
+    type Text = record
+        processed: string
+        unprocessed: string
+
+        new: function(unprocessed: string, ...: any): Text
+    end
     type Item = record
-        text: string
+        text: Text
         lifetime: number
         timestamp: number
     end
     font: love.graphics.Font
     color: {number}
     show: boolean
+
+    --strings: {Item}
+    --strings_i: {string}
     strings: {Item}
-    strings_i: {string}
+    strings_i: {Text}
+
     strings_num: integer
     strings_i_num: integer
     height: number
@@ -63,7 +75,7 @@ local record kons
     push2: function(kons, number, string, ...:any): kons
 
     pushi: function(kons, string, ...: any): kons
-    push2i: function(kons, text: string, ...: any): kons
+    pushiColored: function(kons, text: string, ...: any): kons
 
     draw: function(kons, x0: number, y0: number)
     update: function(kons)
@@ -76,6 +88,30 @@ kons_mt.__index = kons
 
 function kons_mt.__call(self: kons): kons
     return self.new()
+end
+
+function kons.Text.new(unprocessed: string, ...: any): kons.Text
+    local Text_mt: metatable<kons.Text> = {
+        __index = kons.Text,
+    }
+    if not unprocessed then
+        error("kons.Text.new() unprocessed should not be nil")
+    end
+    if type(unprocessed) ~= "string" then
+        error("kons.Text.new() unprocessed type is " .. type(unprocessed))
+    end
+    local self: kons.Text = setmetatable({} as kons.Text, Text_mt)
+    local tmp = string.gsub(
+        unprocessed,
+        "(%%{(.-)})", 
+        function(str: string): string return str end
+    )
+    local inspect = require "inspect"
+    print("tmp", inspect(tmp))
+    --print("...", inspect({...}))
+    --self.processed = "<><><><>"
+    self.processed = string.format(tmp, ...)
+    return self
 end
 
 function kons.new(fname: string, fsize: integer): kons
@@ -105,6 +141,7 @@ function kons:clear()
     self.strings_num = 0
 end
 
+--[[
 function kons:push2(lifetime: number, text: string, ...: any): kons
     if type(lifetime) ~= "number" then
         error("First argument - cardinal value of text lifetime.")
@@ -126,6 +163,7 @@ function kons:push2(lifetime: number, text: string, ...: any): kons
     self.strings_num = self.strings_num + 1
     return self
 end
+--]]
 
 function kons:push(lifetime: number, text: string, ...: any): kons
     if type(lifetime) ~= "number" then
@@ -133,7 +171,7 @@ function kons:push(lifetime: number, text: string, ...: any): kons
     end
     assert(lifetime >= 0, string.format("Error: lifetime = %d < 0", lifetime))
     self.strings[self.strings_num + 1] = { 
-        text = string.format(text, ...),
+        text = kons.Text.new(text, ...),
         lifetime = lifetime,
         timestamp = love.timer.getTime()
     }
@@ -141,15 +179,23 @@ function kons:push(lifetime: number, text: string, ...: any): kons
     return self
 end
 
-function kons:push2i(text: string, ...: any): kons
-    print("push2i")
-    self.strings_i[self.strings_i_num + 1] = string.format(text, ...)
+function kons:pushiColored(text: string, ...: any): kons
+    print("pushiColored")
+
+    local processed = string.gsub(text,"(%%{(.-)})", 
+    function(str: string): string
+            print("processing", str)
+            return ""
+    end)
+    print("processed", processed)
+
+    self.strings_i[self.strings_i_num + 1] = kons.Text.new(processed, ...)
     self.strings_i_num = self.strings_i_num + 1
     return self
 end
 
 function kons:pushi(text: string, ...: any): kons
-    self.strings_i[self.strings_i_num + 1] = string.format(text, ...)
+    self.strings_i[self.strings_i_num + 1] = kons.Text.new(text, ...)
     self.strings_i_num = self.strings_i_num + 1
     return self
 end
@@ -166,16 +212,27 @@ function kons:draw(x0: number, y0: number)
     local oldFont = love.graphics.getFont()
     love.graphics.setFont(self.font)
 
+    --print("processed", processed)
     local y = y0
     for k, v in ipairs(self.strings_i) do
-        g.print(v, x0, y)
+
+        --[[
+    local _ = string.gsub(text,"(%%{(.-)})", 
+    function(str: string): string
+            print("str", str)
+            --g.setColor
+            return ""
+    end)
+    --]]
+    
+        g.print(v.processed, x0, y)
         y = y + g.getFont():getHeight()
         self.strings_i[k] = nil -- XXX
     end
     self.strings_i_num = 0
 
     for _, v in ipairs(self.strings) do
-        g.print(v.text, x0, y)
+        g.print(v.text.processed, x0, y)
         y = y + g.getFont():getHeight()
     end
 

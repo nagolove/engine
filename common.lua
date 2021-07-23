@@ -86,7 +86,6 @@ function deepCopy(orig)
    end
 end
 
-
 local anyFunc = {}
 function my_setfenv(f, env)
    return load(string.dump(f), nil, nil, env)

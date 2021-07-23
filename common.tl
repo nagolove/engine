@@ -86,7 +86,6 @@ function deepCopy<T>(orig: T): T
     end
 end
 
-
 local type anyFunc = function(any): any
 function my_setfenv(f: anyFunc, env: {any: any}): anyFunc, string
     return load(string.dump(f), nil, nil, env)
