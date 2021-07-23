@@ -155,7 +155,9 @@ function KeyConfig.prepareDrawing()
    end)
    shortcutsList:done()
    if shortcutsListCallback then
-      print("shortcutsListCallback called")
+      if DEBUG_KEYCONFIG then
+         print("shortcutsListCallback called")
+      end
       shortcutsListCallback(shortcutsList)
    end
 end
@@ -233,6 +235,9 @@ function KeyConfig.bind(
    if KeyConfig.checkExistHotkey(list, combo) then
       assert('hotkey ' .. KeyConfig.getHotkeyString(combo))
    end
+   if DEBUG_KEYCONFIG then
+      print("KeyConfig.bind()")
+   end
    description = description or ""
    table.insert(list, {
       combo = shallowCopy(combo),
@@ -242,8 +247,10 @@ function KeyConfig.bind(
       id = id,
    })
    if id then
-      print("id", id)
-      print("ids[id]", inspect(ids[id]))
+      if DEBUG_KEYCONFIG then
+         print("id", id)
+         print("ids[id]", inspect(ids[id]))
+      end
       if ids[id] then
 
       end
@@ -255,23 +262,27 @@ function KeyConfig.bind(
 end
 
 function KeyConfig.unbind(id)
-
-   print("TO DO unbind FUNCTION")
    local ref = ids[id]
    if ref then
-      local s = ""
-      for _, v in ipairs(ref.list) do
-         s = s .. "," .. inspect(v)
-      end
-      print("list before " .. s)
+
+
+
+
+
+
+
+
 
       table.remove(ref.list, ref.index)
 
-      s = ""
-      for _, v in ipairs(ref.list) do
-         s = s .. "," .. inspect(v)
-      end
-      print("list after " .. s)
+
+
+
+
+
+
+
+
    end
 end
 
