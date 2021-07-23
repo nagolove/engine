@@ -58,12 +58,13 @@ local record kons
 
     new: function(fname: string, fsize: integer): kons
     clear: function(kons)
-    push: function(kons, number, string, ...:any): kons
 
+    push: function(kons, number, string, ...:any): kons
     push2: function(kons, number, string, ...:any): kons
-    push2i: function(text: string, ...: any): kons
 
     pushi: function(kons, string, ...: any): kons
+    push2i: function(kons, text: string, ...: any): kons
+
     draw: function(kons, x0: number, y0: number)
     update: function(kons)
 end

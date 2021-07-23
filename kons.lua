@@ -67,6 +67,7 @@ local kons = {Item = {}, }
 
 
 
+
 local kons_mt = {}
 
 
@@ -136,6 +137,13 @@ function kons:push(lifetime, text, ...)
       timestamp = love.timer.getTime(),
    }
    self.strings_num = self.strings_num + 1
+   return self
+end
+
+function kons:push2i(text, ...)
+   print("push2i")
+   self.strings_i[self.strings_i_num + 1] = string.format(text, ...)
+   self.strings_i_num = self.strings_i_num + 1
    return self
 end
 
