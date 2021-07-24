@@ -107,7 +107,7 @@ function kons.Text.new(unprocessed: string, ...: any): kons.Text
         function(str: string): string return str end
     )
     local inspect = require "inspect"
-    print("tmp", inspect(tmp))
+    --print("tmp", inspect(tmp))
     --print("...", inspect({...}))
     --self.processed = "<><><><>"
     self.processed = string.format(tmp, ...)
@@ -180,14 +180,14 @@ function kons:push(lifetime: number, text: string, ...: any): kons
 end
 
 function kons:pushiColored(text: string, ...: any): kons
-    print("pushiColored")
+    --print("pushiColored")
 
     local processed = string.gsub(text,"(%%{(.-)})", 
     function(str: string): string
-            print("processing", str)
+            --print("processing", str)
             return ""
     end)
-    print("processed", processed)
+    --print("processed", processed)
 
     self.strings_i[self.strings_i_num + 1] = kons.Text.new(processed, ...)
     self.strings_i_num = self.strings_i_num + 1
