@@ -34,6 +34,11 @@ global type Tool = record
     mousepressed: function(number, number, number)
 end
 
+-- from http://lua-users.org/wiki/StringTrim
+function trim(s: string): string
+   return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
 function colprint(str: string)
     if type(str) ~= 'string' then
         error(string.format('Runtime type mismatch. %s instead of string', type(str)))

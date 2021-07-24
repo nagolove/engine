@@ -34,6 +34,11 @@ require("camera")
 
 
 
+
+function trim(s)
+   return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
 function colprint(str)
    if type(str) ~= 'string' then
       error(string.format('Runtime type mismatch. %s instead of string', type(str)))
