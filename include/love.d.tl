@@ -2052,7 +2052,9 @@ global type love = record
 		end
 
 		type PolygonShape = record
-			getPoints: function(self: PolygonShape): number, number, number, number
+            -- Было ограничение на 4 возвращаемых значения.
+            --getPoints: function(self: PolygonShape): number, number, number, number
+			getPoints: function(self: PolygonShape): number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number
 		end
 
 		type PrismaticJoint = record
