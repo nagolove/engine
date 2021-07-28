@@ -106,7 +106,7 @@ function kons.Text.new(unprocessed, ...)
    "(%%{(.-)})",
    function(str) return str end)
 
-   local inspect = require("inspect")
+
 
 
 
@@ -183,7 +183,7 @@ function kons:pushiColored(text, ...)
 
 
    local processed = string.gsub(text, "(%%{(.-)})",
-   function(str)
+   function(_)
 
       return ""
    end)

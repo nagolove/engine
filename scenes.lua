@@ -4,8 +4,18 @@ require("common")
 
 local inspect = require("inspect")
 
+silentMode = false
+
+local old_logferror = nil
+
 
 function loadScenes(path)
+
+   if silentMode then
+      old_logferror = logferror
+      logferror = function() end
+   end
+
    local scenes = {}
    local scenesNames = {}
    local files = love.filesystem.getDirectoryItems(path)
@@ -45,6 +55,9 @@ function loadScenes(path)
          logferror("Could'not load %s, error: %s", fname, errmsg)
       end
    end
+
+   logferror = old_logferror
+
    return scenes, scenesNames
 end
 

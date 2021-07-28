@@ -4,8 +4,18 @@ require "common"
 
 local inspect = require "inspect"
 
+global silentMode = false
+
+local old_logferror: function(any) = nil
+
 -- возвращает таблицу вида {scene, name} со сцена из указанного каталога
 function loadScenes(path: string): {SceneMap}, {string}
+
+    if silentMode then
+        old_logferror = logferror
+        logferror = function() end
+    end
+
     local scenes: {SceneMap} = {}
     local scenesNames: {string} = {}
     local files = love.filesystem.getDirectoryItems(path)
@@ -45,6 +55,9 @@ function loadScenes(path: string): {SceneMap}, {string}
             logferror("Could'not load %s, error: %s", fname, errmsg)
         end
     end
+
+    logferror = old_logferror
+
     return scenes, scenesNames
 end
 

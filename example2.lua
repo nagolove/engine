@@ -1,5 +1,5 @@
 
-local IsPressed = {}
+
 
 local KeyConfig_ = {BindAccord = {}, Shortcut = {}, }
 
@@ -26,7 +26,7 @@ local KeyConfig_ = {BindAccord = {}, Shortcut = {}, }
 
 
 
-local Shortcut = KeyConfig_.Shortcut
+
 local ActionFunc = KeyConfig_.ActionFunc
 
 function KeyConfig_.bind(

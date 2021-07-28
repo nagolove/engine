@@ -169,6 +169,10 @@ function love.load(arg)
         require "mobdebug".start()
     end
 
+    if searchArg(arg, '--silent') then
+        require "mobdebug".start()
+    end
+
     if searchArg(arg, '--dev') then
         local fhd_width  = 1920
         local fhd_height = 1080

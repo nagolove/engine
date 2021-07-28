@@ -1,5 +1,5 @@
 
-local type IsPressed = function(str: string): boolean
+--local type IsPressed = function(str: string): boolean
 
 local type KeyConfig_ = record
 
@@ -26,7 +26,7 @@ local type KeyConfig_ = record
                     id: string|nil)
 end
 
-local Shortcut = KeyConfig_.Shortcut
+--local Shortcut = KeyConfig_.Shortcut
 local ActionFunc = KeyConfig_.ActionFunc
 
 function KeyConfig_.bind(
