@@ -156,6 +156,9 @@ end
 
 -- camera coordinates to world coordinates
 function camera:worldCoords(x,y, ox,oy,w,h)
+    assert(x, "no x in camera:worldCoords()")
+    assert(y, "no y in camera:worldCoords()")
+
 	ox, oy = ox or 0, oy or 0
 	w,h = w or love.graphics.getWidth(), h or love.graphics.getHeight()
 
