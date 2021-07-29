@@ -112,7 +112,8 @@ function List.new(x: number, y: number): List
     self.height = 1
 
     --self.item_height = 23
-    print("self.item_height", self.font:getHeight())
+    --print("self.item_height", self.font:getHeight())
+
     self.item_height = self.font:getHeight()
     self.sum_item_height = 0
 
