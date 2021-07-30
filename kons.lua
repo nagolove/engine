@@ -81,10 +81,11 @@ local kons = {Text = {}, Item = {}, }
 
 
 
-local kons_mt = {}
 
 
-kons_mt.__index = kons
+local kons_mt = {
+   __index = kons,
+}
 
 function kons_mt.__call(self)
    return self.new()
