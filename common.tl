@@ -162,3 +162,74 @@ function pointInPolygon(pgon: {number}, tx: number, ty: number): boolean
     return (math.abs(total)==4)
 end
 
+local u8 = require "utf8"
+
+-- Добавляет в текстовый объект цветной текст линейно интерполируя цвета от 
+-- fromcolor до tocolor для каждого символа.
+-- Возвращает индекс для textobj:getWidth() или textobj:getHeight()
+
+--[[
+function makeDescentColorText(
+    textobj: love.graphics.Text,
+    textstr: string,
+    fromcolor: {number}, tocolor: {number},
+    ...: any
+): number
+--]]
+function makeDescentColorText(
+    textobj: love.graphics.Text,
+    textstr: string,
+    fromcolor: {number}, tocolor: {number},
+    x: number, y: number, angle: number, sx: number, sy: number, ox: number, oy: number, kx: number, ky: number
+): number
+
+    assert(textobj, "textobj should not be nil")
+    assert(type(textstr) == "string", "textstr should be a string, not " .. type(textstr))
+    assert(type(fromcolor) == "table", "fromcolor should be a table, not " .. type(fromcolor))
+    assert(type(tocolor) == "table", "tocolor should be a table, not " .. type(tocolor))
+    assert(#fromcolor == 4, "fromcolor should have 4 components")
+    assert(#tocolor == 4, "tocolor should have 4 components")
+
+    --[[
+    print("textobj", textobj)
+    print("textstr", textstr)
+    print("fromcolor", inspect(fromcolor))
+    print("tocolor", inspect(tocolor))
+    --]]
+
+    local slen = u8.len(textstr)
+    print("slen", slen)
+
+    local r, g, b, a = fromcolor[1], fromcolor[2], fromcolor[3], fromcolor[4]
+
+    -- Приращение цвета
+    local d_r = (tocolor[1] - fromcolor[1]) / slen
+    local d_g = (tocolor[2] - fromcolor[2]) / slen
+    local d_b = (tocolor[3] - fromcolor[3]) / slen
+    local d_a = (tocolor[4] - fromcolor[4]) / slen
+
+    print("d_r", d_r)
+    print("d_g", d_g)
+    print("d_b", d_b)
+    print("d_a", d_a)
+
+    --[[
+    Рассчитать цвет для приращения к начальному исходя из разницы цветов и 
+    количества символов в стрке
+    --]]
+
+    local coloredtext = {}
+    for _, codepoint in u8.codes(textstr) do
+        local char = u8.char(codepoint as integer)
+        --print("p, c, char", p, c, u8.char(c))
+        table.insert(coloredtext, { r, g, b, a})
+        table.insert(coloredtext, char as {number})
+        r = r + d_r
+        g = g + d_g
+        b = b + d_b
+        a = a + d_a
+    end
+    return textobj:add(coloredtext, x, y, angle, sx, sy, ox, oy, kx, ky)
+    --return textobj:add(coloredtext, unpack(args))
+end
+
