@@ -1,4 +1,5 @@
 .nvimlog
+tags
 .vim-bookmarks
 *.zip
 *.log
