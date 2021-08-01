@@ -300,6 +300,8 @@ function List:setupPush()
    gr.setLineStyle("rough")
    gr.setColor(self.windowcolor)
    gr.setFont(self.font)
+   local inspect = require("inspect")
+   print(inspect(self))
    gr.setScissor(self.x, self.y, self.width, self.height)
 end
 

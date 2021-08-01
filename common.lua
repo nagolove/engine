@@ -1,7 +1,12 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("love")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+
+
+require("love")
 require("camera")
 
  Scene = {}
+
+
 
 
 
@@ -97,6 +102,7 @@ function deepCopy(orig)
 end
 
 local anyFunc = {}
+
 function my_setfenv(f, env)
    return load(string.dump(f), nil, nil, env)
 end
@@ -115,6 +121,7 @@ function dist(x1, y1, x2, y2)
    return ((x2 - x1) ^ 2 + (y2 - y1) ^ 2) ^ 0.5
 end
 
+
 function getQuad(axis_x, axis_y, vert_x, vert_y)
    if vert_x < axis_x then
       if vert_y < axis_y then
@@ -131,7 +138,10 @@ function getQuad(axis_x, axis_y, vert_x, vert_y)
    end
 end
 
+
+
 function pointInPolygon(pgon, tx, ty)
+
    if (#pgon < 6) then
       return false
    end
@@ -165,6 +175,7 @@ function pointInPolygon(pgon, tx, ty)
    end
 
    return (math.abs(total) == 4)
+
 end
 
 local u8 = require("utf8")

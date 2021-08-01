@@ -83,15 +83,14 @@ local kons = {Text = {}, Item = {}, }
 
 
 
-local kons_mt = {
-   __index = kons,
-}
 
-function kons_mt.__call(self)
-   return self.new()
-end
+
+
+
+
 
 function kons.Text.new(unprocessed, ...)
+
    local Text_mt = {
       __index = kons.Text,
    }
@@ -113,9 +112,18 @@ function kons.Text.new(unprocessed, ...)
 
    self.processed = string.format(tmp, ...)
    return self
+
 end
 
 function kons.new(fname, fsize)
+
+   local kons_mt = {
+      __index = kons,
+      __call = function(self)
+         return self.new()
+      end,
+   }
+
    local font
    local size = fsize or 20
    if fname then
@@ -133,14 +141,19 @@ function kons.new(fname, fsize)
       strings_i_num = 0,
    }
    return setmetatable(inst, kons_mt)
+
 end
 
 function kons:clear()
+
    self.strings_i = {}
    self.strings_i_num = 0
    self.strings = {}
    self.strings_num = 0
+
 end
+
+
 
 
 
@@ -167,6 +180,7 @@ end
 
 
 function kons:push(lifetime, text, ...)
+
    if type(lifetime) ~= "number" then
       error("First argument - cardinal value of text lifetime.")
    end
@@ -178,9 +192,11 @@ function kons:push(lifetime, text, ...)
    }
    self.strings_num = self.strings_num + 1
    return self
+
 end
 
 function kons:pushiColored(text, ...)
+
 
 
    local processed = string.gsub(text, "(%%{(.-)})",
@@ -193,15 +209,19 @@ function kons:pushiColored(text, ...)
    self.strings_i[self.strings_i_num + 1] = kons.Text.new(processed, ...)
    self.strings_i_num = self.strings_i_num + 1
    return self
+
 end
 
 function kons:pushi(text, ...)
+
    self.strings_i[self.strings_i_num + 1] = kons.Text.new(text, ...)
    self.strings_i_num = self.strings_i_num + 1
    return self
+
 end
 
 function kons:draw(x0, y0)
+
    x0 = x0 or 0
    y0 = y0 or 0
 
@@ -241,9 +261,11 @@ function kons:draw(x0, y0)
    g.setColor(curColor)
 
    self.height = math.abs(y - y0)
+
 end
 
 function kons:update()
+
    for k, v in ipairs(self.strings) do
       local time = love.timer.getTime()
       if v then
@@ -257,6 +279,7 @@ function kons:update()
          end
       end
    end
+
 end
 
 
