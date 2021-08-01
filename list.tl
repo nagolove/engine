@@ -1,3 +1,6 @@
+-- vim: fdm=marker
+-- vim: set colorcolumn=85
+
 require "love"
 
 local gr = love.graphics
@@ -9,6 +12,7 @@ local fontsize = 23
 
 local record List 
 
+    -- {{{ Internal types
     type Lock = record 
         x: number
         y: number
@@ -41,26 +45,7 @@ local record List
         list: List
         isdrawable: boolean
     end
-
-    bar: Bar
-    bordercolor: {number}
-    colors: Colors
-    font: love.graphics.Font
-    height: number
-    hoveritem: number
-    item_height: number
-    items: {Item}
-    prevfont: gr.Font
-    sum_item_height: number
-    visible: boolean
-    width: number
-    windowcolor: {number}
-    x: number
-    y: number
-
-    getBarRect: function(List, number, number, number, number)
-    -- TODO use integer instead number
-    onclick: function(self: List, index: number, button: number)
+    -- }}} 
 
     new: function(x: number, y: number): List
 
@@ -88,6 +73,28 @@ local record List
 
     draw: function(List)
     draw2: function(List)
+
+    getBarRect: function(List, number, number, number, number)
+    -- TODO use integer instead number
+    onclick: function(self: List, index: number, button: number)
+
+    -- {{{ Private variables.
+    bar: Bar
+    bordercolor: {number}
+    colors: Colors
+    font: love.graphics.Font
+    height: number
+    hoveritem: number
+    item_height: number
+    items: {Item}
+    prevfont: gr.Font
+    sum_item_height: number
+    visible: boolean
+    width: number
+    windowcolor: {number}
+    x: number
+    y: number
+    -- }}}
 end
 
 function inside(mx: number, my: number, x: number, y: number, w: number, h: number): boolean

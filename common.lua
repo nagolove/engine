@@ -35,9 +35,11 @@ require("camera")
 
 
 
+
 function trim(s)
    return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
+
 
 function colprint(str)
    if type(str) ~= 'string' then
@@ -48,6 +50,7 @@ function colprint(str)
 end
 
 
+
 function separateByZeros(arr)
    local tmp = ""
    for _, v in ipairs(arr) do
@@ -55,6 +58,7 @@ function separateByZeros(arr)
    end
    return tmp, #arr
 end
+
 
 function shallowCopy(t)
    if type(t) == "table" then
@@ -73,6 +77,7 @@ function shallowCopy(t)
       return t
    end
 end
+
 
 
 function deepCopy(orig)

@@ -1,7 +1,11 @@
+-- vim: fdm=marker
+-- vim: set colorcolumn=85
+
 require "love"
 require "camera"
 
 global type Scene = record
+    -- {{{
     init: function()
     quit: function()
     update: function(number|nil)
@@ -16,6 +20,7 @@ global type Scene = record
     keyreleased: function(string)
     wheelmoved: function(number, number)
     getCamera: function(): Camera
+    -- }}}
 end
 
 global type SceneMap = record
@@ -34,11 +39,13 @@ global type Tool = record
     mousepressed: function(number, number, number)
 end
 
+-- Обрезать пробелы с друх сторон строки.
 -- from http://lua-users.org/wiki/StringTrim
 function trim(s: string): string
    return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
 
+-- Напечатать строку выделенным цветом в консоль.
 function colprint(str: string)
     if type(str) ~= 'string' then
         error(string.format('Runtime type mismatch. %s instead of string', type(str)))
@@ -47,7 +54,8 @@ function colprint(str: string)
     print(ansicolors("%{blue cyanbg}" .. string.rep('>', 10) .. str))
 end
 
---local inspect = require "inspect"
+-- Вспомогательная функция для imgui списков. Из массива строк делает строку
+-- разделенную нулевыми байтами.
 function separateByZeros(arr: {string}): string, integer
     local tmp = ""
     for _, v in ipairs(arr) do
@@ -56,6 +64,7 @@ function separateByZeros(arr: {string}): string, integer
     return tmp, #arr
 end
 
+-- Вернуть копию по значению. Копируется только один уровень таблицы.
 function shallowCopy<T>(t: T): T
     if type(t) == "table" then 
         local copy = {}
@@ -75,6 +84,7 @@ function shallowCopy<T>(t: T): T
 end
 
 -- source http://lua-users.org/wiki/CopyTable 
+-- Вернуть копию по значению. Рекурсивно копируются подтаблицы.
 function deepCopy<T>(orig: T): T
     local orig_type = type(orig)
     if orig_type == 'table' then
@@ -92,6 +102,7 @@ function deepCopy<T>(orig: T): T
 end
 
 local type anyFunc = function(any): any
+-- Установить среду для функции?
 function my_setfenv(f: anyFunc, env: {any: any}): anyFunc, string
     return load(string.dump(f), nil, nil, env)
 end
@@ -110,6 +121,7 @@ function dist(x1: number, y1: number, x2: number, y2: number): number
     return ((x2 - x1) ^ 2 + (y2 - y1) ^ 2) ^ 0.5 
 end
 
+-- Что делает эта функция?
 function getQuad(axis_x: number,axis_y: number,vert_x: number,vert_y: number): number
     if vert_x < axis_x then
         if vert_y < axis_y then
@@ -126,7 +138,10 @@ function getQuad(axis_x: number,axis_y: number,vert_x: number,vert_y: number): n
     end
 end
 
+-- Находится-ли точка внутри выпуклого полигона. Полигон задается массивом
+-- вершин { x1, y1, x2, y2 ... }
 function pointInPolygon(pgon: {number}, tx: number, ty: number): boolean
+    -- {{{
     if (#pgon < 6) then
         return false
     end
@@ -160,6 +175,7 @@ function pointInPolygon(pgon: {number}, tx: number, ty: number): boolean
     end
 
     return (math.abs(total)==4)
+    -- }}}
 end
 
 local u8 = require "utf8"

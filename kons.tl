@@ -44,6 +44,8 @@ require "common"
 local g = love.graphics
 
 local record kons 
+
+    -- {{{ Types
     type Text = record
         -- строка с шаблонами
         processed: string
@@ -52,23 +54,13 @@ local record kons
 
         new: function(unprocessed: string, ...: any): Text
     end
+
     type Item = record
         text: Text
         lifetime: number
         timestamp: number
     end
-    font: love.graphics.Font
-    color: {number}
-    show: boolean
-
-    --strings: {Item}
-    --strings_i: {string}
-    strings: {Item}
-    strings_i: {Text}
-
-    strings_num: integer
-    strings_i_num: integer
-    height: number
+    -- }}}
 
     new: function(fname: string, fsize: integer): kons
     clear: function(kons)
@@ -81,17 +73,24 @@ local record kons
 
     draw: function(kons, x0: number, y0: number)
     update: function(kons)
-end
 
-local kons_mt: metatable<kons> = {
-    __index = kons,
-}
+    -- {{{ Private variables.
+    font: love.graphics.Font
+    color: {number}
+    show: boolean
 
-function kons_mt.__call(self: kons): kons
-    return self.new()
+    --strings: {Item}
+    --strings_i: {string}
+    strings: {Item}
+    strings_i: {Text}
+    strings_num: integer
+    strings_i_num: integer
+    height: number
+    -- }}}
 end
 
 function kons.Text.new(unprocessed: string, ...: any): kons.Text
+    -- {{{
     local Text_mt: metatable<kons.Text> = {
         __index = kons.Text,
     }
@@ -113,9 +112,18 @@ function kons.Text.new(unprocessed: string, ...: any): kons.Text
     --self.processed = "<><><><>"
     self.processed = string.format(tmp, ...)
     return self
+    -- }}}
 end
 
 function kons.new(fname: string, fsize: integer): kons
+    -- {{{
+    local kons_mt: metatable<kons> = {
+        __index = kons,
+        __call = function(self: kons): kons
+            return self.new()
+        end
+    }
+
     local font: love.graphics.Font
     local size = fsize or 20
     if fname then
@@ -133,17 +141,21 @@ function kons.new(fname: string, fsize: integer): kons
         strings_i_num = 0,
     }
     return setmetatable(inst as kons, kons_mt) 
+    -- }}}
 end
 
 function kons:clear()
+    -- {{{
     self.strings_i = {}
     self.strings_i_num = 0
     self.strings = {}
     self.strings_num = 0
+    -- }}}
 end
 
 --[[
 function kons:push2(lifetime: number, text: string, ...: any): kons
+    -- {{{
     if type(lifetime) ~= "number" then
         error("First argument - cardinal value of text lifetime.")
     end
@@ -164,9 +176,11 @@ function kons:push2(lifetime: number, text: string, ...: any): kons
     self.strings_num = self.strings_num + 1
     return self
 end
+-- }}}
 --]]
 
 function kons:push(lifetime: number, text: string, ...: any): kons
+    -- {{{
     if type(lifetime) ~= "number" then
         error("First argument - cardinal value of text lifetime.")
     end
@@ -178,9 +192,11 @@ function kons:push(lifetime: number, text: string, ...: any): kons
     }
     self.strings_num = self.strings_num + 1
     return self
+    -- }}}
 end
 
 function kons:pushiColored(text: string, ...: any): kons
+    -- {{{
     --print("pushiColored")
 
     local processed = string.gsub(text,"(%%{(.-)})", 
@@ -193,15 +209,19 @@ function kons:pushiColored(text: string, ...: any): kons
     self.strings_i[self.strings_i_num + 1] = kons.Text.new(processed, ...)
     self.strings_i_num = self.strings_i_num + 1
     return self
+    -- }}}
 end
 
 function kons:pushi(text: string, ...: any): kons
+    -- {{{
     self.strings_i[self.strings_i_num + 1] = kons.Text.new(text, ...)
     self.strings_i_num = self.strings_i_num + 1
     return self
+    -- }}}
 end
 
 function kons:draw(x0: number, y0: number)
+    -- {{{
     x0 = x0 or 0
     y0 = y0 or 0
 
@@ -241,9 +261,11 @@ function kons:draw(x0: number, y0: number)
     g.setColor(curColor)
 
     self.height = math.abs(y - y0)
+    -- }}}
 end
 
 function kons:update()
+    -- {{{
     for k, v in ipairs(self.strings) do
         local time = love.timer.getTime()
         if v then
@@ -257,6 +279,7 @@ function kons:update()
             end
         end
     end
+    -- }}}
 end
 
 --return setmetatable(kons, { __call = function(cls, ...)
