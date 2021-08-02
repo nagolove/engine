@@ -1,8 +1,11 @@
+-- vim: fdm=marker
+-- vim: set colorcolumn=85
+
 require "love"
 require "log"
 require "common"
 
-local inspect = require "inspect"
+--local inspect = require "inspect"
 
 global silentMode = false
 
@@ -10,6 +13,7 @@ local old_logferror: function(any) = nil
 
 -- возвращает таблицу вида {scene, name} со сцена из указанного каталога
 function loadScenes(path: string): {SceneMap}, {string}
+    -- {{{
 
     if silentMode then
         old_logferror = logferror
@@ -59,45 +63,51 @@ function loadScenes(path: string): {SceneMap}, {string}
     logferror = old_logferror
 
     return scenes, scenesNames
+    -- }}}
 end
 
-local scenes, scenesNames = loadScenes("scenes")
-print("scenes", inspect(scenes))
+--local scenes, scenesNames = loadScenes("scenes")
+--print("scenes", inspect(scenes))
 --local scenes, scenesNames: {SceneMap}, {string} = {}, {}
+
 local currentScene: Scene = nil
 
-local function getScenes(): {SceneMap}
-    return scenes
-end
+--local function getScenes(): {SceneMap}
+    --return scenes
+--end
 
-local function initInternal(v: SceneMap)
-    if not v.inited and v.scene.init then
-        local ok, errmsg: boolean, string = pcall(function()
-            v.scene.init()
-        end)
-        if not ok then
-            --logferror("Could'not init scene %s: %s", v.name, errmsg)
-            --v.maybebreaked = true
-            error(string.format("Could'not init scene %s: %s", v.name, errmsg))
-        end
-        v.inited = true
-    end
-end
+--local function initInternal(v: SceneMap)
+    ---- {{{
+    --if not v.inited and v.scene.init then
+        --local ok, errmsg: boolean, string = pcall(function()
+            --v.scene.init()
+        --end)
+        --if not ok then
+            ----logferror("Could'not init scene %s: %s", v.name, errmsg)
+            ----v.maybebreaked = true
+            --error(string.format("Could'not init scene %s: %s", v.name, errmsg))
+        --end
+        --v.inited = true
+    --end
+    ---- }}}
+--end
 
-local function setCurrentScene(sceneName: string)
-    for _, v in ipairs(scenes) do
-        if sceneName == v.name then
-            initInternal(v)
-            currentScene = v.scene
-        end
-    end
-end
+--local function setCurrentScene(sceneName: string)
+    ---- {{{
+    ----for _, v in ipairs(scenes) do
+        ----if sceneName == v.name then
+            ----initInternal(v)
+            ----currentScene = v.scene
+        ----end
+    ----end
+    ---- }}}
+--end
 
-local function initLoaded()
-    for _, v in ipairs(scenes) do
-        initInternal(v)
-    end
-end
+--local function initLoaded()
+    --for _, v in ipairs(scenes) do
+        --initInternal(v)
+    --end
+--end
 
 local function update(dt: number)
     if currentScene and currentScene.update then
@@ -146,8 +156,10 @@ local function initOne(name: string)
     end
     node.name = name
     node.inited = true
-    table.insert(scenes, node)
-    currentScene = scenes[#scenes].scene
+    -- Куда добавлять сцену?
+    --table.insert(scenes, node)
+    --currentScene = scenes[#scenes].scene
+    currentScene = node.scene
 end
 
 local function mousemoved(x: number, y: number, dx: number, dy: number)
@@ -190,9 +202,9 @@ local function getCurrentScene(): Scene
     return currentScene
 end
 
-function getSceneNames(): {string}
-    return scenesNames
-end
+--function getSceneNames(): {string}
+    --return scenesNames
+--end
 
 local function textinput(text: string)
     if currentScene and currentScene.textinput then
@@ -201,12 +213,15 @@ local function textinput(text: string)
 end
 
 return {
-    getScenes = getScenes,
+    --[[
+    Переписать интерфейс менеджера сцен.
+    --]]
+    --getScenes = getScenes,
     getCurrentScene = getCurrentScene,
-    getSceneNames = getSceneNames,
-    setCurrentScene = setCurrentScene,
+    --getSceneNames = getSceneNames,
+    --setCurrentScene = setCurrentScene,
     --loadScenes = loadScenes,
-    initLoaded = initLoaded,
+    --initLoaded = initLoaded,
     initOne = initOne,
     update = update,
     draw = draw,

@@ -1,8 +1,11 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("love")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+
+
+require("love")
 require("log")
 require("common")
 
-local inspect = require("inspect")
+
 
 silentMode = false
 
@@ -10,6 +13,7 @@ local old_logferror = nil
 
 
 function loadScenes(path)
+
 
    if silentMode then
       old_logferror = logferror
@@ -59,45 +63,51 @@ function loadScenes(path)
    logferror = old_logferror
 
    return scenes, scenesNames
+
 end
 
-local scenes, scenesNames = loadScenes("scenes")
-print("scenes", inspect(scenes))
+
+
+
 
 local currentScene = nil
 
-local function getScenes()
-   return scenes
-end
-
-local function initInternal(v)
-   if not v.inited and v.scene.init then
-      local ok, errmsg = pcall(function()
-         v.scene.init()
-      end)
-      if not ok then
 
 
-         error(string.format("Could'not init scene %s: %s", v.name, errmsg))
-      end
-      v.inited = true
-   end
-end
 
-local function setCurrentScene(sceneName)
-   for _, v in ipairs(scenes) do
-      if sceneName == v.name then
-         initInternal(v)
-         currentScene = v.scene
-      end
-   end
-end
 
-local function initLoaded()
-   for _, v in ipairs(scenes) do
-      initInternal(v)
-   end
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 local function update(dt)
    if currentScene and currentScene.update then
@@ -146,8 +156,10 @@ local function initOne(name)
    end
    node.name = name
    node.inited = true
-   table.insert(scenes, node)
-   currentScene = scenes[#scenes].scene
+
+
+
+   currentScene = node.scene
 end
 
 local function mousemoved(x, y, dx, dy)
@@ -190,9 +202,9 @@ local function getCurrentScene()
    return currentScene
 end
 
-function getSceneNames()
-   return scenesNames
-end
+
+
+
 
 local function textinput(text)
    if currentScene and currentScene.textinput then
@@ -201,12 +213,15 @@ local function textinput(text)
 end
 
 return {
-   getScenes = getScenes,
-   getCurrentScene = getCurrentScene,
-   getSceneNames = getSceneNames,
-   setCurrentScene = setCurrentScene,
 
-   initLoaded = initLoaded,
+
+
+
+   getCurrentScene = getCurrentScene,
+
+
+
+
    initOne = initOne,
    update = update,
    draw = draw,

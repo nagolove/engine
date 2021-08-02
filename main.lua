@@ -134,14 +134,16 @@ local function findCommand(arg)
         return nil
     end
 
+    --[[
     local list = scenes.getScenes()
     for _, v in pairs(list) do
         if v.name == commands[1] then
             return commands[1]
         end
     end
+    --]]
 
-    return nil
+    return commands[1]
 end
 
 local function printAvaibleScenes()
@@ -186,7 +188,7 @@ function love.load(arg)
 
     local sceneName = findCommand(arg)
 
-    printAvaibleScenes()
+    --printAvaibleScenes()
 
     --TODO : добавить загрузку произвольной сцены по пути.
     -- К примеру `./run ./some/local/path/to/directory/with/init.tl`

@@ -78,7 +78,7 @@ global type KeyConfig = record
     -- INTERNAL ↓↓ -- INTERNAL -- ↓↓ INTERNAL --
 
     prepareDrawing: function()
-    checkExistHotkey: function(list: {Shortcut}, combo: KeyConfig.BindAccord): boolean
+    checkExistHotkey: function(list: {Shortcut}, combo: BindAccord): boolean
     getHotkeyString: function(combo: KeyConfig.BindAccord): string
     -- сравнить два массива клавиш-модификаторов
     compareMod: function(mod1: {string}, mod2: {string}): boolean
