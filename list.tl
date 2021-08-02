@@ -95,6 +95,8 @@ local record List
     x: number
     y: number
     -- }}}
+
+    UNIQ: integer
 end
 
 function inside(mx: number, my: number, x: number, y: number, w: number, h: number): boolean
@@ -112,6 +114,7 @@ function List.new(x: number, y: number): List
     self.hoveritem = 0
     self.onclick = nil
 
+    self.UNIQ = 1234
     self.x = x
     self.y = y
 
@@ -302,6 +305,9 @@ function List:setupPush()
     gr.setFont(self.font)
     local inspect = require "inspect"
     print(inspect(self))
+    if self.UNIQ == 1234 then
+        print("Uniq key here")
+    end
     gr.setScissor(self.x, self.y, self.width, self.height)
 end
 

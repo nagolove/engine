@@ -97,6 +97,8 @@ local List = {Lock = {}, Bar = {}, ColorType = {}, Colors = {}, Item = {}, }
 
 
 
+
+
 function inside(mx, my, x, y, w, h)
    return mx >= x and mx <= (x + w) and my >= y and my <= (y + h)
 end
@@ -112,6 +114,7 @@ function List.new(x, y)
    self.hoveritem = 0
    self.onclick = nil
 
+   self.UNIQ = 1234
    self.x = x
    self.y = y
 
@@ -302,6 +305,9 @@ function List:setupPush()
    gr.setFont(self.font)
    local inspect = require("inspect")
    print(inspect(self))
+   if self.UNIQ == 1234 then
+      print("Uniq key here")
+   end
    gr.setScissor(self.x, self.y, self.width, self.height)
 end
 

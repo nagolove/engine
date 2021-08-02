@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+fd -I ".*" > nback3.filelist.txt
+#apack nback3.release.zip ./*
