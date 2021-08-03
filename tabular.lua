@@ -1,4 +1,6 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local utf8 = _tl_compat and _tl_compat.utf8 or utf8; local tabular = {}
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local tabular = {}
+
+local u8 = require("utf8")
 
 local AnsiColors = {}
 
@@ -50,15 +52,15 @@ if (os.getenv("LANG") or ""):upper():match("UTF%-?8") then
 
    strlen = function(s)
       s = s:gsub("\27[^m]*m", "")
-      return utf8.len(s) or #s
+      return u8.len(s) or #s
    end
 
    strsub = function(s, i, j)
-      local uj = utf8.offset(s, j + 1)
+      local uj = u8.offset(s, j + 1)
       if uj then
          uj = uj - 1
       end
-      return s:sub(utf8.offset(s, i), uj)
+      return s:sub(u8.offset(s, i), uj)
    end
 
 end
@@ -91,7 +93,7 @@ local function show_as_list(t, color, seen, ids, skip_array)
       if not skip_array or type(k) ~= "number" then
          table.insert(tt, { k, v })
          keys[k] = tostring(k)
-         width = math.max(width, strlen(keys[k]))
+         width = math.ceil(math.max(width, strlen(keys[k])))
       end
    end
 
@@ -115,7 +117,7 @@ local function show_primitive(t)
    local out = {}
    local s = tostring(t)
 
-   if utf8.len(s) then
+   if u8.len(s) then
       s = s:gsub("[\n\t]", {
          ["\n"] = "\\n",
          ["\t"] = "\\t",
@@ -236,7 +238,7 @@ show_as_columns = function(t, bgcolor, seen, ids, column_order, skip_header)
          local line = { draw.V }
          for _, cname in ipairs(column_names) do
             local row = columns[cname][i]
-            output_cell(line, cname, row and row[h] or "", bgcolor and colors[(i % #colors) + 1])
+            output_cell(line, cname, row and row[math.ceil(h)] or "", bgcolor and colors[(i % #colors) + 1])
          end
          output_line(out, table.concat(line))
       end
@@ -297,9 +299,13 @@ function tabular.show(t, column_order, color)
    return table.concat(show(t, color and colors and ansicolors.noReset("%{reset}"), {}, ids, column_order), "\n")
 end
 
-if arg and arg[0]:match("tabular%..*$") then
-   print(tabular.show(_G, nil, true))
-   os.exit(0)
-end
+
+
+
+
+
+
+
+
 
 return setmetatable(tabular, { __call = function(_, ...) return tabular.show(...) end })

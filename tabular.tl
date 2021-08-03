@@ -1,5 +1,7 @@
 local tabular = {}
 
+local u8 = require "utf8"
+
 local record AnsiColors
   noReset: function(string):string
 end
@@ -50,15 +52,15 @@ if (os.getenv("LANG") or ""):upper():match("UTF%-?8") then
 
   strlen = function(s: string): number
     s = s:gsub("\27[^m]*m", "")
-    return utf8.len(s) or #s
+    return u8.len(s) or #s
   end
 
   strsub = function(s: string, i: number, j: number): string
-    local uj = utf8.offset(s, j + 1)
+    local uj = u8.offset(s, j + 1)
     if uj then
       uj = uj - 1
     end
-    return s:sub(utf8.offset(s, i), uj)
+    return s:sub(u8.offset(s, i), uj)
   end
 
 end
@@ -115,7 +117,7 @@ local function show_primitive(t: any): Output
   local out = {}
   local s = tostring(t)
 
-  if utf8.len(s) then
+  if u8.len(s) then
     s = s:gsub("[\n\t]", {
       ["\n"] = "\\n",
       ["\t"] = "\\t",
@@ -297,9 +299,13 @@ function tabular.show(t: any, column_order: {string}, color: boolean): string
   return table.concat(show(t, color and colors and ansicolors.noReset("%{reset}"), {}, ids, column_order), "\n")
 end
 
-if arg and arg[0]:match("tabular%..*$") then
+--[[
+local inspect = require "inspect"
+print("arg", inspect(arg))
+if arg and arg[0] and arg[0]:match("tabular%..*$") then
   print(tabular.show(_G, nil, true))
   os.exit(0)
 end
+--]]
 
 return setmetatable( tabular, { __call = function(_, ...): string return tabular.show(...) end } )
