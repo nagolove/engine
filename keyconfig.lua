@@ -13,6 +13,8 @@ local inspect = require("inspect")
 local lk = love.keyboard
 local IsPressed = {}
 
+local idGen = 0
+
  KeyConfig = {BindAccord = {}, Shortcut = {}, }
 
 
@@ -87,11 +89,7 @@ local IsPressed = {}
 
 
 
-local Shortcut = KeyConfig.Shortcut
-local ActionFunc = KeyConfig.ActionFunc
 
-
-local shortcutsListCallback
 
 
 local shortcutsDown = {}
@@ -175,6 +173,14 @@ function KeyConfig.updateList(dt)
    end
 end
 
+function KeyConfig.getShortcutsDown()
+   return shortcutsDown
+end
+
+function KeyConfig.getShortcutsPressed()
+   return shortcutsPressed
+end
+
 function KeyConfig.setListSetupCallback(f)
    if not f then
       error("f should'not be nil")
@@ -227,6 +233,8 @@ function KeyConfig.bind(
    description,
    id)
 
+   idGen = idGen + 1
+
    local map = {
       ["keypressed"] = shortcutsPressed,
       ["isdown"] = shortcutsDown,
@@ -245,6 +253,7 @@ function KeyConfig.bind(
       description = description,
       enabled = true,
       id = id,
+      intid = idGen,
    })
    if id then
       if DEBUG_KEYCONFIG then
@@ -259,6 +268,29 @@ function KeyConfig.bind(
 
 
    KeyConfig.prepareDrawing()
+   return idGen
+end
+
+function KeyConfig.unbindid(id)
+   local string_id_1, string_id_2
+   for i, v in ipairs(shortcutsDown) do
+      if v.intid == id then
+         string_id_1 = v.id
+         table.remove(shortcutsDown, i)
+      end
+   end
+   for i, v in ipairs(shortcutsPressed) do
+      if v.intid == id then
+         string_id_2 = v.id
+         table.remove(shortcutsPressed, i)
+      end
+   end
+   if ids[string_id_1] then
+      ids[string_id_1] = nil
+   end
+   if ids[string_id_2] then
+      ids[string_id_2] = nil
+   end
 end
 
 function KeyConfig.unbind(id)

@@ -13,6 +13,8 @@ local inspect = require "inspect"
 local lk = love.keyboard
 local type IsPressed = function(str: string): boolean
 
+local idGen = 0
+
 global type KeyConfig = record
 
     type BindAccord = record
@@ -38,6 +40,7 @@ global type KeyConfig = record
         -- флаг временного отключения
         enabled: boolean
         id: string
+        intid: integer
         -- }}}
     end
 
@@ -48,63 +51,58 @@ global type KeyConfig = record
         "isdown"
     end
 
-    -- EXTERNAL INTERFACE --
-
+    -- {{{
+    -- ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ EXTERNAL INTERFACE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓ --
     -- послать нажатие по идентификатору
     send: function(id: string)
     -- зарегистрировать комбинацию клавиш 
     bind: function( btype: BindType, 
                     combo: BindAccord, 
                     action: ActionFunc, 
-                    description: string, 
-                    id: string|nil)
+                    description: string): integer
     unbind: function(id: string)
+    unbindid: function(id: integer): boolean
     -- распечатать в консоль все зарегистрированные хоткеи
     printBinds: function()
     -- вызывать для обновления внутренниего состояния "isdown"
     update: function()
     -- вызывать для обновления внутренниего состояния "keypressed"
     keypressed: function(key: string)
-
     -- рисовать красивый список с навигацией и подробной справкой
     draw: function()
-
     -- вызывать только если активна отрисовка
     updateList: function(dt: number)
-
     getListObject: function(): List
     setListSetupCallback: function(f: function(list: List))
-
+    getShortcutsDown: function(): {KeyConfig.Shortcut}
+    getShortcutsPressed: function(): {KeyConfig.Shortcut}
+    -- ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ EXTERNAL INTERFACE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑ --
     -- INTERNAL ↓↓ -- INTERNAL -- ↓↓ INTERNAL --
-
     prepareDrawing: function()
     checkExistHotkey: function(list: {Shortcut}, combo: BindAccord): boolean
     getHotkeyString: function(combo: KeyConfig.BindAccord): string
     -- сравнить два массива клавиш-модификаторов
     compareMod: function(mod1: {string}, mod2: {string}): boolean
     test: function(shortcuts: {Shortcut}, isPressed: IsPressed)
-
     -- INTERNAL -- ↑↑ INTERNAL ↑↑ -- INTERNAL --
+    -- }}}
 end
 
-local Shortcut = KeyConfig.Shortcut
-local ActionFunc = KeyConfig.ActionFunc
-
 -- Указатель на функцию обратного вызова применяемую после пересоздания списка.
-local shortcutsListCallback: function(list: List)
+global shortcutsListCallback: function(list: List)
 
 -- love.keyboard.isDown()
-local shortcutsDown: {Shortcut} = {}
+local shortcutsDown: {KeyConfig.Shortcut} = {}
 
 -- love.keypressed()
-local shortcutsPressed: {Shortcut} = {}
+local shortcutsPressed: {KeyConfig.Shortcut} = {}
 
 --local imgui = require 'imgui'
 local shortcutsList: List = nil
 
 local record BindReference
     index: integer
-    list: {Shortcut}
+    list: {KeyConfig.Shortcut}
 end
 
 local ids: {string: BindReference} = {}
@@ -175,6 +173,14 @@ function KeyConfig.updateList(dt: number)
     end
 end
 
+function KeyConfig.getShortcutsDown(): {KeyConfig.Shortcut}
+    return shortcutsDown
+end
+
+function KeyConfig.getShortcutsPressed(): {KeyConfig.Shortcut}
+    return shortcutsPressed
+end
+
 function KeyConfig.setListSetupCallback(f: function(list: List))
     if not f then
         error("f should'not be nil")
@@ -200,7 +206,7 @@ function KeyConfig.compareMod(mod1: {string}, mod2: {string}): boolean
     end
 end
 
-function KeyConfig.checkExistHotkey(list: {Shortcut}, combo: KeyConfig.BindAccord): boolean
+function KeyConfig.checkExistHotkey(list: {KeyConfig.Shortcut}, combo: KeyConfig.BindAccord): boolean
     for _, shortcut in ipairs(list) do
         if DEBUG_KEYCONFIG then
             print("shortcut.combo.mod, combo.mod)", shortcut.combo.mod, combo.mod)
@@ -223,15 +229,17 @@ end
 function KeyConfig.bind(
     btype: KeyConfig.BindType,
     combo: KeyConfig.BindAccord,
-    action: ActionFunc, 
+    action: KeyConfig.ActionFunc, 
     description: string, 
-    id: string|nil)
+    id: string|nil): integer
+
+    idGen = idGen + 1
 
     local map = {
         ["keypressed"] = shortcutsPressed,
         ["isdown"] = shortcutsDown,
     }
-    local list: {Shortcut} = map[btype]
+    local list: {KeyConfig.Shortcut} = map[btype]
     if KeyConfig.checkExistHotkey(list, combo) then
         assert('hotkey ' .. KeyConfig.getHotkeyString(combo))
     end
@@ -245,6 +253,7 @@ function KeyConfig.bind(
         description = description,
         enabled = true,
         id = id,
+        intid = idGen,
     })
     if id then
         if DEBUG_KEYCONFIG then
@@ -259,6 +268,29 @@ function KeyConfig.bind(
     -- обновить визуальный список
     -- XXX частый вызов может замедлить программу
     KeyConfig.prepareDrawing()
+    return idGen
+end
+
+function KeyConfig.unbindid(id: integer): boolean
+    local string_id_1, string_id_2: string, string
+    for i, v in ipairs(shortcutsDown) do
+        if v.intid == id then
+            string_id_1 = v.id
+            table.remove(shortcutsDown, i)
+        end
+    end
+    for i, v in ipairs(shortcutsPressed) do
+        if v.intid == id then
+            string_id_2 = v.id
+            table.remove(shortcutsPressed, i)
+        end
+    end
+    if ids[string_id_1] then
+        ids[string_id_1] = nil
+    end
+    if ids[string_id_2] then
+        ids[string_id_2] = nil
+    end
 end
 
 function KeyConfig.unbind(id: string)
@@ -299,7 +331,7 @@ function KeyConfig.printBinds()
     print("end isdown:")
 end
 
-function KeyConfig.test(shortcuts: {Shortcut}, isPressed: IsPressed)
+function KeyConfig.test(shortcuts: {KeyConfig.Shortcut}, isPressed: IsPressed)
     for i, stroke in ipairs(shortcuts) do
         if stroke.enabled then
             local combo = stroke.combo
@@ -315,7 +347,7 @@ function KeyConfig.test(shortcuts: {Shortcut}, isPressed: IsPressed)
                     end
                 end
                 if pressed and stroke.action then
-                    local rebuildlist, newShortcut: boolean, Shortcut = stroke.action(stroke)
+                    local rebuildlist, newShortcut: boolean, KeyConfig.Shortcut = stroke.action(stroke)
                     if rebuildlist then
                         shortcutsList = nil
                         shortcuts[i] = shallowCopy(newShortcut)
