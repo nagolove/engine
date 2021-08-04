@@ -719,7 +719,7 @@ global type love = record
 			setVertexMap: function(self: Mesh, map: {number})
 			setVertexMap: function(self: Mesh, ...: number)
 			setVertexMap: function(self: Mesh, data: love.Data, datatype: IndexDataType)
-			setVertices: function(self: Mesh, vertices: {{number}}, startvertex: number)
+			setVertices: function(self: Mesh, vertices: {{number}}, startvertex: number, count: number)
 			setVertices: function(self: Mesh, data: love.Data, startvertex: number)
 		end
 
