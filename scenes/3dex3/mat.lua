@@ -3,8 +3,7 @@ vec3 = cpml.vec3
 mat4 = cpml.mat4
 
 function transpose(mat)
-    local  m = cpml.mat4.new()
-    return cpml.mat4.transpose(m, mat)
+    return cpml.mat4.transpose(cpml.mat4.new(), mat)
 end
 
 TMPMAT = mat4()
