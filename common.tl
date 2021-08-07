@@ -249,3 +249,25 @@ function makeDescentColorText(
     --return textobj:add(coloredtext, unpack(args))
 end
 
+function printMesh(mesh: love.graphics.Mesh)
+    if mesh then
+        for i = 1, mesh:getVertexCount() do
+            local x, y, u, v, r, g, b, a = mesh:getVertex(i)
+            print("[" .. tostring(i) .. "] x, y, u, v, r, g, b, a", x, y, u, v, r, g, b, a)
+        end
+    end
+end
+
+function printMesh2file(mesh: love.graphics.Mesh, fname: string)
+    if mesh then
+        for i = 1, mesh:getVertexCount() do
+            local x, y, u, v, r, g, b, a = mesh:getVertex(i)
+            local s = "[" .. tostring(i) .. "] " .. 
+                x .. " " .. y .. " " .. 
+                u .. " " .. v .. " " .. 
+                r .. " " .. g .. " " ..
+                b .. " " .. a .. "\n"
+            love.filesystem.append(fname, s)
+        end
+    end
+end

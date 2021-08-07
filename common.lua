@@ -248,3 +248,26 @@ function makeDescentColorText(
    return textobj:add(coloredtext, x, y, angle, sx, sy, ox, oy, kx, ky)
 
 end
+
+function printMesh(mesh)
+   if mesh then
+      for i = 1, mesh:getVertexCount() do
+         local x, y, u, v, r, g, b, a = mesh:getVertex(i)
+         print("[" .. tostring(i) .. "] x, y, u, v, r, g, b, a", x, y, u, v, r, g, b, a)
+      end
+   end
+end
+
+function printMesh2file(mesh, fname)
+   if mesh then
+      for i = 1, mesh:getVertexCount() do
+         local x, y, u, v, r, g, b, a = mesh:getVertex(i)
+         local s = "[" .. tostring(i) .. "] " ..
+         x .. " " .. y .. " " ..
+         u .. " " .. v .. " " ..
+         r .. " " .. g .. " " ..
+         b .. " " .. a
+         love.filesystem.append(fname, s)
+      end
+   end
+end
