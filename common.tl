@@ -249,11 +249,22 @@ function makeDescentColorText(
     --return textobj:add(coloredtext, unpack(args))
 end
 
+local function mesh2str(mesh: love.graphics.Mesh, i: integer): string
+     local x, y, u, v, r, g, b, a = mesh:getVertex(i)
+     return 
+        "[" .. tostring(i) .. "] " ..  
+        x .. " " .. y .. " " .. 
+        u .. " " .. v .. " " ..  
+        r .. " " .. g .. " " ..  
+        b .. " " .. a .. "\n"
+end
+
 function printMesh(mesh: love.graphics.Mesh)
     if mesh then
         for i = 1, mesh:getVertexCount() do
-            local x, y, u, v, r, g, b, a = mesh:getVertex(i)
-            print("[" .. tostring(i) .. "] x, y, u, v, r, g, b, a", x, y, u, v, r, g, b, a)
+            --local x, y, u, v, r, g, b, a = mesh:getVertex(i)
+            --print("[" .. tostring(i) .. "] x, y, u, v, r, g, b, a", x, y, u, v, r, g, b, a)
+            print(mesh2str(mesh, math.ceil(i)))
         end
     end
 end
@@ -261,13 +272,13 @@ end
 function printMesh2file(mesh: love.graphics.Mesh, fname: string)
     if mesh then
         for i = 1, mesh:getVertexCount() do
-            local x, y, u, v, r, g, b, a = mesh:getVertex(i)
-            local s = "[" .. tostring(i) .. "] " .. 
-                x .. " " .. y .. " " .. 
-                u .. " " .. v .. " " .. 
-                r .. " " .. g .. " " ..
-                b .. " " .. a .. "\n"
-            love.filesystem.append(fname, s)
+            --local x, y, u, v, r, g, b, a = mesh:getVertex(i)
+            --local s = "[" .. tostring(i) .. "] " .. 
+                --x .. " " .. y .. " " .. 
+                --u .. " " .. v .. " " .. 
+                --r .. " " .. g .. " " ..
+                --b .. " " .. a .. "\n"
+            love.filesystem.append(fname, mesh2str(mesh, math.ceil(i)))
         end
     end
 end
