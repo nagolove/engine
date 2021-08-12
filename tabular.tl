@@ -294,9 +294,11 @@ local function detect_cycles(t: any, n: number, seen: {any:number}): {any:number
   return seen, n
 end
 
-function tabular.show(t: any, column_order: {string}, color: boolean): string
+-- возвращает строчку таблицы и число строк в ней
+function tabular.show(t: any, column_order: {string}, color: boolean): string, integer
   local ids = detect_cycles(t)
-  return table.concat(show(t, color and colors and ansicolors.noReset("%{reset}"), {}, ids, column_order), "\n")
+  local representation = show(t, color and colors and ansicolors.noReset("%{reset}"), {}, ids, column_order)
+  return table.concat(representation, "\n"), #representation
 end
 
 --[[
@@ -308,4 +310,6 @@ if arg and arg[0] and arg[0]:match("tabular%..*$") then
 end
 --]]
 
-return setmetatable( tabular, { __call = function(_, ...): string return tabular.show(...) end } )
+--return setmetatable( tabular, { __call = function(_, ...): string return tabular.show(...) end } )
+-- TODO здесь не очень хорошо использовано приведение типа. Лучше возвращать из __call() только одно значение
+return setmetatable( tabular, { __call = function(_, ...): string return tabular.show(...) as string end } )

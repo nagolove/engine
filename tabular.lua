@@ -294,10 +294,14 @@ local function detect_cycles(t, n, seen)
    return seen, n
 end
 
+
 function tabular.show(t, column_order, color)
    local ids = detect_cycles(t)
-   return table.concat(show(t, color and colors and ansicolors.noReset("%{reset}"), {}, ids, column_order), "\n")
+   local representation = show(t, color and colors and ansicolors.noReset("%{reset}"), {}, ids, column_order)
+   return table.concat(representation, "\n"), #representation
 end
+
+
 
 
 
