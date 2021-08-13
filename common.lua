@@ -282,3 +282,17 @@ function printMesh2file(mesh, fname)
       end
    end
 end
+
+local function reversedipairsiter(t, i)
+   i = i - 1
+   if i ~= 0 then
+      return i, t[i]
+   end
+end
+
+local Iter = {}
+
+function ripairs(t)
+
+   return reversedipairsiter, t, #t + 1
+end

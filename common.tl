@@ -282,3 +282,17 @@ function printMesh2file(mesh: love.graphics.Mesh, fname: string)
         end
     end
 end
+
+local function reversedipairsiter<T>(t: {T}, i: integer): integer, T
+    i = i - 1
+    if i ~= 0 then
+        return i, t[i]
+    end
+end
+
+local type Iter = function<T>(t: {T}, integer): integer, T
+
+function ripairs<T>(t: {T}): Iter<T>, {T}, integer
+    --return reversedipairsiter, t, #t + 1
+    return reversedipairsiter, t, #t + 1
+end

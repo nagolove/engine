@@ -255,7 +255,14 @@ function kons:draw(x0: number, y0: number)
 
     --print("processed", processed)
     local y = y0
-    for k, v in ipairs(self.strings_i) do
+
+    for _, v in ipairs(self.strings) do
+        g.print(v.text.processed, x0, y)
+        y = y + g.getFont():getHeight()
+    end
+
+    --for k, v in ipairs(self.strings_i) do
+    for k, v in ripairs(self.strings_i) do
 
         --[[
     local _ = string.gsub(text,"(%%{(.-)})", 
@@ -270,11 +277,6 @@ function kons:draw(x0: number, y0: number)
         self.strings_i[k] = nil
     end
     self.strings_i_num = 0
-
-    for _, v in ipairs(self.strings) do
-        g.print(v.text.processed, x0, y)
-        y = y + g.getFont():getHeight()
-    end
 
     love.graphics.setFont(oldFont)
     g.setColor(curColor)
