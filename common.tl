@@ -296,3 +296,21 @@ function ripairs<T>(t: {T}): Iter<T>, {T}, integer
     --return reversedipairsiter, t, #t + 1
     return reversedipairsiter, t, #t + 1
 end
+
+function testflag(set: number, flag: number): boolean
+  return set % (2*flag) >= flag
+end
+
+function setflag(set: number, flag: number): number
+  if set % (2*flag) >= flag then
+    return set
+  end
+  return set + flag
+end
+
+function clear(set: number, flag: number): number
+  if set % (2*flag) >= flag then
+    return set - flag
+  end
+  return set
+end
