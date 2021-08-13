@@ -301,6 +301,13 @@ function tabular.show(t: any, column_order: {string}, color: boolean): string, i
   return table.concat(representation, "\n"), #representation
 end
 
+-- возвращает таблицу строчек и число строк в ней
+function tabular.show2(t: any, column_order: {string}, color: boolean): Output, integer
+  local ids = detect_cycles(t)
+  local representation = show(t, color and colors and ansicolors.noReset("%{reset}"), {}, ids, column_order)
+  return representation, #representation
+end
+
 --[[
 local inspect = require "inspect"
 print("arg", inspect(arg))

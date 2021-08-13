@@ -302,6 +302,13 @@ function tabular.show(t, column_order, color)
 end
 
 
+function tabular.show2(t, column_order, color)
+   local ids = detect_cycles(t)
+   local representation = show(t, color and colors and ansicolors.noReset("%{reset}"), {}, ids, column_order)
+   return representation, #representation
+end
+
+
 
 
 

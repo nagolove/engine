@@ -51,8 +51,9 @@ local record kons
         processed: string
         -- только текст, шаблоны удалены
         unprocessed: string
+        linesnum: integer
 
-        new: function(unprocessed: string, ...: any): Text
+        new: function(unprocessed: string|{string}, ...: any): Text
     end
 
     type Item = record
@@ -68,7 +69,7 @@ local record kons
     push: function(kons, number, string, ...:any): kons
     push2: function(kons, number, string, ...:any): kons
 
-    pushi: function(kons, string, ...: any): kons
+    pushi: function(kons, string|{string}, ...: any): kons
     pushiColored: function(kons, text: string, ...: any): kons
 
     draw: function(kons, x0: number, y0: number)
@@ -89,7 +90,7 @@ local record kons
     -- }}}
 end
 
-function kons.Text.new(unprocessed: string, ...: any): kons.Text
+function kons.Text.new(unprocessed: string|{string}, ...: any): kons.Text
     -- {{{
     local Text_mt: metatable<kons.Text> = {
         __index = kons.Text,
@@ -97,15 +98,29 @@ function kons.Text.new(unprocessed: string, ...: any): kons.Text
     if not unprocessed then
         error("kons.Text.new() unprocessed should not be nil")
     end
-    if type(unprocessed) ~= "string" then
+    print(type(unprocessed))
+    -- XXX След строка проверяет оба типа или только один?
+    if type(unprocessed) ~= "string" and type(unprocessed) ~= 'table' then
         error("kons.Text.new() unprocessed type is " .. type(unprocessed))
     end
     local self: kons.Text = setmetatable({} as kons.Text, Text_mt)
-    local tmp = string.gsub(
-        unprocessed,
-        "(%%{(.-)})", 
-        function(str: string): string return str end
-    )
+    local tmp: string
+    if type(unprocessed) == 'table' then
+        self.linesnum = #(unprocessed as {string})
+        tmp = string.gsub(
+            table.concat(unprocessed as {string}, "\n"),
+            "(%%{(.-)})", 
+            function(str: string): string return str end
+        )
+    else
+        self.linesnum = 1
+        tmp = string.gsub(
+            --unprocessed as string,
+            tostring(unprocessed),
+            "(%%{(.-)})", 
+            function(str: string): string return str end
+        )
+    end
     --local inspect = require "inspect"
     --print("tmp", inspect(tmp))
     --print("...", inspect({...}))
@@ -212,10 +227,15 @@ function kons:pushiColored(text: string, ...: any): kons
     -- }}}
 end
 
-function kons:pushi(text: string, ...: any): kons
+function kons:pushi(text: string|{string}, ...: any): kons
     -- {{{
-    self.strings_i[self.strings_i_num + 1] = kons.Text.new(text, ...)
-    self.strings_i_num = self.strings_i_num + 1
+    if type(text) == 'string' then
+        self.strings_i[self.strings_i_num + 1] = kons.Text.new(text as string, ...)
+        self.strings_i_num = self.strings_i_num + 1
+    else
+        self.strings_i[self.strings_i_num + 1] = kons.Text.new(text, ...)
+        self.strings_i_num = self.strings_i_num + 1
+    end
     return self
     -- }}}
 end
@@ -245,10 +265,9 @@ function kons:draw(x0: number, y0: number)
             return ""
     end)
     --]]
-    
         g.print(v.processed, x0, y)
-        y = y + g.getFont():getHeight()
-        self.strings_i[k] = nil -- XXX
+        y = y + g.getFont():getHeight() * v.linesnum
+        self.strings_i[k] = nil
     end
     self.strings_i_num = 0
 

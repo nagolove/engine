@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -89,6 +89,7 @@ local kons = {Text = {}, Item = {}, }
 
 
 
+
 function kons.Text.new(unprocessed, ...)
 
    local Text_mt = {
@@ -97,15 +98,29 @@ function kons.Text.new(unprocessed, ...)
    if not unprocessed then
       error("kons.Text.new() unprocessed should not be nil")
    end
-   if type(unprocessed) ~= "string" then
+   print(type(unprocessed))
+
+   if type(unprocessed) ~= "string" and type(unprocessed) ~= 'table' then
       error("kons.Text.new() unprocessed type is " .. type(unprocessed))
    end
    local self = setmetatable({}, Text_mt)
-   local tmp = string.gsub(
-   unprocessed,
-   "(%%{(.-)})",
-   function(str) return str end)
+   local tmp
+   if type(unprocessed) == 'table' then
+      self.linesnum = #(unprocessed)
+      tmp = string.gsub(
+      table.concat(unprocessed, "\n"),
+      "(%%{(.-)})",
+      function(str) return str end)
 
+   else
+      self.linesnum = 1
+      tmp = string.gsub(
+
+      tostring(unprocessed),
+      "(%%{(.-)})",
+      function(str) return str end)
+
+   end
 
 
 
@@ -214,8 +229,13 @@ end
 
 function kons:pushi(text, ...)
 
-   self.strings_i[self.strings_i_num + 1] = kons.Text.new(text, ...)
-   self.strings_i_num = self.strings_i_num + 1
+   if type(text) == 'string' then
+      self.strings_i[self.strings_i_num + 1] = kons.Text.new(text, ...)
+      self.strings_i_num = self.strings_i_num + 1
+   else
+      self.strings_i[self.strings_i_num + 1] = kons.Text.new(text, ...)
+      self.strings_i_num = self.strings_i_num + 1
+   end
    return self
 
 end
@@ -245,9 +265,8 @@ function kons:draw(x0, y0)
 
 
 
-
       g.print(v.processed, x0, y)
-      y = y + g.getFont():getHeight()
+      y = y + g.getFont():getHeight() * v.linesnum
       self.strings_i[k] = nil
    end
    self.strings_i_num = 0
