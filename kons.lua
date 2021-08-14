@@ -98,7 +98,7 @@ function kons.Text.new(unprocessed, ...)
    if not unprocessed then
       error("kons.Text.new() unprocessed should not be nil")
    end
-   print(type(unprocessed))
+
 
    if type(unprocessed) ~= "string" and type(unprocessed) ~= 'table' then
       error("kons.Text.new() unprocessed type is " .. type(unprocessed))

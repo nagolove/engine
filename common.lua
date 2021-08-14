@@ -296,3 +296,21 @@ function ripairs(t)
 
    return reversedipairsiter, t, #t + 1
 end
+
+function testflag(set, flag)
+   return set % (2 * flag) >= flag
+end
+
+function setflag(set, flag)
+   if set % (2 * flag) >= flag then
+      return set
+   end
+   return set + flag
+end
+
+function clear(set, flag)
+   if set % (2 * flag) >= flag then
+      return set - flag
+   end
+   return set
+end

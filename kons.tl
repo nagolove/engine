@@ -98,7 +98,7 @@ function kons.Text.new(unprocessed: string|{string}, ...: any): kons.Text
     if not unprocessed then
         error("kons.Text.new() unprocessed should not be nil")
     end
-    print(type(unprocessed))
+    --print(type(unprocessed))
     -- XXX След строка проверяет оба типа или только один?
     if type(unprocessed) ~= "string" and type(unprocessed) ~= 'table' then
         error("kons.Text.new() unprocessed type is " .. type(unprocessed))
