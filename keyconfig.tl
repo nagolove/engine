@@ -53,6 +53,7 @@ global type KeyConfig = record
 
     -- {{{
     -- ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ EXTERNAL INTERFACE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓ --
+    clear: function()
     -- послать нажатие по идентификатору
     send: function(id: string)
     -- зарегистрировать комбинацию клавиш 
@@ -123,6 +124,12 @@ local function combo2str(stroke: KeyConfig.BindAccord): string
     return '[' .. res .. ']'
 end
 
+function KeyConfig.clear()
+    shortcutsDown = {}
+    shortcutsList = {}
+    ids = {}
+end
+
 function KeyConfig.getListObject(): List
     return shortcutsList
 end
@@ -164,6 +171,8 @@ function KeyConfig.draw()
     if not shortcutsList then
         KeyConfig.prepareDrawing()
     end
+    -- Для рисования списка клавиш по центру экрана не хватает информации о
+    -- максимальной ширине строки(ширина списка)
     shortcutsList:draw()
 end
 

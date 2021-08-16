@@ -314,3 +314,25 @@ function clear(set, flag)
    end
    return set
 end
+
+function tobitstr(num, bits)
+
+   bits = bits or math.max(1, select(2, math.frexp(num)))
+   local t = {}
+   for b = bits, 1, -1 do
+      t[b] = math.fmod(num, 2)
+      num = math.floor((num - t[math.ceil(b)]) / 2)
+   end
+   return table.concat(t)
+end
+
+function tobits(num, bits)
+
+   bits = bits or math.max(1, select(2, math.frexp(num)))
+   local t = {}
+   for b = bits, 1, -1 do
+      t[b] = math.fmod(num, 2)
+      num = math.floor((num - t[math.ceil(b)]) / 2)
+   end
+   return t
+end

@@ -314,3 +314,25 @@ function clear(set: number, flag: number): number
   end
   return set
 end
+
+function tobitstr(num: number, bits: number): string
+    -- returns a table of bits, most significant first.
+    bits = bits or math.max(1, select(2, math.frexp(num)))
+    local t = {} -- will contain the bits        
+    for b = bits, 1, -1 do
+        t[b] = math.fmod(num, 2)
+        num = math.floor((num - t[math.ceil(b)]) / 2)
+    end
+    return table.concat(t as {string})
+end
+
+function tobits(num: number, bits: number): {number}
+    -- returns a table of bits, most significant first.
+    bits = bits or math.max(1, select(2, math.frexp(num)))
+    local t = {} -- will contain the bits        
+    for b = bits, 1, -1 do
+        t[b] = math.fmod(num, 2)
+        num = math.floor((num - t[math.ceil(b)]) / 2)
+    end
+    return t
+end

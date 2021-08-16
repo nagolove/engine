@@ -203,7 +203,7 @@ function love.load(arg)
         scenes.initOne("empty")
     end
 
-    KeyConfig.printBinds()
+    --KeyConfig.printBinds()
     --imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", imguiFontSize)
 end
 

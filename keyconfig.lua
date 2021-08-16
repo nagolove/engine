@@ -92,6 +92,7 @@ local idGen = 0
 
 
 
+
 local shortcutsDown = {}
 
 
@@ -121,6 +122,12 @@ local function combo2str(stroke)
       res = stroke.key
    end
    return '[' .. res .. ']'
+end
+
+function KeyConfig.clear()
+   shortcutsDown = {}
+   shortcutsList = {}
+   ids = {}
 end
 
 function KeyConfig.getListObject()
@@ -164,6 +171,8 @@ function KeyConfig.draw()
    if not shortcutsList then
       KeyConfig.prepareDrawing()
    end
+
+
    shortcutsList:draw()
 end
 
