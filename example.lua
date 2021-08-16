@@ -309,16 +309,16 @@ function KeyConfig.unbind(id)
 end
 
 function KeyConfig.printBinds()
-
-
-
-
-
-
-
-
-
-
+   print("keypressed:")
+   for _, stroke in ipairs(shortcutsPressed) do
+      print("stroke", inspect(stroke))
+   end
+   print("end keypressed:")
+   print("isdown:")
+   for _, stroke in ipairs(shortcutsDown) do
+      print("stroke", inspect(stroke))
+   end
+   print("end isdown:")
 end
 
 function KeyConfig.test(shortcuts, isPressed)
