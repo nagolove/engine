@@ -2149,6 +2149,8 @@ global type love = record
 			setSpringFrequency: function(self: WheelJoint, freq: number)
 		end
 
+        type ContactFilter = function(Fixture, Fixture): boolean
+
 		type World = record
 			destroy: function(self: World)
 			getBodies: function(self: World): {Body}
@@ -2168,6 +2170,8 @@ global type love = record
 			translateOrigin: function(self: World, x: number, y: number)
 			update: function(self: World, dt: number, velocityiterations: number, positioniterations: number)
             setCallbacks: function(beginContact: any, endContact: any, preSolve: any, postSolve: any)
+            getContactFilter: function(World): ContactFilter
+            setContactFilter: function(World, ContactFilter)
 		end
 
 		getDistance: function(fixture1: Fixture, fixture2: Fixture): number, number, number, number, number
