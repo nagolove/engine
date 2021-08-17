@@ -47,10 +47,11 @@ local record kons
 
     -- {{{ Types
     type Text = record
-        -- строка с шаблонами
-        processed: string
         -- только текст, шаблоны удалены
+        processed: string
+        -- строка с шаблонами
         unprocessed: string
+        -- сколько переводов строки в тексте
         linesnum: integer
 
         new: function(unprocessed: string|{string}, ...: any): Text
@@ -272,6 +273,7 @@ function kons:draw(x0: number, y0: number)
             return ""
     end)
     --]]
+
         g.print(v.processed, x0, y)
         y = y + g.getFont():getHeight() * v.linesnum
         self.strings_i[k] = nil

@@ -90,6 +90,7 @@ local kons = {Text = {}, Item = {}, }
 
 
 
+
 function kons.Text.new(unprocessed, ...)
 
    local Text_mt = {
@@ -263,6 +264,7 @@ function kons:draw(x0, y0)
 
 
    for k, v in ripairs(self.strings_i) do
+
 
 
 
