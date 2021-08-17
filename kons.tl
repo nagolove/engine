@@ -107,26 +107,34 @@ function kons.Text.new(unprocessed: string|{string}, ...: any): kons.Text
     local self: kons.Text = setmetatable({} as kons.Text, Text_mt)
     local tmp: string
     if type(unprocessed) == 'table' then
+        print('branch1')
         self.linesnum = #(unprocessed as {string})
+        self.unprocessed = table.concat(unprocessed as {string}, "\n")
         tmp = string.gsub(
-            table.concat(unprocessed as {string}, "\n"),
+            self.unprocessed,
             "(%%{(.-)})", 
-            function(str: string): string return str end
+            function(_: string): string 
+                return ""
+            end
         )
-    else
+    elseif type(unprocessed) == 'string' then
+        print('branch2')
         self.linesnum = 1
+        self.unprocessed = unprocessed as string
         tmp = string.gsub(
             --unprocessed as string,
-            tostring(unprocessed),
+            self.unprocessed,
             "(%%{(.-)})", 
-            function(str: string): string return str end
+            function(_: string): string 
+                return ""
+            end
         )
+    else
+        error('Unsupported type: ' .. type(unprocessed))
     end
-    --local inspect = require "inspect"
-    --print("tmp", inspect(tmp))
-    --print("...", inspect({...}))
-    --self.processed = "<><><><>"
     self.processed = string.format(tmp, ...)
+    print('self.processed', self.processed)
+    print('self.unprocessed', self.unprocessed)
     return self
     -- }}}
 end
@@ -265,14 +273,13 @@ function kons:draw(x0: number, y0: number)
     --for k, v in ipairs(self.strings_i) do
     for k, v in ripairs(self.strings_i) do
 
-        --[[
-    local _ = string.gsub(text,"(%%{(.-)})", 
-    function(str: string): string
-            print("str", str)
+        local _ = string.gsub(v.unprocessed,"(%%{(.-)})", 
+        function(str: string): string
+            print("processing", str)
             --g.setColor
             return ""
-    end)
-    --]]
+        end)
+        --]]
 
         g.print(v.processed, x0, y)
         y = y + g.getFont():getHeight() * v.linesnum

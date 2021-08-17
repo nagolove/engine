@@ -107,26 +107,34 @@ function kons.Text.new(unprocessed, ...)
    local self = setmetatable({}, Text_mt)
    local tmp
    if type(unprocessed) == 'table' then
+      print('branch1')
       self.linesnum = #(unprocessed)
+      self.unprocessed = table.concat(unprocessed, "\n")
       tmp = string.gsub(
-      table.concat(unprocessed, "\n"),
+      self.unprocessed,
       "(%%{(.-)})",
-      function(str) return str end)
+      function(_)
+         return ""
+      end)
+
+   elseif type(unprocessed) == 'string' then
+      print('branch2')
+      self.linesnum = 1
+      self.unprocessed = unprocessed
+      tmp = string.gsub(
+
+      self.unprocessed,
+      "(%%{(.-)})",
+      function(_)
+         return ""
+      end)
 
    else
-      self.linesnum = 1
-      tmp = string.gsub(
-
-      tostring(unprocessed),
-      "(%%{(.-)})",
-      function(str) return str end)
-
+      error('Unsupported type: ' .. type(unprocessed))
    end
-
-
-
-
    self.processed = string.format(tmp, ...)
+   print('self.processed', self.processed)
+   print('self.unprocessed', self.unprocessed)
    return self
 
 end
@@ -265,13 +273,12 @@ function kons:draw(x0, y0)
 
    for k, v in ripairs(self.strings_i) do
 
+      local _ = string.gsub(v.unprocessed, "(%%{(.-)})",
+      function(str)
+         print("processing", str)
 
-
-
-
-
-
-
+         return ""
+      end)
 
 
       g.print(v.processed, x0, y)
