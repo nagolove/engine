@@ -43,11 +43,17 @@ require("common")
 
 local g = love.graphics
 
+
+colorMap = {
+   ["black"] = { 0, 0, 0, 1 },
+   ["red"] = { 1, 0, 0, 1 },
+   ["green"] = { 0, 1, 0, 1 },
+   ["blue"] = { 0, 0, 1, 1 },
+   ["white"] = { 1, 1, 1, 1 },
+   ["default"] = { 1, 1, 1, 1 },
+}
+
 local kons = {Text = {}, Item = {}, }
-
-
-
-
 
 
 
@@ -100,7 +106,6 @@ function kons.Text.new(unprocessed, ...)
       error("kons.Text.new() unprocessed should not be nil")
    end
 
-
    if type(unprocessed) ~= "string" and type(unprocessed) ~= 'table' then
       error("kons.Text.new() unprocessed type is " .. type(unprocessed))
    end
@@ -132,9 +137,15 @@ function kons.Text.new(unprocessed, ...)
    else
       error('Unsupported type: ' .. type(unprocessed))
    end
+
+
+
+
    self.processed = string.format(tmp, ...)
+
    print('self.processed', self.processed)
    print('self.unprocessed', self.unprocessed)
+
    return self
 
 end
@@ -160,9 +171,8 @@ function kons.new(fname, fsize)
       color = { 1, 1, 1 },
       show = true,
       strings = {},
-      strings_i = {},
-      strings_num = 0,
-      strings_i_num = 0,
+      stringsi = {},
+      textobj = love.graphics.newText(font),
    }
    return setmetatable(inst, kons_mt)
 
@@ -170,38 +180,11 @@ end
 
 function kons:clear()
 
-   self.strings_i = {}
-   self.strings_i_num = 0
+   self.stringsi = {}
    self.strings = {}
-   self.strings_num = 0
+   self.textobj:clear()
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function kons:push(lifetime, text, ...)
 
@@ -209,12 +192,12 @@ function kons:push(lifetime, text, ...)
       error("First argument - cardinal value of text lifetime.")
    end
    assert(lifetime >= 0, string.format("Error: lifetime = %d < 0", lifetime))
-   self.strings[self.strings_num + 1] = {
+   self.strings[#self.strings + 1] = {
       text = kons.Text.new(text, ...),
       lifetime = lifetime,
       timestamp = love.timer.getTime(),
    }
-   self.strings_num = self.strings_num + 1
+
    return self
 
 end
@@ -230,8 +213,7 @@ function kons:pushiColored(text, ...)
    end)
 
 
-   self.strings_i[self.strings_i_num + 1] = kons.Text.new(processed, ...)
-   self.strings_i_num = self.strings_i_num + 1
+   self.stringsi[#self.stringsi + 1] = kons.Text.new(processed, ...)
    return self
 
 end
@@ -239,17 +221,19 @@ end
 function kons:pushi(text, ...)
 
    if type(text) == 'string' then
-      self.strings_i[self.strings_i_num + 1] = kons.Text.new(text, ...)
-      self.strings_i_num = self.strings_i_num + 1
+      self.stringsi[#self.stringsi + 1] = kons.Text.new(text, ...)
+   elseif type(text) == 'table' then
+      self.stringsi[#self.stringsi + 1] = kons.Text.new(text, ...)
    else
-      self.strings_i[self.strings_i_num + 1] = kons.Text.new(text, ...)
-      self.strings_i_num = self.strings_i_num + 1
+      error('Unsupported type ' .. type(text))
    end
    return self
 
 end
 
 function kons:draw(x0, y0)
+
+   self.textobj:clear()
 
    x0 = x0 or 0
    y0 = y0 or 0
@@ -260,37 +244,100 @@ function kons:draw(x0, y0)
    g.setColor(self.color)
 
    local oldFont = love.graphics.getFont()
-   love.graphics.setFont(self.font)
+
 
 
    local y = y0
 
+   local fontHeight = self.textobj:getFont():getHeight()
+
    for _, v in ipairs(self.strings) do
-      g.print(v.text.processed, x0, y)
-      y = y + g.getFont():getHeight()
+
+
+      self.textobj:add({ v.text.processed }, x0, y)
+
+      y = y + fontHeight
    end
 
 
-   for k, v in ripairs(self.strings_i) do
-
-      local _ = string.gsub(v.unprocessed, "(%%{(.-)})",
-      function(str)
-         print("processing", str)
-
-         return ""
-      end)
 
 
-      g.print(v.processed, x0, y)
-      y = y + g.getFont():getHeight() * v.linesnum
-      self.strings_i[k] = nil
+
+   for _, v in ripairs(self.stringsi) do
+      local coloredtext = {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      local istart, iend = 0, 0
+      local init = 1
+      local lastiend = 0
+
+      istart, iend = string.find(v.unprocessed, "(%%{(.-)})", init)
+      local leading
+      if istart and istart >= 1 then
+         leading = string.sub(v.unprocessed, 1, istart - 1)
+         print('s0', leading)
+      end
+      if leading then
+         table.insert(coloredtext, colorMap['default'])
+         table.insert(coloredtext, leading)
+      end
+
+      print('#v.unprocessed', #v.unprocessed)
+
+      repeat
+
+         lastiend = iend
+
+         istart, iend = string.find(v.unprocessed, "(%%{(.-)})", init)
+
+         if istart ~= 0 then
+
+         end
+
+         if istart then
+            init = iend
+         end
+         print('istart, iend', istart, iend)
+         if istart and iend then
+            print('sub1', string.sub(v.unprocessed, istart, iend))
+
+            print('sub2', string.sub(v.unprocessed, lastiend + 1, istart - 1))
+         else
+            print('sub3', string.sub(v.unprocessed, lastiend + 1, #v.unprocessed))
+         end
+      until not istart
+
+
+
+
+      table.insert(coloredtext, v.processed)
+
+
+      self.textobj:add(coloredtext, x0, y)
+
+      y = y + fontHeight * v.linesnum
+
    end
-   self.strings_i_num = 0
+
+   love.graphics.draw(self.textobj, x0, y0)
 
    love.graphics.setFont(oldFont)
    g.setColor(curColor)
 
    self.height = math.abs(y - y0)
+   self.stringsi = {}
 
 end
 
@@ -301,9 +348,8 @@ function kons:update()
       if v then
          v.lifetime = v.lifetime - (time - v.timestamp)
          if v.lifetime <= 0 then
-            self.strings[k] = self.strings[self.strings_num]
-            self.strings[self.strings_num] = nil
-            self.strings_num = self.strings_num - 1
+            self.strings[k] = self.strings[#self.strings]
+            self.strings[#self.strings] = nil
          else
             v.timestamp = time
          end
