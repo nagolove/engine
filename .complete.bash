@@ -9,3 +9,4 @@ _dothis_completions()
 }
 
 complete -F _dothis_completions run
+complete -F _dothis_completions runc

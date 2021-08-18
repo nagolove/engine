@@ -10,3 +10,7 @@ game.love
 *.apk
 *.aab
 scenes/*
+
+nback3.release/MessagePack.lua
+nback3.filelist.txt
+nback3.release.zip.bak
