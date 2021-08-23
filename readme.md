@@ -1,5 +1,5 @@
-Game engine core on top of love2d.
+Безумная коллекция Lua кода написанного мной и собранного с просторов сети за долгое время.
 
 Project structure:
-  scenes - sub projects 'aka' scenes
+  scenes d- sub projects 'aka' scenes
 
