@@ -289,40 +289,46 @@ function kons:draw(x0, y0)
          leading = string.sub(v.unprocessed, 1, istart - 1)
          print('s0', leading)
       end
-      if leading then
-         table.insert(coloredtext, colorMap['default'])
-         table.insert(coloredtext, leading)
-      end
 
-      print('#v.unprocessed', #v.unprocessed)
-
-      repeat
-
-         lastiend = iend
-
-         istart, iend = string.find(v.unprocessed, "(%%{(.-)})", init)
-
-         if istart ~= 0 then
-
-         end
-
-         if istart then
-            init = iend
-         end
-         print('istart, iend', istart, iend)
-         if istart and iend then
-            print('sub1', string.sub(v.unprocessed, istart, iend))
-
-            print('sub2', string.sub(v.unprocessed, lastiend + 1, istart - 1))
-         else
-            print('sub3', string.sub(v.unprocessed, lastiend + 1, #v.unprocessed))
-         end
-      until not istart
-
-
-
-
+      table.insert(coloredtext, colorMap['default'])
       table.insert(coloredtext, v.processed)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
       self.textobj:add(coloredtext, x0, y)

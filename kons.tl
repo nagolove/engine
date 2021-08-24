@@ -289,6 +289,10 @@ function kons:draw(x0: number, y0: number)
             leading = string.sub(v.unprocessed, 1, istart - 1)
             print('s0', leading)
         end
+
+        table.insert(coloredtext, colorMap['default'])
+        table.insert(coloredtext, v.processed)
+        --[[
         if leading then
             table.insert(coloredtext, colorMap['default'])
             table.insert(coloredtext, leading)
@@ -318,11 +322,13 @@ function kons:draw(x0: number, y0: number)
                 print('sub3', string.sub(v.unprocessed, lastiend + 1, #v.unprocessed))
             end
         until not istart
+        --]]
+        
             --print("gmatch", k, v)
         --end
 
         --g.print(v.processed, x0, y)
-        table.insert(coloredtext, v.processed)
+        --table.insert(coloredtext, v.processed)
 
         --self.textobj:add({v.processed}, x0, y)
         self.textobj:add(coloredtext, x0, y)

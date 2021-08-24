@@ -50,15 +50,19 @@ function DiamonAndSquare:eval()
       ok = coroutine.resume(coro)
    end
 
+   return self
 end
 
-function DiamonAndSquare.new(map_n)
+function DiamonAndSquare.new(mapn)
+   if type(mapn) ~= 'number' then
+      error('No mapn parameter in constructor.')
+   end
    local self
    self = setmetatable({}, DiamonAndSquare_mt)
 
    self.map = {}
 
-   self.mapSize = math.ceil(2 ^ map_n) + 1
+   self.mapSize = math.ceil(2 ^ mapn) + 1
    self.chunkSize = self.mapSize - 1
    self.roughness = 2
 
@@ -121,7 +125,7 @@ local function interpolate_color(a, b, t)
    return c
 end
 
-local function get_color(value)
+local function color(value)
    local n = #colors + 2
 
    if value <= 1 / n then
@@ -252,18 +256,9 @@ local function power(value)
    return n
 end
 
-local map_n = 4
-
 function DiamonAndSquare:draw()
-   love.graphics.setColor(1, 1, 1)
-   love.graphics.print(tostring(self.chunkSize), 0, 0)
-   love.graphics.print(tostring(self.mapn), 0, 20)
 
-   local height = love.graphics.getHeight()
-   local rez = height / (self.mapSize + 2)
-
-   rez = 2 ^ power(rez)
-   if rez < 1 then rez = 1 end
+   local rez = 128
 
    for i = 1, self.mapSize do
       for j = 1, self.mapSize do
@@ -276,23 +271,20 @@ function DiamonAndSquare:draw()
                c = 0
             end
 
-            love.graphics.setColor(get_color(c ^ 2))
-
-            if rez > 1 then
-               love.graphics.rectangle("fill", rez * i, rez * j, rez, rez)
-            else
-               love.graphics.points(i, j)
-            end
+            love.graphics.setColor(color(c ^ 2))
+            love.graphics.rectangle("fill", rez * i, rez * j, rez, rez)
 
 
-            if map_n < 5 then
-               if c < 0.75 then
-                  love.graphics.setColor(1, 1, 1)
-               else
-                  love.graphics.setColor(0, 0, 0)
-               end
-               love.graphics.print(tostring(math.floor(c * 100)), rez * i, rez * j)
-            end
+
+
+
+
+
+
+
+
+
+
          end
       end
    end

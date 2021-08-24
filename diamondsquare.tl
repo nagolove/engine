@@ -16,12 +16,13 @@ global record DiamonAndSquare
     mapSize: integer
     chunkSize: integer
     roughness: integer
+    canvas: love.graphics.Canvas
 
     new: function(): DiamonAndSquare
 
     --cycle: function(DiamonAndSquare)
     --evaluate: function(DiamonAndSquare)
-    eval: function(DiamonAndSquare)
+    eval: function(DiamonAndSquare): DiamonAndSquare
 
     diamond: function(DiamonAndSquare): boolean
     draw: function(DiamonAndSquare)
@@ -34,7 +35,7 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
     __index = DiamonAndSquare,
 }
 
-function DiamonAndSquare:eval()
+function DiamonAndSquare:eval(): DiamonAndSquare
     local coro = coroutine.create(function()
         local stop = false
         repeat
@@ -50,6 +51,7 @@ function DiamonAndSquare:eval()
         ok = coroutine.resume(coro)
     end
     ---------
+    return self
 end
 
 function DiamonAndSquare.new(mapn: integer): DiamonAndSquare
@@ -124,7 +126,7 @@ local function interpolate_color(a: {number}, b: {number}, t: number): {number}
     return c
 end
 
-local function get_color(value: number): {number}
+local function color(value: number): {number}
     local n = #colors + 2
     
     if value <= 1/n then
@@ -255,18 +257,14 @@ local function power(value: number): number
 	return n
 end
 
-local map_n = 4
+function DiamonAndSquare:present()
+    love.graphics.setCanvas(self.canvas)
+    love.graphics.setCanvas()
+end
 
 function DiamonAndSquare:draw()
-	love.graphics.setColor(1,1,1)
-	love.graphics.print(tostring(self.chunkSize),0,0)
-	love.graphics.print(tostring(self.mapn),0,20)
-	
-    local height = love.graphics.getHeight()
-	local rez = height/(self.mapSize+2)
---	print (rez .. ' '..get_power (rez))
-	rez = 2 ^ power(rez)
-	if rez < 1 then rez = 1 end
+    --local rez = 512
+    local rez = 128
 	
 	for i = 1, self.mapSize do
 		for j = 1, self.mapSize do
@@ -279,15 +277,10 @@ function DiamonAndSquare:draw()
 					c = 0
 				end
 
-				love.graphics.setColor(get_color(c^2))
-				
-				if rez > 1 then
-					love.graphics.rectangle("fill", rez*i, rez*j, rez, rez)
-				else
-					love.graphics.points(i, j)
-				end
-				
+				love.graphics.setColor(color(c^2))
+                love.graphics.rectangle("fill", rez*i, rez*j, rez, rez)
 
+                --[[
 				if map_n < 5 then
 					if c < 0.75 then
 						love.graphics.setColor(1,1,1)
@@ -296,6 +289,8 @@ function DiamonAndSquare:draw()
 					end
 					love.graphics.print(tostring(math.floor(c*100)), rez*i, rez*j)
 				end
+                --]]
+
 			end
 		end
 	end
