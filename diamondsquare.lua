@@ -30,6 +30,11 @@ require('love')
 
 
 
+
+
+
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
@@ -53,7 +58,7 @@ function DiamonAndSquare:eval()
    return self
 end
 
-function DiamonAndSquare.new(mapn)
+function DiamonAndSquare.new(mapn, rez)
    if type(mapn) ~= 'number' then
       error('No mapn parameter in constructor.')
    end
@@ -61,8 +66,14 @@ function DiamonAndSquare.new(mapn)
    self = setmetatable({}, DiamonAndSquare_mt)
 
    self.map = {}
-
+   self.rez = rez
    self.mapSize = math.ceil(2 ^ mapn) + 1
+   self.width = self.mapSize * self.rez
+   self.height = self.mapSize * self.rez
+   local maxsize = love.graphics.getSystemLimits()['texturesize']
+
+   self.maxcanvassize = 4094
+   self.canvas = love.graphics.newCanvas(maxsize, maxsize)
    self.chunkSize = self.mapSize - 1
    self.roughness = 2
 
@@ -256,9 +267,20 @@ local function power(value)
    return n
 end
 
-function DiamonAndSquare:draw()
+function DiamonAndSquare:present()
+   love.graphics.setCanvas(self.canvas)
+   love.graphics.push()
+   local sx = self.maxcanvassize / self.width
+   print('sx', sx)
+   love.graphics.scale(sx, sx)
+   self:draw(0, 0)
+   love.graphics.pop()
+   love.graphics.setCanvas()
+end
 
-   local rez = 128
+function DiamonAndSquare:draw(x, y)
+   x = x or 0
+   y = y or 0
 
    for i = 1, self.mapSize do
       for j = 1, self.mapSize do
@@ -272,7 +294,7 @@ function DiamonAndSquare:draw()
             end
 
             love.graphics.setColor(color(c ^ 2))
-            love.graphics.rectangle("fill", rez * i, rez * j, rez, rez)
+            love.graphics.rectangle("fill", x + self.rez * i, y + self.rez * j, self.rez, self.rez)
 
 
 

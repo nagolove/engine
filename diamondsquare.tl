@@ -9,6 +9,9 @@ require 'love'
 
 global record DiamonAndSquare
 
+    scale: number
+    maxcanvassize: integer
+    rez: integer
     mapn: integer
     map: {{number}}
     width: integer
@@ -18,14 +21,15 @@ global record DiamonAndSquare
     roughness: integer
     canvas: love.graphics.Canvas
 
-    new: function(): DiamonAndSquare
+    new: function(mapn: integer, rez: integer): DiamonAndSquare
 
     --cycle: function(DiamonAndSquare)
     --evaluate: function(DiamonAndSquare)
     eval: function(DiamonAndSquare): DiamonAndSquare
+    draw: function(DiamonAndSquare, integer, integer)
+    present: function(DiamonAndSquare)
 
     diamond: function(DiamonAndSquare): boolean
-    draw: function(DiamonAndSquare)
     square: function(DiamonAndSquare)
     squareValue: function(DiamonAndSquare, number, number, number): number, number, number
     value: function(DiamonAndSquare, number, number): number
@@ -54,7 +58,7 @@ function DiamonAndSquare:eval(): DiamonAndSquare
     return self
 end
 
-function DiamonAndSquare.new(mapn: integer): DiamonAndSquare
+function DiamonAndSquare.new(mapn: integer, rez: integer): DiamonAndSquare
     if type(mapn) ~= 'number' then
         error('No mapn parameter in constructor.')
     end
@@ -62,8 +66,14 @@ function DiamonAndSquare.new(mapn: integer): DiamonAndSquare
     self = setmetatable({} as DiamonAndSquare, DiamonAndSquare_mt)
 
 	self.map = {}
-	
+    self.rez = rez
 	self.mapSize = math.ceil(2^mapn) + 1 -- 1025
+    self.width = self.mapSize * self.rez
+    self.height = self.mapSize * self.rez
+    local maxsize = love.graphics.getSystemLimits()['texturesize'] as number
+    --print(inspect(love.
+    self.maxcanvassize = 4094
+    self.canvas = love.graphics.newCanvas(maxsize, maxsize)
 	self.chunkSize = self.mapSize - 1
 	self.roughness = 2
 	
@@ -259,13 +269,19 @@ end
 
 function DiamonAndSquare:present()
     love.graphics.setCanvas(self.canvas)
+    love.graphics.push()
+    local sx = self.maxcanvassize / self.width
+    print('sx', sx)
+    love.graphics.scale(sx, sx)
+    self:draw(0, 0)
+    love.graphics.pop()
     love.graphics.setCanvas()
 end
 
-function DiamonAndSquare:draw()
-    --local rez = 512
-    local rez = 128
-	
+function DiamonAndSquare:draw(x: integer, y: integer)
+    x = x or 0
+    y = y or 0
+
 	for i = 1, self.mapSize do
 		for j = 1, self.mapSize do
 			local c = self.map[i] and self.map[i][j] or nil
@@ -278,7 +294,7 @@ function DiamonAndSquare:draw()
 				end
 
 				love.graphics.setColor(color(c^2))
-                love.graphics.rectangle("fill", rez*i, rez*j, rez, rez)
+                love.graphics.rectangle("fill", x + self.rez*i, y + self.rez*j, self.rez, self.rez)
 
                 --[[
 				if map_n < 5 then
