@@ -112,7 +112,7 @@ function kons.Text.new(unprocessed: string|{string}, ...: any): kons.Text
     local self: kons.Text = setmetatable({} as kons.Text, Text_mt)
     local tmp: string
     if type(unprocessed) == 'table' then
-        print('branch1')
+        --print('branch1')
         self.linesnum = #(unprocessed as {string})
         self.unprocessed = table.concat(unprocessed as {string}, "\n")
         tmp = string.gsub(
@@ -123,7 +123,7 @@ function kons.Text.new(unprocessed: string|{string}, ...: any): kons.Text
             end
         )
     elseif type(unprocessed) == 'string' then
-        print('branch2')
+        --print('branch2')
         self.linesnum = 1
         self.unprocessed = unprocessed as string
         tmp = string.gsub(
@@ -143,8 +143,8 @@ function kons.Text.new(unprocessed: string|{string}, ...: any): kons.Text
     -- как обойти падение?
     self.processed = string.format(tmp, ...)
 
-    print('self.processed', self.processed)
-    print('self.unprocessed', self.unprocessed)
+    --print('self.processed', self.processed)
+    --print('self.unprocessed', self.unprocessed)
 
     return self
     -- }}}

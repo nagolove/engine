@@ -47,6 +47,7 @@ function DiamonAndSquare:eval()
          coroutine.yield()
          stop = self:diamond()
       until stop
+      self:normalize()
    end)
 
    local ok
@@ -56,6 +57,21 @@ function DiamonAndSquare:eval()
    end
 
    return self
+end
+
+function DiamonAndSquare:normalize()
+   for i = 1, self.mapSize do
+      for j = 1, self.mapSize do
+         local c = self.map[i] and self.map[i][j] or nil
+         if c then
+            if c > 1 then
+               self.map[i][j] = 1
+            elseif c < 0 then
+               self.map[i][j] = 0
+            end
+         end
+      end
+   end
 end
 
 function DiamonAndSquare.new(mapn, rez)
@@ -73,7 +89,7 @@ function DiamonAndSquare.new(mapn, rez)
    local maxsize = love.graphics.getSystemLimits()['texturesize']
 
    self.maxcanvassize = 4094
-   self.canvas = love.graphics.newCanvas(maxsize, maxsize)
+   self.canvas = love.graphics.newCanvas(self.maxcanvassize, self.maxcanvassize)
    self.chunkSize = self.mapSize - 1
    self.roughness = 2
 
@@ -267,12 +283,14 @@ local function power(value)
    return n
 end
 
+
 function DiamonAndSquare:present()
    love.graphics.setCanvas(self.canvas)
    love.graphics.push()
+
    local sx = self.maxcanvassize / self.width
-   print('sx', sx)
-   love.graphics.scale(sx, sx)
+
+
    self:draw(0, 0)
    love.graphics.pop()
    love.graphics.setCanvas()
@@ -286,16 +304,8 @@ function DiamonAndSquare:draw(x, y)
       for j = 1, self.mapSize do
          local c = self.map[i] and self.map[i][j] or nil
          if c then
-
-            if c > 1 then
-               c = 1
-            elseif c < 0 then
-               c = 0
-            end
-
             love.graphics.setColor(color(c ^ 2))
             love.graphics.rectangle("fill", x + self.rez * i, y + self.rez * j, self.rez, self.rez)
-
 
 
 

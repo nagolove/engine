@@ -112,7 +112,7 @@ function kons.Text.new(unprocessed, ...)
    local self = setmetatable({}, Text_mt)
    local tmp
    if type(unprocessed) == 'table' then
-      print('branch1')
+
       self.linesnum = #(unprocessed)
       self.unprocessed = table.concat(unprocessed, "\n")
       tmp = string.gsub(
@@ -123,7 +123,7 @@ function kons.Text.new(unprocessed, ...)
       end)
 
    elseif type(unprocessed) == 'string' then
-      print('branch2')
+
       self.linesnum = 1
       self.unprocessed = unprocessed
       tmp = string.gsub(
@@ -143,8 +143,8 @@ function kons.Text.new(unprocessed, ...)
 
    self.processed = string.format(tmp, ...)
 
-   print('self.processed', self.processed)
-   print('self.unprocessed', self.unprocessed)
+
+
 
    return self
 
