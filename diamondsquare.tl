@@ -20,16 +20,29 @@ global record DiamonAndSquare
     chunkSize: integer
     roughness: integer
     canvas: love.graphics.Canvas
+    rng: love.math.RandomGenerator
 
-    new: function(mapn: integer, rez: integer): DiamonAndSquare
+    new: function(mapn: integer, rez: integer, rng: love.math.RandomGenerator): DiamonAndSquare
 
-    --cycle: function(DiamonAndSquare)
-    --evaluate: function(DiamonAndSquare)
+    random: function(DiamonAndSquare, min: number, max: number): number
+
+    -- сохранить в файл
+    save: function(DiamonAndSquare, fname: string)
+    -- загрузить из файла
+    load: function(DiamonAndSquare, fname: string)
+    -- генерировать карту высот
     eval: function(DiamonAndSquare): DiamonAndSquare
+    -- рисовать карту высот. Медленно
     draw: function(DiamonAndSquare, integer, integer)
+    draw2canvas: function(DiamonAndSquare)
+    -- рисовать карту высот в холст
     present: function(DiamonAndSquare)
+    -- нормализовать значения высот к диапазону 0..1
     normalize: function(DiamonAndSquare)
+    -- шаг алмаза
     diamond: function(DiamonAndSquare): boolean
+    diamondValue: function(DiamonAndSquare, i: number, j: number, half: number): number, number, number
+    -- шаг квадрат(?)
     square: function(DiamonAndSquare)
     squareValue: function(DiamonAndSquare, number, number, number): number, number, number
     value: function(DiamonAndSquare, number, number): number
@@ -38,6 +51,19 @@ end
 local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
     __index = DiamonAndSquare,
 }
+
+local defaultcanvasSize = 4096
+
+local serpent = require 'serpent'
+
+function DiamonAndSquare:load(_: string)
+
+end
+
+function DiamonAndSquare:save(fname: string)
+    local data = serpent.dump(self)
+    love.filesystem.write(fname, data)
+end
 
 function DiamonAndSquare:eval(): DiamonAndSquare
     local coro = coroutine.create(function()
@@ -74,7 +100,7 @@ function DiamonAndSquare:normalize()
     end
 end
 
-function DiamonAndSquare.new(mapn: integer, rez: integer): DiamonAndSquare
+function DiamonAndSquare.new(mapn: integer, rez: integer, rng: love.math.RandomGenerator): DiamonAndSquare
     if type(mapn) ~= 'number' then
         error('No mapn parameter in constructor.')
     end
@@ -86,12 +112,13 @@ function DiamonAndSquare.new(mapn: integer, rez: integer): DiamonAndSquare
 	self.mapSize = math.ceil(2^mapn) + 1 -- 1025
     self.width = self.mapSize * self.rez
     self.height = self.mapSize * self.rez
-    local maxsize = love.graphics.getSystemLimits()['texturesize'] as number
+    --local maxsize = love.graphics.getSystemLimits()['texturesize'] as number
     --print(inspect(love.
-    self.maxcanvassize = 4094
+    self.maxcanvassize = defaultcanvasSize
     self.canvas = love.graphics.newCanvas(self.maxcanvassize, self.maxcanvassize)
 	self.chunkSize = self.mapSize - 1
 	self.roughness = 2
+    self.rng = rng
 	
 	local corners = {
         {
@@ -115,7 +142,8 @@ function DiamonAndSquare.new(mapn: integer, rez: integer): DiamonAndSquare
 	for _, corner in ipairs(corners) do
 		local i, j = corner.i, corner.j
 
-		local value = math.random()
+		--local value = math.random()
+		local value = self.rng:random()
 
 		value = 0.5-0.5*math.cos(value*math.pi)
 		self.map[i] = self.map[i] or {}
@@ -158,23 +186,17 @@ local function color(value: number): {number}
     if value <= 1/n then
         return colors[1]
     end
+
     for i = 2, #colors do
         if value <= i/n then
             local t = (value-((i-1)/n))/(1/n)
             return interpolate_color (colors[i-1], colors[i], t)
         end
     end
+
     -- more than last
     return colors[#colors]
 end
-
---for i = 0, 255 do
-----	print (i, (get_color (i/255))[1]*255, (get_color (i/255))[2]*255, (get_color (i/255))[3]*255)
---	get_color (i/255)
-    
---end
-
---local update = {}
 
 function DiamonAndSquare:value(i: number, j: number): number
     local floor = math.floor
@@ -184,9 +206,12 @@ function DiamonAndSquare:value(i: number, j: number): number
 end
 
 function DiamonAndSquare:random(min: number, max: number): number
-	local r = 4*(math.random ()-0.5)^3 + 0.5
+	--local r = 4*(math.random ()-0.5)^3 + 0.5
+	local r = 4*(self.rng:random()-0.5)^3 + 0.5
 --	https://www.desmos.com/calculator/toxjtsovev
-	return min + r*(max-min)
+    local result = min + r*(max-min)
+    --print('DiamonAndSquare:random()', min, max, result)
+    return result
 end
 
 function DiamonAndSquare:squareValue(i: number, j: number, _: number): number, number, number
@@ -274,6 +299,8 @@ local function update(dt: number)
 end
 --]]
 
+--[[
+-- что делает эта функция?
 local function power(value: number): number
 	local n = -1
 		while value > 1 do
@@ -282,18 +309,32 @@ local function power(value: number): number
 		end
 	return n
 end
+--]]
 
--- рисовать на внутренний канвас
-function DiamonAndSquare:present()
+function DiamonAndSquare:draw2canvas()
     love.graphics.setCanvas(self.canvas)
     love.graphics.push()
     -- как установить масштаб что-бы весь ландшафт умещался на холсте?
     local sx = self.maxcanvassize / self.width
     --print('sx', sx)
-    --love.graphics.scale(sx, sx)
+    love.graphics.scale(sx, sx)
+    self.scale = sx
     self:draw(0, 0)
     love.graphics.pop()
     love.graphics.setCanvas()
+end
+
+-- рисовать на внутренний канвас
+function DiamonAndSquare:present()
+    love.graphics.setColor{1, 1, 1, 1}
+    --local dx, dy = - self.width / 2, - self.height / 2
+    --local w, h = self.canvas:getDimensions()
+    local dx, dy = - self.width / 2, - self.height / 2
+    --print('diamondSquare.width, diamondSquare.height', diamondSquare.width, diamondSquare.height)
+    local Canvas = love.graphics.Drawable 
+    --print('self.scale', self.scale)
+    local scale = 1 / self.scale
+    love.graphics.draw(self.canvas as Canvas, dx, dy, 0., scale, scale)
 end
 
 function DiamonAndSquare:draw(x: integer, y: integer)

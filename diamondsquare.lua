@@ -35,9 +35,35 @@ require('love')
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
+
+local defaultcanvasSize = 4096
+
+local serpent = require('serpent')
+
+function DiamonAndSquare:load(_)
+
+end
+
+function DiamonAndSquare:save(fname)
+   local data = serpent.dump(self)
+   love.filesystem.write(fname, data)
+end
 
 function DiamonAndSquare:eval()
    local coro = coroutine.create(function()
@@ -74,7 +100,7 @@ function DiamonAndSquare:normalize()
    end
 end
 
-function DiamonAndSquare.new(mapn, rez)
+function DiamonAndSquare.new(mapn, rez, rng)
    if type(mapn) ~= 'number' then
       error('No mapn parameter in constructor.')
    end
@@ -86,12 +112,13 @@ function DiamonAndSquare.new(mapn, rez)
    self.mapSize = math.ceil(2 ^ mapn) + 1
    self.width = self.mapSize * self.rez
    self.height = self.mapSize * self.rez
-   local maxsize = love.graphics.getSystemLimits()['texturesize']
 
-   self.maxcanvassize = 4094
+
+   self.maxcanvassize = defaultcanvasSize
    self.canvas = love.graphics.newCanvas(self.maxcanvassize, self.maxcanvassize)
    self.chunkSize = self.mapSize - 1
    self.roughness = 2
+   self.rng = rng
 
    local corners = {
       {
@@ -115,7 +142,8 @@ function DiamonAndSquare.new(mapn, rez)
    for _, corner in ipairs(corners) do
       local i, j = corner.i, corner.j
 
-      local value = math.random()
+
+      local value = self.rng:random()
 
       value = 0.5 - 0.5 * math.cos(value * math.pi)
       self.map[i] = self.map[i] or {}
@@ -158,6 +186,7 @@ local function color(value)
    if value <= 1 / n then
       return colors[1]
    end
+
    for i = 2, #colors do
       if value <= i / n then
          local t = (value - ((i - 1) / n)) / (1 / n)
@@ -165,16 +194,9 @@ local function color(value)
       end
    end
 
+
    return colors[#colors]
 end
-
-
-
-
-
-
-
-
 
 function DiamonAndSquare:value(i, j)
    local floor = math.floor
@@ -184,9 +206,12 @@ function DiamonAndSquare:value(i, j)
 end
 
 function DiamonAndSquare:random(min, max)
-   local r = 4 * (math.random() - 0.5) ^ 3 + 0.5
 
-   return min + r * (max - min)
+   local r = 4 * (self.rng:random() - 0.5) ^ 3 + 0.5
+
+   local result = min + r * (max - min)
+
+   return result
 end
 
 function DiamonAndSquare:squareValue(i, j, _)
@@ -274,26 +299,42 @@ end
 
 
 
-local function power(value)
-   local n = -1
-   while value > 1 do
-      n = n + 1
-      value = value / 2
-   end
-   return n
-end
 
 
-function DiamonAndSquare:present()
+
+
+
+
+
+
+
+
+
+
+function DiamonAndSquare:draw2canvas()
    love.graphics.setCanvas(self.canvas)
    love.graphics.push()
 
    local sx = self.maxcanvassize / self.width
 
-
+   love.graphics.scale(sx, sx)
+   self.scale = sx
    self:draw(0, 0)
    love.graphics.pop()
    love.graphics.setCanvas()
+end
+
+
+function DiamonAndSquare:present()
+   love.graphics.setColor({ 1, 1, 1, 1 })
+
+
+   local dx, dy = -self.width / 2, -self.height / 2
+
+   local Canvas = love.graphics.Drawable
+
+   local scale = 1 / self.scale
+   love.graphics.draw(self.canvas, dx, dy, 0., scale, scale)
 end
 
 function DiamonAndSquare:draw(x, y)
