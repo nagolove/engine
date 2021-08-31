@@ -86,7 +86,7 @@ function vector:toPolar(): number, number
     return atan2(self.x, self.y), self:len()
 end
 
-local function fromPolar(angle: number, radius: number): vector
+function fromPolar(angle: number, radius: number): vector
     radius = radius or 1
     return new(cos(angle) * radius, sin(angle) * radius)
 end
