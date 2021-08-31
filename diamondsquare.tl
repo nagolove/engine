@@ -14,7 +14,9 @@ global record DiamonAndSquare
     rez: integer
     mapn: integer
     map: {{number}}
+    -- в пикселях
     width: integer
+    -- в пикселях
     height: integer
     mapSize: integer
     chunkSize: integer
@@ -52,7 +54,8 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
     __index = DiamonAndSquare,
 }
 
-local defaultcanvasSize = 4096
+--local defaultcanvasSize = 4096
+local defaultcanvasSize = 4096 * 2
 
 local serpent = require 'serpent'
 
@@ -329,7 +332,8 @@ function DiamonAndSquare:present()
     love.graphics.setColor{1, 1, 1, 1}
     --local dx, dy = - self.width / 2, - self.height / 2
     --local w, h = self.canvas:getDimensions()
-    local dx, dy = - self.width / 2, - self.height / 2
+    --local dx, dy = - self.width / 2, - self.height / 2
+    local dx, dy = 0, 0
     --print('diamondSquare.width, diamondSquare.height', diamondSquare.width, diamondSquare.height)
     local Canvas = love.graphics.Drawable 
     --print('self.scale', self.scale)

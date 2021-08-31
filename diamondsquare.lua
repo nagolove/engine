@@ -48,11 +48,14 @@ require('love')
 
 
 
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
 
-local defaultcanvasSize = 4096
+
+local defaultcanvasSize = 4096 * 2
 
 local serpent = require('serpent')
 
@@ -329,7 +332,8 @@ function DiamonAndSquare:present()
    love.graphics.setColor({ 1, 1, 1, 1 })
 
 
-   local dx, dy = -self.width / 2, -self.height / 2
+
+   local dx, dy = 0, 0
 
    local Canvas = love.graphics.Drawable
 
