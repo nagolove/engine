@@ -145,7 +145,6 @@ function DiamonAndSquare.new(mapn, rez, rng)
    for _, corner in ipairs(corners) do
       local i, j = corner.i, corner.j
 
-
       local value = self.rng:random()
 
       value = 0.5 - 0.5 * math.cos(value * math.pi)
