@@ -183,6 +183,7 @@ local function interpolate_color(a, b, t)
 end
 
 local function color(value)
+
    local n = #colors + 2
 
    if value <= 1 / n then
@@ -191,6 +192,7 @@ local function color(value)
 
    for i = 2, #colors do
       if value <= i / n then
+
          local t = (value - ((i - 1) / n)) / (1 / n)
          return interpolate_color(colors[i - 1], colors[i], t)
       end
@@ -328,7 +330,15 @@ end
 
 
 function DiamonAndSquare:present()
+   love.graphics.setLineWidth(4)
+   love.graphics.setColor({ 0, 0.5, 0, 1 })
+   love.graphics.line(0, 0, 4096, 4096)
+   love.graphics.setLineWidth(4)
+   love.graphics.setColor({ 1, 0.0, 0, 1 })
+   love.graphics.line(0, 0, -4096, 4096)
+
    love.graphics.setColor({ 1, 1, 1, 1 })
+
 
 
 
@@ -337,6 +347,7 @@ function DiamonAndSquare:present()
    local Canvas = love.graphics.Drawable
 
    local scale = 1 / self.scale
+
    love.graphics.draw(self.canvas, dx, dy, 0., scale, scale)
 end
 
