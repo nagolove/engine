@@ -4,7 +4,7 @@
 require "love"
 
 local gr = love.graphics
-local fontsize = 23
+local fontsize = 32
 
 ----------------------
 -- List object
@@ -71,7 +71,7 @@ local record List
     mousemoved: function(List, x: number, y: number, dx: number, dy: number)
     wheelmoved: function(List, _: number, y: number)
 
-    draw: function(List)
+    draw: function(List, x: number, y: number)
     draw2: function(List)
 
     getBarRect: function(List, number, number, number, number)
@@ -334,7 +334,7 @@ function List:getInterval(): number, number
     return start_i, end_i
 end
 
-function List:draw()
+function List:draw(x: number, y: number)
     if not self.visible then 
         return 
     end

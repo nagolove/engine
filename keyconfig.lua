@@ -167,13 +167,13 @@ function KeyConfig.prepareDrawing()
    end
 end
 
-function KeyConfig.draw()
+function KeyConfig.draw(x, y)
    if not shortcutsList then
       KeyConfig.prepareDrawing()
    end
 
 
-   shortcutsList:draw()
+   shortcutsList:draw(x, y)
 end
 
 function KeyConfig.updateList(dt)

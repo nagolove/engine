@@ -70,7 +70,7 @@ global type KeyConfig = record
     -- вызывать для обновления внутренниего состояния "keypressed"
     keypressed: function(key: string)
     -- рисовать красивый список с навигацией и подробной справкой
-    draw: function()
+    draw: function(x: number, y: number)
     -- вызывать только если активна отрисовка
     updateList: function(dt: number)
     getListObject: function(): List
@@ -167,13 +167,13 @@ function KeyConfig.prepareDrawing()
     end
 end
 
-function KeyConfig.draw()
+function KeyConfig.draw(x: number, y: number)
     if not shortcutsList then
         KeyConfig.prepareDrawing()
     end
     -- Для рисования списка клавиш по центру экрана не хватает информации о
     -- максимальной ширине строки(ширина списка)
-    shortcutsList:draw()
+    shortcutsList:draw(x, y)
 end
 
 function KeyConfig.updateList(dt: number)

@@ -4,7 +4,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 require("love")
 
 local gr = love.graphics
-local fontsize = 23
+local fontsize = 32
 
 
 
@@ -334,7 +334,7 @@ function List:getInterval()
    return start_i, end_i
 end
 
-function List:draw()
+function List:draw(x, y)
    if not self.visible then
       return
    end

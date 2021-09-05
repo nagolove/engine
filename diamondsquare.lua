@@ -330,14 +330,13 @@ end
 
 
 function DiamonAndSquare:present()
-   love.graphics.setLineWidth(4)
-   love.graphics.setColor({ 0, 0.5, 0, 1 })
-   love.graphics.line(0, 0, 4096, 4096)
-   love.graphics.setLineWidth(4)
-   love.graphics.setColor({ 1, 0.0, 0, 1 })
-   love.graphics.line(0, 0, -4096, 4096)
 
-   love.graphics.setColor({ 1, 1, 1, 1 })
+
+
+
+
+
+
 
 
 
