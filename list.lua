@@ -354,7 +354,7 @@ function List:draw(x, y)
 
       rx, ry, rw, rh = self:getItemRect(i)
       gr.setColor(colorset.bg)
-      gr.rectangle("fill", rx, ry, rw, rh)
+      gr.rectangle("fill", rx + x, ry + y, rw, rh)
 
       gr.setColor(colorset.fg)
 
@@ -367,7 +367,7 @@ function List:draw(x, y)
       if item.list and item.isdrawable then
          item.list.x = rx + rw
          item.list.y = ry
-         item.list:draw()
+         item.list:draw(x, y)
       end
    end
 
@@ -382,7 +382,7 @@ function List:draw(x, y)
 
       rx, ry, rw, rh = self:getBarRect()
       love.graphics.setColor(colorset.bg)
-      love.graphics.rectangle("fill", rx, ry, rw, rh)
+      love.graphics.rectangle("fill", rx + x, ry + y, rw, rh)
    end
 
 
@@ -408,75 +408,78 @@ function List:bar()
 
 end
 
-function List:draw2()
-   if not self.visible then return end
-
-   love.graphics.setLineWidth(1)
-   love.graphics.setLineStyle("rough")
-   love.graphics.setColor(self.windowcolor)
-
-
-   local start_i = math.floor(self:getOffset() / (self.item_height + 1)) + 1
-   local end_i = start_i + math.floor(self.height / (self.item_height + 1)) + 1
-   if end_i > #self.items then
-      end_i = #self.items
-   end
-
-   love.graphics.setScissor(self.x, self.y, self.width, self.height)
-
-
-   local rx, ry, rw, rh
-   local colorset
-   for i = start_i, end_i do
-      if i == self.hoveritem then
-         colorset = self.colors.hover
-      else
-         colorset = self.colors.normal
-      end
-
-      rx, ry, rw, rh = self:getItemRect(i)
-      love.graphics.setColor(colorset.bg)
-      love.graphics.rectangle("fill", rx, ry, rw, rh)
-
-      love.graphics.setColor(colorset.fg)
-
-
-      local t = {}
-
-
-
-      love.graphics.print(t, rx + 10, ry + 5)
-
-      local item = self.items[i]
-      if item.list and item.isdrawable then
-         item.list.x = rx + rw
-         item.list.y = ry
-         item.list:draw()
-      end
-   end
-
-   love.graphics.setScissor()
-
-
-   if self:hasBar() then
 
 
 
 
 
 
-      rx, ry, rw, rh = self:getBarRect()
-      love.graphics.setColor(colorset.bg)
-      love.graphics.rectangle("fill", rx, ry, rw, rh)
-   end
 
 
-   love.graphics.setColor(self.bordercolor)
-   if self.bar then
 
-   end
-   love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 return List

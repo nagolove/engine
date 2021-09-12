@@ -72,7 +72,7 @@ local record List
     wheelmoved: function(List, _: number, y: number)
 
     draw: function(List, x: number, y: number)
-    draw2: function(List)
+    --draw2: function(List)
 
     getBarRect: function(List, number, number, number, number)
     -- TODO use integer instead number
@@ -354,7 +354,7 @@ function List:draw(x: number, y: number)
 
         rx, ry, rw, rh = self:getItemRect(i)
         gr.setColor(colorset.bg)
-        gr.rectangle("fill", rx, ry, rw, rh)
+        gr.rectangle("fill", rx + x, ry + y, rw, rh)
 
         gr.setColor(colorset.fg)
 
@@ -367,7 +367,7 @@ function List:draw(x: number, y: number)
         if item.list and item.isdrawable then
             item.list.x = rx + rw
             item.list.y = ry
-            item.list:draw()
+            item.list:draw(x, y)
         end
     end
 
@@ -382,7 +382,7 @@ function List:draw(x: number, y: number)
 
         rx, ry, rw, rh = self:getBarRect()
         love.graphics.setColor(colorset.bg)
-        love.graphics.rectangle("fill", rx, ry, rw, rh)
+        love.graphics.rectangle("fill", rx + x, ry + y, rw, rh)
     end
 
     --self:bar()
@@ -408,6 +408,8 @@ function List:bar()
     --]]
 end
 
+-- Чем отличается от draw()?
+--[[
 function List:draw2()
     if not self.visible then return end
 
@@ -478,5 +480,6 @@ function List:draw2()
     love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 
 end
+--]]
 
 return List

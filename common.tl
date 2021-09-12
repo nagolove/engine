@@ -338,3 +338,8 @@ function tobits(num: number, bits: number): {number}
 end
 
 --function 
+
+function jitoff()
+    local jit = require 'jit'
+    jit.off()
+end

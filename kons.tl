@@ -281,7 +281,7 @@ function kons:draw(x0: number, y0: number)
         --for k, v in string.gmatch(v.unprocessed,"(%%{(.-)})") do
         local istart, iend = 0, 0
         local init = 1
-        local lastiend = 0
+        --local lastiend = 0
 
         istart, iend = string.find(v.unprocessed,"(%%{(.-)})", init)
         local leading: string
