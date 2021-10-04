@@ -112,7 +112,7 @@ return {
         --"tools.tl",
         --"scenes/automato/*.tl",
         --"scenes/nback2/*.tl",
-        --"main.tl",
+        "main.tl",
         --"crash*.tl",
     }
 }
