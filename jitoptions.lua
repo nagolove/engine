@@ -1,9 +1,14 @@
 local jit = require 'jit'
 
-function jitoff()
+local function off()
     jit.off()
 end
 
-function jiton()
+local function on()
     jit.on()
 end
+
+return {
+    on = on,
+    off = off,
+}

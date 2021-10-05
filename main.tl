@@ -1,3 +1,5 @@
+require "jitoptions".on()
+
 --[[
 local flag = false
 function testDraw()
@@ -32,15 +34,19 @@ end
 --local prof = require "jprof"
 --local tools = require "tools"
 
-local imgui: any = nil
+require 'imgui'
+
+--local type Imgui = imgui
+--local imgui: Imgui = nil
 local IMGUI_USE_STUB = false
-local ok, errmsg: boolean, string = pcall(function()
-    imgui = require 'imgui'
-end)
-if not ok then
-    print('error:', errmsg)
-    IMGUI_USE_STUB = true
-end
+--local imgui_ok, imgui_errmsg: boolean, string = pcall(function()
+    --imgui = require 'imgui'
+--end)
+--if not imgui_ok then
+    --print('error:', imgui_errmsg)
+    --IMGUI_USE_STUB = true
+--end
+--]]
 
 local inspect = require "inspect"
 local scenes = require "scenes"
@@ -104,13 +110,13 @@ function printGraphicsInfo()
 end
 
 -- поиск аргумента командой строки. Возвращает истину или ложь.
-local function searchArg(arg, paramName)
+local function searchArg(arg: {string}, paramName: string): boolean
     if type(paramName) ~= 'string' then
         error(string.format('searchArg() paramName =  "%s"', paramName or ""))
     end
     print("searchArg", paramName)
 
-    for _, v in pairs(arg) do
+    for _, v in ipairs(arg) do
         if v == paramName then
             return true
         end
@@ -120,15 +126,18 @@ local function searchArg(arg, paramName)
 end
 
 -- поиск команды на запуск сцены. Возвращает строку команды или nil.
-local function findCommand(arg)
+local function findCommand(arg: {string}): string
     local commands = {}
     for i = 1, #arg do
         local s = arg[i]
-        local ok, errmsg = pcall(function()
+        local ok, errmsg: boolean, string = pcall(function()
             if string.sub(s, 1, 1) ~= '-' and string.sub(s, 2, 2) ~= '-' then
                 table.insert(commands, s)
             end
         end)
+        if not ok then
+            error('something strange in findCommand: ' .. errmsg)
+        end
     end
 
     --print('commands', inspect(commands))
@@ -149,20 +158,20 @@ local function findCommand(arg)
     return commands[1]
 end
 
-local function printAvaibleScenes()
-    local list = scenes.getScenes()
-    local tmp = {}
-    for _, v in ipairs(list) do
-        print('-------', v.name)
-        table.insert(tmp, v.name)
-    end
-    print(inspect(tmp))
-    print(inspect(table.concat(tmp, ',')))
-    print("AVAIBLE SCENES: " .. table.concat(tmp, ','))
-    colprint("AVAIBLE SCENES: " .. table.concat(tmp, ','))
-end
+--local function printAvaibleScenes()
+    --local list = scenes.getScenes()
+    --local tmp = {}
+    --for _, v in ipairs(list) do
+        --print('-------', v.name)
+        --table.insert(tmp, v.name)
+    --end
+    --print(inspect(tmp))
+    --print(inspect(table.concat(tmp, ',')))
+    --print("AVAIBLE SCENES: " .. table.concat(tmp, ','))
+    --colprint("AVAIBLE SCENES: " .. table.concat(tmp, ','))
+--end
 
-function love.load(arg)
+function love.load(arg: {string})
     if not IMGUI_USE_STUB then
         imgui.Init()
         imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
@@ -225,9 +234,9 @@ end
 local lastWindowHeaderUpdateTime = love.timer.getTime()
 local quant = 1 -- shoud be in s seconds. Real unit measure is unknown.
 local titlePrefix = "caustic engine "
-local fpsAccum = 0
+--local fpsAccum = 0
 
-function love.update(dt)
+function love.update(dt: number)
     local now = love.timer.getTime()
     if now - lastWindowHeaderUpdateTime > quant then
         love.window.setTitle(titlePrefix .. love.timer.getFPS())
@@ -242,7 +251,7 @@ function love.update(dt)
     scenes.update(dt)
 end
 
-function love.resize(w, h)
+function love.resize(w: integer, h: integer)
     scenes.resize(w, h)
 end
 
@@ -262,14 +271,14 @@ function love.draw()
     end
 end
 
-function love.quit()
+function love.quit(): boolean
     scenes.quit()
     if not IMGUI_USE_STUB then
         imgui.ShutDown();
     end
 end
 
-function love.textinput(t)
+function love.textinput(t: string)
     if not IMGUI_USE_STUB then
         imgui.TextInput(t)
         if not imgui.GetWantCaptureKeyboard() then
@@ -285,11 +294,9 @@ end
 -- scenes.keypressed ?
 --]]
 
-function love.keypressed(_, key)
-    if key == "q" then
-        flag = not flag
-    end
+local type KeyConstant = love.keyboard.KeyConstant
 
+function keypressed(_: KeyConstant, key: love.keyboard.Scancode, _: boolean)
     if not IMGUI_USE_STUB then
         imgui.KeyPressed(key)
         if not imgui.GetWantCaptureKeyboard() then
@@ -300,7 +307,8 @@ function love.keypressed(_, key)
     end
 end
 
-function love.keyreleased(_, key)
+function keyreleased(key: love.keyboard.KeyConstant, _: love.keyboard.Scancode)
+--function love.keyreleased(_, key)
     if not IMGUI_USE_STUB then
         imgui.KeyReleased(key)
         if not imgui.GetWantCaptureKeyboard() then
@@ -309,7 +317,7 @@ function love.keyreleased(_, key)
     end
 end
 
-function love.mousemoved(x, y, dx, dy)
+function love.mousemoved(x: number, y: number, dx: number, dy: number)
     if not IMGUI_USE_STUB then
         imgui.MouseMoved(x, y)
         if not imgui.GetWantCaptureMouse() then
@@ -319,7 +327,7 @@ function love.mousemoved(x, y, dx, dy)
     end
 end
 
-function love.mousepressed(x, y, button)
+function love.mousepressed(x: number, y: number, button: number)
     if not IMGUI_USE_STUB then
         imgui.MousePressed(button)
         if not imgui.GetWantCaptureMouse() then
@@ -329,7 +337,7 @@ function love.mousepressed(x, y, button)
     end
 end
 
-function love.mousereleased(x, y, button)
+function love.mousereleased(x: number, y: number, button: number)
     if not IMGUI_USE_STUB then
         imgui.MouseReleased(button)
         if not imgui.GetWantCaptureMouse() then
@@ -339,7 +347,7 @@ function love.mousereleased(x, y, button)
     end
 end
 
-function love.wheelmoved(x, y)
+function love.wheelmoved(x: number, y: number)
     if not IMGUI_USE_STUB then
         imgui.WheelMoved(y)
         if not imgui.GetWantCaptureMouse() then
@@ -348,17 +356,19 @@ function love.wheelmoved(x, y)
     end
 end
 
-function love.run()
-    headerUpdateTime = love.timer.getTime()
-	if love.load then love.load(love.arg.parseGameArguments(arg), arg) end
+function love.run(): function(): string|number
+    --headerUpdateTime = love.timer.getTime()
+    local tmp = require 'parse_args'
+    --if love.load then love.load(tmp.parseGameArguments(arg), arg) end
+    if love.load then love.load(tmp.parseGameArguments(arg)) end
 
 	-- We don't want the first frame's dt to include time taken by love.load.
 	if love.timer then love.timer.step() end
 
-	local dt = 0
+	local dt = 0.
 
 	-- Main loop time.
-	return function()
+	return function(): string|number
 		-- Process events.
 		if love.event then
 			love.event.pump()
@@ -366,10 +376,13 @@ function love.run()
                 --print('n, a, b, c, d, e, f', n, a, b, c, d, e, f)
 				if name == "quit" then
 					if not love.quit or not love.quit() then
-						return a or 0
+						--return a or 0
+                        -- XXX нет проверки возвращаемого значения
+						return (a or 0) as string
 					end
 				end
-				love.handlers[name](a,b,c,d,e,f)
+                tmp.callHandler(name, a, b, c, d, e, f)
+				--love.handlers[name](a,b,c,d,e,f)
 			end
 		end
 
@@ -391,5 +404,6 @@ function love.run()
 		end
 
 		if love.timer then love.timer.sleep(0.001) end
+
 	end
 end

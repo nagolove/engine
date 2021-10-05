@@ -1,6 +1,6 @@
 global record Jitoptions
-    jitoff: function()
-    jiton: function()
+    off: function()
+    on: function()
 end
 
 return Jitoptions
