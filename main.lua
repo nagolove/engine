@@ -345,7 +345,50 @@ function love.wheelmoved(x, y)
     end
 end
 
+-- Где должен лежать этот код?
+-- Локальный для каждой сцены. Код сцены.
+local game_thread_code = [[
+    require("love.timer")
+
+    local event_channel = love.thread.getChannel("event_channel")
+    local draw_ready_channel = love.thread.getChannel("draw_ready_channel")
+    local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
+
+    local accum = 0
+    
+    local mx, my = 0, 0
+    
+    local time = love.timer.getTime()
+    local dt = 0
+    
+    while true do
+        local events = event_channel:pop()
+        if events then
+            for _,e in ipairs(events) do
+                if e[1] == "mousemoved" then
+                    mx = e[2]
+                    my = e[3]
+                end
+            end
+        end
+        
+        local nt = love.timer.getTime()
+        dt = nt - time
+        time = nt
+
+        if draw_ready_channel:peek() then
+            -- Как передавать данные?
+            graphic_command_channel:push({ mx, my })
+            graphic_command_channel:push(tostring( math.floor( 1 / dt ) ) )
+            draw_ready_channel:pop()
+        end
+        love.timer.sleep(0.001)
+    end
+]]
+
 function love.run()
+    local game_thread = love.thread.newThread( game_thread_code )
+
     headerUpdateTime = love.timer.getTime()
 	if love.load then love.load(love.arg.parseGameArguments(arg), arg) end
 

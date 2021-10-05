@@ -20,6 +20,10 @@ local gr = love.graphics
 local function drawui()
 end
 
+local function draw2(graphic_command_channel: love.thread.Thread)
+    -- Как понять сколько можно доставать результатов?
+end
+
 local function draw()
     gr.clear(0.5, 0.5, 0.5)
     gr.setColor{0, 0, 0}

@@ -15,6 +15,7 @@ end
 print("is_linux", is_linux)
 print("is_windows", is_windows)
 
+-- Написать функцию-сборщик файлов движка.
 function getAutomatoFiles()
     local files = {
         "asm.tl",           -- движок ассемблера для клеток
