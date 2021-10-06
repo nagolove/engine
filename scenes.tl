@@ -7,107 +7,7 @@ require "common"
 
 --local inspect = require "inspect"
 
-global silentMode = false
-
-local old_logferror: function(any) = nil
-
--- возвращает таблицу вида {scene, name} со сцена из указанного каталога
-function loadScenes(path: string): {SceneMap}, {string}
-    -- {{{
-
-    if silentMode then
-        old_logferror = logferror
-        logferror = function() end
-    end
-
-    local scenes: {SceneMap} = {}
-    local scenesNames: {string} = {}
-    local files = love.filesystem.getDirectoryItems(path)
-    for _, v in ipairs(files) do
-        local info = love.filesystem.getInfo(path .. "/" .. v)
-        local scene, fname, name: Scene, string, string
-        if info.type == "directory" then
-            fname = string.format("%s/%s%s", path, v, "/init.lua")
-            name = v
-        elseif info.type == "file" then
-            fname = path .. "/" .. v
-            name = string.match(v, "(.+)%.lua")
-        end
-        logf("loading scene %s", fname)
-        local chunk, errmsg = love.filesystem.load(fname)
-        if chunk then
-            local ok, chunkerrmsg: boolean, string = pcall(function()
-                --XXX Dynamic typing without checks in runtime, resetting
-                -- compile-time checking
-                scene = chunk() as Scene
-            end)
-            if ok and scene then
-                table.insert(scenes, { 
-                    scene = scene, 
-                    name = name,
-                    inited = false,
-                })
-                table.insert(scenesNames, name)
-            else
-                if chunkerrmsg then
-                    logferror("Error: %s", chunkerrmsg)
-                else
-                    logferror("No file for loading: %s", fname)
-                end
-            end
-        else
-            logferror("Could'not load %s, error: %s", fname, errmsg)
-        end
-    end
-
-    logferror = old_logferror
-
-    return scenes, scenesNames
-    -- }}}
-end
-
---local scenes, scenesNames = loadScenes("scenes")
---print("scenes", inspect(scenes))
---local scenes, scenesNames: {SceneMap}, {string} = {}, {}
-
 local currentScene: Scene = nil
-
---local function getScenes(): {SceneMap}
-    --return scenes
---end
-
---local function initInternal(v: SceneMap)
-    ---- {{{
-    --if not v.inited and v.scene.init then
-        --local ok, errmsg: boolean, string = pcall(function()
-            --v.scene.init()
-        --end)
-        --if not ok then
-            ----logferror("Could'not init scene %s: %s", v.name, errmsg)
-            ----v.maybebreaked = true
-            --error(string.format("Could'not init scene %s: %s", v.name, errmsg))
-        --end
-        --v.inited = true
-    --end
-    ---- }}}
---end
-
---local function setCurrentScene(sceneName: string)
-    ---- {{{
-    ----for _, v in ipairs(scenes) do
-        ----if sceneName == v.name then
-            ----initInternal(v)
-            ----currentScene = v.scene
-        ----end
-    ----end
-    ---- }}}
---end
-
---local function initLoaded()
-    --for _, v in ipairs(scenes) do
-        --initInternal(v)
-    --end
---end
 
 local function update(dt: number)
     if currentScene and currentScene.update then
@@ -151,6 +51,9 @@ local function initOne(name: string)
     node.scene = chunk() as Scene
     if node.scene.init then
         print("------------ ↓↓↓↓↓↓↓↓↓↓ init ↓↓↓↓↓↓↓↓↓↓ ------------")
+        --[[
+        В каком месте создавать новый поток?
+        --]]
         node.scene.init()
         print("------------ ↑↑↑↑↑↑↑↑↑↑ init ↑↑↑↑↑↑↑↑↑↑ ------------")
     end
@@ -202,10 +105,6 @@ local function getCurrentScene(): Scene
     return currentScene
 end
 
---function getSceneNames(): {string}
-    --return scenesNames
---end
-
 local function textinput(text: string)
     if currentScene and currentScene.textinput then
         currentScene.textinput(text)
@@ -216,12 +115,7 @@ return {
     --[[
     Переписать интерфейс менеджера сцен.
     --]]
-    --getScenes = getScenes,
     getCurrentScene = getCurrentScene,
-    --getSceneNames = getSceneNames,
-    --setCurrentScene = setCurrentScene,
-    --loadScenes = loadScenes,
-    --initLoaded = initLoaded,
     initOne = initOne,
     update = update,
     draw = draw,

@@ -4,6 +4,13 @@
 require "love"
 require "camera"
 
+-- Однопоточная или мультипоточная схема. 
+-- По-умолчанию используется однопоточная схема.
+global enum SceneType
+    "single"
+    "multi"
+end
+
 global type Scene = record
     -- {{{
     init: function()
@@ -20,6 +27,7 @@ global type Scene = record
     keyreleased: function(string)
     wheelmoved: function(number, number)
     getCamera: function(): Camera
+    getSceneType: function(): SceneType
     -- }}}
 end
 

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local string = _tl_compat and _tl_compat.string or string
 
 
 require("love")
@@ -7,107 +7,57 @@ require("common")
 
 
 
-silentMode = false
-
-local old_logferror = nil
 
 
-function loadScenes(path)
 
 
-   if silentMode then
-      old_logferror = logferror
-      logferror = function() end
-   end
-
-   local scenes = {}
-   local scenesNames = {}
-   local files = love.filesystem.getDirectoryItems(path)
-   for _, v in ipairs(files) do
-      local info = love.filesystem.getInfo(path .. "/" .. v)
-      local scene, fname, name
-      if info.type == "directory" then
-         fname = string.format("%s/%s%s", path, v, "/init.lua")
-         name = v
-      elseif info.type == "file" then
-         fname = path .. "/" .. v
-         name = string.match(v, "(.+)%.lua")
-      end
-      logf("loading scene %s", fname)
-      local chunk, errmsg = love.filesystem.load(fname)
-      if chunk then
-         local ok, chunkerrmsg = pcall(function()
 
 
-            scene = chunk()
-         end)
-         if ok and scene then
-            table.insert(scenes, {
-               scene = scene,
-               name = name,
-               inited = false,
-            })
-            table.insert(scenesNames, name)
-         else
-            if chunkerrmsg then
-               logferror("Error: %s", chunkerrmsg)
-            else
-               logferror("No file for loading: %s", fname)
-            end
-         end
-      else
-         logferror("Could'not load %s, error: %s", fname, errmsg)
-      end
-   end
 
-   logferror = old_logferror
 
-   return scenes, scenesNames
 
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 local currentScene = nil
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 local function update(dt)
    if currentScene and currentScene.update then
@@ -202,10 +152,6 @@ local function getCurrentScene()
    return currentScene
 end
 
-
-
-
-
 local function textinput(text)
    if currentScene and currentScene.textinput then
       currentScene.textinput(text)
@@ -216,12 +162,7 @@ return {
 
 
 
-
    getCurrentScene = getCurrentScene,
-
-
-
-
    initOne = initOne,
    update = update,
    draw = draw,

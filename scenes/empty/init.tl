@@ -8,7 +8,7 @@ local i18n = require "i18n"
 --package.path = package.path .. ";scenes/automato/?.lua"
 
 --local cam = require "camera".new()
-local gr = love.graphics
+--local gr = love.graphics
 --local imgui = require "imgui"
 --local inspect = require "inspect"
 --local keyconfig = require "keyconfig"
@@ -24,10 +24,12 @@ local function draw2(graphic_command_channel: love.thread.Thread)
     -- Как понять сколько можно доставать результатов?
 end
 
-local function draw()
+local function draw(): string
+    return [[
     gr.clear(0.5, 0.5, 0.5)
     gr.setColor{0, 0, 0}
     gr.print("TestTest")
+    ]]
 end
 
 local function update()
@@ -68,7 +70,7 @@ return {
     init = init,
     quit = quit,
     draw = draw,
-    drawui = drawui,
+    --drawui = drawui,
     update = update,
     keypressed = keypressed,
     --mousemoved = mousemoved,

@@ -259,8 +259,6 @@ end
 
 
 
-
-
 function love.keyreleased(key, _)
 
    if not IMGUI_USE_STUB then
@@ -271,9 +269,7 @@ function love.keyreleased(key, _)
    end
 end
 
-
-function love.keypressed(key)
-   print(key)
+function love.keypressed(_, key)
    if not IMGUI_USE_STUB then
       imgui.KeyPressed(key)
       if not imgui.GetWantCaptureKeyboard() then
@@ -373,4 +369,9 @@ function love.run()
       if love.timer then love.timer.sleep(0.001) end
 
    end
+end
+
+function threaderror(thread, errorstr)
+   local fmt = "Something wrong in thread %s with %s"
+   error(string.format(fmt, tostring(thread), errorstr))
 end

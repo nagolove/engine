@@ -259,8 +259,6 @@ end
 -- scenes.keypressed ?
 --]]
 
---local type KeyConstant = love.keyboard.KeyConstant
-
 function love.keyreleased(key: love.keyboard.KeyConstant, _: love.keyboard.Scancode)
 --function love.keyreleased(_, key)
     if not IMGUI_USE_STUB then
@@ -271,9 +269,7 @@ function love.keyreleased(key: love.keyboard.KeyConstant, _: love.keyboard.Scanc
     end
 end
 
---function love.keypressed(_: love.keyboard.KeyConstant, key: love.keyboard.Scancode, _: boolean)
-function love.keypressed(key: string)
-    print(key)
+function love.keypressed(_: string, key: string)
     if not IMGUI_USE_STUB then
         imgui.KeyPressed(key)
         if not imgui.GetWantCaptureKeyboard() then
@@ -374,3 +370,43 @@ function love.run(): function(): string|number
 
 	end
 end
+
+function threaderror(thread: love.thread.Thread, errorstr: string)
+    local fmt = "Something wrong in thread %s with %s"
+    error(string.format(fmt , tostring(thread), errorstr))
+end
+
+--[[ Добавить что-нибудь из списка?
+conf: function(t: Configuration)
+directorydropped: function(path: string)
+displayrotated: function(index: number, orientation: window.DisplayOrientation)
+draw: function()
+errorhandler: function(msg: string)
+filedropped: function(file: filesystem.DroppedFile)
+focus: function(focus: boolean)
+gamepadaxis: function(joystick: joystick.Joystick, axis: joystick.GamepadAxis, value: number)
+gamepadpressed: function(joystick: joystick.Joystick, button: joystick.GamepadButton)
+gamepadreleased: function(joystick: joystick.Joystick, button: joystick.GamepadButton)
+joystickadded: function(joystick: joystick.Joystick)
+joystickaxis: function(joystick: joystick.Joystick, axis: number, value: number)
+joystickhat: function(joystick: joystick.Joystick, hat: number, direction: joystick.JoystickHat)
+joystickpressed: function(joystick: joystick.Joystick, button: number)
+joystickreleased: function(joystick: joystick.Joystick, button: number)
+joystickremoved: function(joystick: joystick.Joystick)
+keyreleased: function(key: keyboard.KeyConstant, scancode: keyboard.Scancode)
+load: function(arg: {string}, unfilteredArg: {string})
+lowmemory: function()
+mousefocus: function(focus: boolean)
+mousemoved: function(x: number, y: number, dx: number, dy: number, istouch: boolean)
+mousepressed: function(x: number, y: number, button: number, istouch: boolean, presses: number)
+resize: function(w: number, h: number)
+run: function(): function(): string|number
+textedited: function(text: string, start: number, length: number)
+textinput: function(text: string)
+touchmoved: function(id: any, x: number, y: number, dx: number, dy: number, pressure: number)
+touchpressed: function(id: any, x: number, y: number, dx: number, dy: number, pressure: number)
+touchreleased: function(id: any, x: number, y: number, dx: number, dy: number, pressure: number)
+update: function(dt: number)
+visible: function(visible: boolean)
+wheelmoved: function(x: number, y: number)
+--]]

@@ -81,6 +81,7 @@ global type love = record
     -- из-зи ошибки приведения типов.
     --keypressed: function(key: keyboard.KeyConstant, scancode: keyboard.Scancode, isrepeat: boolean)
     --keypressed: function(key: keyboard.KeyConstant, isrepeat: boolean)
+
 	conf: function(t: Configuration)
 	directorydropped: function(path: string)
 	displayrotated: function(index: number, orientation: window.DisplayOrientation)
