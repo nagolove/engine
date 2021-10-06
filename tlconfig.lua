@@ -61,7 +61,7 @@ return {
         "lib",
         "src",
         "include",
-        "scenes/automato/",
+        --"scenes/automato/",
         --"",
 
         --"scenes/nback3/",

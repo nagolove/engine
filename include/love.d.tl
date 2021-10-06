@@ -76,10 +76,15 @@ global type love = record
 	hasDeprecationOutput: function(): boolean
 	setDeprecationOutput: function(enable: boolean)
 
+    keypressed: function(key: string, scancode: string)
+    -- Если раскоментироват строчки ниже, то программа перестанет собираться
+    -- из-зи ошибки приведения типов.
+    --keypressed: function(key: keyboard.KeyConstant, scancode: keyboard.Scancode, isrepeat: boolean)
+    --keypressed: function(key: keyboard.KeyConstant, isrepeat: boolean)
 	conf: function(t: Configuration)
 	directorydropped: function(path: string)
 	displayrotated: function(index: number, orientation: window.DisplayOrientation)
-	draw: function()
+    draw: function()
 	errorhandler: function(msg: string)
 	filedropped: function(file: filesystem.DroppedFile)
 	focus: function(focus: boolean)
@@ -92,8 +97,6 @@ global type love = record
 	joystickpressed: function(joystick: joystick.Joystick, button: number)
 	joystickreleased: function(joystick: joystick.Joystick, button: number)
 	joystickremoved: function(joystick: joystick.Joystick)
-	keypressed: function(key: keyboard.KeyConstant, scancode: keyboard.Scancode, isrepeat: boolean)
-	keypressed: function(key: keyboard.KeyConstant, isrepeat: boolean)
 	keyreleased: function(key: keyboard.KeyConstant, scancode: keyboard.Scancode)
 	load: function(arg: {string}, unfilteredArg: {string})
 	lowmemory: function()

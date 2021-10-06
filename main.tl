@@ -1,25 +1,10 @@
 require "jitoptions".on()
 
---[[
-local flag = false
-function testDraw()
-    if flag then
-        for i = 1, 1000 do
-            local w, h = love.graphics.getDimensions()
-            x, y = math.random(1, w), math.random(1, h)
-            a = math.deg(i)
-            local qw, qh = 64, 64
-            love.graphics.rectangle("fill", x, y, qw, qh)
-        end
-    end
-end
---]]
+require "love"
 
 --local package = require "package"
 --package.package = package.path .. ";./?/init.lua"
 print("package.path", package.path)
-
---PROF_CAPTURE = true
 
 if love.system.getOS() == 'Windows' then
     print('1 getCRequirePath() = ', love.filesystem.getCRequirePath())
@@ -27,26 +12,8 @@ if love.system.getOS() == 'Windows' then
     print('2 getCRequirePath() = ', love.filesystem.getCRequirePath())
 end
 
---local argparse = require "argparse"
---local imgui = require "love-imgui"
---local imgui_nil = require "imgui_nil"
---local parser = argparse()
---local prof = require "jprof"
---local tools = require "tools"
-
 require 'imgui'
-
---local type Imgui = imgui
---local imgui: Imgui = nil
 local IMGUI_USE_STUB = false
---local imgui_ok, imgui_errmsg: boolean, string = pcall(function()
-    --imgui = require 'imgui'
---end)
---if not imgui_ok then
-    --print('error:', imgui_errmsg)
-    --IMGUI_USE_STUB = true
---end
---]]
 
 local inspect = require "inspect"
 local scenes = require "scenes"
@@ -60,8 +27,6 @@ local gr = love.graphics
 local imguiFontSize = 22
 
 love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
-
---__FREEZE_PHYSICS__ = true
 
 local Shortcut = KeyConfig.Shortcut
 
@@ -294,25 +259,27 @@ end
 -- scenes.keypressed ?
 --]]
 
-local type KeyConstant = love.keyboard.KeyConstant
+--local type KeyConstant = love.keyboard.KeyConstant
 
-function keypressed(_: KeyConstant, key: love.keyboard.Scancode, _: boolean)
+function love.keyreleased(key: love.keyboard.KeyConstant, _: love.keyboard.Scancode)
+--function love.keyreleased(_, key)
+    if not IMGUI_USE_STUB then
+        imgui.KeyReleased(key)
+        if not imgui.GetWantCaptureKeyboard() then
+            scenes.keyreleased(key)
+        end
+    end
+end
+
+--function love.keypressed(_: love.keyboard.KeyConstant, key: love.keyboard.Scancode, _: boolean)
+function love.keypressed(key: string)
+    print(key)
     if not IMGUI_USE_STUB then
         imgui.KeyPressed(key)
         if not imgui.GetWantCaptureKeyboard() then
             KeyConfig.keypressed(key)
             scenes.keypressed(key)
             --tools.keypressed(key)
-        end
-    end
-end
-
-function keyreleased(key: love.keyboard.KeyConstant, _: love.keyboard.Scancode)
---function love.keyreleased(_, key)
-    if not IMGUI_USE_STUB then
-        imgui.KeyReleased(key)
-        if not imgui.GetWantCaptureKeyboard() then
-            scenes.keyreleased(key)
         end
     end
 end

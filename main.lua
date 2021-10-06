@@ -1,25 +1,10 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local package = _tl_compat and _tl_compat.package or package; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("jitoptions").on()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+require("love")
 
 
 
 print("package.path", package.path)
-
-
 
 if love.system.getOS() == 'Windows' then
    print('1 getCRequirePath() = ', love.filesystem.getCRequirePath())
@@ -27,26 +12,8 @@ if love.system.getOS() == 'Windows' then
    print('2 getCRequirePath() = ', love.filesystem.getCRequirePath())
 end
 
-
-
-
-
-
-
-
 require('imgui')
-
-
-
 local IMGUI_USE_STUB = false
-
-
-
-
-
-
-
-
 
 local inspect = require("inspect")
 local scenes = require("scenes")
@@ -60,8 +27,6 @@ local gr = love.graphics
 local imguiFontSize = 22
 
 love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
-
-
 
 local Shortcut = KeyConfig.Shortcut
 
@@ -294,25 +259,27 @@ end
 
 
 
-local KeyConstant = love.keyboard.KeyConstant
 
-function keypressed(_, key, _)
+
+function love.keyreleased(key, _)
+
+   if not IMGUI_USE_STUB then
+      imgui.KeyReleased(key)
+      if not imgui.GetWantCaptureKeyboard() then
+         scenes.keyreleased(key)
+      end
+   end
+end
+
+
+function love.keypressed(key)
+   print(key)
    if not IMGUI_USE_STUB then
       imgui.KeyPressed(key)
       if not imgui.GetWantCaptureKeyboard() then
          KeyConfig.keypressed(key)
          scenes.keypressed(key)
 
-      end
-   end
-end
-
-function keyreleased(key, _)
-
-   if not IMGUI_USE_STUB then
-      imgui.KeyReleased(key)
-      if not imgui.GetWantCaptureKeyboard() then
-         scenes.keyreleased(key)
       end
    end
 end
