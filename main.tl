@@ -123,19 +123,6 @@ local function findCommand(arg: {string}): string
     return commands[1]
 end
 
---local function printAvaibleScenes()
-    --local list = scenes.getScenes()
-    --local tmp = {}
-    --for _, v in ipairs(list) do
-        --print('-------', v.name)
-        --table.insert(tmp, v.name)
-    --end
-    --print(inspect(tmp))
-    --print(inspect(table.concat(tmp, ',')))
-    --print("AVAIBLE SCENES: " .. table.concat(tmp, ','))
-    --colprint("AVAIBLE SCENES: " .. table.concat(tmp, ','))
---end
-
 function love.load(arg: {string})
     if not IMGUI_USE_STUB then
         imgui.Init()
@@ -152,20 +139,9 @@ function love.load(arg: {string})
         require "mobdebug".start()
     end
 
-    --[[
-    if searchArg(arg, '--dev') then
-        local fhd_width  = 1920
-        local fhd_height = 1080
-        local space = 20 -- in pixels.
-        love.window.setPosition(fhd_width + space, space)
-    end
-    --]]
-
     print("love.load() arg", inspect(arg))
 
     local sceneName = findCommand(arg)
-
-    --printAvaibleScenes()
 
     --TODO : добавить загрузку произвольной сцены по пути.
     -- К примеру `./run ./some/local/path/to/directory/with/init.tl`

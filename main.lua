@@ -123,19 +123,6 @@ local function findCommand(arg)
    return commands[1]
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 function love.load(arg)
    if not IMGUI_USE_STUB then
       imgui.Init()
@@ -152,20 +139,9 @@ function love.load(arg)
       require("mobdebug").start()
    end
 
-
-
-
-
-
-
-
-
-
    print("love.load() arg", inspect(arg))
 
    local sceneName = findCommand(arg)
-
-
 
 
 

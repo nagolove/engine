@@ -40,23 +40,41 @@ local function keypressed(key: string)
 end
 
 local function initOne(name: string)
+    local errmsg: string
+    local ok = false
     -- TODO поддержка вложенных каталогов
     local path = "scenes/" .. name .. "/init.lua"
     print(string.format("initOne '%s'", path))
-    local chunk, errmsg = love.filesystem.load(path)
+    local chunk: any
+    chunk, errmsg = love.filesystem.load(path)
     local node: SceneMap = {}
     if not chunk then
         error(string.format("Could not load '%s': %s", path, errmsg))
     end
-    node.scene = chunk() as Scene
-    if node.scene.init then
-        print("------------ ↓↓↓↓↓↓↓↓↓↓ init ↓↓↓↓↓↓↓↓↓↓ ------------")
-        --[[
-        В каком месте создавать новый поток?
-        --]]
-        node.scene.init()
-        print("------------ ↑↑↑↑↑↑↑↑↑↑ init ↑↑↑↑↑↑↑↑↑↑ ------------")
+
+    ok, errmsg = pcall(function()
+        node.scene = chunk() as Scene
+    end)
+
+    if not ok then
+        error('Something wrong in chunk:' .. errmsg)
     end
+
+    ok, errmsg = pcall(function()
+        if node.scene.init then
+            print("------------ ↓↓↓↓↓↓↓↓↓↓ init ↓↓↓↓↓↓↓↓↓↓ ------------")
+            --[[
+            В каком месте создавать новый поток?
+            --]]
+            node.scene.init()
+            print("------------ ↑↑↑↑↑↑↑↑↑↑ init ↑↑↑↑↑↑↑↑↑↑ ------------")
+        end
+    end)
+
+    if not ok then
+        error('Something wrong in chunk:' .. errmsg)
+    end
+
     node.name = name
     node.inited = true
     -- Куда добавлять сцену?
