@@ -52,15 +52,18 @@ local function initOne(name: string)
         error(string.format("Could not load '%s': %s", path, errmsg))
     end
 
-    ok, errmsg = pcall(function()
-        node.scene = chunk() as Scene
+    --ok, errmsg = pcall(function()
+    --node.scene = chunk() as Scene
+    --end)
+    local ok2, errmsg2: boolean, string = pcall(function()
+        node.scene = (chunk as function())() as Scene
     end)
 
-    if not ok then
-        error('Something wrong in chunk:' .. errmsg)
+    if not ok2 then
+        error('Something wrong in chunk:' .. errmsg2)
     end
 
-    ok, errmsg = pcall(function()
+    local ok3, errmsg3: boolean, string = pcall(function()
         if node.scene.init then
             print("------------ ↓↓↓↓↓↓↓↓↓↓ init ↓↓↓↓↓↓↓↓↓↓ ------------")
             --[[
@@ -71,15 +74,12 @@ local function initOne(name: string)
         end
     end)
 
-    if not ok then
-        error('Something wrong in chunk:' .. errmsg)
+    if not ok3 then
+        error('Something wrong in chunk:' .. errmsg3)
     end
 
     node.name = name
     node.inited = true
-    -- Куда добавлять сцену?
-    --table.insert(scenes, node)
-    --currentScene = scenes[#scenes].scene
     currentScene = node.scene
 end
 

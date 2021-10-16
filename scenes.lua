@@ -1,59 +1,9 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
 
 
 require("love")
 require("log")
 require("common")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -90,25 +40,46 @@ local function keypressed(key)
 end
 
 local function initOne(name)
+   local errmsg
+   local ok = false
 
    local path = "scenes/" .. name .. "/init.lua"
    print(string.format("initOne '%s'", path))
-   local chunk, errmsg = love.filesystem.load(path)
+   local chunk
+   chunk, errmsg = love.filesystem.load(path)
    local node = {}
    if not chunk then
       error(string.format("Could not load '%s': %s", path, errmsg))
    end
-   node.scene = chunk()
-   if node.scene.init then
-      print("------------ ↓↓↓↓↓↓↓↓↓↓ init ↓↓↓↓↓↓↓↓↓↓ ------------")
-      node.scene.init()
-      print("------------ ↑↑↑↑↑↑↑↑↑↑ init ↑↑↑↑↑↑↑↑↑↑ ------------")
+
+
+
+
+   local ok2, errmsg2 = pcall(function()
+      node.scene = (chunk)()
+   end)
+
+   if not ok2 then
+      error('Something wrong in chunk:' .. errmsg2)
    end
+
+   local ok3, errmsg3 = pcall(function()
+      if node.scene.init then
+         print("------------ ↓↓↓↓↓↓↓↓↓↓ init ↓↓↓↓↓↓↓↓↓↓ ------------")
+
+
+
+         node.scene.init()
+         print("------------ ↑↑↑↑↑↑↑↑↑↑ init ↑↑↑↑↑↑↑↑↑↑ ------------")
+      end
+   end)
+
+   if not ok3 then
+      error('Something wrong in chunk:' .. errmsg3)
+   end
+
    node.name = name
    node.inited = true
-
-
-
    currentScene = node.scene
 end
 
