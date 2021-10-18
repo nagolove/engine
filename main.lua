@@ -172,6 +172,7 @@ function love.load(arg)
       thread:start()
 
       local rendercode = graphic_code_channel:demand()
+      print('rendercode', rendercode)
       local func, errmsg = tl.load(rendercode)
       if not func then
          error("Something wrong in render code: " .. errmsg)
@@ -180,6 +181,8 @@ function love.load(arg)
       end
       table.insert(threads, thread)
    end
+
+   print('threads', inspect(threads))
 
 
 
@@ -204,6 +207,7 @@ local titlePrefix = "caustic engine "
 
 
 function love.update(dt)
+   print('love.update')
    local now = love.timer.getTime()
    if now - lastWindowHeaderUpdateTime > quant then
       love.window.setTitle(titlePrefix .. love.timer.getFPS())
@@ -213,28 +217,38 @@ function love.update(dt)
       KeyConfig.updateList(dt)
    end
    KeyConfig.update()
-   collectGarbage()
 
-   scenes.update(dt)
+
+
 end
 
-function love.resize(w, h)
-   scenes.resize(w, h)
+function love.resize(_, _)
+
 end
 
 function love.draw()
-   gr.setColor({ 1, 1, 1 })
-   scenes.draw()
-   gr.setColor({ 1, 1, 1 })
+   print('love.draw')
 
-   if not IMGUI_USE_STUB then
-      imgui.NewFrame()
-      scenes.drawui()
-      imgui.Render();
+
+   if #renderFunctions ~= 0 then
+
+
    end
 
+   gr.setColor({ 1, 1, 1 })
+
+   gr.setColor({ 1, 1, 1 })
+
+
+
+
+
+
+
+
+
    if showHelp then
-      KeyConfig.draw()
+
    end
 end
 
@@ -331,12 +345,19 @@ function love.run()
    if love.timer then love.timer.step() end
 
    local dt = 0.
+   local time = love.timer.getTime()
 
 
    return function()
+      local threadidx = 1
+      if not threads[threadidx]:isRunning() then
+         error(threads[threadidx]:getError())
+      end
+
 
       if love.event then
          love.event.pump()
+         local events = {}
          for name, a, b, c, d, e, f in love.event.poll() do
 
             if name == "quit" then
@@ -346,10 +367,16 @@ function love.run()
                   return (a or 0)
                end
             end
-            tmp.callHandler(name, a, b, c, d, e, f)
+            table.insert(events, { name, a, b, c, d, e, f })
+
 
          end
+         event_channel:push(events)
       end
+
+      local nt = love.timer.getTime()
+      dt = nt - time
+      time = nt
 
 
       if love.timer then dt = love.timer.step() end
@@ -364,10 +391,6 @@ function love.run()
          love.graphics.clear(love.graphics.getBackgroundColor())
 
 
-         if #renderFunctions ~= 0 then
-
-            renderFunctions[1]()
-         end
 
          love.graphics.present()
       end

@@ -172,6 +172,7 @@ function love.load(arg: {string})
         thread:start()
         --local rendercode = graphic_code_channel:pop() as string
         local rendercode = graphic_code_channel:demand() as string
+        print('rendercode', rendercode)
         local func, errmsg = tl.load(rendercode)
         if not func then
             error("Something wrong in render code: " .. errmsg)
@@ -180,6 +181,8 @@ function love.load(arg: {string})
         end
         table.insert(threads, thread)
     end
+    --]]
+    print('threads', inspect(threads))
 
     --KeyConfig.printBinds()
     --imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", imguiFontSize)
@@ -204,6 +207,7 @@ local titlePrefix = "caustic engine "
 --local fpsAccum = 0
 
 function love.update(dt: number)
+    print 'love.update'
     local now = love.timer.getTime()
     if now - lastWindowHeaderUpdateTime > quant then
         love.window.setTitle(titlePrefix .. love.timer.getFPS())
@@ -213,28 +217,38 @@ function love.update(dt: number)
         KeyConfig.updateList(dt)
     end
     KeyConfig.update()
-    collectGarbage()
+    --collectGarbage()
 
-    scenes.update(dt)
+    --scenes.update(dt)
 end
 
-function love.resize(w: integer, h: integer)
-    scenes.resize(w, h)
+function love.resize(_: integer, _: integer)
+    --scenes.resize(w, h)
 end
 
 function love.draw()
+    print('love.draw')
+    --draw_ready_channel:supply("ready")
+
+    if #renderFunctions ~= 0 then
+        -- XXX
+        --renderFunctions[1]()
+    end
+
     gr.setColor{1, 1, 1}
-    scenes.draw()
+    --scenes.draw()
     gr.setColor{1, 1, 1}
 
+    --[[
     if not IMGUI_USE_STUB then
         imgui.NewFrame()
         scenes.drawui()
         imgui.Render();
     end
+    --]]
 
     if showHelp then
-        KeyConfig.draw()
+        --KeyConfig.draw()
     end
 end
 
@@ -331,12 +345,19 @@ function love.run(): function(): string|number
 	if love.timer then love.timer.step() end
 
 	local dt = 0.
+    local time = love.timer.getTime()
 
 	-- Main loop time.
 	return function(): string|number
+        local threadidx = 1
+        if not threads[threadidx]:isRunning() then 
+            error(threads[threadidx]:getError()) 
+        end
+
 		-- Process events.
 		if love.event then
 			love.event.pump()
+            local events = {}
 			for name, a,b,c,d,e,f in love.event.poll() do
                 --print('n, a, b, c, d, e, f', n, a, b, c, d, e, f)
 				if name == "quit" then
@@ -346,10 +367,16 @@ function love.run(): function(): string|number
 						return (a or 0) as string
 					end
 				end
-                tmp.callHandler(name, a, b, c, d, e, f)
+                table.insert(events, {name, a, b, c, d, e, f})
+                --tmp.callHandler(name, a, b, c, d, e, f)
 				--love.handlers[name](a,b,c,d,e,f)
 			end
+            event_channel:push(events)
 		end
+
+        local nt = love.timer.getTime()
+        dt = nt - time
+        time = nt                
 
 		-- Update dt, as we'll be passing it to update
 		if love.timer then dt = love.timer.step() end
@@ -363,11 +390,7 @@ function love.run(): function(): string|number
 			love.graphics.origin()
 			love.graphics.clear(love.graphics.getBackgroundColor())
 
-			--if love.draw then love.draw() end
-            if #renderFunctions ~= 0 then
-                -- XXX
-                renderFunctions[1]()
-            end
+            --if love.draw then love.draw() end
 
 			love.graphics.present()
 		end
