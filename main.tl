@@ -154,10 +154,10 @@ function love.load(arg: {string})
     -- Вопрос: какой интерфейс? Выделить `Module`
     print("sceneName", sceneName)
     if sceneName then
-        scenes.initOne(sceneName)
+        --scenes.initOne(sceneName)
     else
         colprint("Empty scene will be runned.")
-        scenes.initOne("empty")
+        --scenes.initOne("empty")
     end
 
     --local curscene = scenes.getCurrentScene()
@@ -227,17 +227,18 @@ function love.resize(_: integer, _: integer)
 end
 
 function love.draw()
-    print('love.draw')
-    --draw_ready_channel:supply("ready")
+    --print('love.draw')
+    draw_ready_channel:supply("ready")
 
     if #renderFunctions ~= 0 then
         -- XXX
-        --renderFunctions[1]()
+        renderFunctions[1]()
     end
 
-    gr.setColor{1, 1, 1}
-    --scenes.draw()
-    gr.setColor{1, 1, 1}
+    --gr.setColor{1, 1, 1}
+    ----scenes.draw()
+    --gr.setColor{1, 1, 1}
+    --gr.circle('fill', 0, 0, 300)
 
     --[[
     if not IMGUI_USE_STUB then
@@ -350,8 +351,10 @@ function love.run(): function(): string|number
 	-- Main loop time.
 	return function(): string|number
         local threadidx = 1
-        if not threads[threadidx]:isRunning() then 
-            error(threads[threadidx]:getError()) 
+        if #threads ~= 0 then
+            if not threads[threadidx]:isRunning() then 
+                error(threads[threadidx]:getError()) 
+            end
         end
 
 		-- Process events.
@@ -390,7 +393,8 @@ function love.run(): function(): string|number
 			love.graphics.origin()
 			love.graphics.clear(love.graphics.getBackgroundColor())
 
-            --if love.draw then love.draw() end
+            --print('draw internal')
+            if love.draw then love.draw() end
 
 			love.graphics.present()
 		end

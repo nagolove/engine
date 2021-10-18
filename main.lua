@@ -154,10 +154,10 @@ function love.load(arg)
 
    print("sceneName", sceneName)
    if sceneName then
-      scenes.initOne(sceneName)
+
    else
       colprint("Empty scene will be runned.")
-      scenes.initOne("empty")
+
    end
 
 
@@ -227,17 +227,18 @@ function love.resize(_, _)
 end
 
 function love.draw()
-   print('love.draw')
 
+   draw_ready_channel:supply("ready")
 
    if #renderFunctions ~= 0 then
 
-
+      renderFunctions[1]()
    end
 
-   gr.setColor({ 1, 1, 1 })
 
-   gr.setColor({ 1, 1, 1 })
+
+
+
 
 
 
@@ -350,8 +351,10 @@ function love.run()
 
    return function()
       local threadidx = 1
-      if not threads[threadidx]:isRunning() then
-         error(threads[threadidx]:getError())
+      if #threads ~= 0 then
+         if not threads[threadidx]:isRunning() then
+            error(threads[threadidx]:getError())
+         end
       end
 
 
@@ -391,6 +394,7 @@ function love.run()
          love.graphics.clear(love.graphics.getBackgroundColor())
 
 
+         if love.draw then love.draw() end
 
          love.graphics.present()
       end
