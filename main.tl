@@ -12,6 +12,7 @@ print("package.path", package.path)
 
 local IMGUI_USE_STUB = false
 
+local tl = require "tl"
 local inspect = require "inspect"
 local scenes = require "scenes"
 
@@ -117,9 +118,14 @@ local function findCommand(arg: {string}): string
 end
 
 local lt = love.thread
+local type LoadFunction = function(...:any): any...
+local renderFunctions: {LoadFunction} = {}
+local threads: {lt.Thread} = {}
+
 global event_channel = lt.getChannel("event_channel")
 global draw_ready_channel = lt.getChannel("draw_ready_channel")
 global graphic_command_channel = lt.getChannel("graphic_command_channel")
+global graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
 function love.load(arg: {string})
     if not IMGUI_USE_STUB then
@@ -154,14 +160,25 @@ function love.load(arg: {string})
         scenes.initOne("empty")
     end
 
-    local curscene = scenes.getCurrentScene()
-    local isMulti = false
-    if curscene then
-        isMulti = curscene.isMulti
-    end
+    --local curscene = scenes.getCurrentScene()
+    --local isMulti = false
+    local isMulti = true
+    --if curscene then
+        --isMulti = curscene.isMulti
+    --end
 
     if isMulti then
-        scenes.initOneMulti()
+        local thread = scenes.initOneMulti(sceneName)
+        thread:start()
+        --local rendercode = graphic_code_channel:pop() as string
+        local rendercode = graphic_code_channel:demand() as string
+        local func, errmsg = tl.load(rendercode)
+        if not func then
+            error("Something wrong in render code: " .. errmsg)
+        else
+            table.insert(renderFunctions, func)
+        end
+        table.insert(threads, thread)
     end
 
     --KeyConfig.printBinds()
@@ -346,7 +363,11 @@ function love.run(): function(): string|number
 			love.graphics.origin()
 			love.graphics.clear(love.graphics.getBackgroundColor())
 
-			if love.draw then love.draw() end
+			--if love.draw then love.draw() end
+            if #renderFunctions ~= 0 then
+                -- XXX
+                renderFunctions[1]()
+            end
 
 			love.graphics.present()
 		end

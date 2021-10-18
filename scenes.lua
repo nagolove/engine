@@ -39,6 +39,70 @@ local function keypressed(key)
    end
 end
 
+
+local function initOneMulti(name)
+
+
+
+   local path = "scenes/" .. name .. "/init.lua"
+   print(string.format("initOneMulti '%s'", path))
+
+
+
+   local thread = love.thread.newThread(path)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   return thread
+end
+
 local function initOne(name)
    local errmsg
 
@@ -74,6 +138,8 @@ local function initOne(name)
       print("use single thread mode", errmsg4)
    else
       print("use multi thread mode")
+
+
    end
 
    local ok3, errmsg3 = pcall(function()
@@ -91,7 +157,7 @@ local function initOne(name)
       error('Something wrong in chunk:' .. errmsg3)
    end
 
-   node.isMulti = isMulti
+   node.scene.isMulti = isMulti
    node.name = name
    node.inited = true
    currentScene = node.scene
@@ -147,8 +213,12 @@ return {
 
 
 
+
    getCurrentScene = getCurrentScene,
+
    initOne = initOne,
+   initOneMulti = initOneMulti,
+
    update = update,
    draw = draw,
    drawui = drawui,

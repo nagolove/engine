@@ -1,32 +1,26 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local package = _tl_compat and _tl_compat.package or package; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("jitoptions").on()
-
 require("love")
-
-
-
-print("package.path", package.path)
-
-if love.system.getOS() == 'Windows' then
-   print('1 getCRequirePath() = ', love.filesystem.getCRequirePath())
-   love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
-   print('2 getCRequirePath() = ', love.filesystem.getCRequirePath())
-end
-
-require('imgui')
-local IMGUI_USE_STUB = false
-
-local inspect = require("inspect")
-local scenes = require("scenes")
-
 require("common")
 require("log")
 require("keyconfig")
+require('imgui')
+
+if love.system.getOS() == 'Windows' then
+   love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
+end
+print("package.path", package.path)
+
+local IMGUI_USE_STUB = false
+
+local tl = require("tl")
+local inspect = require("inspect")
+local scenes = require("scenes")
 
 local showHelp = false
 local gr = love.graphics
 local imguiFontSize = 22
 
-love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
+
 
 local Shortcut = KeyConfig.Shortcut
 
@@ -123,6 +117,16 @@ local function findCommand(arg)
    return commands[1]
 end
 
+local lt = love.thread
+local LoadFunction = {}
+local renderFunctions = {}
+local threads = {}
+
+event_channel = lt.getChannel("event_channel")
+draw_ready_channel = lt.getChannel("draw_ready_channel")
+graphic_command_channel = lt.getChannel("graphic_command_channel")
+graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+
 function love.load(arg)
    if not IMGUI_USE_STUB then
       imgui.Init()
@@ -155,6 +159,28 @@ function love.load(arg)
       colprint("Empty scene will be runned.")
       scenes.initOne("empty")
    end
+
+
+
+   local isMulti = true
+
+
+
+
+   if isMulti then
+      local thread = scenes.initOneMulti(sceneName)
+      thread:start()
+
+      local rendercode = graphic_code_channel:demand()
+      local func, errmsg = tl.load(rendercode)
+      if not func then
+         error("Something wrong in render code: " .. errmsg)
+      else
+         table.insert(renderFunctions, func)
+      end
+      table.insert(threads, thread)
+   end
+
 
 
 
@@ -337,7 +363,11 @@ function love.run()
          love.graphics.origin()
          love.graphics.clear(love.graphics.getBackgroundColor())
 
-         if love.draw then love.draw() end
+
+         if #renderFunctions ~= 0 then
+
+            renderFunctions[1]()
+         end
 
          love.graphics.present()
       end
