@@ -5,7 +5,7 @@ require("love")
 require("log")
 require("common")
 
-
+local inspect = require("inspect")
 
 local currentScene = nil
 
@@ -41,7 +41,7 @@ end
 
 local function initOne(name)
    local errmsg
-   local ok = false
+
 
    local path = "scenes/" .. name .. "/init.lua"
    print(string.format("initOne '%s'", path))
@@ -63,6 +63,19 @@ local function initOne(name)
       error('Something wrong in chunk:' .. errmsg2)
    end
 
+
+   local isMulti = false
+   local ok4, errmsg4 = pcall(function()
+      print("node.scene", inspect(node.scene))
+      isMulti = node.scene.getSceneType() == 'multi'
+   end)
+
+   if not ok4 then
+      print("use single thread mode", errmsg4)
+   else
+      print("use multi thread mode")
+   end
+
    local ok3, errmsg3 = pcall(function()
       if node.scene.init then
          print("------------ ↓↓↓↓↓↓↓↓↓↓ init ↓↓↓↓↓↓↓↓↓↓ ------------")
@@ -78,6 +91,7 @@ local function initOne(name)
       error('Something wrong in chunk:' .. errmsg3)
    end
 
+   node.isMulti = isMulti
    node.name = name
    node.inited = true
    currentScene = node.scene

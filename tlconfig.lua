@@ -82,7 +82,9 @@ return {
     include = {
         --"scenes/fractaltree/*.tl",
         --"scenes/automato/*.tl",
-        --"scenes/empty/*.tl",
+        "scenes/empty/*.tl",
+        "scenes/empty_mt/*.tl",
+
         "src/*.tl",
         "*.tl",
 

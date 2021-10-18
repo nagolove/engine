@@ -27,11 +27,14 @@ global type Scene = record
     keyreleased: function(string)
     wheelmoved: function(number, number)
     getCamera: function(): Camera
+    -- Что-бы сцена исполнялась в отдельном потоке нужно реализовать следущую
+    -- функцию с возвратом "multi"
     getSceneType: function(): SceneType
     -- }}}
 end
 
 global type SceneMap = record
+    isMulti: boolean
     scene: Scene
     name: string
     inited: boolean
