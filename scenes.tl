@@ -39,6 +39,70 @@ local function keypressed(key: string)
     end
 end
 
+-- Загружает без проверок
+local function initOneMulti(name: string): love.thread.Thread
+    --local errmsg: string
+    --local ok = false
+    -- TODO поддержка вложенных каталогов
+    local path = "scenes/" .. name .. "/init.lua"
+    print(string.format("initOneMulti '%s'", path))
+
+    --local chunk: any
+    --chunk, errmsg = love.filesystem.load(path)
+    local thread = love.thread.newThread(path)
+    --local node: SceneMap = {}
+    --if not chunk then
+        --error(string.format("Could not load '%s': %s", path, errmsg))
+    --end
+
+    --ok, errmsg = pcall(function()
+    --node.scene = chunk() as Scene
+    --end)
+    --local ok2, errmsg2: boolean, string = pcall(function()
+        --node.scene = (chunk as function())() as Scene
+    --end)
+
+    --if not ok2 then
+        --error('Something wrong in chunk:' .. errmsg2)
+    --end
+
+
+    --local isMulti: boolean = false
+    --local ok4, errmsg4: boolean, string = pcall(function()
+        --print("node.scene", inspect(node.scene))
+        --isMulti = node.scene.getSceneType() == 'multi'
+    --end)
+
+    --if not ok4 then
+        --print("use single thread mode", errmsg4)
+    --else
+        --print("use multi thread mode")
+
+        ---- Здесь как-то нужно создать поток?
+    --end
+
+    --local ok3, errmsg3: boolean, string = pcall(function()
+        --if node.scene.init then
+            --print("------------ ↓↓↓↓↓↓↓↓↓↓ init ↓↓↓↓↓↓↓↓↓↓ ------------")
+            ----[[
+            --В каком месте создавать новый поток?
+            ----]]
+            --node.scene.init()
+            --print("------------ ↑↑↑↑↑↑↑↑↑↑ init ↑↑↑↑↑↑↑↑↑↑ ------------")
+        --end
+    --end)
+
+    --if not ok3 then
+        --error('Something wrong in chunk:' .. errmsg3)
+    --end
+
+    --node.scene.isMulti = isMulti
+    --node.name = name
+    --node.inited = true
+    --currentScene = node.scene
+    return thread
+end
+
 local function initOne(name: string)
     local errmsg: string
     --local ok = false
@@ -74,6 +138,8 @@ local function initOne(name: string)
         print("use single thread mode", errmsg4)
     else
         print("use multi thread mode")
+
+        -- Здесь как-то нужно создать поток?
     end
 
     local ok3, errmsg3: boolean, string = pcall(function()
@@ -91,7 +157,7 @@ local function initOne(name: string)
         error('Something wrong in chunk:' .. errmsg3)
     end
 
-    node.isMulti = isMulti
+    node.scene.isMulti = isMulti
     node.name = name
     node.inited = true
     currentScene = node.scene
@@ -147,8 +213,12 @@ return {
     --[[
     Переписать интерфейс менеджера сцен.
     --]]
+
     getCurrentScene = getCurrentScene,
+
     initOne = initOne,
+    initOneMulti = initOneMulti,
+
     update = update,
     draw = draw,
     drawui = drawui,

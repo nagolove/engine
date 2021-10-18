@@ -30,11 +30,11 @@ global type Scene = record
     -- Что-бы сцена исполнялась в отдельном потоке нужно реализовать следущую
     -- функцию с возвратом "multi"
     getSceneType: function(): SceneType
+    isMulti: boolean
     -- }}}
 end
 
 global type SceneMap = record
-    isMulti: boolean
     scene: Scene
     name: string
     inited: boolean

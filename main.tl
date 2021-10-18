@@ -1,32 +1,25 @@
 require "jitoptions".on()
-
 require "love"
-
---local package = require "package"
---package.package = package.path .. ";./?/init.lua"
-print("package.path", package.path)
+require "common"
+require "log"
+require "keyconfig"
+require 'imgui'
 
 if love.system.getOS() == 'Windows' then
-    print('1 getCRequirePath() = ', love.filesystem.getCRequirePath())
     love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
-    print('2 getCRequirePath() = ', love.filesystem.getCRequirePath())
 end
+print("package.path", package.path)
 
-require 'imgui'
 local IMGUI_USE_STUB = false
 
 local inspect = require "inspect"
 local scenes = require "scenes"
 
-require "common"
-require "log"
-require "keyconfig"
-
 local showHelp = false
 local gr = love.graphics
 local imguiFontSize = 22
 
-love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
+--love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
 
 local Shortcut = KeyConfig.Shortcut
 
@@ -123,6 +116,11 @@ local function findCommand(arg: {string}): string
     return commands[1]
 end
 
+local lt = love.thread
+global event_channel = lt.getChannel("event_channel")
+global draw_ready_channel = lt.getChannel("draw_ready_channel")
+global graphic_command_channel = lt.getChannel("graphic_command_channel")
+
 function love.load(arg: {string})
     if not IMGUI_USE_STUB then
         imgui.Init()
@@ -156,8 +154,19 @@ function love.load(arg: {string})
         scenes.initOne("empty")
     end
 
+    local curscene = scenes.getCurrentScene()
+    local isMulti = false
+    if curscene then
+        isMulti = curscene.isMulti
+    end
+
+    if isMulti then
+        scenes.initOneMulti()
+    end
+
     --KeyConfig.printBinds()
     --imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", imguiFontSize)
+
 end
 
 local lastGCTime = love.timer.getTime()
