@@ -270,6 +270,7 @@ local function mesh2str(mesh, i)
    b .. " " .. a .. "\n"
 end
 
+
 function printMesh(mesh)
    if mesh then
       for i = 1, mesh:getVertexCount() do
@@ -279,6 +280,7 @@ function printMesh(mesh)
       end
    end
 end
+
 
 function printMesh2file(mesh, fname)
    if mesh then
@@ -303,10 +305,12 @@ end
 
 local Iter = {}
 
+
 function ripairs(t)
 
    return reversedipairsiter, t, #t + 1
 end
+
 
 function testflag(set, flag)
    return set % (2 * flag) >= flag

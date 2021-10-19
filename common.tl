@@ -270,6 +270,7 @@ local function mesh2str(mesh: love.graphics.Mesh, i: integer): string
         b .. " " .. a .. "\n"
 end
 
+-- Распечатать вершины полигональной сетки.
 function printMesh(mesh: love.graphics.Mesh)
     if mesh then
         for i = 1, mesh:getVertexCount() do
@@ -280,6 +281,7 @@ function printMesh(mesh: love.graphics.Mesh)
     end
 end
 
+-- Распечатать вершины полигональной сетки в файл по имени fname.
 function printMesh2file(mesh: love.graphics.Mesh, fname: string)
     if mesh then
         for i = 1, mesh:getVertexCount() do
@@ -303,11 +305,13 @@ end
 
 local type Iter = function<T>(t: {T}, integer): integer, T
 
+-- Итератор для обхода таблицы в обратном порядке по индексу.
 function ripairs<T>(t: {T}): Iter<T>, {T}, integer
     --return reversedipairsiter, t, #t + 1
     return reversedipairsiter, t, #t + 1
 end
 
+-- Проверить бит номер flag числа set 
 function testflag(set: number, flag: number): boolean
   return set % (2*flag) >= flag
 end

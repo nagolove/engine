@@ -207,7 +207,7 @@ local titlePrefix = "caustic engine "
 
 
 function love.update(dt)
-   print('love.update')
+
    local now = love.timer.getTime()
    if now - lastWindowHeaderUpdateTime > quant then
       love.window.setTitle(titlePrefix .. love.timer.getFPS())
@@ -217,40 +217,13 @@ function love.update(dt)
       KeyConfig.updateList(dt)
    end
    KeyConfig.update()
-
+   collectGarbage()
 
 
 end
 
 function love.resize(_, _)
 
-end
-
-function love.draw()
-
-   draw_ready_channel:supply("ready")
-
-   if #renderFunctions ~= 0 then
-
-      renderFunctions[1]()
-   end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   if showHelp then
-
-   end
 end
 
 function love.quit()
@@ -393,8 +366,12 @@ function love.run()
          love.graphics.origin()
          love.graphics.clear(love.graphics.getBackgroundColor())
 
+         draw_ready_channel:supply("ready")
 
-         if love.draw then love.draw() end
+         if #renderFunctions ~= 0 then
+
+            renderFunctions[1]()
+         end
 
          love.graphics.present()
       end

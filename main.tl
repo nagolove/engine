@@ -207,7 +207,7 @@ local titlePrefix = "caustic engine "
 --local fpsAccum = 0
 
 function love.update(dt: number)
-    print 'love.update'
+    --print 'love.update'
     local now = love.timer.getTime()
     if now - lastWindowHeaderUpdateTime > quant then
         love.window.setTitle(titlePrefix .. love.timer.getFPS())
@@ -224,33 +224,6 @@ end
 
 function love.resize(_: integer, _: integer)
     --scenes.resize(w, h)
-end
-
-function love.draw()
-    --print('love.draw')
-    draw_ready_channel:supply("ready")
-
-    if #renderFunctions ~= 0 then
-        -- XXX
-        renderFunctions[1]()
-    end
-
-    --gr.setColor{1, 1, 1}
-    ----scenes.draw()
-    --gr.setColor{1, 1, 1}
-    --gr.circle('fill', 0, 0, 300)
-
-    --[[
-    if not IMGUI_USE_STUB then
-        imgui.NewFrame()
-        scenes.drawui()
-        imgui.Render();
-    end
-    --]]
-
-    if showHelp then
-        --KeyConfig.draw()
-    end
 end
 
 function love.quit(): boolean
@@ -393,8 +366,12 @@ function love.run(): function(): string|number
 			love.graphics.origin()
 			love.graphics.clear(love.graphics.getBackgroundColor())
 
-            --print('draw internal')
-            if love.draw then love.draw() end
+            draw_ready_channel:supply("ready")
+
+            if #renderFunctions ~= 0 then
+                -- XXX
+                renderFunctions[1]()
+            end
 
 			love.graphics.present()
 		end
