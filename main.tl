@@ -217,7 +217,7 @@ function love.update(dt: number)
         KeyConfig.updateList(dt)
     end
     KeyConfig.update()
-    --collectGarbage()
+    collectGarbage()
 
     --scenes.update(dt)
 end
