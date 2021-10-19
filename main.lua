@@ -20,9 +20,39 @@ local showHelp = false
 local gr = love.graphics
 local imguiFontSize = 22
 
+local lt = love.thread
+local LoadFunction = {}
+local renderFunctions = {}
+local threads = {}
+
+event_channel = lt.getChannel("event_channel")
+draw_ready_channel = lt.getChannel("draw_ready_channel")
+graphic_command_channel = lt.getChannel("graphic_command_channel")
+graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+
 
 
 local Shortcut = KeyConfig.Shortcut
+
+local function pullRenderCode(timeout)
+   local rendercode
+   if timeout then
+      rendercode = graphic_code_channel:demand(timeout)
+   else
+      rendercode = graphic_code_channel:peek()
+   end
+   if rendercode then
+      local func, errmsg = tl.load(rendercode)
+      if not func then
+         error("Something wrong in render code: " .. errmsg)
+      else
+
+         renderFunctions[1] = func
+      end
+   else
+      print('No stuff in graphic_code_channel')
+   end
+end
 
 local function bindKeys()
    KeyConfig.bind(
@@ -117,15 +147,12 @@ local function findCommand(arg)
    return commands[1]
 end
 
-local lt = love.thread
-local LoadFunction = {}
-local renderFunctions = {}
-local threads = {}
+local function newThread(name)
+   local path = "scenes/" .. name .. "/init.lua"
 
-event_channel = lt.getChannel("event_channel")
-draw_ready_channel = lt.getChannel("draw_ready_channel")
-graphic_command_channel = lt.getChannel("graphic_command_channel")
-graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+   local thread = love.thread.newThread(path)
+   return thread
+end
 
 function love.load(arg)
    if not IMGUI_USE_STUB then
@@ -153,34 +180,22 @@ function love.load(arg)
 
 
    print("sceneName", sceneName)
-   if sceneName then
-
-   else
-      colprint("Empty scene will be runned.")
-
-   end
-
-
-
-   local isMulti = true
 
 
 
 
-   if isMulti then
-      local thread = scenes.initOneMulti(sceneName)
-      thread:start()
 
-      local rendercode = graphic_code_channel:demand()
-      print('rendercode', rendercode)
-      local func, errmsg = tl.load(rendercode)
-      if not func then
-         error("Something wrong in render code: " .. errmsg)
-      else
-         table.insert(renderFunctions, func)
-      end
-      table.insert(threads, thread)
-   end
+
+
+
+
+   local thread = newThread(sceneName)
+   thread:start()
+
+   local timeout = 0.1
+   pullRenderCode(timeout)
+
+   table.insert(threads, thread)
 
    print('threads', inspect(threads))
 
@@ -310,9 +325,7 @@ function love.wheelmoved(x, y)
 end
 
 function love.run()
-
    local tmp = require('parse_args')
-
    if love.load then love.load(tmp.parseGameArguments(arg)) end
 
 
@@ -323,12 +336,6 @@ function love.run()
 
 
    return function()
-      local threadidx = 1
-      if #threads ~= 0 then
-         if not threads[threadidx]:isRunning() then
-            error(threads[threadidx]:getError())
-         end
-      end
 
 
       if love.event then
@@ -362,6 +369,8 @@ function love.run()
 
       if love.update then love.update(dt) end
 
+      pullRenderCode()
+
       if love.graphics and love.graphics.isActive() then
          love.graphics.origin()
          love.graphics.clear(love.graphics.getBackgroundColor())
@@ -369,7 +378,6 @@ function love.run()
          draw_ready_channel:supply("ready")
 
          if #renderFunctions ~= 0 then
-
             renderFunctions[1]()
          end
 

@@ -20,9 +20,39 @@ local showHelp = false
 local gr = love.graphics
 local imguiFontSize = 22
 
+local lt = love.thread
+local type LoadFunction = function(...:any): any...
+local renderFunctions: {LoadFunction} = {}
+local threads: {lt.Thread} = {}
+
+global event_channel = lt.getChannel("event_channel")
+global draw_ready_channel = lt.getChannel("draw_ready_channel")
+global graphic_command_channel = lt.getChannel("graphic_command_channel")
+global graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+
 --love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
 
 local Shortcut = KeyConfig.Shortcut
+
+local function pullRenderCode(timeout: number)
+    local rendercode: string
+    if timeout then
+        rendercode = graphic_code_channel:demand(timeout) as string
+    else
+        rendercode = graphic_code_channel:peek() as string
+    end
+    if rendercode then
+        local func, errmsg = tl.load(rendercode)
+        if not func then
+            error("Something wrong in render code: " .. errmsg)
+        else
+            --table.insert(renderFunctions, func)
+            renderFunctions[1] = func
+        end
+    else
+        print('No stuff in graphic_code_channel')
+    end
+end
 
 local function bindKeys()
     KeyConfig.bind(
@@ -117,15 +147,12 @@ local function findCommand(arg: {string}): string
     return commands[1]
 end
 
-local lt = love.thread
-local type LoadFunction = function(...:any): any...
-local renderFunctions: {LoadFunction} = {}
-local threads: {lt.Thread} = {}
-
-global event_channel = lt.getChannel("event_channel")
-global draw_ready_channel = lt.getChannel("draw_ready_channel")
-global graphic_command_channel = lt.getChannel("graphic_command_channel")
-global graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+local function newThread(name: string): love.thread.Thread
+    local path = "scenes/" .. name .. "/init.lua"
+    --print(string.format("initOneMulti '%s'", path))
+    local thread = love.thread.newThread(path)
+    return thread
+end
 
 function love.load(arg: {string})
     if not IMGUI_USE_STUB then
@@ -153,35 +180,23 @@ function love.load(arg: {string})
     -- экспортирующий соответствующий интерфейс.
     -- Вопрос: какой интерфейс? Выделить `Module`
     print("sceneName", sceneName)
+    --[[
     if sceneName then
         --scenes.initOne(sceneName)
     else
         colprint("Empty scene will be runned.")
         --scenes.initOne("empty")
     end
-
-    --local curscene = scenes.getCurrentScene()
-    --local isMulti = false
-    local isMulti = true
-    --if curscene then
-        --isMulti = curscene.isMulti
-    --end
-
-    if isMulti then
-        local thread = scenes.initOneMulti(sceneName)
-        thread:start()
-        --local rendercode = graphic_code_channel:pop() as string
-        local rendercode = graphic_code_channel:demand() as string
-        print('rendercode', rendercode)
-        local func, errmsg = tl.load(rendercode)
-        if not func then
-            error("Something wrong in render code: " .. errmsg)
-        else
-            table.insert(renderFunctions, func)
-        end
-        table.insert(threads, thread)
-    end
     --]]
+
+    local thread = newThread(sceneName)
+    thread:start()
+
+    local timeout = 0.1
+    pullRenderCode(timeout)
+
+    table.insert(threads, thread)
+
     print('threads', inspect(threads))
 
     --KeyConfig.printBinds()
@@ -310,9 +325,7 @@ function love.wheelmoved(x: number, y: number)
 end
 
 function love.run(): function(): string|number
-    --headerUpdateTime = love.timer.getTime()
     local tmp = require 'parse_args'
-    --if love.load then love.load(tmp.parseGameArguments(arg), arg) end
     if love.load then love.load(tmp.parseGameArguments(arg)) end
 
 	-- We don't want the first frame's dt to include time taken by love.load.
@@ -323,12 +336,6 @@ function love.run(): function(): string|number
 
 	-- Main loop time.
 	return function(): string|number
-        local threadidx = 1
-        if #threads ~= 0 then
-            if not threads[threadidx]:isRunning() then 
-                error(threads[threadidx]:getError()) 
-            end
-        end
 
 		-- Process events.
 		if love.event then
@@ -362,6 +369,8 @@ function love.run(): function(): string|number
 		-- Call update and draw
 		if love.update then love.update(dt) end -- will pass 0 if love.timer is disabled
 
+        pullRenderCode()
+
 		if love.graphics and love.graphics.isActive() then
 			love.graphics.origin()
 			love.graphics.clear(love.graphics.getBackgroundColor())
@@ -369,7 +378,6 @@ function love.run(): function(): string|number
             draw_ready_channel:supply("ready")
 
             if #renderFunctions ~= 0 then
-                -- XXX
                 renderFunctions[1]()
             end
 

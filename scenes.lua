@@ -41,65 +41,9 @@ end
 
 
 local function initOneMulti(name)
-
-
-
    local path = "scenes/" .. name .. "/init.lua"
    print(string.format("initOneMulti '%s'", path))
-
-
-
    local thread = love.thread.newThread(path)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
    return thread
 end
 
