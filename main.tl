@@ -17,7 +17,6 @@ local inspect = require "inspect"
 local scenes = require "scenes"
 
 local showHelp = false
-local gr = love.graphics
 local imguiFontSize = 22
 
 local lt = love.thread
@@ -34,24 +33,33 @@ global graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
 local Shortcut = KeyConfig.Shortcut
 
+-- Стягивает из канала кода все сообщения.
 local function pullRenderCode(timeout: number)
     local rendercode: string
-    if timeout then
-        rendercode = graphic_code_channel:demand(timeout) as string
-    else
-        rendercode = graphic_code_channel:peek() as string
-    end
-    if rendercode then
-        local func, errmsg = tl.load(rendercode)
-        if not func then
-            error("Something wrong in render code: " .. errmsg)
+
+    --if timeout then
+        --rendercode = graphic_code_channel:demand(timeout) as string
+    --else
+        --rendercode = graphic_code_channel:peek() as string
+    --end
+
+    repeat
+        rendercode = graphic_code_channel:pop() as string
+
+        if rendercode then
+            --graphic_code_channel:pop()
+            local func, errmsg = tl.load(rendercode)
+            if not func then
+                error("Something wrong in render code: " .. errmsg)
+            else
+                -- Нужно-ли добавлять все функции подряд в таблицу?
+                table.insert(renderFunctions, func)
+                --renderFunctions[1] = func
+            end
         else
-            --table.insert(renderFunctions, func)
-            renderFunctions[1] = func
+            --print('No stuff in graphic_code_channel')
         end
-    else
-        print('No stuff in graphic_code_channel')
-    end
+    until not rendercode
 end
 
 local function bindKeys()

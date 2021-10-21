@@ -17,7 +17,6 @@ local inspect = require("inspect")
 local scenes = require("scenes")
 
 local showHelp = false
-local gr = love.graphics
 local imguiFontSize = 22
 
 local lt = love.thread
@@ -42,6 +41,7 @@ local function pullRenderCode(timeout)
       rendercode = graphic_code_channel:peek()
    end
    if rendercode then
+      graphic_code_channel:pop()
       local func, errmsg = tl.load(rendercode)
       if not func then
          error("Something wrong in render code: " .. errmsg)
@@ -50,7 +50,7 @@ local function pullRenderCode(timeout)
          renderFunctions[1] = func
       end
    else
-      print('No stuff in graphic_code_channel')
+
    end
 end
 
