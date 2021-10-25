@@ -33,25 +33,33 @@ graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
 local Shortcut = KeyConfig.Shortcut
 
+
 local function pullRenderCode(timeout)
    local rendercode
-   if timeout then
-      rendercode = graphic_code_channel:demand(timeout)
-   else
-      rendercode = graphic_code_channel:peek()
-   end
-   if rendercode then
-      graphic_code_channel:pop()
-      local func, errmsg = tl.load(rendercode)
-      if not func then
-         error("Something wrong in render code: " .. errmsg)
+
+
+
+
+
+
+
+   repeat
+      rendercode = graphic_code_channel:pop()
+
+      if rendercode then
+
+         local func, errmsg = tl.load(rendercode)
+         if not func then
+            error("Something wrong in render code: " .. errmsg)
+         else
+
+            table.insert(renderFunctions, func)
+
+         end
       else
 
-         renderFunctions[1] = func
       end
-   else
-
-   end
+   until not rendercode
 end
 
 local function bindKeys()
