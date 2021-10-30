@@ -35,32 +35,35 @@ local Shortcut = KeyConfig.Shortcut
 
 local colorize = require('ansicolors2').ansicolors
 
-local INTERNAL_LOAD_ERROR = 255
+local ERROR_INTERNAL_LOAD = 255
+local ERROR_THREAD = 254
+
+function threaderror(thread, errorstr)
+   print('threaderror')
+   local fmt = "Something wrong in thread %s with %s"
+   print(string.format(fmt, tostring(thread), errorstr))
+   os.exit(ERROR_THREAD)
+end
 
 
 
 local function pullRenderCode()
    local rendercode
 
-
-
-
-
-
-
-
    repeat
+      print('pullRenderCode iteration')
+
       rendercode = graphic_code_channel:pop()
 
       if rendercode then
 
          local func, errmsg = tl.load(rendercode)
-
+         print('func, errmsg', func, errmsg)
          if not func then
 
             local msg = "%{red}Something wrong in render code: %{cyan}"
             print(colorize(msg .. errmsg))
-            os.exit(INTERNAL_LOAD_ERROR)
+            os.exit(ERROR_INTERNAL_LOAD)
          else
 
             table.insert(renderFunctions, func)
@@ -70,6 +73,8 @@ local function pullRenderCode()
 
       end
    until not rendercode
+
+   print('return form pullRenderCode()')
 end
 
 local function bindKeys()
@@ -169,6 +174,9 @@ local function newThread(name)
    local path = "scenes/" .. name .. "/init.lua"
 
    local thread = love.thread.newThread(path)
+   if not thread then
+      error('No thread created.')
+   end
    return thread
 end
 
@@ -384,6 +392,15 @@ function love.run()
       dt = nt - time
       time = nt
 
+      for _, t in ipairs(threads) do
+         local errmsg = t:getError()
+         if errmsg then
+            errmsg = colorize("%{cyan}" .. errmsg .. "%{reset}")
+            print(colorize('%{red}Error in thread'), errmsg)
+            os.exit(ERROR_THREAD)
+         end
+      end
+
 
       if love.timer then dt = love.timer.step() end
 
@@ -410,9 +427,4 @@ function love.run()
       if love.timer then love.timer.sleep(0.001) end
 
    end
-end
-
-function threaderror(thread, errorstr)
-   local fmt = "Something wrong in thread %s with %s"
-   error(string.format(fmt, tostring(thread), errorstr))
 end

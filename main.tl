@@ -35,32 +35,35 @@ local Shortcut = KeyConfig.Shortcut
 
 local colorize = require 'ansicolors2'.ansicolors
 
-local INTERNAL_LOAD_ERROR = 255
+local ERROR_INTERNAL_LOAD = 255
+local ERROR_THREAD = 254
+
+function threaderror(thread: love.thread.Thread, errorstr: string)
+    print('threaderror')
+    local fmt = "Something wrong in thread %s with %s"
+    print(string.format(fmt , tostring(thread), errorstr))
+    os.exit(ERROR_THREAD)
+end
 
 -- Стягивает из канала кода все сообщения.
 --local function pullRenderCode(timeout: number)
 local function pullRenderCode()
     local rendercode: string
 
-    --if timeout then
-        --rendercode = graphic_code_channel:demand(timeout) as string
-    --else
-        --rendercode = graphic_code_channel:peek() as string
-    --end
-
-    --print(colorize("%{red}красный%{reset}default"))
     repeat
+        print('pullRenderCode iteration')
+
         rendercode = graphic_code_channel:pop() as string
 
         if rendercode then
             --graphic_code_channel:pop()
             local func, errmsg = tl.load(rendercode)
-            --print('func, errmsg', func, errmsg)
+            print('func, errmsg', func, errmsg)
             if not func then
                 --error("%{red}Something wrong in render code: %{cyan}" .. errmsg)
                 local msg = "%{red}Something wrong in render code: %{cyan}" 
                 print(colorize(msg .. errmsg))
-                os.exit(INTERNAL_LOAD_ERROR)
+                os.exit(ERROR_INTERNAL_LOAD)
             else
                 -- Нужно-ли добавлять все функции подряд в таблицу?
                 table.insert(renderFunctions, func)
@@ -70,6 +73,8 @@ local function pullRenderCode()
             --print('No stuff in graphic_code_channel')
         end
     until not rendercode
+
+    print('return form pullRenderCode()')
 end
 
 local function bindKeys()
@@ -169,6 +174,9 @@ local function newThread(name: string): love.thread.Thread
     local path = "scenes/" .. name .. "/init.lua"
     --print(string.format("initOneMulti '%s'", path))
     local thread = love.thread.newThread(path)
+    if not thread then
+        error('No thread created.')
+    end
     return thread
 end
 
@@ -384,6 +392,15 @@ function love.run(): function(): string|number
         dt = nt - time
         time = nt                
 
+        for _, t in ipairs(threads) do
+            local errmsg = t:getError()
+            if errmsg then
+                errmsg = colorize("%{cyan}" .. errmsg .. "%{reset}")
+                print(colorize('%{red}Error in thread'), errmsg)
+                os.exit(ERROR_THREAD)
+            end
+        end
+
 		-- Update dt, as we'll be passing it to update
 		if love.timer then dt = love.timer.step() end
 
@@ -410,11 +427,6 @@ function love.run(): function(): string|number
 		if love.timer then love.timer.sleep(0.001) end
 
 	end
-end
-
-function threaderror(thread: love.thread.Thread, errorstr: string)
-    local fmt = "Something wrong in thread %s with %s"
-    error(string.format(fmt , tostring(thread), errorstr))
 end
 
 --[[ Добавить что-нибудь из списка?
