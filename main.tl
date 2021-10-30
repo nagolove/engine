@@ -21,7 +21,8 @@ local imguiFontSize = 22
 
 local lt = love.thread
 local type LoadFunction = function(...:any): any...
-local renderFunctions: {LoadFunction} = {}
+--local renderFunctions: {LoadFunction} = {}
+local renderFunctions: {string:LoadFunction} = {}
 local threads: {lt.Thread} = {}
 
 global event_channel = lt.getChannel("event_channel")
@@ -51,30 +52,30 @@ local function pullRenderCode()
     local rendercode: string
 
     repeat
-        print('pullRenderCode iteration')
-
+        --print('pullRenderCode iteration')
         rendercode = graphic_code_channel:pop() as string
 
         if rendercode then
-            --graphic_code_channel:pop()
             local func, errmsg = tl.load(rendercode)
-            print('func, errmsg', func, errmsg)
+            --print('func, errmsg', func, errmsg)
             if not func then
                 --error("%{red}Something wrong in render code: %{cyan}" .. errmsg)
                 local msg = "%{red}Something wrong in render code: %{cyan}" 
                 print(colorize(msg .. errmsg))
                 os.exit(ERROR_INTERNAL_LOAD)
             else
+                local name = graphic_code_channel:pop() as string
+                if not name then
+                    error('No name for drawing function.')
+                end
+
                 -- Нужно-ли добавлять все функции подряд в таблицу?
-                table.insert(renderFunctions, func)
-                --renderFunctions[1] = func
+                renderFunctions[name] = func
             end
-        else
-            --print('No stuff in graphic_code_channel')
         end
     until not rendercode
 
-    print('return form pullRenderCode()')
+    --print('return form pullRenderCode()')
 end
 
 local function bindKeys()
@@ -416,9 +417,12 @@ function love.run(): function(): string|number
 
             draw_ready_channel:supply("ready")
 
-            if #renderFunctions ~= 0 then
-                renderFunctions[1]()
-            end
+            --if #renderFunctions ~= 0 then
+                --renderFunctions[1]()
+            --end
+
+            -- Извлечь имена функций и данные для рисования.
+            -- Передать данные в соответствующие функции.
 
 			love.graphics.present()
 		end

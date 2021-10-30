@@ -51,14 +51,13 @@ local function pullRenderCode()
    local rendercode
 
    repeat
-      print('pullRenderCode iteration')
+
 
       rendercode = graphic_code_channel:pop()
 
       if rendercode then
-
          local func, errmsg = tl.load(rendercode)
-         print('func, errmsg', func, errmsg)
+
          if not func then
 
             local msg = "%{red}Something wrong in render code: %{cyan}"
@@ -67,14 +66,11 @@ local function pullRenderCode()
          else
 
             table.insert(renderFunctions, func)
-
          end
-      else
-
       end
    until not rendercode
 
-   print('return form pullRenderCode()')
+
 end
 
 local function bindKeys()
@@ -392,6 +388,7 @@ function love.run()
       dt = nt - time
       time = nt
 
+
       for _, t in ipairs(threads) do
          local errmsg = t:getError()
          if errmsg then
@@ -403,8 +400,6 @@ function love.run()
 
 
       if love.timer then dt = love.timer.step() end
-
-
 
 
       if love.update then love.update(dt) end
