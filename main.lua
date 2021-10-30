@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local package = _tl_compat and _tl_compat.package or package; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("jitoptions").on()
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local package = _tl_compat and _tl_compat.package or package; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("jitoptions").on()
 require("love")
 require("common")
 require("log")
@@ -33,9 +33,15 @@ graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
 local Shortcut = KeyConfig.Shortcut
 
+local colorize = require('ansicolors2').ansicolors
 
-local function pullRenderCode(timeout)
+local INTERNAL_LOAD_ERROR = 255
+
+
+
+local function pullRenderCode()
    local rendercode
+
 
 
 
@@ -49,8 +55,12 @@ local function pullRenderCode(timeout)
       if rendercode then
 
          local func, errmsg = tl.load(rendercode)
+
          if not func then
-            error("Something wrong in render code: " .. errmsg)
+
+            local msg = "%{red}Something wrong in render code: %{cyan}"
+            print(colorize(msg .. errmsg))
+            os.exit(INTERNAL_LOAD_ERROR)
          else
 
             table.insert(renderFunctions, func)
@@ -200,8 +210,13 @@ function love.load(arg)
    local thread = newThread(sceneName)
    thread:start()
 
-   local timeout = 0.1
-   pullRenderCode(timeout)
+
+
+
+
+   love.timer.sleep(0.1)
+
+   pullRenderCode()
 
    table.insert(threads, thread)
 

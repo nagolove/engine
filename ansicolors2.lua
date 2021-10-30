@@ -111,6 +111,23 @@ end
 
 
 
-return {
+local R = {}
+
+
+
+local export = {
    ansicolors = ansicolors,
 }
+
+
+
+
+
+
+
+
+
+
+
+
+return export

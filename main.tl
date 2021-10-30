@@ -33,8 +33,13 @@ global graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
 local Shortcut = KeyConfig.Shortcut
 
+local colorize = require 'ansicolors2'.ansicolors
+
+local INTERNAL_LOAD_ERROR = 255
+
 -- Стягивает из канала кода все сообщения.
-local function pullRenderCode(timeout: number)
+--local function pullRenderCode(timeout: number)
+local function pullRenderCode()
     local rendercode: string
 
     --if timeout then
@@ -43,14 +48,19 @@ local function pullRenderCode(timeout: number)
         --rendercode = graphic_code_channel:peek() as string
     --end
 
+    --print(colorize("%{red}красный%{reset}default"))
     repeat
         rendercode = graphic_code_channel:pop() as string
 
         if rendercode then
             --graphic_code_channel:pop()
             local func, errmsg = tl.load(rendercode)
+            --print('func, errmsg', func, errmsg)
             if not func then
-                error("Something wrong in render code: " .. errmsg)
+                --error("%{red}Something wrong in render code: %{cyan}" .. errmsg)
+                local msg = "%{red}Something wrong in render code: %{cyan}" 
+                print(colorize(msg .. errmsg))
+                os.exit(INTERNAL_LOAD_ERROR)
             else
                 -- Нужно-ли добавлять все функции подряд в таблицу?
                 table.insert(renderFunctions, func)
@@ -200,8 +210,13 @@ function love.load(arg: {string})
     local thread = newThread(sceneName)
     thread:start()
 
-    local timeout = 0.1
-    pullRenderCode(timeout)
+    --local timeout = 0.1
+    --pullRenderCode(timeout)
+
+    -- Подождать загрузки остальных потоков
+    love.timer.sleep(0.1)
+
+    pullRenderCode()
 
     table.insert(threads, thread)
 

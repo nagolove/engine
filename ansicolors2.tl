@@ -111,6 +111,23 @@ return setmetatable(
 )
 --]]
 
-return {
+local type R = record
+    ansicolors: function(string): string
+end
+
+local export: R = {
     ansicolors = ansicolors,
 }
+
+--local export_mt: metatable<R> = {
+    --__call = function(_: string, str: string): string 
+--}
+
+--local mt: export_mt = {
+    --__call = function (_: string, str: string): string 
+        --return ansicolors (str) 
+    --end
+--}
+
+--return setmetatable(export, mt)
+return export
