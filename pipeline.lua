@@ -1,6 +1,9 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local os = _tl_compat and _tl_compat.os or os; local colorize = require('ansicolors2').ansicolors
-local ecodes = require("errorcodes")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local os = _tl_compat and _tl_compat.os or os; local colorize = require('ansicolors2').ansicolors
 local lt = love.thread
+local tl = require("tl")
+local ecodes = require("errorcodes")
+
+local LoadFunction = {}
 
 
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
@@ -28,6 +31,10 @@ local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
 
 
+
+
+
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -35,11 +42,15 @@ local Pipeline_mt = {
 function Pipeline.new()
    local self = setmetatable({}, Pipeline_mt)
    self.in_section = false
+   self.renderFunctions = {}
    return self
 end
 
-function Pipeline:enter(_)
+function Pipeline:enter(section_name)
    self.in_section = true
+   assert(type(section_name) == 'string')
+   print('section_name', section_name)
+   graphic_command_channel:push(section_name)
 end
 
 function Pipeline:leave()
@@ -51,11 +62,11 @@ function Pipeline:pushName(_)
 end
 
 function Pipeline:push(arg)
-   if not self.in_section then
-      local msg = '%{red}Attempt to pipeline push outside section '
-      print(colorize(msg))
-      os.exit(ecodes.ERROR_NO_SECTION)
-   end
+
+
+
+
+
    graphic_command_channel:push(arg)
 end
 
@@ -90,4 +101,55 @@ function Pipeline:pushCode(name, code)
 
    graphic_code_channel:push(code)
    graphic_code_channel:push(name)
+end
+
+function Pipeline:render()
+
+
+   local cmd_name = graphic_command_channel:demand()
+   print('cmd_name', cmd_name)
+   if type(cmd_name) ~= 'string' then
+      print(colorize('%{red}Pipeline:render()'))
+      print(colorize('%{red}type(cmd_name) = ' .. cmd_name))
+      os.exit(ecodes.ERROR_NO_COMMAND)
+   end
+   local f = self.renderFunctions[cmd_name]
+   if f then
+      f()
+   end
+end
+
+
+
+function Pipeline:pullRenderCode()
+   local rendercode
+
+   repeat
+
+      rendercode = graphic_code_channel:pop()
+
+      if rendercode then
+         local func, errmsg = tl.load(rendercode)
+
+         print('func, errmsg', func, errmsg)
+         print('rendercode', colorize('%{green}' .. rendercode))
+
+         if not func then
+
+            local msg = "%{red}Something wrong in render code: %{cyan}"
+            print(colorize(msg .. errmsg))
+            os.exit(ecodes.ERROR_INTERNAL_LOAD)
+         else
+            local name = graphic_code_channel:pop()
+            if not name then
+               error('No name for drawing function.')
+            end
+
+
+            self.renderFunctions[name] = func
+         end
+      end
+   until not rendercode
+
+
 end

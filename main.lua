@@ -4,6 +4,7 @@ require("common")
 require("log")
 require("keyconfig")
 require('imgui')
+require('pipeline')
 
 if love.system.getOS() == 'Windows' then
    love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
@@ -12,7 +13,6 @@ print("package.path", package.path)
 
 local IMGUI_USE_STUB = false
 
-local tl = require("tl")
 local inspect = require("inspect")
 local scenes = require("scenes")
 
@@ -20,62 +20,25 @@ local showHelp = false
 local imguiFontSize = 22
 
 local lt = love.thread
-local LoadFunction = {}
-
-local renderFunctions = {}
 local threads = {}
 
 local event_channel = lt.getChannel("event_channel")
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
 
-local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+
 
 
 
 local Shortcut = KeyConfig.Shortcut
-
 local colorize = require('ansicolors2').ansicolors
-
 local ecodes = require("errorcodes")
+local pipeline = Pipeline.new()
 
 function threaderror(thread, errorstr)
    print('threaderror')
    local fmt = "Something wrong in thread %s with %s"
    print(string.format(fmt, tostring(thread), errorstr))
    os.exit(ecodes.ERROR_THREAD)
-end
-
-
-
-local function pullRenderCode()
-   local rendercode
-
-   repeat
-
-      rendercode = graphic_code_channel:pop()
-
-      if rendercode then
-         local func, errmsg = tl.load(rendercode)
-
-         print('rendercode', colorize('%{green}' .. rendercode))
-         if not func then
-
-            local msg = "%{red}Something wrong in render code: %{cyan}"
-            print(colorize(msg .. errmsg))
-            os.exit(ecodes.ERROR_INTERNAL_LOAD)
-         else
-            local name = graphic_code_channel:pop()
-            if not name then
-               error('No name for drawing function.')
-            end
-
-
-            renderFunctions[name] = func
-         end
-      end
-   until not rendercode
-
-
 end
 
 local function bindKeys()
@@ -225,7 +188,7 @@ function love.load(arg)
 
    love.timer.sleep(0.1)
 
-   pullRenderCode()
+   pipeline:pullRenderCode()
 
    table.insert(threads, thread)
 
@@ -409,7 +372,7 @@ function love.run()
 
       if love.update then love.update(dt) end
 
-      pullRenderCode()
+      pipeline:pullRenderCode()
 
       if love.graphics and love.graphics.isActive() then
          love.graphics.origin()
@@ -417,6 +380,8 @@ function love.run()
 
          draw_ready_channel:supply("ready")
 
+
+         pipeline:render()
 
 
 

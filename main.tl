@@ -4,6 +4,7 @@ require "common"
 require "log"
 require "keyconfig"
 require 'imgui'
+require 'pipeline'
 
 if love.system.getOS() == 'Windows' then
     love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
@@ -12,7 +13,6 @@ print("package.path", package.path)
 
 local IMGUI_USE_STUB = false
 
-local tl = require "tl"
 local inspect = require "inspect"
 local scenes = require "scenes"
 
@@ -20,62 +20,25 @@ local showHelp = false
 local imguiFontSize = 22
 
 local lt = love.thread
-local type LoadFunction = function(...:any): any...
---local renderFunctions: {LoadFunction} = {}
-local renderFunctions: {string:LoadFunction} = {}
 local threads: {lt.Thread} = {}
 
 local event_channel = lt.getChannel("event_channel")
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
 --local graphic_command_channel = lt.getChannel("graphic_command_channel")
-local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+--local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
 --love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
 
 local Shortcut = KeyConfig.Shortcut
-
 local colorize = require 'ansicolors2'.ansicolors
-
 local ecodes = require "errorcodes"
+local pipeline = Pipeline.new()
 
 function threaderror(thread: love.thread.Thread, errorstr: string)
     print('threaderror')
     local fmt = "Something wrong in thread %s with %s"
     print(string.format(fmt , tostring(thread), errorstr))
     os.exit(ecodes.ERROR_THREAD)
-end
-
--- Стягивает из канала кода все сообщения.
---local function pullRenderCode(timeout: number)
-local function pullRenderCode()
-    local rendercode: string
-
-    repeat
-        --print('pullRenderCode iteration')
-        rendercode = graphic_code_channel:pop() as string
-
-        if rendercode then
-            local func, errmsg = tl.load(rendercode)
-            --print('func, errmsg', func, errmsg)
-            print('rendercode', colorize('%{green}' .. rendercode))
-            if not func then
-                --error("%{red}Something wrong in render code: %{cyan}" .. errmsg)
-                local msg = "%{red}Something wrong in render code: %{cyan}" 
-                print(colorize(msg .. errmsg))
-                os.exit(ecodes.ERROR_INTERNAL_LOAD)
-            else
-                local name = graphic_code_channel:pop() as string
-                if not name then
-                    error('No name for drawing function.')
-                end
-
-                -- Нужно-ли добавлять все функции подряд в таблицу?
-                renderFunctions[name] = func
-            end
-        end
-    until not rendercode
-
-    --print('return form pullRenderCode()')
 end
 
 local function bindKeys()
@@ -225,7 +188,7 @@ function love.load(arg: {string})
     -- Подождать загрузки остальных потоков
     love.timer.sleep(0.1)
 
-    pullRenderCode()
+    pipeline:pullRenderCode()
 
     table.insert(threads, thread)
 
@@ -409,7 +372,7 @@ function love.run(): function(): string|number
 		-- Call update and draw
 		if love.update then love.update(dt) end -- will pass 0 if love.timer is disabled
 
-        pullRenderCode()
+        pipeline:pullRenderCode()
 
 		if love.graphics and love.graphics.isActive() then
 			love.graphics.origin()
@@ -417,6 +380,8 @@ function love.run(): function(): string|number
 
             draw_ready_channel:supply("ready")
 
+            -- Здесь команды рисования
+            pipeline:render()
             --if #renderFunctions ~= 0 then
                 --renderFunctions[1]()
             --end

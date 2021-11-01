@@ -1,6 +1,9 @@
 local colorize = require 'ansicolors2'.ansicolors
-local ecodes = require "errorcodes"
 local lt = love.thread
+local tl = require "tl"
+local ecodes = require "errorcodes"
+
+local type LoadFunction = function(...:any): any...
 
 --local event_channel = lt.getChannel("event_channel")
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
@@ -24,8 +27,12 @@ global type Pipeline = record
     ready: function(Pipeline): boolean
 
     pushCode: function(Pipeline, name: string, code: string)
+    pullRenderCode: function(Pipeline)
+    render: function(Pipeline)
 
     in_section: boolean
+    renderFunctions: {string:LoadFunction}
+    last_section_name: string
 end
 
 local Pipeline_mt: metatable<Pipeline> = {
@@ -35,11 +42,15 @@ local Pipeline_mt: metatable<Pipeline> = {
 function Pipeline.new(): Pipeline
     local self: Pipeline = setmetatable({} as Pipeline, Pipeline_mt)
     self.in_section = false
+    self.renderFunctions = {}
     return self
 end
 
-function Pipeline:enter(_: string)
+function Pipeline:enter(section_name: string)
     self.in_section = true
+    assert(type(section_name) == 'string')
+    print('section_name', section_name)
+    graphic_command_channel:push(section_name)
 end
 
 function Pipeline:leave()
@@ -51,11 +62,11 @@ function Pipeline:pushName(_: string)
 end
 
 function Pipeline:push(arg: any)
-    if not self.in_section then
-        local msg = '%{red}Attempt to pipeline push outside section '
-        print(colorize(msg))
-        os.exit(ecodes.ERROR_NO_SECTION)
-    end
+    --if not self.in_section then
+        --local msg = '%{red}Attempt to pipeline push outside section '
+        --print(colorize(msg))
+        --os.exit(ecodes.ERROR_NO_SECTION)
+    --end
     graphic_command_channel:push(arg)
 end
 
@@ -90,4 +101,55 @@ function Pipeline:pushCode(name: string, code: string)
 
     graphic_code_channel:push(code)
     graphic_code_channel:push(name)
+end
+
+function Pipeline:render()
+    -- Не лучше-ли использовать graphic_command_channel:pop()
+    -- что-бы избежать блокировки?
+    local cmd_name = graphic_command_channel:demand() as string
+    print('cmd_name', cmd_name)
+    if type(cmd_name) ~= 'string' then
+        print(colorize('%{red}Pipeline:render()'))
+        print(colorize('%{red}type(cmd_name) = ' .. cmd_name))
+        os.exit(ecodes.ERROR_NO_COMMAND)
+    end
+    local f = self.renderFunctions[cmd_name]
+    if f then
+        f()
+    end
+end
+
+
+-- Стягивает из канала кода все сообщения.
+function Pipeline:pullRenderCode()
+    local rendercode: string
+
+    repeat
+        --print('pullRenderCode iteration')
+        rendercode = graphic_code_channel:pop() as string
+
+        if rendercode then
+            local func, errmsg = tl.load(rendercode)
+
+            print('func, errmsg', func, errmsg)
+            print('rendercode', colorize('%{green}' .. rendercode))
+
+            if not func then
+                --error("%{red}Something wrong in render code: %{cyan}" .. errmsg)
+                local msg = "%{red}Something wrong in render code: %{cyan}" 
+                print(colorize(msg .. errmsg))
+                os.exit(ecodes.ERROR_INTERNAL_LOAD)
+            else
+                local name = graphic_code_channel:pop() as string
+                if not name then
+                    error('No name for drawing function.')
+                end
+
+                -- Нужно-ли добавлять все функции подряд в таблицу?
+                self.renderFunctions[name] = func
+            end
+        end
+    until not rendercode
+
+    --print('return form pullRenderCode()')
 end
