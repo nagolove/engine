@@ -21,6 +21,7 @@ local imguiFontSize = 22
 
 local lt = love.thread
 local LoadFunction = {}
+
 local renderFunctions = {}
 local threads = {}
 
@@ -52,7 +53,6 @@ local function pullRenderCode()
 
    repeat
 
-
       rendercode = graphic_code_channel:pop()
 
       if rendercode then
@@ -64,8 +64,13 @@ local function pullRenderCode()
             print(colorize(msg .. errmsg))
             os.exit(ERROR_INTERNAL_LOAD)
          else
+            local name = graphic_code_channel:pop()
+            if not name then
+               error('No name for drawing function.')
+            end
 
-            table.insert(renderFunctions, func)
+
+            renderFunctions[name] = func
          end
       end
    until not rendercode
@@ -412,9 +417,12 @@ function love.run()
 
          draw_ready_channel:supply("ready")
 
-         if #renderFunctions ~= 0 then
-            renderFunctions[1]()
-         end
+
+
+
+
+
+
 
          love.graphics.present()
       end
