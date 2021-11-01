@@ -25,10 +25,10 @@ local LoadFunction = {}
 local renderFunctions = {}
 local threads = {}
 
-event_channel = lt.getChannel("event_channel")
-draw_ready_channel = lt.getChannel("draw_ready_channel")
-graphic_command_channel = lt.getChannel("graphic_command_channel")
-graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+local event_channel = lt.getChannel("event_channel")
+local draw_ready_channel = lt.getChannel("draw_ready_channel")
+
+local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
 
 
@@ -36,14 +36,13 @@ local Shortcut = KeyConfig.Shortcut
 
 local colorize = require('ansicolors2').ansicolors
 
-local ERROR_INTERNAL_LOAD = 255
-local ERROR_THREAD = 254
+local ecodes = require("errorcodes")
 
 function threaderror(thread, errorstr)
    print('threaderror')
    local fmt = "Something wrong in thread %s with %s"
    print(string.format(fmt, tostring(thread), errorstr))
-   os.exit(ERROR_THREAD)
+   os.exit(ecodes.ERROR_THREAD)
 end
 
 
@@ -62,7 +61,7 @@ local function pullRenderCode()
 
             local msg = "%{red}Something wrong in render code: %{cyan}"
             print(colorize(msg .. errmsg))
-            os.exit(ERROR_INTERNAL_LOAD)
+            os.exit(ecodes.ERROR_INTERNAL_LOAD)
          else
             local name = graphic_code_channel:pop()
             if not name then
@@ -399,7 +398,7 @@ function love.run()
          if errmsg then
             errmsg = colorize("%{cyan}" .. errmsg .. "%{reset}")
             print(colorize('%{red}Error in thread'), errmsg)
-            os.exit(ERROR_THREAD)
+            os.exit(ecodes.ERROR_THREAD)
          end
       end
 

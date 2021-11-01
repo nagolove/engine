@@ -1,0 +1,5 @@
+return {
+   ERROR_NO_SECTION = 253,
+   ERROR_THREAD = 254,
+   ERROR_INTERNAL_LOAD = 255,
+}

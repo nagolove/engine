@@ -25,10 +25,10 @@ local type LoadFunction = function(...:any): any...
 local renderFunctions: {string:LoadFunction} = {}
 local threads: {lt.Thread} = {}
 
-global event_channel = lt.getChannel("event_channel")
-global draw_ready_channel = lt.getChannel("draw_ready_channel")
-global graphic_command_channel = lt.getChannel("graphic_command_channel")
-global graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+local event_channel = lt.getChannel("event_channel")
+local draw_ready_channel = lt.getChannel("draw_ready_channel")
+--local graphic_command_channel = lt.getChannel("graphic_command_channel")
+local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
 --love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
 
@@ -36,14 +36,13 @@ local Shortcut = KeyConfig.Shortcut
 
 local colorize = require 'ansicolors2'.ansicolors
 
-local ERROR_INTERNAL_LOAD = 255
-local ERROR_THREAD = 254
+local ecodes = require "errorcodes"
 
 function threaderror(thread: love.thread.Thread, errorstr: string)
     print('threaderror')
     local fmt = "Something wrong in thread %s with %s"
     print(string.format(fmt , tostring(thread), errorstr))
-    os.exit(ERROR_THREAD)
+    os.exit(ecodes.ERROR_THREAD)
 end
 
 -- Стягивает из канала кода все сообщения.
@@ -62,7 +61,7 @@ local function pullRenderCode()
                 --error("%{red}Something wrong in render code: %{cyan}" .. errmsg)
                 local msg = "%{red}Something wrong in render code: %{cyan}" 
                 print(colorize(msg .. errmsg))
-                os.exit(ERROR_INTERNAL_LOAD)
+                os.exit(ecodes.ERROR_INTERNAL_LOAD)
             else
                 local name = graphic_code_channel:pop() as string
                 if not name then
@@ -399,7 +398,7 @@ function love.run(): function(): string|number
             if errmsg then
                 errmsg = colorize("%{cyan}" .. errmsg .. "%{reset}")
                 print(colorize('%{red}Error in thread'), errmsg)
-                os.exit(ERROR_THREAD)
+                os.exit(ecodes.ERROR_THREAD)
             end
         end
 
