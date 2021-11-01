@@ -80,7 +80,7 @@ function Pipeline:ready()
 end
 
 
-function pushCode(name, code)
+function Pipeline:pushCode(name, code)
    if not name then
       error("No name for pushCode()")
    end

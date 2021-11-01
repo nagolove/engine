@@ -80,7 +80,7 @@ function Pipeline:ready(): boolean
 end
 
 -- Не лучше-ли передавать число?
-function pushCode(name: string, code: string)
+function Pipeline:pushCode(name: string, code: string)
     if not name then
         error("No name for pushCode()")
     end
