@@ -88,6 +88,6 @@ function Pipeline:pushCode(name, code)
       error("No code for pushCode()")
    end
 
-   graphic_code_channel:push(name)
    graphic_code_channel:push(code)
+   graphic_code_channel:push(name)
 end

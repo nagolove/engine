@@ -57,6 +57,7 @@ local function pullRenderCode()
       if rendercode then
          local func, errmsg = tl.load(rendercode)
 
+         print('rendercode', colorize('%{green}' .. rendercode))
          if not func then
 
             local msg = "%{red}Something wrong in render code: %{cyan}"
