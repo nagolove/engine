@@ -109,6 +109,7 @@ function Pipeline:render()
     local cmd_name = graphic_command_channel:demand() as string
     print('cmd_name', cmd_name)
     if type(cmd_name) ~= 'string' then
+        print(colorize('%{yellow}' .. debug.traceback()))
         print(colorize('%{red}Pipeline:render()'))
         print(colorize('%{red}type(cmd_name) = ' .. cmd_name))
         os.exit(ecodes.ERROR_NO_COMMAND)

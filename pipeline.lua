@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local os = _tl_compat and _tl_compat.os or os; local colorize = require('ansicolors2').ansicolors
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local colorize = require('ansicolors2').ansicolors
 local lt = love.thread
 local tl = require("tl")
 local ecodes = require("errorcodes")
@@ -109,6 +109,7 @@ function Pipeline:render()
    local cmd_name = graphic_command_channel:demand()
    print('cmd_name', cmd_name)
    if type(cmd_name) ~= 'string' then
+      print(colorize('%{yellow}' .. debug.traceback()))
       print(colorize('%{red}Pipeline:render()'))
       print(colorize('%{red}type(cmd_name) = ' .. cmd_name))
       os.exit(ecodes.ERROR_NO_COMMAND)
