@@ -79,11 +79,11 @@ function Pipeline:pushName(_)
 end
 
 function Pipeline:push(arg)
-
-
-
-
-
+   if not self.in_section then
+      local msg = '%{red}Attempt to pipeline push outside section '
+      print(colorize(msg))
+      os.exit(ecodes.ERROR_NO_SECTION)
+   end
    graphic_command_channel:push(arg)
 end
 
@@ -92,13 +92,11 @@ function Pipeline:ready()
    if is_ready then
       if type(is_ready) ~= 'string' then
          print("Type error in is_ready flag")
-
          os.exit(ecodes.ERROR_IS_READY_TYPE)
       end
       if is_ready ~= "ready" then
          local msg = tostring(is_ready) or ""
          print("Bad message in draw_ready_channel: " .. msg)
-
          os.exit(ecodes.ERROR_NO_READY)
       end
       draw_ready_channel:pop()
@@ -141,6 +139,10 @@ function Pipeline:render()
    local f = self.renderFunctions[cmd_name]
    if f then
       f()
+   else
+      local msg = '%{red}Render function not found in table.'
+      print(colorize(msg))
+      os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
    end
 end
 
