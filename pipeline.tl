@@ -10,6 +10,12 @@ local draw_ready_channel = lt.getChannel("draw_ready_channel")
 local graphic_command_channel = lt.getChannel("graphic_command_channel")
 local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
+local enum State
+    'open'
+    'closed'
+    'undefined'
+end
+
 global type Pipeline = record
     new: function(): Pipeline
     -- Вход в секцию отправки
@@ -31,6 +37,7 @@ global type Pipeline = record
     render: function(Pipeline)
 
     in_section: boolean
+    state: State
     renderFunctions: {string:LoadFunction}
     last_section_name: string
 end
@@ -47,13 +54,23 @@ function Pipeline.new(): Pipeline
 end
 
 function Pipeline:enter(section_name: string)
+    print('self.in_section', self.in_section)
+    if self.in_section then
+        local msg = '%{red}Double opened section'
+        print(colorize(msg))
+        os.exit(ecodes.ERROR_NO_SECTION)
+    end
     self.in_section = true
+
+    --self.state = 'open'
+
     assert(type(section_name) == 'string')
     print('section_name', section_name)
     graphic_command_channel:push(section_name)
 end
 
 function Pipeline:leave()
+    --self.state = 'closed'
     self.in_section = false
 end
 
@@ -76,13 +93,13 @@ function Pipeline:ready(): boolean
         if type(is_ready) ~= 'string' then
             print("Type error in is_ready flag")
             -- Переписать коды возврата в константы.
-            os.exit(250)
+            os.exit(ecodes.ERROR_IS_READY_TYPE)
         end
         if is_ready ~= "ready" then
             local msg = tostring(is_ready) or ""
             print("Bad message in draw_ready_channel: " .. msg)
             -- Переписать коды возврата в константы.
-            os.exit(249)
+            os.exit(ecodes.ERROR_NO_READY)
         end
         draw_ready_channel:pop()
         return true
@@ -106,12 +123,19 @@ end
 function Pipeline:render()
     -- Не лучше-ли использовать graphic_command_channel:pop()
     -- что-бы избежать блокировки?
+    if self.in_section then
+        local msg = '%{red}Section not closed'
+        print(colorize(msg))
+        os.exit(ecodes.ERROR_NO_SECTION)
+    end
+
     local cmd_name = graphic_command_channel:demand() as string
     print('cmd_name', cmd_name)
     if type(cmd_name) ~= 'string' then
         print(colorize('%{yellow}' .. debug.traceback()))
         print(colorize('%{red}Pipeline:render()'))
-        print(colorize('%{red}type(cmd_name) = ' .. cmd_name))
+        print(colorize('%{red}type(cmd_name) = ' .. type(cmd_name)))
+        print(colorize('%{green}cmd_name = ' .. cmd_name))
         os.exit(ecodes.ERROR_NO_COMMAND)
     end
     local f = self.renderFunctions[cmd_name]
