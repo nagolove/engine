@@ -1,7 +1,10 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local colorize = require('ansicolors2').ansicolors
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local colorize = require('ansicolors2').ansicolors
 local lt = love.thread
 local tl = require("tl")
 local ecodes = require("errorcodes")
+local format = string.format
+
+local DEBUG_RENDER = true
 
 local LoadFunction = {}
 
@@ -42,36 +45,40 @@ local State = {}
 
 
 
+
+
+
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
 
 function Pipeline.new()
    local self = setmetatable({}, Pipeline_mt)
-   self.in_section = false
+   self.section_state = 'closed'
    self.renderFunctions = {}
    return self
 end
 
-function Pipeline:enter(section_name)
-   print('self.in_section', self.in_section)
-   if self.in_section then
+function Pipeline:open(func_name)
+   print('self.section_state', self.section_state)
+   if self.section_state ~= 'closed' then
       local msg = '%{red}Double opened section'
       print(colorize(msg))
+      print(colorize('%{cyan}' .. debug.traceback()))
       os.exit(ecodes.ERROR_NO_SECTION)
    end
-   self.in_section = true
+   self.section_state = 'open'
 
-
-
-   assert(type(section_name) == 'string')
-   print('section_name', section_name)
-   graphic_command_channel:push(section_name)
+   assert(type(func_name) == 'string')
+   if DEBUG_RENDER then
+      print('func_name', func_name)
+   end
+   graphic_command_channel:push(func_name)
 end
 
-function Pipeline:leave()
-
-   self.in_section = false
+function Pipeline:close()
+   self.section_state = 'closed'
 end
 
 function Pipeline:pushName(_)
@@ -79,9 +86,10 @@ function Pipeline:pushName(_)
 end
 
 function Pipeline:push(arg)
-   if not self.in_section then
-      local msg = '%{red}Attempt to pipeline push outside section '
-      print(colorize(msg))
+   if self.section_state ~= 'open' then
+      local color_block = '%{red}'
+      local msg = 'Attempt to push in pipeline with "%s" section state'
+      print(colorize(color_block .. format(msg, self.section_state)))
       os.exit(ecodes.ERROR_NO_SECTION)
    end
    graphic_command_channel:push(arg)
@@ -106,13 +114,26 @@ function Pipeline:ready()
 end
 
 
+
+
 function Pipeline:pushCode(name, code)
+   if self.section_state == 'open' then
+      self.section_state = 'undefined'
+
+      return
+   end
+
    if not name then
       error("No name for pushCode()")
    end
    if not code then
       error("No code for pushCode()")
    end
+
+   local preload = [[
+    local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
+    ]]
+   code = preload .. code
 
    graphic_code_channel:push(code)
    graphic_code_channel:push(name)
@@ -121,31 +142,58 @@ end
 function Pipeline:render()
 
 
-   if self.in_section then
-      local msg = '%{red}Section not closed'
-      print(colorize(msg))
+   if self.section_state ~= 'closed' then
+      local color_block = '%{red}'
+      local msg = 'Section not closed, but "%s"'
+      print(colorize(color_block .. format(msg, self.section_state)))
+      print(colorize('%{magenta}' .. debug.traceback()))
       os.exit(ecodes.ERROR_NO_SECTION)
    end
 
    local cmd_name = graphic_command_channel:demand()
+
    print('cmd_name', cmd_name)
+
    if type(cmd_name) ~= 'string' then
       print(colorize('%{yellow}' .. debug.traceback()))
       print(colorize('%{red}Pipeline:render()'))
       print(colorize('%{red}type(cmd_name) = ' .. type(cmd_name)))
       print(colorize('%{green}cmd_name = ' .. cmd_name))
+      print(colorize('%{magenta}' .. debug.traceback()))
       os.exit(ecodes.ERROR_NO_COMMAND)
    end
+
+
+
+
+
    local f = self.renderFunctions[cmd_name]
    if f then
       f()
    else
-      local msg = '%{red}Render function not found in table.'
-      print(colorize(msg))
+      local func_name = cmd_name or "nil"
+      local msg = 'Render function "%s" not found in table.'
+      print(colorize('%{red}' .. format(msg, func_name)))
+
+      if DEBUG_RENDER then
+         self:printAvaibleFunctions()
+      end
+
+      print(colorize('%{cyan}' .. debug.traceback()))
       os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
    end
 end
 
+function Pipeline:printAvaibleFunctions()
+   local color = 'magenta'
+
+   local color_block = "%{" .. color .. "}"
+   print(colorize(color_block .. "--- Avaible render functions: ---"))
+   for k, _ in pairs(self.renderFunctions) do
+      print(colorize(color_block .. k))
+   end
+   print(colorize(color_block .. "---------------------------------"))
+end
 
 
 function Pipeline:pullRenderCode()
@@ -179,4 +227,10 @@ function Pipeline:pullRenderCode()
    until not rendercode
 
 
+end
+
+
+function Pipeline:openAndClose(func_name)
+   self:open(func_name)
+   self:close()
 end
