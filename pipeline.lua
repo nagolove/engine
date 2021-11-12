@@ -49,6 +49,8 @@ local State = {}
 
 
 
+
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -61,7 +63,9 @@ function Pipeline.new()
 end
 
 function Pipeline:open(func_name)
-   print('self.section_state', self.section_state)
+
+
+
    if self.section_state ~= 'closed' then
       local msg = '%{red}Double opened section'
       print(colorize(msg))
@@ -71,9 +75,11 @@ function Pipeline:open(func_name)
    self.section_state = 'open'
 
    assert(type(func_name) == 'string')
-   if DEBUG_RENDER then
-      print('func_name', func_name)
-   end
+
+
+
+
+
    graphic_command_channel:push(func_name)
 end
 
@@ -113,6 +119,10 @@ function Pipeline:ready()
    return false
 end
 
+function Pipeline:waitForReady()
+   draw_ready_channel:supply("ready")
+end
+
 
 
 
@@ -149,8 +159,10 @@ function Pipeline:render()
       os.exit(ecodes.ERROR_NO_SECTION)
    end
 
-   print('graphic_command_channel:getCount() before',
-   graphic_command_channel:getCount())
+
+
+
+
 
 
 
@@ -161,10 +173,10 @@ function Pipeline:render()
 
    while cmd_name do
 
-      print('graphic_command_channel:getCount() after',
-      graphic_command_channel:getCount())
 
-      print('cmd_name', cmd_name)
+
+
+
 
       if type(cmd_name) ~= 'string' then
          print(colorize('%{yellow}' .. debug.traceback()))
@@ -183,8 +195,9 @@ function Pipeline:render()
       if f then
          f()
 
-         print('graphic_command_channel:getCount() after f()',
-         graphic_command_channel:getCount())
+
+
+
       else
          local func_name = cmd_name or "nil"
          local msg = 'Render function "%s" not found in table.'

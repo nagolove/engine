@@ -37,6 +37,8 @@ global type Pipeline = record
     -- Блокирующий вызов(синхронизация с потоком рисования.
     ready: function(Pipeline): boolean
 
+    waitForReady: function(Pipeline)
+
     pushCode: function(Pipeline, name: string, code: string)
     pullRenderCode: function(Pipeline)
     render: function(Pipeline)
@@ -61,7 +63,9 @@ function Pipeline.new(): Pipeline
 end
 
 function Pipeline:open(func_name: string)
-    print('self.section_state', self.section_state)
+
+    --print('self.section_state', self.section_state)
+
     if self.section_state ~= 'closed' then
         local msg = '%{red}Double opened section'
         print(colorize(msg))
@@ -71,9 +75,11 @@ function Pipeline:open(func_name: string)
     self.section_state = 'open'
 
     assert(type(func_name) == 'string')
-    if DEBUG_RENDER then
-        print('func_name', func_name)
-    end
+
+    --if DEBUG_RENDER then
+        --print('func_name', func_name)
+    --end
+
     graphic_command_channel:push(func_name)
 end
 
@@ -113,6 +119,10 @@ function Pipeline:ready(): boolean
     return false
 end
 
+function Pipeline:waitForReady()
+    draw_ready_channel:supply("ready")
+end
+
 -- Не лучше-ли передавать число в качестве идентификатора объекта рисовки?
 -- Добавить проверку количества и типов аргументов функции с возможностью
 -- отключения проверки для повыщения скороти вывода.
@@ -149,8 +159,10 @@ function Pipeline:render()
         os.exit(ecodes.ERROR_NO_SECTION)
     end
 
-    print('graphic_command_channel:getCount() before',
-        graphic_command_channel:getCount())
+    --draw_ready_channel:supply("ready")
+
+    --print('graphic_command_channel:getCount() before',
+        --graphic_command_channel:getCount())
 
     ---------------------------------- 
     -- Не лучше-ли использовать graphic_command_channel:pop()
@@ -161,10 +173,10 @@ function Pipeline:render()
 
     while cmd_name do
 
-        print('graphic_command_channel:getCount() after',
-            graphic_command_channel:getCount())
+        --print('graphic_command_channel:getCount() after',
+            --graphic_command_channel:getCount())
 
-        print('cmd_name', cmd_name)
+        --print('cmd_name', cmd_name)
 
         if type(cmd_name) ~= 'string' then
             print(colorize('%{yellow}' .. debug.traceback()))
@@ -183,8 +195,9 @@ function Pipeline:render()
         if f then
             f()
 
-            print('graphic_command_channel:getCount() after f()',
-                graphic_command_channel:getCount())
+            --print('graphic_command_channel:getCount() after f()',
+                --graphic_command_channel:getCount())
+
         else
             local func_name = cmd_name or "nil"
             local msg = 'Render function "%s" not found in table.'

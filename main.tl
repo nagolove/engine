@@ -379,18 +379,17 @@ function love.run(): function(): string|number
             --love.graphics.clear(love.graphics.getBackgroundColor())
             --love.graphics.clear()
 
-            draw_ready_channel:supply("ready")
-
-            -- Здесь команды рисования
+            pipeline:waitForReady()
             pipeline:render()
-
-            -- Извлечь имена функций и данные для рисования.
-            -- Передать данные в соответствующие функции.
 
 			love.graphics.present()
 		end
 
-		if love.timer then love.timer.sleep(0.001) end
+		if love.timer then 
+            --love.timer.sleep(0.0002) 
+            --love.timer.sleep(0.0008) 
+            love.timer.sleep(0.001) 
+        end
 
 	end
 end

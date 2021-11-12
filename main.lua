@@ -379,18 +379,17 @@ function love.run()
 
 
 
-         draw_ready_channel:supply("ready")
-
-
+         pipeline:waitForReady()
          pipeline:render()
-
-
-
 
          love.graphics.present()
       end
 
-      if love.timer then love.timer.sleep(0.001) end
+      if love.timer then
+
+
+         love.timer.sleep(0.001)
+      end
 
    end
 end
