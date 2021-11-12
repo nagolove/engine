@@ -141,7 +141,6 @@ end
 
 function Pipeline:render()
 
-
    if self.section_state ~= 'closed' then
       local color_block = '%{red}'
       local msg = 'Section not closed, but "%s"'
@@ -152,42 +151,56 @@ function Pipeline:render()
 
    print('graphic_command_channel:getCount() before',
    graphic_command_channel:getCount())
-   local cmd_name = graphic_command_channel:demand()
-   print('graphic_command_channel:getCount() after',
-   graphic_command_channel:getCount())
-
-   print('cmd_name', cmd_name)
-
-   if type(cmd_name) ~= 'string' then
-      print(colorize('%{yellow}' .. debug.traceback()))
-      print(colorize('%{red}Pipeline:render()'))
-      print(colorize('%{red}type(cmd_name) = ' .. type(cmd_name)))
-      print(colorize('%{green}cmd_name = ' .. cmd_name))
-      print(colorize('%{magenta}' .. debug.traceback()))
-      os.exit(ecodes.ERROR_NO_COMMAND)
-   end
 
 
 
 
 
-   local f = self.renderFunctions[cmd_name]
-   if f then
-      f()
+   local cmd_name = graphic_command_channel:pop()
 
-      print('graphic_command_channel:getCount() after f()',
+
+   while cmd_name do
+
+      print('graphic_command_channel:getCount() after',
       graphic_command_channel:getCount())
-   else
-      local func_name = cmd_name or "nil"
-      local msg = 'Render function "%s" not found in table.'
-      print(colorize('%{red}' .. format(msg, func_name)))
 
-      if DEBUG_RENDER then
-         self:printAvaibleFunctions()
+      print('cmd_name', cmd_name)
+
+      if type(cmd_name) ~= 'string' then
+         print(colorize('%{yellow}' .. debug.traceback()))
+         print(colorize('%{red}Pipeline:render()'))
+         print(colorize('%{red}type(cmd_name) = ' .. type(cmd_name)))
+         print(colorize('%{green}cmd_name = ' .. cmd_name))
+         print(colorize('%{magenta}' .. debug.traceback()))
+         os.exit(ecodes.ERROR_NO_COMMAND)
       end
 
-      print(colorize('%{cyan}' .. debug.traceback()))
-      os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
+
+
+
+
+      local f = self.renderFunctions[cmd_name]
+      if f then
+         f()
+
+         print('graphic_command_channel:getCount() after f()',
+         graphic_command_channel:getCount())
+      else
+         local func_name = cmd_name or "nil"
+         local msg = 'Render function "%s" not found in table.'
+         print(colorize('%{red}' .. format(msg, func_name)))
+
+         if DEBUG_RENDER then
+            self:printAvaibleFunctions()
+         end
+
+         print(colorize('%{cyan}' .. debug.traceback()))
+         os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
+      end
+
+
+
+      cmd_name = graphic_command_channel:pop()
    end
 end
 
@@ -201,6 +214,7 @@ function Pipeline:printAvaibleFunctions()
    end
    print(colorize(color_block .. "---------------------------------"))
 end
+
 
 
 function Pipeline:pullRenderCode()
