@@ -24,8 +24,8 @@ local threads = {}
 
 local event_channel = lt.getChannel("event_channel")
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
-local graphic_command_channel = lt.getChannel("graphic_command_channel")
-local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+
+
 
 
 
@@ -376,15 +376,13 @@ function love.run()
 
       if love.graphics and love.graphics.isActive() then
          love.graphics.origin()
-         love.graphics.clear(love.graphics.getBackgroundColor())
+
+
 
          draw_ready_channel:supply("ready")
 
 
          pipeline:render()
-
-
-
 
 
 

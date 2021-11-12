@@ -150,8 +150,10 @@ function Pipeline:render()
       os.exit(ecodes.ERROR_NO_SECTION)
    end
 
+   print('graphic_command_channel:getCount() before',
+   graphic_command_channel:getCount())
    local cmd_name = graphic_command_channel:demand()
-   print('graphic_command_channel:getCount()',
+   print('graphic_command_channel:getCount() after',
    graphic_command_channel:getCount())
 
    print('cmd_name', cmd_name)
@@ -172,6 +174,9 @@ function Pipeline:render()
    local f = self.renderFunctions[cmd_name]
    if f then
       f()
+
+      print('graphic_command_channel:getCount() after f()',
+      graphic_command_channel:getCount())
    else
       local func_name = cmd_name or "nil"
       local msg = 'Render function "%s" not found in table.'

@@ -140,8 +140,7 @@ function Pipeline:pushCode(name: string, code: string)
 end
 
 function Pipeline:render()
-    -- Не лучше-ли использовать graphic_command_channel:pop()
-    -- что-бы избежать блокировки?
+
     if self.section_state ~= 'closed' then
         local color_block = '%{red}'
         local msg = 'Section not closed, but "%s"'
@@ -150,8 +149,16 @@ function Pipeline:render()
         os.exit(ecodes.ERROR_NO_SECTION)
     end
 
+    print('graphic_command_channel:getCount() before',
+        graphic_command_channel:getCount())
+
+    ---------------------------------- 
+    -- Не лучше-ли использовать graphic_command_channel:pop()
+    -- что-бы избежать блокировки?
     local cmd_name = graphic_command_channel:demand() as string
-    print('graphic_command_channel:getCount()',
+    ---------------------------------- 
+
+    print('graphic_command_channel:getCount() after',
         graphic_command_channel:getCount())
 
     print('cmd_name', cmd_name)
@@ -172,6 +179,9 @@ function Pipeline:render()
     local f = self.renderFunctions[cmd_name]
     if f then
         f()
+
+        print('graphic_command_channel:getCount() after f()',
+            graphic_command_channel:getCount())
     else
         local func_name = cmd_name or "nil"
         local msg = 'Render function "%s" not found in table.'
@@ -197,7 +207,8 @@ function Pipeline:printAvaibleFunctions()
     print(colorize(color_block .. "---------------------------------"))
 end
 
--- Стягивает из канала кода все сообщения.
+-- Стягивает из канала кода все сообщения и обновляет 
+-- словарь функций рисования.
 function Pipeline:pullRenderCode()
     local rendercode: string
 
