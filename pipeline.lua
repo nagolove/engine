@@ -151,6 +151,8 @@ function Pipeline:render()
    end
 
    local cmd_name = graphic_command_channel:demand()
+   print('graphic_command_channel:getCount()',
+   graphic_command_channel:getCount())
 
    print('cmd_name', cmd_name)
 
