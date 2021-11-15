@@ -385,10 +385,10 @@ function love.run(): function(): string|number
 			love.graphics.present()
 		end
 
+        -- Подобрать константы задержки для игрового потока и основного потока.
+        local sleep_time = 0.001
 		if love.timer then 
-            --love.timer.sleep(0.0002) 
-            --love.timer.sleep(0.0008) 
-            love.timer.sleep(0.001) 
+            love.timer.sleep(sleep_time) 
         end
 
 	end

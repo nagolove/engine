@@ -385,10 +385,10 @@ function love.run()
          love.graphics.present()
       end
 
+
+      local sleep_time = 0.001
       if love.timer then
-
-
-         love.timer.sleep(0.001)
+         love.timer.sleep(sleep_time)
       end
 
    end
