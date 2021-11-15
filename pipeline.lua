@@ -163,20 +163,10 @@ function Pipeline:render()
 
 
 
-
-
-
-
-
    local cmd_name = graphic_command_channel:pop()
 
 
    while cmd_name do
-
-
-
-
-
 
       if type(cmd_name) ~= 'string' then
          print(colorize('%{yellow}' .. debug.traceback()))
@@ -194,10 +184,6 @@ function Pipeline:render()
       local f = self.renderFunctions[cmd_name]
       if f then
          f()
-
-
-
-
       else
          local func_name = cmd_name or "nil"
          local msg = 'Render function "%s" not found in table.'
@@ -210,7 +196,6 @@ function Pipeline:render()
          print(colorize('%{cyan}' .. debug.traceback()))
          os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
       end
-
 
 
       cmd_name = graphic_command_channel:pop()

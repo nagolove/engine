@@ -32,12 +32,13 @@ local draw_ready_channel = lt.getChannel("draw_ready_channel")
 local Shortcut = KeyConfig.Shortcut
 local colorize = require 'ansicolors2'.ansicolors
 local ecodes = require "errorcodes"
+local format = string.format
 local pipeline = Pipeline.new()
 
 function threaderror(thread: love.thread.Thread, errorstr: string)
     print('threaderror')
     local fmt = "Something wrong in thread %s with %s"
-    print(string.format(fmt , tostring(thread), errorstr))
+    print(format(fmt , tostring(thread), errorstr))
     os.exit(ecodes.ERROR_THREAD)
 end
 
@@ -137,6 +138,7 @@ end
 local function newThread(name: string): love.thread.Thread
     local path = "scenes/" .. name .. "/init.lua"
     --print(string.format("initOneMulti '%s'", path))
+    print(colorize('%{yellow}' .. format('newThread("%s")', path)))
     local thread = love.thread.newThread(path)
     if not thread then
         error('No thread created.')

@@ -159,11 +159,6 @@ function Pipeline:render()
         os.exit(ecodes.ERROR_NO_SECTION)
     end
 
-    --draw_ready_channel:supply("ready")
-
-    --print('graphic_command_channel:getCount() before',
-        --graphic_command_channel:getCount())
-
     ---------------------------------- 
     -- Не лучше-ли использовать graphic_command_channel:pop()
     -- что-бы избежать блокировки?
@@ -172,11 +167,6 @@ function Pipeline:render()
     ---------------------------------- 
 
     while cmd_name do
-
-        --print('graphic_command_channel:getCount() after',
-            --graphic_command_channel:getCount())
-
-        --print('cmd_name', cmd_name)
 
         if type(cmd_name) ~= 'string' then
             print(colorize('%{yellow}' .. debug.traceback()))
@@ -194,10 +184,6 @@ function Pipeline:render()
         local f = self.renderFunctions[cmd_name]
         if f then
             f()
-
-            --print('graphic_command_channel:getCount() after f()',
-                --graphic_command_channel:getCount())
-
         else
             local func_name = cmd_name or "nil"
             local msg = 'Render function "%s" not found in table.'
@@ -210,7 +196,6 @@ function Pipeline:render()
             print(colorize('%{cyan}' .. debug.traceback()))
             os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
         end
-
 
         --cmd_name = graphic_command_channel:demand() as string
         cmd_name = graphic_command_channel:pop() as string
