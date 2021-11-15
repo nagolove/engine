@@ -19,6 +19,12 @@ local enum State
     'undefined'
 end
 
+--[[
+Сделать объект рисования с конструктором.
+Как загружать картинки?
+Не удалять все объекты из очереди.
+Корутины?
+]]
 global type Pipeline = record
     new: function(): Pipeline
 
