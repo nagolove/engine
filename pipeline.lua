@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local colorize = require('ansicolors2').ansicolors
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local colorize = require('ansicolors2').ansicolors
 local lt = love.thread
 local tl = require("tl")
 local ecodes = require("errorcodes")
@@ -6,7 +6,8 @@ local format = string.format
 
 local DEBUG_RENDER = true
 
-local LoadFunction = {}
+local resume = coroutine.resume
+
 
 
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
@@ -26,6 +27,7 @@ local State = {}
 
 
  Pipeline = {}
+
 
 
 
@@ -187,9 +189,15 @@ function Pipeline:render()
 
 
 
-      local f = self.renderFunctions[cmd_name]
-      if f then
-         f()
+      local coro = self.renderFunctions[cmd_name]
+      if coro then
+         local ok, errmsg = resume(coro)
+         if not ok then
+            print(colorize('%{yellow}' .. 'cmd_name: ' .. cmd_name))
+            print(colorize('%{cyan}' .. debug.traceback()))
+            print(colorize('%{red}' .. errmsg))
+            os.exit(ecodes.ERROR_DIED_CORO)
+         end
       else
          local func_name = cmd_name or "nil"
          local msg = 'Render function "%s" not found in table.'
@@ -246,7 +254,9 @@ function Pipeline:pullRenderCode()
             end
 
 
-            self.renderFunctions[name] = func
+            local coro = coroutine.create(func)
+            self.renderFunctions[name] = coro
+
          end
       end
    until not rendercode

@@ -6,7 +6,8 @@ local format = string.format
 
 local DEBUG_RENDER = true
 
-local type LoadFunction = function(...:any): any...
+local resume = coroutine.resume
+--local type LoadFunction = function(...:any): any...
 
 --local event_channel = lt.getChannel("event_channel")
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
@@ -53,7 +54,8 @@ global type Pipeline = record
 
     --in_section: boolean
     section_state: State
-    renderFunctions: {string:LoadFunction}
+    --renderFunctions: {string:LoadFunction}
+    renderFunctions: {string:thread}
     last_section_name: string
 end
 
@@ -187,9 +189,15 @@ function Pipeline:render()
         -- Выкидывать старые функции если слишком произошда слишком большая
         -- задержка.
 
-        local f = self.renderFunctions[cmd_name]
-        if f then
-            f()
+        local coro = self.renderFunctions[cmd_name]
+        if coro then
+            local ok, errmsg: boolean, string = resume(coro) as (boolean, string)
+            if not ok then
+                print(colorize('%{yellow}' .. 'cmd_name: ' .. cmd_name))
+                print(colorize('%{cyan}' .. debug.traceback()))
+                print(colorize('%{red}' .. errmsg))
+                os.exit(ecodes.ERROR_DIED_CORO)
+            end
         else
             local func_name = cmd_name or "nil"
             local msg = 'Render function "%s" not found in table.'
@@ -246,7 +254,9 @@ function Pipeline:pullRenderCode()
                 end
 
                 -- Нужно-ли добавлять все функции подряд в таблицу?
-                self.renderFunctions[name] = func
+                local coro = coroutine.create(func)
+                self.renderFunctions[name] = coro
+                --self.renderFunctions[name] = func
             end
         end
     until not rendercode
