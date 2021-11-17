@@ -63,9 +63,18 @@ local Pipeline_mt = {
    __index = Pipeline,
 }
 
-function Pipeline.new()
+function Pipeline.new(scene_prefix)
    local self = setmetatable({}, Pipeline_mt)
    self.section_state = 'closed'
+   self.scene_prefix = scene_prefix or ""
+   self.preload = [[
+    local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
+    ]]
+   if self.scene_prefix then
+      local var = format('local SCENE_PREFIX = "%s"\n', self.scene_prefix)
+      self.preload = self.preload .. var
+      print('preload', self.preload)
+   end
    self.renderFunctions = {}
    return self
 end
@@ -148,10 +157,7 @@ function Pipeline:pushCode(name, code)
       error("No code for pushCode()")
    end
 
-   local preload = [[
-    local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
-    ]]
-   code = preload .. code
+   code = self.preload .. code
 
    graphic_code_channel:push(code)
    graphic_code_channel:push(name)

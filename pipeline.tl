@@ -27,7 +27,7 @@ end
 Корутины?
 ]]
 global type Pipeline = record
-    new: function(): Pipeline
+    new: function(scene_prefix: string): Pipeline
 
     -- Вход в секцию отправки
     open: function(Pipeline, name: string)
@@ -52,9 +52,9 @@ global type Pipeline = record
 
     printAvaibleFunctions: function(Pipeline)
 
-    --in_section: boolean
     section_state: State
-    --renderFunctions: {string:LoadFunction}
+    preload: string
+    scene_prefix: string
     renderFunctions: {string:thread}
     last_section_name: string
 end
@@ -63,9 +63,18 @@ local Pipeline_mt: metatable<Pipeline> = {
     __index = Pipeline,
 }
 
-function Pipeline.new(): Pipeline
+function Pipeline.new(scene_prefix: string): Pipeline
     local self: Pipeline = setmetatable({} as Pipeline, Pipeline_mt)
     self.section_state = 'closed'
+    self.scene_prefix = scene_prefix or ""
+    self.preload = [[
+    local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
+    ]]
+    if self.scene_prefix then
+        local var = format('local SCENE_PREFIX = "%s"\n', self.scene_prefix)
+        self.preload = self.preload .. var 
+        print('preload', self.preload)
+    end
     self.renderFunctions = {}
     return self
 end
@@ -148,10 +157,7 @@ function Pipeline:pushCode(name: string, code: string)
         error("No code for pushCode()")
     end
 
-    local preload = [[
-    local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
-    ]]
-    code = preload .. code
+    code = self.preload .. code
 
     graphic_code_channel:push(code)
     graphic_code_channel:push(name)

@@ -1,5 +1,6 @@
 return {
     require = function()
+        require 'love.keyboard'
         require "love.timer"
         require 'love.mouse'
         require "love.event"
