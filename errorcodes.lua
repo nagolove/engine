@@ -1,4 +1,6 @@
 return {
+
+
    ERROR_DIED_CORO = 248,
    ERROR_NO_RENDER_FUNCTION = 249,
    ERROR_NO_READY = 250,

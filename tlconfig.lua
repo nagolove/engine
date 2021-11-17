@@ -84,6 +84,7 @@ return {
         --"scenes/automato/*.tl",
         "scenes/empty/*.tl",
         "scenes/empty_mt/*.tl",
+        "scenes/mt_coro/*.tl",
         "scenes/chipmunk_mt/*.tl",
 
         "src/*.tl",
