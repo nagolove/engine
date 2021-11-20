@@ -148,6 +148,7 @@ typedef struct cpComponentNode {
  cpBody *next;
  cpFloat idleTime;
 } cpComponentNode;
+
 struct cpBody {
  cpBodyVelocityFunc velocity_func;
  cpBodyPositionFunc position_func;
@@ -173,6 +174,7 @@ struct cpBody {
  cpConstraint *constraintList_private;
  cpComponentNode node_private;
 };
+
 cpBody* cpBodyAlloc(void);
 cpBody* cpBodyInit(cpBody *body, cpFloat m, cpFloat i);
 cpBody* cpBodyNew(cpFloat m, cpFloat i);

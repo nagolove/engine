@@ -245,9 +245,6 @@ function Pipeline:pullRenderCode()
         if rendercode then
             local func, errmsg = tl.load(rendercode)
 
-            print('func, errmsg', func, errmsg)
-            print('rendercode', colorize('%{green}' .. rendercode))
-
             if not func then
                 --error("%{red}Something wrong in render code: %{cyan}" .. errmsg)
                 local msg = "%{red}Something wrong in render code: %{cyan}" 
@@ -262,8 +259,14 @@ function Pipeline:pullRenderCode()
                 -- Нужно-ли добавлять все функции подряд в таблицу?
                 local coro = coroutine.create(func)
                 self.renderFunctions[name] = coro
+
+                name = colorize('%{green}' .. name)
+                print('name, func, errmsg', name, func, errmsg)
+                print('rendercode', colorize('%{green}' .. '\n' .. rendercode))
+
                 --self.renderFunctions[name] = func
             end
+
         end
     until not rendercode
 

@@ -245,9 +245,6 @@ function Pipeline:pullRenderCode()
       if rendercode then
          local func, errmsg = tl.load(rendercode)
 
-         print('func, errmsg', func, errmsg)
-         print('rendercode', colorize('%{green}' .. rendercode))
-
          if not func then
 
             local msg = "%{red}Something wrong in render code: %{cyan}"
@@ -263,7 +260,13 @@ function Pipeline:pullRenderCode()
             local coro = coroutine.create(func)
             self.renderFunctions[name] = coro
 
+            name = colorize('%{green}' .. name)
+            print('name, func, errmsg', name, func, errmsg)
+            print('rendercode', colorize('%{green}' .. '\n' .. rendercode))
+
+
          end
+
       end
    until not rendercode
 

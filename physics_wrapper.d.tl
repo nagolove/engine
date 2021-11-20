@@ -1,7 +1,8 @@
 global record PhysicsWrapper
     init: function()
-    update: function()
     free: function()
+    -- Шаг движка
+    update: function()
 end
 
 return PhysicsWrapper
