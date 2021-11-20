@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local package = _tl_compat and _tl_compat.package or package; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("jitoptions").on()
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("jitoptions").on()
 require("love")
 require("common")
 require("log")
@@ -143,6 +143,8 @@ local function newThread(name)
    if not thread then
       error('No thread created.')
    end
+
+   threads[path] = thread
    return thread
 end
 
@@ -188,13 +190,12 @@ function love.load(arg)
 
 
 
-   love.timer.sleep(0.1)
+   local waitfor = 0.1
+   love.timer.sleep(waitfor)
 
    pipeline:pullRenderCode()
 
-   table.insert(threads, thread)
-
-   print('threads', inspect(threads))
+   print('threads', colorize('%{magenta}' .. inspect(threads)))
 
 
 
@@ -359,7 +360,8 @@ function love.run()
       time = nt
 
 
-      for _, t in ipairs(threads) do
+
+      for _, t in pairs(threads) do
          local errmsg = t:getError()
          if errmsg then
             errmsg = colorize("%{cyan}" .. errmsg .. "%{reset}")

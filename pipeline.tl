@@ -73,7 +73,6 @@ function Pipeline.new(scene_prefix: string): Pipeline
     if self.scene_prefix then
         local var = format('local SCENE_PREFIX = "%s"\n', self.scene_prefix)
         self.preload = self.preload .. var 
-        print('preload', self.preload)
     end
     self.renderFunctions = {}
     return self
@@ -237,16 +236,13 @@ end
 -- словарь функций рисования.
 function Pipeline:pullRenderCode()
     local rendercode: string
-
     repeat
-        --print('pullRenderCode iteration')
         rendercode = graphic_code_channel:pop() as string
 
         if rendercode then
             local func, errmsg = tl.load(rendercode)
 
             if not func then
-                --error("%{red}Something wrong in render code: %{cyan}" .. errmsg)
                 local msg = "%{red}Something wrong in render code: %{cyan}" 
                 print(colorize(msg .. errmsg))
                 os.exit(ecodes.ERROR_INTERNAL_LOAD)
@@ -260,17 +256,13 @@ function Pipeline:pullRenderCode()
                 local coro = coroutine.create(func)
                 self.renderFunctions[name] = coro
 
-                name = colorize('%{green}' .. name)
+                name = colorize('%{yellow}' .. name)
                 print('name, func, errmsg', name, func, errmsg)
                 print('rendercode', colorize('%{green}' .. '\n' .. rendercode))
-
-                --self.renderFunctions[name] = func
             end
 
         end
     until not rendercode
-
-    --print('return form pullRenderCode()')
 end
 
 

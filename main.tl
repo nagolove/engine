@@ -20,7 +20,7 @@ local showHelp = false
 local imguiFontSize = 22
 
 local lt = love.thread
-local threads: {lt.Thread} = {}
+local threads: {string: lt.Thread} = {}
 
 local event_channel = lt.getChannel("event_channel")
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
@@ -143,6 +143,8 @@ local function newThread(name: string): love.thread.Thread
     if not thread then
         error('No thread created.')
     end
+    --table.insert(threads, thread)
+    threads[path] = thread
     return thread
 end
 
@@ -188,13 +190,12 @@ function love.load(arg: {string})
     --pullRenderCode(timeout)
 
     -- Подождать загрузки остальных потоков
-    love.timer.sleep(0.1)
+    local waitfor = 0.1
+    love.timer.sleep(waitfor)
 
     pipeline:pullRenderCode()
 
-    table.insert(threads, thread)
-
-    print('threads', inspect(threads))
+    print('threads', colorize('%{magenta}' .. inspect(threads)))
 
     --KeyConfig.printBinds()
     --imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", imguiFontSize)
@@ -359,7 +360,8 @@ function love.run(): function(): string|number
         time = nt                
 
         -- Возможно стоит запускать реже, по таймеру?
-        for _, t in ipairs(threads) do
+        --for _, t in ipairs(threads) do
+        for _, t in pairs(threads) do
             local errmsg = t:getError()
             if errmsg then
                 errmsg = colorize("%{cyan}" .. errmsg .. "%{reset}")

@@ -639,6 +639,8 @@ cpConstraint* cpSimpleMotorNew(cpBody *a, cpBody *b, cpFloat rate);
 cpFloat cpSimpleMotorGetRate(const cpConstraint *constraint); void cpSimpleMotorSetRate(cpConstraint *constraint, cpFloat value);
 typedef struct cpContactBufferHeader cpContactBufferHeader;
 typedef void (*cpSpaceArbiterApplyImpulseFunc)(cpArbiter *arb);
+
+/*
 struct cpSpace {
  int iterations;
  cpVect gravity;
@@ -671,6 +673,56 @@ struct cpSpace {
  cpArray *postStepCallbacks_private;
  cpBody _staticBody_private;
 };
+*/
+
+struct cpSpace {
+    int iterations;
+    
+    cpVect gravity;
+    cpFloat damping;
+   
+    cpFloat idleSpeedThreshold;
+    cpFloat sleepTimeThreshold;
+    
+    cpFloat collisionSlop;
+    cpFloat collisionBias;
+    cpTimestamp collisionPersistence;
+    
+    cpDataPointer userData;
+    
+    cpTimestamp stamp;
+    cpFloat curr_dt;
+
+    cpArray *dynamicBodies;
+    cpArray *staticBodies;
+    cpArray *rousedBodies;
+    cpArray *sleepingComponents;
+    
+    cpHashValue shapeIDCounter;
+    cpSpatialIndex *staticShapes;
+    cpSpatialIndex *dynamicShapes;
+    
+    cpArray *constraints;
+    
+    cpArray *arbiters;
+    cpContactBufferHeader *contactBuffersHead;
+    cpHashSet *cachedArbiters;
+    cpArray *pooledArbiters;
+    
+    cpArray *allocatedBuffers;
+    unsigned int locked;
+    
+    cpBool usesWildcards;
+    cpHashSet *collisionHandlers;
+    cpCollisionHandler defaultHandler;
+    
+    cpBool skipPostStep;
+    cpArray *postStepCallbacks;
+    
+    cpBody *staticBody;
+    cpBody _staticBody;
+};
+
 cpSpace* cpSpaceAlloc(void);
 cpSpace* cpSpaceInit(cpSpace *space);
 cpSpace* cpSpaceNew(void);
