@@ -149,6 +149,7 @@ typedef struct cpComponentNode {
  cpFloat idleTime;
 } cpComponentNode;
 
+/*
 struct cpBody {
  cpBodyVelocityFunc velocity_func;
  cpBodyPositionFunc position_func;
@@ -173,6 +174,59 @@ struct cpBody {
  cpArbiter *arbiterList_private;
  cpConstraint *constraintList_private;
  cpComponentNode node_private;
+};
+*/
+
+typedef struct cpTransform {
+    cpFloat a, b, c, d, tx, ty;
+} cpTransform;
+
+struct cpBody {
+    // Integration functions
+    cpBodyVelocityFunc velocity_func;
+    cpBodyPositionFunc position_func;
+    
+    // mass and it's inverse
+    cpFloat m;
+    cpFloat m_inv;
+    
+    // moment of inertia and it's inverse
+    cpFloat i;
+    cpFloat i_inv;
+    
+    // center of gravity
+    cpVect cog;
+    
+    // position, velocity, force
+    cpVect p;
+    cpVect v;
+    cpVect f;
+    
+    // Angle, angular velocity, torque (radians)
+    cpFloat a;
+    cpFloat w;
+    cpFloat t;
+    
+    cpTransform transform;
+    
+    cpDataPointer userData;
+    
+    // "pseudo-velocities" used for eliminating overlap.
+    // Erin Catto has some papers that talk about what these are.
+    cpVect v_bias;
+    cpFloat w_bias;
+    
+    cpSpace *space;
+    
+    cpShape *shapeList;
+    cpArbiter *arbiterList;
+    cpConstraint *constraintList;
+    
+    struct {
+        cpBody *root;
+        cpBody *next;
+        cpFloat idleTime;
+    } sleeping;
 };
 
 cpBody* cpBodyAlloc(void);
@@ -342,7 +396,7 @@ cpShape* cpPolyShapeNew2(cpBody *body, int numVerts, const cpVect *verts, cpVect
 cpPolyShape* cpBoxShapeInit(cpPolyShape *poly, cpBody *body, cpFloat width, cpFloat height);
 cpPolyShape* cpBoxShapeInit2(cpPolyShape *poly, cpBody *body, cpBB box);
 cpPolyShape* cpBoxShapeInit3(cpPolyShape *poly, cpBody *body, cpBB box, cpFloat radius);
-cpShape* cpBoxShapeNew(cpBody *body, cpFloat width, cpFloat height);
+cpShape* cpBoxShapeNew(cpBody *body, cpFloat width, cpFloat height, cpFloat radius);
 cpShape* cpBoxShapeNew2(cpBody *body, cpBB box);
 cpShape* cpBoxShapeNew3(cpBody *body, cpBB box, cpFloat radius);
 cpBool cpPolyValidate(const cpVect *verts, const int numVerts);

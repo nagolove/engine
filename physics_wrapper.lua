@@ -20,12 +20,13 @@ local function init()
 	local width = 50.0
 	local height = 70.0
 	local mass = width * height * DENSITY;
-	local moment = cpMomentForBox(mass, width, height);
+	local moment = C.cpMomentForBox(mass, width, height);
 	
     -- Что такое момент?
-	body = cpSpaceAddBody(space, cpBodyNew(mass, moment));
-    
-    local shape = C.cpSpaceAddShape(space, body)
+	body = C.cpSpaceAddBody(space, C.cpBodyNew(mass, moment));
+
+    local shape = C.cpBoxShapeNew(body, width, height, 0.)
+    shape = C.cpSpaceAddShape(space, shape)
 
     -- Что делают строчки ниже?
 	--shape = cpSpaceAddShape(space, cpBoxShapeNew(body, width, height, 0.0));
@@ -34,7 +35,7 @@ end
 
 local function update(dt)
     --print('pw update')
-	cpSpaceStep(space, dt);
+	C.cpSpaceStep(space, dt);
 end
 
 local function free()
