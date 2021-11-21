@@ -7,8 +7,13 @@ local C = ffi.load 'chipmunk'
 local concolor = '%{blue}'
 local DENSITY = (1.0/10000.0)
 local space
+local body
+-- Pipeline
+local pl
 
-local function init()
+local function init(pipeline)
+    assert(pipeline and 'Pipeline is nil')
+
     print(colorize(concolor .. 'Chipmunk init'))
     space = C.cpSpaceNew()
 
@@ -17,6 +22,7 @@ local function init()
 	--cpSpaceSetSleepTimeThreshold(space, 0.5f);
 	--cpSpaceSetCollisionSlop(space, 0.5f);
 
+    pl = pipeline
 	local width = 50.0
 	local height = 70.0
 	local mass = width * height * DENSITY;
@@ -31,6 +37,30 @@ local function init()
     -- Что делают строчки ниже?
 	--shape = cpSpaceAddShape(space, cpBoxShapeNew(body, width, height, 0.0));
 	--cpShapeSetFriction(shape, 0.6);
+
+    pl:pushCode("rect", [[
+    local col = {1, 1, 1, 1}
+    love.graphics.setColor(col)
+    while true do
+        love.graphics.rectangle('fill', 0, 0, 1000, 1000)
+        coroutine.yield()
+    end
+    ]])
+end
+
+local function eachBody(body, data)
+    print('eachBody')
+end
+
+local internal_data = ffi.new('char[1024]')
+local void_internal_data = ffi.cast('void*', internal_data)
+
+local function render()
+    print('body', body)
+    C.cpSpaceEachBody(space, body, void_internal_data)
+
+    --pl:open("rect")
+    --pl:close()
 end
 
 local function update(dt)
@@ -60,6 +90,7 @@ end
 
 return {
     init = init,
+    render = render,
     update = update,
     free = free,
 }

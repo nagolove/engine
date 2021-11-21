@@ -30,6 +30,7 @@ global type Pipeline = record
     new: function(scene_prefix: string): Pipeline
 
     -- Вход в секцию отправки
+    -- Добавить возбуждение ошибки если ready() возвращает ложь
     open: function(Pipeline, name: string)
     -- Затолкать данные в канал
     push: function(Pipeline, any)
@@ -80,8 +81,6 @@ end
 
 function Pipeline:open(func_name: string)
 
-    --print('self.section_state', self.section_state)
-
     if self.section_state ~= 'closed' then
         local msg = '%{red}Double opened section'
         print(colorize(msg))
@@ -91,10 +90,6 @@ function Pipeline:open(func_name: string)
     self.section_state = 'open'
 
     assert(type(func_name) == 'string')
-
-    --if DEBUG_RENDER then
-        --print('func_name', func_name)
-    --end
 
     graphic_command_channel:push(func_name)
 end

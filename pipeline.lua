@@ -59,6 +59,7 @@ local State = {}
 
 
 
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -80,8 +81,6 @@ end
 
 function Pipeline:open(func_name)
 
-
-
    if self.section_state ~= 'closed' then
       local msg = '%{red}Double opened section'
       print(colorize(msg))
@@ -91,10 +90,6 @@ function Pipeline:open(func_name)
    self.section_state = 'open'
 
    assert(type(func_name) == 'string')
-
-
-
-
 
    graphic_command_channel:push(func_name)
 end

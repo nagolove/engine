@@ -82,12 +82,14 @@ typedef void (*cpSpatialIndexIteratorFunc)(void *obj, void *data);
 typedef cpCollisionID (*cpSpatialIndexQueryFunc)(void *obj1, void *obj2, cpCollisionID id, void *data);
 typedef cpFloat (*cpSpatialIndexSegmentQueryFunc)(void *obj1, void *obj2, void *data);
 typedef struct cpSpatialIndexClass cpSpatialIndexClass;
+
 typedef struct cpSpatialIndex cpSpatialIndex;
 struct cpSpatialIndex {
  cpSpatialIndexClass *klass;
  cpSpatialIndexBBFunc bbfunc;
  cpSpatialIndex *staticIndex, *dynamicIndex;
 };
+
 typedef struct cpSpaceHash cpSpaceHash;
 cpSpaceHash* cpSpaceHashAlloc(void);
 cpSpatialIndex* cpSpaceHashInit(cpSpaceHash *hash, cpFloat celldim, int numcells, cpSpatialIndexBBFunc bbfunc, cpSpatialIndex *staticIndex);
