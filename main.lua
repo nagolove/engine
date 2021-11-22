@@ -22,8 +22,10 @@ local imguiFontSize = 22
 local lt = love.thread
 local threads = {}
 
+
+local main_channel = love.thread.getChannel("main_channel")
 local event_channel = lt.getChannel("event_channel")
-local draw_ready_channel = lt.getChannel("draw_ready_channel")
+
 
 
 
@@ -322,6 +324,16 @@ function love.wheelmoved(x, y)
    end
 end
 
+function pullMainChannel()
+   local cmd = main_channel:pop()
+   if cmd and type(cmd) == 'string' then
+      if cmd == 'quit' then
+         print(colorize('%{cyan}quit event'))
+         love.event.quit()
+      end
+   end
+end
+
 function love.run()
    local tmp = require('parse_args')
    if love.load then love.load(tmp.parseGameArguments(arg)) end
@@ -377,6 +389,7 @@ function love.run()
       if love.update then love.update(dt) end
 
       pipeline:pullRenderCode()
+      pullMainChannel()
 
       if love.graphics and love.graphics.isActive() then
          love.graphics.origin()

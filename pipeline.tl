@@ -131,7 +131,11 @@ function Pipeline:ready(): boolean
 end
 
 function Pipeline:waitForReady()
-    draw_ready_channel:supply("ready")
+    local timeout = 0.1 -- in seconds
+    if not draw_ready_channel:supply("ready", timeout) then
+        print(colorize('%{red} draw_ready_channel:supply() is not respond'))
+    end
+    self.state = 'undefined'
 end
 
 -- Не лучше-ли передавать число в качестве идентификатора объекта рисовки?

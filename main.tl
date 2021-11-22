@@ -22,8 +22,10 @@ local imguiFontSize = 22
 local lt = love.thread
 local threads: {string: lt.Thread} = {}
 
+-- Канал для получения различных команд основным потоком от игровых потоков.
+local main_channel = love.thread.getChannel("main_channel")
 local event_channel = lt.getChannel("event_channel")
-local draw_ready_channel = lt.getChannel("draw_ready_channel")
+--local draw_ready_channel = lt.getChannel("draw_ready_channel")
 --local graphic_command_channel = lt.getChannel("graphic_command_channel")
 --local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
 
@@ -322,6 +324,16 @@ function love.wheelmoved(x: number, y: number)
     end
 end
 
+function pullMainChannel()
+    local cmd = main_channel:pop() as string
+    if cmd and type(cmd) == 'string' then
+        if cmd == 'quit' then
+            print(colorize('%{cyan}quit event'))
+            love.event.quit()
+        end
+    end
+end
+
 function love.run(): function(): string|number
     local tmp = require 'parse_args'
     if love.load then love.load(tmp.parseGameArguments(arg)) end
@@ -377,6 +389,7 @@ function love.run(): function(): string|number
 		if love.update then love.update(dt) end -- will pass 0 if love.timer is disabled
 
         pipeline:pullRenderCode()
+        pullMainChannel()
 
 		if love.graphics and love.graphics.isActive() then
 			love.graphics.origin()

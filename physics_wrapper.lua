@@ -50,14 +50,18 @@ end
 
 local function eachBody(body, data)
     print('eachBody')
+    print('body, data', body, data)
 end
+
+local eachBody_C = ffi.cast("cpSpaceBodyIteratorFunc", eachBody)
 
 local internal_data = ffi.new('char[1024]')
 local void_internal_data = ffi.cast('void*', internal_data)
 
 local function render()
-    print('body', body)
-    C.cpSpaceEachBody(space, body, void_internal_data)
+    print('body, internal_data', body, internal_data)
+    --C.cpSpaceEachBody(space, body, void_internal_data)
+    C.cpSpaceEachBody(space, eachBody_C, void_internal_data)
 
     --pl:open("rect")
     --pl:close()
