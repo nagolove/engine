@@ -135,7 +135,7 @@ function Pipeline:waitForReady()
     if not draw_ready_channel:supply("ready", timeout) then
         print(colorize('%{red} draw_ready_channel:supply() is not respond'))
     end
-    self.state = 'undefined'
+    self.section_state = 'undefined'
 end
 
 -- Не лучше-ли передавать число в качестве идентификатора объекта рисовки?
