@@ -396,8 +396,9 @@ function love.run()
 
 
 
-         pipeline:waitForReady()
-         pipeline:render()
+         if pipeline:waitForReady() then
+            pipeline:render()
+         end
 
          love.graphics.present()
       end

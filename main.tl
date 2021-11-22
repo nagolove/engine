@@ -396,8 +396,9 @@ function love.run(): function(): string|number
             --love.graphics.clear(love.graphics.getBackgroundColor())
             --love.graphics.clear()
 
-            pipeline:waitForReady()
-            pipeline:render()
+            if pipeline:waitForReady() then
+                pipeline:render()
+            end
 
 			love.graphics.present()
 		end

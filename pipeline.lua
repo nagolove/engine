@@ -131,12 +131,13 @@ function Pipeline:ready()
 end
 
 function Pipeline:waitForReady()
-   print("before")
    local timeout = 0.1
-   if not draw_ready_channel:supply("ready", timeout) then
+   local result = draw_ready_channel:supply("ready", timeout)
+   if not result then
       print(colorize('%{red} draw_ready_channel:supply() is not respond'))
    end
-   print('after')
+
+   return result
 end
 
 

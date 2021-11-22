@@ -45,7 +45,7 @@ global type Pipeline = record
     -- Блокирующий вызов(синхронизация с потоком рисования.
     ready: function(Pipeline): boolean
 
-    waitForReady: function(Pipeline)
+    waitForReady: function(Pipeline): boolean
 
     pushCode: function(Pipeline, name: string, code: string)
     pullRenderCode: function(Pipeline)
@@ -130,12 +130,14 @@ function Pipeline:ready(): boolean
     return false
 end
 
-function Pipeline:waitForReady()
+function Pipeline:waitForReady(): boolean
     local timeout = 0.1 -- in seconds
-    if not draw_ready_channel:supply("ready", timeout) then
+    local result = draw_ready_channel:supply("ready", timeout)
+    if not result then
         print(colorize('%{red} draw_ready_channel:supply() is not respond'))
     end
-    self.section_state = 'undefined'
+    --self.section_state = 'undefined'
+    return result
 end
 
 -- Не лучше-ли передавать число в качестве идентификатора объекта рисовки?
