@@ -11,6 +11,30 @@ local body
 -- Pipeline
 local pl
 
+local function col_begin(arb, space, data)
+    print('begin')
+end
+
+local function col_preSolve(arb, space, data)
+    print('pres')
+end
+
+local function col_postSolve(arb, space, data)
+    print('posts')
+end
+
+local function col_separate(arb, space, data)
+    print('sep')
+end
+
+local col_begin_C = ffi.cast("cpCollisionBeginFunc", col_begin)
+local col_preSolve_C = ffi.cast("cpCollisionPreSolveFunc", col_preSolve)
+local col_postSolve_C = ffi.cast("cpCollisionPostSolveFunc", col_postSolve)
+local col_separate_C = ffi.cast( "cpCollisionSeparateFunc", col_separate)
+
+local collison_data = ffi.new('char[1024]')
+local void_collision_data = ffi.cast('void*', collison_data)
+
 local function init(pipeline)
     assert(pipeline and 'Pipeline is nil')
 
@@ -37,6 +61,16 @@ local function init(pipeline)
     -- Что делают строчки ниже?
 	--shape = cpSpaceAddShape(space, cpBoxShapeNew(body, width, height, 0.0));
 	--cpShapeSetFriction(shape, 0.6);
+
+    --[[ Не работает вызов функции. Найти аналог в современном интерфейсе.
+    C.cpSpaceSetDefaultCollisionHandler(
+        space,
+        col_begin_C,
+        col_preSolve_C,
+        col_postSolve_C,
+        col_separate_C
+    )
+    --]]
 
     pl:pushCode("rect", [[
     local col = {1, 1, 1, 1}

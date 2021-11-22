@@ -797,6 +797,7 @@ cpDataPointer cpSpaceGetUserData(const cpSpace *space); void cpSpaceSetUserData(
 cpBody* cpSpaceGetStaticBody(const cpSpace *space);
 cpFloat cpSpaceGetCurrentTimeStep(const cpSpace *space);
 cpBool cpSpaceIsLocked(cpSpace *space);
+
 void cpSpaceSetDefaultCollisionHandler(
  cpSpace *space,
  cpCollisionBeginFunc begin,
@@ -805,6 +806,7 @@ void cpSpaceSetDefaultCollisionHandler(
  cpCollisionSeparateFunc separate,
  void *data
 );
+
 void cpSpaceAddCollisionHandler(
  cpSpace *space,
  cpCollisionType a, cpCollisionType b,
@@ -814,6 +816,7 @@ void cpSpaceAddCollisionHandler(
  cpCollisionSeparateFunc separate,
  void *data
 );
+
 void cpSpaceRemoveCollisionHandler(cpSpace *space, cpCollisionType a, cpCollisionType b);
 cpShape* cpSpaceAddShape(cpSpace *space, cpShape *shape);
 cpShape* cpSpaceAddStaticShape(cpSpace *space, cpShape *shape);
