@@ -85,6 +85,11 @@ end
 local function eachBody(body, data)
     print('eachBody')
     print('body, data', body, data)
+
+    -- Вызвать функции для перечисления всех форм тела.
+    -- Отправить вершины тел на рисовку.
+    -- Как лучше отправлять вершины? Что-бы делать более редкие передачи
+    -- данных.
 end
 
 local eachBody_C = ffi.cast("cpSpaceBodyIteratorFunc", eachBody)
