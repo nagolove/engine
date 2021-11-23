@@ -163,6 +163,10 @@ function Pipeline:pushCode(name: string, code: string)
     graphic_code_channel:push(name)
 end
 
+--[[
+Обрати внимание на мигание при рисовке.
+Откуда они беруться?
+--]]
 function Pipeline:render()
 
     if self.section_state ~= 'closed' then
@@ -176,8 +180,8 @@ function Pipeline:render()
     ---------------------------------- 
     -- Не лучше-ли использовать graphic_command_channel:pop()
     -- что-бы избежать блокировки?
-    --local cmd_name = graphic_command_channel:demand() as string
-    local cmd_name = graphic_command_channel:pop() as string
+    local cmd_name = graphic_command_channel:demand() as string
+    --local cmd_name = graphic_command_channel:pop() as string
     ---------------------------------- 
 
     while cmd_name do

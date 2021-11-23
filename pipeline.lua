@@ -163,6 +163,10 @@ function Pipeline:pushCode(name, code)
    graphic_code_channel:push(name)
 end
 
+
+
+
+
 function Pipeline:render()
 
    if self.section_state ~= 'closed' then
@@ -176,8 +180,8 @@ function Pipeline:render()
 
 
 
+   local cmd_name = graphic_command_channel:demand()
 
-   local cmd_name = graphic_command_channel:pop()
 
 
    while cmd_name do

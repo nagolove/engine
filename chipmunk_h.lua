@@ -298,16 +298,19 @@ typedef struct cpSegmentQueryInfo {
  cpFloat t;
  cpVect n;
 } cpSegmentQueryInfo;
+
 typedef enum cpShapeType{
  CP_CIRCLE_SHAPE,
  CP_SEGMENT_SHAPE,
  CP_POLY_SHAPE,
  CP_NUM_SHAPES
 } cpShapeType;
+
 typedef cpBB (*cpShapeCacheDataImpl)(cpShape *shape, cpVect p, cpVect rot);
 typedef void (*cpShapeDestroyImpl)(cpShape *shape);
 typedef void (*cpShapeNearestPointQueryImpl)(cpShape *shape, cpVect p, cpNearestPointQueryInfo *info);
 typedef void (*cpShapeSegmentQueryImpl)(cpShape *shape, cpVect a, cpVect b, cpSegmentQueryInfo *info);
+
 struct cpShapeClass {
  cpShapeType type;
  cpShapeCacheDataImpl cacheData;
@@ -315,6 +318,7 @@ struct cpShapeClass {
  cpShapeNearestPointQueryImpl nearestPointQuery;
  cpShapeSegmentQueryImpl segmentQuery;
 };
+
 struct cpShape {
  const cpShapeClass *klass_private;
  cpBody *body;
@@ -332,6 +336,7 @@ struct cpShape {
  cpShape *prev_private;
  cpHashValue hashid_private;
 };
+
 void cpShapeDestroy(cpShape *shape);
 void cpShapeFree(cpShape *shape);
 cpBB cpShapeCacheBB(cpShape *shape);
@@ -354,16 +359,19 @@ cpCollisionType cpShapeGetCollisionType(const cpShape *shape); void cpShapeSetCo
 cpGroup cpShapeGetGroup(const cpShape *shape); void cpShapeSetGroup(cpShape *shape, cpGroup value);
 cpLayers cpShapeGetLayers(const cpShape *shape); void cpShapeSetLayers(cpShape *shape, cpLayers value);
 void cpResetShapeIdCounter(void);
+
 typedef struct cpCircleShape {
  cpShape shape;
  cpVect c, tc;
  cpFloat r;
 } cpCircleShape;
+
 cpCircleShape* cpCircleShapeAlloc(void);
 cpCircleShape* cpCircleShapeInit(cpCircleShape *circle, cpBody *body, cpFloat radius, cpVect offset);
 cpShape* cpCircleShapeNew(cpBody *body, cpFloat radius, cpVect offset);
 cpVect cpCircleShapeGetOffset(const cpShape *shape);
 cpFloat cpCircleShapeGetRadius(const cpShape *shape);
+
 typedef struct cpSegmentShape {
  cpShape shape;
  cpVect a, b, n;
@@ -371,6 +379,7 @@ typedef struct cpSegmentShape {
  cpFloat r;
  cpVect a_tangent, b_tangent;
 } cpSegmentShape;
+
 cpSegmentShape* cpSegmentShapeAlloc(void);
 cpSegmentShape* cpSegmentShapeInit(cpSegmentShape *seg, cpBody *body, cpVect a, cpVect b, cpFloat radius);
 cpShape* cpSegmentShapeNew(cpBody *body, cpVect a, cpVect b, cpFloat radius);
@@ -379,10 +388,12 @@ cpVect cpSegmentShapeGetA(const cpShape *shape);
 cpVect cpSegmentShapeGetB(const cpShape *shape);
 cpVect cpSegmentShapeGetNormal(const cpShape *shape);
 cpFloat cpSegmentShapeGetRadius(const cpShape *shape);
+
 typedef struct cpSplittingPlane {
  cpVect n;
  cpFloat d;
 } cpSplittingPlane;
+
 typedef struct cpPolyShape {
  cpShape shape;
  int numVerts;
@@ -390,6 +401,7 @@ typedef struct cpPolyShape {
  cpSplittingPlane *planes, *tPlanes;
  cpFloat r;
 } cpPolyShape;
+
 cpPolyShape* cpPolyShapeAlloc(void);
 cpPolyShape* cpPolyShapeInit(cpPolyShape *poly, cpBody *body, int numVerts, const cpVect *verts, cpVect offset);
 cpPolyShape* cpPolyShapeInit2(cpPolyShape *poly, cpBody *body, int numVerts, const cpVect *verts, cpVect offset, cpFloat radius);
@@ -402,7 +414,10 @@ cpShape* cpBoxShapeNew(cpBody *body, cpFloat width, cpFloat height, cpFloat radi
 cpShape* cpBoxShapeNew2(cpBody *body, cpBB box);
 cpShape* cpBoxShapeNew3(cpBody *body, cpBB box, cpFloat radius);
 cpBool cpPolyValidate(const cpVect *verts, const int numVerts);
-int cpPolyShapeGetNumVerts(const cpShape *shape);
+
+//int cpPolyShapeGetNumVerts(const cpShape *shape);
+int cpPolyShapeGetCount(const cpShape *shape);
+
 cpVect cpPolyShapeGetVert(const cpShape *shape, int idx);
 cpFloat cpPolyShapeGetRadius(const cpShape *shape);
 typedef cpBool (*cpCollisionBeginFunc)(cpArbiter *arb, cpSpace *space, void *data);
