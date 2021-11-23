@@ -70,6 +70,14 @@ local function init(pipeline)
     local shape = C.cpBoxShapeNew(body, width, height, 0.)
     shape = C.cpSpaceAddShape(space, shape)
 
+    local force = ffi.new('cpVect')
+    force.x = 0
+    force.y = 0
+    local r = ffi.new('cpVect')
+    r.x = 0
+    r.y = 0
+    C.cpBodyApplyForceAtLocalPoint(body, force, r)
+
     -- Что делают строчки ниже?
 	--shape = cpSpaceAddShape(space, cpBoxShapeNew(body, width, height, 0.0));
 	--cpShapeSetFriction(shape, 0.6);

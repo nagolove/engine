@@ -275,8 +275,16 @@ void cpBodyUpdatePosition(cpBody *body, cpFloat dt);
 cpVect cpBodyLocal2World(const cpBody *body, const cpVect v);
 cpVect cpBodyWorld2Local(const cpBody *body, const cpVect v);
 void cpBodyResetForces(cpBody *body);
-void cpBodyApplyForce(cpBody *body, const cpVect f, const cpVect r);
-void cpBodyApplyImpulse(cpBody *body, const cpVect j, const cpVect r);
+
+//void cpBodyApplyForce(cpBody *body, const cpVect f, const cpVect r);
+//void cpBodyApplyImpulse(cpBody *body, const cpVect j, const cpVect r);
+
+void cpBodyApplyForceAtWorldPoint(cpBody *body, cpVect force, cpVect point);
+void cpBodyApplyForceAtLocalPoint(cpBody *body, cpVect force, cpVect point);
+
+void cpBodyApplyImpulseAtWorldPoint(cpBody *body, cpVect impulse, cpVect point);
+void cpBodyApplyImpulseAtLocalPoint(cpBody *body, cpVect impulse, cpVect point);
+
 cpVect cpBodyGetVelAtWorldPoint(cpBody *body, cpVect point);
 cpVect cpBodyGetVelAtLocalPoint(cpBody *body, cpVect point);
 cpFloat cpBodyKineticEnergy(const cpBody *body);

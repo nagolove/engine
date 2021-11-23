@@ -1,3 +1,8 @@
+-- vim: fdm=marker
+--[[
+-- {{{ Возвращение локальной записи. Изменил на глобальные типы так как
+всегда есть префикс cp
+
 local record Chipmunk
     type cpFloat = number
 
@@ -51,3 +56,55 @@ local record Chipmunk
 end
 
 return Chipmunk
+-- }}}
+--]]
+
+global type cpFloat = number
+
+global record cpVect
+    x: cpFloat
+    y: cpFloat
+end
+
+global record cpMat2x2
+    a: cpFloat
+    b: cpFloat
+    c: cpFloat
+    d: cpFloat
+end
+
+global record cpBB
+    l: cpFloat
+    b: cpFloat
+    r: cpFloat
+    t: cpFloat
+end
+
+global type cpDataPointer = any
+
+global record cpBody
+    --cpBodyVelocityFunc velocity_func;
+    --cpBodyPositionFunc position_func;
+    m: cpFloat
+    m_inv: cpFloat
+    i: cpFloat
+    i_: cpFloat
+    p: cpVect
+    v: cpVect
+    f: cpVect
+    a: cpFloat
+    w: cpFloat
+    t: cpFloat
+    r: cpVect
+    data: cpDataPointer
+    v_limit: cpFloat
+    w_limit: cpFloat
+    --v_bias_private: cpVect
+    --cpFloat w_bias_private;
+    --cpSpace *space_private;
+    --cpShape *shapeList_private;
+    --cpArbiter *arbiterList_private;
+    --cpConstraint *constraintList_private;
+    --cpComponentNode node_private;
+end
+
