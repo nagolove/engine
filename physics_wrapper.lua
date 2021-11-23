@@ -109,7 +109,7 @@ local function init(pipeline)
     while true do
         love.graphics.setColor(col)
         local verts = graphic_command_channel:demand()
-        print('poly_shape: verts', inspect(verts))
+        --print('poly_shape: verts', inspect(verts))
         --love.graphics.rectangle('fill', 0, 0, 1000, 1000)
         love.graphics.polygon('fill', verts)
         coroutine.yield()
@@ -121,23 +121,25 @@ local shape_data = ffi.new('char[1024]')
 local void_shape_data = ffi.cast('void*', shape_data)
 
 local function eachShape(body, shape, data)
-    print('eachShape')
-    print('body, shape, data:', body, shape, data)
+
+    --print('eachShape')
+    --print('body, shape, data:', body, shape, data)
+
     --C.cpShapeSetFriction
     local shape_type = shape.klass_private.type
     if shape_type == C.CP_CIRCLE_SHAPE then
-        print('I am circle.')
+        --print('I am circle.')
     elseif shape_type == C.CP_SEGMENT_SHAPE then
-        print('I am segment.')
+        --print('I am segment.')
     elseif shape_type == C.CP_POLY_SHAPE then
-        print('I am poly.')
+        --print('I am poly.')
         --local poly_shape = fff.cast('cpPolyShape*', shape)
         local num = C.cpPolyShapeGetCount(shape)
         local verts = {}
         for i = 0, num - 1 do
             local vert = C.cpPolyShapeGetVert(shape, i)
             --print(inspect(vert))
-            print('x, y', vert.x, vert.y)
+            --print('x, y', vert.x, vert.y)
 
             table.insert(verts, vert.x)
             table.insert(verts, vert.y)
