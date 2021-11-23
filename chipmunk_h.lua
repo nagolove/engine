@@ -29,7 +29,12 @@ typedef struct cpConstraint cpConstraint;
 typedef struct cpCollisionHandler cpCollisionHandler;
 typedef struct cpArbiter cpArbiter;
 typedef struct cpSpace cpSpace;
-cpVect cpv(const cpFloat x, const cpFloat y);
+
+//cpVect cpv(const cpFloat x, const cpFloat y);
+//cpVect cpvzero;
+// XXX
+//cpVect cpvzero();
+
 cpVect cpvslerp(const cpVect v1, const cpVect v2, const cpFloat t);
 cpVect cpvslerpconst(const cpVect v1, const cpVect v2, const cpFloat a);
 char* cpvstr(const cpVect v);

@@ -1,5 +1,5 @@
 --local Chipmunk = require 'chipmunk'
-require 'chipmunk'
+local Cm = require 'chipmunk'
 require 'pipeline'
 
 global record PhysicsWrapper
@@ -8,7 +8,7 @@ global record PhysicsWrapper
     update: function(dt: number)
     render: function()
 
-    newVect: function(): cpVect
+    newVect: function(): Cm.cpVect
 end
 
 return PhysicsWrapper
