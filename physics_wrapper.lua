@@ -11,10 +11,12 @@
 local ffi = require 'ffi'
 local colorize = require 'ansicolors2'.ansicolors
 local inspect = require "inspect"
+local format = string.format
 
+-- След строка нужна?
 require 'chipmunk_h'
-
 local C = ffi.load 'chipmunk'
+
 local concolor = '%{blue}'
 local DENSITY = (1.0/10000.0)
 local space
@@ -198,9 +200,94 @@ ChipmunkDemoFreeSpaceChildren(cpSpace *space)
     print(colorize(concolor .. 'Chipmunk free done'))
 end
 
+local bodies = {}
+
+local Body = {
+    applyImpulse = function(self, impx, impy)
+        print('self', inspect(self))
+        print('impx, impy', impx, impy)
+    end,
+    getInfoStr = function(self)
+        local b = self.body
+        local buf = ''
+        buf = buf .. format('mass: %.3f', b.m)
+        buf = buf .. format('inertia: (%.3f, %.3f)', b.i)
+        buf = buf .. format('gravity center: (%.3f, %.3f)', b.cog.x, b.cog.y)
+        buf = buf .. format('pos: (%.3f, %.3f)', b.p.x, b.p.y)
+        buf = buf .. format('vel: (%.3f, %.3f)', b.v.x, b.v.y)
+        buf = buf .. format('force: (%.3f, %.3f)', b.f.x, b.f.y)
+        buf = buf .. format('angle: %.3f', b.a)
+        buf = buf .. format('angular vel: %.3f', b.w)
+        buf = buf .. format('torque: %.3f', b.t)
+        return buf
+    end
+}
+
+local Body_mt = {
+    __index = Body,
+}
+
+local function newBoxBody(width, height)
+    local self = setmetatable({}, Body_mt)
+
+	--local width = 150.0
+	--local height = 170.0
+	local mass = width * height * DENSITY;
+    -- Что такое момент?
+	local moment = C.cpMomentForBox(mass, width, height);
+    print('moment', moment)
+	
+	self.body = C.cpSpaceAddBody(space, C.cpBodyNew(mass, moment));
+
+    -- box is PolyShape
+    local shape = C.cpBoxShapeNew(body, width, height, 0.)
+    self.shape = C.cpSpaceAddShape(space, shape)
+
+    --[[
+    local force = ffi.new('cpVect')
+    force.x = 0
+    force.y = 0
+    local r = ffi.new('cpVect')
+    r.x = 0
+    r.y = 0
+    C.cpBodyApplyForceAtLocalPoint(body, force, r)
+    --]]
+
+    table.insert(bodies, self)
+    return self
+end
+
+local function newEachBodyIter(cb)
+    local eachBody_C = ffi.cast("cpSpaceBodyIteratorFunc", cb)
+    return eachBody_C
+end
+
+local function eachBody(iter)
+    --local internal_data = ffi.new('char[1024]')
+    --local void_internal_data = ffi.cast('void*', internal_data)
+    -- Обходное решение для передачи параметра
+    C.cpSpaceEachBody(space, iter, nil)
+
+    --[[
+    -- Хочу что-бы работало примерно так:
+    local t = setmetatable({}, Body_mt)
+    local table_ptr = require 'tableptr'.table_ptr
+    C.cpSpaceEachBody(space, iter, table_ptr(t))
+    --]]
+end
+
 return {
     init = init,
     render = render,
     update = update,
     free = free,
+
+    newEachBodyIter = newEachBodyIter,
+    newBoxBody = newBoxBody,
+
+    getBodies = function()
+        return bodies
+    end,
+
+    eachBody = eachBody,
 }

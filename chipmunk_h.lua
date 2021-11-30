@@ -156,34 +156,6 @@ typedef struct cpComponentNode {
  cpFloat idleTime;
 } cpComponentNode;
 
-/*
-struct cpBody {
- cpBodyVelocityFunc velocity_func;
- cpBodyPositionFunc position_func;
- cpFloat m;
- cpFloat m_inv;
- cpFloat i;
- cpFloat i_inv;
- cpVect p;
- cpVect v;
- cpVect f;
- cpFloat a;
- cpFloat w;
- cpFloat t;
- cpVect rot;
- cpDataPointer data;
- cpFloat v_limit;
- cpFloat w_limit;
- cpVect v_bias_private;
- cpFloat w_bias_private;
- cpSpace *space_private;
- cpShape *shapeList_private;
- cpArbiter *arbiterList_private;
- cpConstraint *constraintList_private;
- cpComponentNode node_private;
-};
-*/
-
 typedef struct cpTransform {
     cpFloat a, b, c, d, tx, ty;
 } cpTransform;

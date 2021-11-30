@@ -213,9 +213,9 @@ function Pipeline:render()
          local msg = 'Render function "%s" not found in table.'
          print(colorize('%{red}' .. format(msg, func_name)))
 
-         if DEBUG_RENDER then
-            self:printAvaibleFunctions()
-         end
+
+         self:printAvaibleFunctions()
+
 
          print(colorize('%{cyan}' .. debug.traceback()))
          os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
