@@ -22,13 +22,16 @@ local record PhysicsWrapper
 
     getBodies: function(): {Body}
 
-    type EachCallback = function(Body)
+    --type EachCallback = function(Body)
+    type EachCallback = function(Cm.cpBody)
 
     record EachBodyIter end
     record EachShapeIter end
 
     newEachBodyIter: function(cb: EachCallback): EachBodyIter
     newEachShapeIter: function()
+
+    cpBody2Body: function(Cm.cpBody): Body
 
     --eachBody1: function(cb: EachCallback)
     eachBody: function(iter: EachBodyIter)

@@ -24,6 +24,19 @@ local body
 -- Pipeline
 local pl
 
+local bodiesnum = 1024
+local bodies = {}
+--local bodies_C = ffi.new('(void*)[?]', bodiesnum)
+local bodies_C = ffi.new('cpDataPointer[?]', bodiesnum)
+
+local function fillbodies()
+    for i = 0, bodiesnum - 1 do
+        --bodies_C[i] = ffi.cast('uint32_t', 0)
+        --bodies_C[i] = ffi.cast('int32_t', 0)
+        bodies_C[i] = ffi.cast('void*', 0)
+    end
+end
+
 local function col_begin(arb, space, data)
     print('begin')
 end
@@ -53,6 +66,8 @@ local function init(pipeline)
 
     print(colorize(concolor .. 'Chipmunk init'))
     space = C.cpSpaceNew()
+
+    fillbodies()
 
 	--cpSpaceSetIterations(space, 30);
 	--cpSpaceSetGravity(space, cpv(0, -500));
@@ -99,7 +114,6 @@ local function init(pipeline)
     --love.graphics.setColor(col)
     while true do
         --love.graphics.setColor(col)
-        love.graphics.rectangle('fill', 0, 0, 1000, 1000)
         coroutine.yield()
     end
     ]])
@@ -200,8 +214,6 @@ ChipmunkDemoFreeSpaceChildren(cpSpace *space)
     print(colorize(concolor .. 'Chipmunk free done'))
 end
 
-local bodies = {}
-
 local Body = {
     applyImpulse = function(self, impx, impy)
         print('self', inspect(self))
@@ -229,6 +241,7 @@ local Body_mt = {
 
 local function newBoxBody(width, height)
     local self = setmetatable({}, Body_mt)
+    table.insert(bodies, self)
 
 	--local width = 150.0
 	--local height = 170.0
@@ -238,6 +251,8 @@ local function newBoxBody(width, height)
     print('moment', moment)
 	
 	self.body = C.cpSpaceAddBody(space, C.cpBodyNew(mass, moment));
+    local index = #bodies
+    self.body.userData = ffi.cast('void*', index)
 
     -- box is PolyShape
     local shape = C.cpBoxShapeNew(body, width, height, 0.)
@@ -253,7 +268,6 @@ local function newBoxBody(width, height)
     C.cpBodyApplyForceAtLocalPoint(body, force, r)
     --]]
 
-    table.insert(bodies, self)
     return self
 end
 
@@ -276,6 +290,11 @@ local function eachBody(iter)
     --]]
 end
 
+local function cpBody2Body(cpbody)
+    local index = ffi.cast('uint', cpbody.userData)
+    return bodies[index]
+end
+
 return {
     init = init,
     render = render,
@@ -290,4 +309,5 @@ return {
     end,
 
     eachBody = eachBody,
+    cpBody2Body = cpBody2Body,
 }
