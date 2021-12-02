@@ -26,17 +26,17 @@ local record PhysicsWrapper
     type EachSpaceBodyCallback = function(Cm.cpBody)
     type EachBodyShapeCallback = function(Cm.cpBody, Cm.cpShape)
 
-    record EachBodyIter end
+    record EachSpaceBodyIter end
     record EachBodyShapeIter end
 
     -- Возвращает итератор для каждого тела в пространстве
-    newEachSpaceBodyIter: function(cb: EachSpaceBodyCallback): EachBodyIter
+    newEachSpaceBodyIter: function(cb: EachSpaceBodyCallback): EachSpaceBodyIter
     -- Возвращает итератор для кажлой формы тела
     newEachBodyShapeIter: function(cb: EachBodyShapeCallback): EachBodyShapeIter
 
     cpBody2Body: function(Cm.cpBody): Body
 
-    eachSpaceBody: function(iter: EachBodyIter)
+    eachSpaceBody: function(iter: EachSpaceBodyIter)
     eachBodyShape: function(b: Cm.cpBody, iter: EachBodyShapeIter)
 end
 

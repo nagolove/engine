@@ -294,6 +294,10 @@ local function eachSpaceBody(iter)
     C.cpSpaceEachBody(space, iter, nil)
 end
 
+local function eachBodyShape(body, iter)
+    C.cpBodyEachShape(body, iter, nil)
+end
+
 local function cpBody2Body(cpbody)
     local index = ffi.cast(indexType, cpbody.userData)
     index = tonumber(index)
@@ -303,7 +307,7 @@ local function cpBody2Body(cpbody)
 end
 
 local function newEachBodyShapeIter(cb)
-    local eachShape_C = ffi.cast('cpSpaceShapeIteratorFunc', cb)
+    local eachShape_C = ffi.cast('cpBodyShapeIteratorFunc', cb)
     return eachShape_C
 end
 
