@@ -15,7 +15,7 @@ local record PhysicsWrapper
     init: function(pipeline: Pipeline)
     free: function()
     update: function(dt: number)
-    render: function()
+    --render: function()
 
     newVect: function(): Cm.cpVect
     newBoxBody: function(w: number, h: number): Body
@@ -23,19 +23,21 @@ local record PhysicsWrapper
     getBodies: function(): {Body}
 
     --type EachCallback = function(Body)
-    type EachCallback = function(Cm.cpBody)
+    type EachSpaceBodyCallback = function(Cm.cpBody)
+    type EachBodyShapeCallback = function(Cm.cpBody, Cm.cpShape)
 
     record EachBodyIter end
-    record EachShapeIter end
+    record EachBodyShapeIter end
 
-    newEachBodyIter: function(cb: EachCallback): EachBodyIter
-    newEachShapeIter: function()
+    -- Возвращает итератор для каждого тела в пространстве
+    newEachSpaceBodyIter: function(cb: EachSpaceBodyCallback): EachBodyIter
+    -- Возвращает итератор для кажлой формы тела
+    newEachBodyShapeIter: function(cb: EachBodyShapeCallback): EachBodyShapeIter
 
     cpBody2Body: function(Cm.cpBody): Body
 
-    --eachBody1: function(cb: EachCallback)
-    eachBody: function(iter: EachBodyIter)
-    eachShape: function(iter: EachShapeIter)
+    eachSpaceBody: function(iter: EachBodyIter)
+    eachBodyShape: function(b: Cm.cpBody, iter: EachBodyShapeIter)
 end
 
 return PhysicsWrapper

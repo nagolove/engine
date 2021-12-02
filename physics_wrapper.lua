@@ -23,6 +23,8 @@ local space
 local body
 -- Pipeline
 local pl
+local indexType = 'uint64_t'
+local ptrType = 'cpDataPointer'
 
 local bodiesnum = 1024
 local bodies = {}
@@ -31,26 +33,28 @@ local bodies_C = ffi.new('cpDataPointer[?]', bodiesnum)
 
 local function fillbodies()
     for i = 0, bodiesnum - 1 do
-        --bodies_C[i] = ffi.cast('uint32_t', 0)
-        --bodies_C[i] = ffi.cast('int32_t', 0)
-        bodies_C[i] = ffi.cast('void*', 0)
+        bodies_C[i] = ffi.cast(ptrType, 0)
     end
 end
 
 local function col_begin(arb, space, data)
     print('begin')
+    print('arb, space, data', arb, space, data)
 end
 
 local function col_preSolve(arb, space, data)
     print('pres')
+    print('arb, space, data', arb, space, data)
 end
 
 local function col_postSolve(arb, space, data)
     print('posts')
+    print('arb, space, data', arb, space, data)
 end
 
 local function col_separate(arb, space, data)
     print('sep')
+    print('arb, space, data', arb, space, data)
 end
 
 local col_begin_C = ffi.cast("cpCollisionBeginFunc", col_begin)
@@ -168,6 +172,7 @@ end
 
 local eachShape_C = ffi.cast('cpBodyShapeIteratorFunc', eachShape)
 
+--[[
 local function eachBody(body, data)
     --print('eachBody')
     --print('body, data', body, data)
@@ -181,12 +186,13 @@ local function eachBody(body, data)
 end
 
 local eachBody_C = ffi.cast("cpSpaceBodyIteratorFunc", eachBody)
+--]]
 
 local internal_data = ffi.new('char[1024]')
 local void_internal_data = ffi.cast('void*', internal_data)
 
 local function render()
-    C.cpSpaceEachBody(space, eachBody_C, void_internal_data)
+    --C.cpSpaceEachBody(space, eachBody_C, void_internal_data)
 end
 
 local function update(dt)
@@ -220,16 +226,18 @@ local Body = {
         print('impx, impy', impx, impy)
     end,
     getInfoStr = function(self)
+        print(colorize('%{blue}' .. 'self: ' .. inspect(self)))
         local b = self.body
+        print('b', b)
         local buf = ''
-        buf = buf .. format('mass: %.3f', b.m)
-        buf = buf .. format('inertia: (%.3f, %.3f)', b.i)
-        buf = buf .. format('gravity center: (%.3f, %.3f)', b.cog.x, b.cog.y)
-        buf = buf .. format('pos: (%.3f, %.3f)', b.p.x, b.p.y)
-        buf = buf .. format('vel: (%.3f, %.3f)', b.v.x, b.v.y)
-        buf = buf .. format('force: (%.3f, %.3f)', b.f.x, b.f.y)
-        buf = buf .. format('angle: %.3f', b.a)
-        buf = buf .. format('angular vel: %.3f', b.w)
+        buf = buf .. format('mass: %.3f\n', b.m)
+        buf = buf .. format('inertia moment: %.3f\n', b.i)
+        buf = buf .. format('gravity center: (%.3f, %.3f)\n', b.cog.x, b.cog.y)
+        buf = buf .. format('pos: (%.3f, %.3f)\n', b.p.x, b.p.y)
+        buf = buf .. format('vel: (%.3f, %.3f)\n', b.v.x, b.v.y)
+        buf = buf .. format('force: (%.3f, %.3f)\n', b.f.x, b.f.y)
+        buf = buf .. format('angle: %.3f\n', b.a)
+        buf = buf .. format('angular vel: %.3f\n', b.w)
         buf = buf .. format('torque: %.3f', b.t)
         return buf
     end
@@ -243,16 +251,17 @@ local function newBoxBody(width, height)
     local self = setmetatable({}, Body_mt)
     table.insert(bodies, self)
 
-	--local width = 150.0
-	--local height = 170.0
 	local mass = width * height * DENSITY;
     -- Что такое момент?
 	local moment = C.cpMomentForBox(mass, width, height);
     print('moment', moment)
-	
+
 	self.body = C.cpSpaceAddBody(space, C.cpBodyNew(mass, moment));
+    print('self.body', self.body)
+
     local index = #bodies
-    self.body.userData = ffi.cast('void*', index)
+    print('index', index)
+    self.body.userData = ffi.cast(ptrType, index)
 
     -- box is PolyShape
     local shape = C.cpBoxShapeNew(body, width, height, 0.)
@@ -271,43 +280,49 @@ local function newBoxBody(width, height)
     return self
 end
 
-local function newEachBodyIter(cb)
+local function newEachSpaceBodyIter(cb)
     local eachBody_C = ffi.cast("cpSpaceBodyIteratorFunc", cb)
     return eachBody_C
 end
 
-local function eachBody(iter)
-    --local internal_data = ffi.new('char[1024]')
-    --local void_internal_data = ffi.cast('void*', internal_data)
+--local internal_data = ffi.new('char[1024]')
+--local void_internal_data = ffi.cast('void*', internal_data)
+
+-- Почему при одном теле на сценк коллбэк вызывается два раза?
+local function eachSpaceBody(iter)
     -- Обходное решение для передачи параметра
     C.cpSpaceEachBody(space, iter, nil)
-
-    --[[
-    -- Хочу что-бы работало примерно так:
-    local t = setmetatable({}, Body_mt)
-    local table_ptr = require 'tableptr'.table_ptr
-    C.cpSpaceEachBody(space, iter, table_ptr(t))
-    --]]
 end
 
 local function cpBody2Body(cpbody)
-    local index = ffi.cast('uint', cpbody.userData)
+    local index = ffi.cast(indexType, cpbody.userData)
+    index = tonumber(index)
+    --print('cpBody2Body')
+    --print('index', index)
     return bodies[index]
+end
+
+local function newEachBodyShapeIter(cb)
+    local eachShape_C = ffi.cast('cpSpaceShapeIteratorFunc', cb)
+    return eachShape_C
 end
 
 return {
     init = init,
-    render = render,
+    --render = render,
     update = update,
     free = free,
 
-    newEachBodyIter = newEachBodyIter,
+    newEachSpaceBodyIter = newEachSpaceBodyIter,
+    newEachBodyShapeIter = newEachBodyShapeIter,
     newBoxBody = newBoxBody,
 
     getBodies = function()
         return bodies
     end,
 
-    eachBody = eachBody,
+    eachSpaceBody = eachSpaceBody,
+    eachBodyShape = eachBodyShape,
+
     cpBody2Body = cpBody2Body,
 }

@@ -385,6 +385,14 @@ struct cpShapeClass {
  cpShapeSegmentQueryImpl segmentQuery;
 };
 
+--]]
+
+record cpShape
+    body: cpBody
+    bb: cpBB
+end
+
+--[[
 struct cpShape {
  const cpShapeClass *klass_private;
  cpBody *body;
