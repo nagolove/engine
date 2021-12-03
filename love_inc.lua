@@ -2,6 +2,7 @@ return {
     require = function()
         require 'love.keyboard'
         require "love.timer"
+        require 'love.joystick'
         require 'love.mouse'
         require "love.event"
         require "love.thread"
