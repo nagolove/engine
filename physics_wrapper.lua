@@ -19,8 +19,8 @@ local C = ffi.load 'chipmunk'
 
 local concolor = '%{blue}'
 local DENSITY = (1.0/10000.0)
-local space
-local body
+-- Текущее пространство
+local cur_space
 -- Pipeline
 local pl
 local indexType = 'uint64_t'
@@ -37,6 +37,7 @@ local function fillbodies()
     end
 end
 
+--[[
 local function col_begin(arb, space, data)
     print('begin')
     print('arb, space, data', arb, space, data)
@@ -56,20 +57,21 @@ local function col_separate(arb, space, data)
     print('sep')
     print('arb, space, data', arb, space, data)
 end
+--]]
 
-local col_begin_C = ffi.cast("cpCollisionBeginFunc", col_begin)
-local col_preSolve_C = ffi.cast("cpCollisionPreSolveFunc", col_preSolve)
-local col_postSolve_C = ffi.cast("cpCollisionPostSolveFunc", col_postSolve)
-local col_separate_C = ffi.cast( "cpCollisionSeparateFunc", col_separate)
+--local col_begin_C = ffi.cast("cpCollisionBeginFunc", col_begin)
+--local col_preSolve_C = ffi.cast("cpCollisionPreSolveFunc", col_preSolve)
+--local col_postSolve_C = ffi.cast("cpCollisionPostSolveFunc", col_postSolve)
+--local col_separate_C = ffi.cast( "cpCollisionSeparateFunc", col_separate)
 
-local collison_data = ffi.new('char[1024]')
-local void_collision_data = ffi.cast('void*', collison_data)
+--local collison_data = ffi.new('char[1024]')
+--local void_collision_data = ffi.cast('void*', collison_data)
 
 local function init(pipeline)
     assert(pipeline and 'Pipeline is nil')
 
     print(colorize(concolor .. 'Chipmunk init'))
-    space = C.cpSpaceNew()
+    cur_space = C.cpSpaceNew()
 
     fillbodies()
 
@@ -78,14 +80,20 @@ local function init(pipeline)
 	--cpSpaceSetSleepTimeThreshold(space, 0.5f);
 	--cpSpaceSetCollisionSlop(space, 0.5f);
 
+    print(C.CP_CIRCLE_SHAPE)
+    print(C.CP_SEGMENT_SHAPE)
+    print(C.CP_POLY_SHAPE)
+    print(C.CP_NUM_SHAPES)
+
     pl = pipeline
+    --[[
 	local width = 150.0
 	local height = 170.0
 	local mass = width * height * DENSITY;
 	local moment = C.cpMomentForBox(mass, width, height);
-	
+
     -- Что такое момент?
-	body = C.cpSpaceAddBody(space, C.cpBodyNew(mass, moment));
+	body = C.cpSpaceAddBody(cur_space, C.cpBodyNew(mass, moment));
 
     -- box is PolyShape
     local shape = C.cpBoxShapeNew(body, width, height, 0.)
@@ -102,6 +110,7 @@ local function init(pipeline)
     -- Что делают строчки ниже?
 	--shape = cpSpaceAddShape(space, cpBoxShapeNew(body, width, height, 0.0));
 	--cpShapeSetFriction(shape, 0.6);
+    --]]
 
     --[[ Не работает вызов функции. Найти аналог в современном интерфейсе.
     C.cpSpaceSetDefaultCollisionHandler(
@@ -113,45 +122,26 @@ local function init(pipeline)
     )
     --]]
 
-    pl:pushCode("rect", [[
-    local col = {1, 1, 1, 1}
-    --love.graphics.setColor(col)
-    while true do
-        --love.graphics.setColor(col)
-        coroutine.yield()
-    end
-    ]])
-
-    pl:pushCode("poly_shape", [[
-    local col = {1, 0, 0, 1}
-    --love.graphics.setColor(col)
-    local inspect = require "inspect"
-    while true do
-        love.graphics.setColor(col)
-        local verts = graphic_command_channel:demand()
-        --print('poly_shape: verts', inspect(verts))
-        --love.graphics.rectangle('fill', 0, 0, 1000, 1000)
-        love.graphics.polygon('fill', verts)
-        coroutine.yield()
-    end
-    ]])
 end
 
-local shape_data = ffi.new('char[1024]')
-local void_shape_data = ffi.cast('void*', shape_data)
+--local shape_data = ffi.new('char[1024]')
+--local void_shape_data = ffi.cast('void*', shape_data)
 
-local function eachShape(body, shape, data)
+--local function eachShape(body, shape, data)
+local function eachShape(_, shape, _)
 
     --print('eachShape')
     --print('body, shape, data:', body, shape, data)
 
     --C.cpShapeSetFriction
     local shape_type = shape.klass_private.type
-    if shape_type == C.CP_CIRCLE_SHAPE then
+    --if shape_type == C.CP_CIRCLE_SHAPE then
         --print('I am circle.')
-    elseif shape_type == C.CP_SEGMENT_SHAPE then
+    --elseif shape_type == C.CP_SEGMENT_SHAPE then
         --print('I am segment.')
-    elseif shape_type == C.CP_POLY_SHAPE then
+    --elseif shape_type == C.CP_POLY_SHAPE then
+
+    if shape_type == C.CP_POLY_SHAPE then
         --print('I am poly.')
         --local poly_shape = fff.cast('cpPolyShape*', shape)
         local num = C.cpPolyShapeGetCount(shape)
@@ -170,7 +160,7 @@ local function eachShape(body, shape, data)
     end
 end
 
-local eachShape_C = ffi.cast('cpBodyShapeIteratorFunc', eachShape)
+--local eachShape_C = ffi.cast('cpBodyShapeIteratorFunc', eachShape)
 
 --[[
 local function eachBody(body, data)
@@ -188,16 +178,16 @@ end
 local eachBody_C = ffi.cast("cpSpaceBodyIteratorFunc", eachBody)
 --]]
 
-local internal_data = ffi.new('char[1024]')
-local void_internal_data = ffi.cast('void*', internal_data)
+--local internal_data = ffi.new('char[1024]')
+--local void_internal_data = ffi.cast('void*', internal_data)
 
-local function render()
+--local function render()
     --C.cpSpaceEachBody(space, eachBody_C, void_internal_data)
-end
+--end
 
 local function update(dt)
     --print('pw update')
-	C.cpSpaceStep(space, dt);
+	C.cpSpaceStep(cur_space, dt);
 end
 
 local function free()
@@ -210,13 +200,13 @@ ChipmunkDemoFreeSpaceChildren(cpSpace *space)
 	// Must remove these BEFORE freeing the body or you will access dangling pointers.
 	cpSpaceEachShape(space, (cpSpaceShapeIteratorFunc)postShapeFree, space);
 	cpSpaceEachConstraint(space, (cpSpaceConstraintIteratorFunc)postConstraintFree, space);
-	
+
 	cpSpaceEachBody(space, (cpSpaceBodyIteratorFunc)postBodyFree, space);
 }
 --]]
 
     print(colorize(concolor .. 'Chipmunk free start'))
-    C.cpSpaceFree(space)
+    C.cpSpaceFree(cur_space)
     print(colorize(concolor .. 'Chipmunk free done'))
 end
 
@@ -226,7 +216,7 @@ local Body = {
         print('impx, impy', impx, impy)
     end,
     getInfoStr = function(self)
-        print(colorize('%{blue}' .. 'self: ' .. inspect(self)))
+        --print(colorize('%{blue}' .. 'self: ' .. inspect(self)))
         local b = self.body
         print('b', b)
         local buf = ''
@@ -240,7 +230,7 @@ local Body = {
         buf = buf .. format('angular vel: %.3f\n', b.w)
         buf = buf .. format('torque: %.3f', b.t)
         return buf
-    end
+    end,
 }
 
 local Body_mt = {
@@ -252,11 +242,13 @@ local function newBoxBody(width, height)
     table.insert(bodies, self)
 
 	local mass = width * height * DENSITY;
+    print('mass', mass)
+
     -- Что такое момент?
 	local moment = C.cpMomentForBox(mass, width, height);
     print('moment', moment)
 
-	self.body = C.cpSpaceAddBody(space, C.cpBodyNew(mass, moment));
+	self.body = C.cpSpaceAddBody(cur_space, C.cpBodyNew(mass, moment));
     print('self.body', self.body)
 
     local index = #bodies
@@ -264,8 +256,8 @@ local function newBoxBody(width, height)
     self.body.userData = ffi.cast(ptrType, index)
 
     -- box is PolyShape
-    local shape = C.cpBoxShapeNew(body, width, height, 0.)
-    self.shape = C.cpSpaceAddShape(space, shape)
+    local shape = C.cpBoxShapeNew(self.body, width, height, 0.)
+    self.shape = C.cpSpaceAddShape(cur_space, shape)
 
     --[[
     local force = ffi.new('cpVect')
@@ -291,7 +283,7 @@ end
 -- Почему при одном теле на сценк коллбэк вызывается два раза?
 local function eachSpaceBody(iter)
     -- Обходное решение для передачи параметра
-    C.cpSpaceEachBody(space, iter, nil)
+    C.cpSpaceEachBody(cur_space, iter, nil)
 end
 
 local function eachBodyShape(body, iter)
@@ -311,6 +303,7 @@ end
 
 local function newEachBodyShapeIter(cb)
     local eachShape_C = ffi.cast('cpBodyShapeIteratorFunc', cb)
+    --local eachShape_C = ffi.cast('cpBodyShapeIteratorFunc', eachShape)
     return eachShape_C
 end
 
@@ -332,4 +325,22 @@ return {
     eachBodyShape = eachBodyShape,
 
     cpBody2Body = cpBody2Body,
+
+    polyShapeGetCount = function(shape)
+        assert(shape)
+        return C.cpPolyShapeGetCount(shape)
+    end,
+    polyShapeGetVert = function(shape, index)
+        assert(shape)
+        return C.cpPolyShapeGetVert(shape, index)
+    end,
+    polyShapeGetType = function(shape)
+        assert(shape)
+        local t = tonumber(shape.klass_private.type)
+        --print('t', t)
+        return t
+    end,
+    CP_CIRCLE_SHAPE = 0,
+    CP_SEGMENT_SHAPE = 1,
+    CP_POLY_SHAPE = 2,
 }
