@@ -287,9 +287,9 @@ local function eachSpaceBody(iter)
 end
 
 local function eachBodyShape(body, iter)
-    print('eachBodyShape')
+    --print('eachBodyShape')
     --print('body, iter', inspect(body), inspect(iter))
-    print('body, iter', body, iter)
+    --print('body, iter', body, iter)
     C.cpBodyEachShape(body, iter, nil)
 end
 
