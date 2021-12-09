@@ -21,7 +21,7 @@ local record PhysicsWrapper
         --shape: Cm.cpShape
         applyImpulse: function(Body, impx: number, impy: number)
         getInfoStr: function(Body): string
-
+        getPos: function(Body): Cm.cpVect
         --polyShapeGetCount: function(Body): number
         --polyShapeGetVert: function(Body, index: number): Cm.cpVect
     end

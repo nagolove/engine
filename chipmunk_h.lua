@@ -228,8 +228,10 @@ cpFloat cpBodyGetMass(const cpBody *body);
 void cpBodySetMass(cpBody *body, cpFloat m);
 cpFloat cpBodyGetMoment(const cpBody *body);
 void cpBodySetMoment(cpBody *body, cpFloat i);
-cpVect cpBodyGetPos(const cpBody *body);
-void cpBodySetPos(cpBody *body, cpVect pos);
+
+cpVect cpBodyGetPosition(const cpBody *body);
+void cpBodySetPosition(cpBody *body, cpVect pos);
+
 cpVect cpBodyGetVel(const cpBody *body);
 void cpBodySetVel(cpBody *body, const cpVect value);
 cpVect cpBodyGetForce(const cpBody *body);

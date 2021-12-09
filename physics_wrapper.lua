@@ -186,8 +186,9 @@ local eachBody_C = ffi.cast("cpSpaceBodyIteratorFunc", eachBody)
 --end
 
 local function update(dt)
-    --print('pw update')
-	C.cpSpaceStep(cur_space, dt);
+    print('pw update', dt)
+    C.cpSpaceStep(cur_space, dt);
+	--C.cpSpaceStep(cur_space, 0.1);
 end
 
 local function free()
@@ -211,10 +212,27 @@ ChipmunkDemoFreeSpaceChildren(cpSpace *space)
 end
 
 local Body = {
-    applyImpulse = function(self, impx, impy)
-        print('self', inspect(self))
-        print('impx, impy', impx, impy)
+    getPos = function(self)
+        self.pos = C.cpBodyGetPosition(self.body)
+        return self.pos
     end,
+
+    applyImpulse = function(self, impx, impy)
+        --print('self', inspect(self))
+        --print('impx, impy', impx, impy)
+        -- Как выделить переменные impulse и point?
+        -- Оптимизируется ли вызов ffi.new()?
+        -- Или использовать заранее выделенные переменные?
+      
+        --C.cpBodyApplyImpulseAtLocalPoint(self.body, impulse, point)
+        self.impulse.x, self.impulse.y = impx, impy
+        self.point.x, self.point.y = 0., 0.
+
+        print('self.impulse', self.impulse.x, self.impulse.y)
+        print('self.point', self.point.x, self.point.y)
+        C.cpBodyApplyImpulseAtLocalPoint(self.body, self.impulse, self.point)
+    end,
+
     getInfoStr = function(self)
         --print(colorize('%{blue}' .. 'self: ' .. inspect(self)))
         local b = self.body
@@ -245,10 +263,12 @@ local function newBoxBody(width, height)
     print('mass', mass)
 
     -- Что такое момент?
-	local moment = C.cpMomentForBox(mass, width, height);
+    local moment = C.cpMomentForBox(mass, width, height);
+	--local moment = 1.
     print('moment', moment)
 
-	self.body = C.cpSpaceAddBody(cur_space, C.cpBodyNew(mass, moment));
+    self.body = C.cpBodyNew(mass, moment);
+	C.cpSpaceAddBody(cur_space, self.body)
     print('self.body', self.body)
 
     local index = #bodies
@@ -257,7 +277,13 @@ local function newBoxBody(width, height)
 
     -- box is PolyShape
     local shape = C.cpBoxShapeNew(self.body, width, height, 0.)
-    self.shape = C.cpSpaceAddShape(cur_space, shape)
+    C.cpSpaceAddShape(cur_space, shape)
+
+    --C.cpSpaceAddBody(cur_space, body)
+
+    self.impulse = ffi.new('cpVect')
+    self.point = ffi.new('cpVect')
+    self.pos = ffi.new('cpVect')
 
     --[[
     local force = ffi.new('cpVect')
