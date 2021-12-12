@@ -24,6 +24,8 @@ require 'common'
     }}}
 --]]
 
+local inspect = require 'inspect'
+
 local type Filter = {number: {string}}
 local type PrintCallback = function(...:any)
 
@@ -45,7 +47,7 @@ local enabled: {number: boolean} = {
 }
 
 -- Какие фильтры включены по идентификаторам
-local shouldPrint: {string: boolean}
+local shouldPrint: {string: boolean} = {}
 
 -- Как тестировать отдельные функции?
 local function checkNum(n: number): boolean
@@ -95,19 +97,26 @@ local function set_callback(cb: PrintCallback)
 end
 
 local function keypressed(key: string, key2: string)
-    assert(key2, "Use only scancode. Second param unused.")
+    print('key2', key2)
+    assert(key2 == nil, "Use only scancode. Second param unused.")
+
     local num = tonumber(key)
+    print('num', num)
     if checkNum(num) then
         enabled[num] = not enabled[num]
         local isEnabled = enabled[num]
+        print('filter', inspect(filter))
+        print('filter[num]', filter[num])
         local ids = filter[num]
         for _, v in ipairs(ids) do
             shouldPrint[v] = isEnabled
+            print("shouldPrint[v]", shouldPrint[v])
         end
     end
 end
 
 local function debug_print(id: string, ...: any)
+    --print('shouldPrint', inspect(shouldPrint))
     if shouldPrint[id] then
         printCallback(...)
     end
