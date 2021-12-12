@@ -6,46 +6,21 @@
 require 'common'
 
 --[[ {{{ 
-    Сбор требований:
+    Применение:
 
-    замена print на 
-        debug
-        dprint
+    local dprint = require 'debug_print'
+    local debug_print = dprint.debug_print
 
-    фильтр работает во время исполнения программы
-    использование цифровых клавиш от 0 до 9
+    dprint.set_filter({ 1 = {'joy'}, 2 = {render}})
+    dprint.set_filter({ 1 = {'joy', 'render'}, 2 = {'sfx'}})
 
-    признаки фильтрации?
+    debug_print('joy', 'avaible ', num)
+    debug_print('render', 'hats ', num)
 
-    debug(1, 'avaible ', num)
-    debug(2, 'hats ', num)
+    love.keypressed = debug_print.keypressed
 
-    каждая группа отдельно
-    debug_setup({ 1 = {1}, 2 = {2})
-
-    группы объединены
-    debug_setup({ 1 = {1, 2}})
-
-    где располагать вызов debug_setup() ??
-
-    номер группы ничего не говорит о ней. Решение - строковый индетификатор.
-    debug('joy', 'avaible ', num)
-    debug('render', 'hats ', num)
-
-    debug_setup({ 1 = {'joy'}, 2 = {render}})
-    debug_setup({ 1 = {'joy', 'render'}, 2 = {'sfx'}})
-
-    производительность?
-    максимальное отключение лога - автоматическая модификация всех запускаемых 
-    файлов по шаблону.
-    --debug_setup({ 1 = {'joy', 'render'}, 2 = {'sfx'}})
-
-    использование стека для включения и отключения отладочного вывода
-
-    применение:
-    require dprint = require 'debug'.dprint
-    require debug_print = require 'debug'.debug_print
-    require debugPrint = require 'debug'.debugPrint
+    Что еще можно сделать:
+     * использование стека для включения и отключения отладочного вывода
     }}}
 --]]
 
