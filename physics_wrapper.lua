@@ -186,7 +186,7 @@ local eachBody_C = ffi.cast("cpSpaceBodyIteratorFunc", eachBody)
 --end
 
 local function update(dt)
-    print('pw update', dt)
+    --print('pw update', dt)
     C.cpSpaceStep(cur_space, dt);
 	--C.cpSpaceStep(cur_space, 0.1);
 end
@@ -228,8 +228,8 @@ local Body = {
         self.impulse.x, self.impulse.y = impx, impy
         self.point.x, self.point.y = 0., 0.
 
-        print('self.impulse', self.impulse.x, self.impulse.y)
-        print('self.point', self.point.x, self.point.y)
+        --print('self.impulse', self.impulse.x, self.impulse.y)
+        --print('self.point', self.point.x, self.point.y)
         C.cpBodyApplyImpulseAtLocalPoint(self.body, self.impulse, self.point)
     end,
 
