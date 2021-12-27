@@ -2,7 +2,6 @@
 -- vim: set colorcolumn=85
 -- Фильтр для отладочного вывода
 
---require('mobdebug').listen()
 require 'common'
 
 --[[ {{{ 
@@ -21,6 +20,12 @@ require 'common'
 
     Что еще можно сделать:
      * использование стека для включения и отключения отладочного вывода
+     * рисование списка фильтров(через холст)
+     * клиент-серверная архитектура(один модуль на много рабочих потоков)
+       Применить каналы для реализации 
+       Нужно знать общее количество потоков используемых логером
+       Зная общее количество потоков можно понять когда делать 
+       debugChannel:pop() - когда все потоки прочитают новое состояние
     }}}
 --]]
 
@@ -28,6 +33,7 @@ local inspect = require 'inspect'
 
 local type Filter = {number: {string}}
 local type PrintCallback = function(...:any)
+--local debugChannel = love.thread.getChannel("debug_print")
 
 -- Значения фильтров
 local filter: Filter = {}
@@ -106,12 +112,15 @@ local function keypressed(key: string, key2: string)
         enabled[num] = not enabled[num]
         local isEnabled = enabled[num]
         print('filter', inspect(filter))
-        print('filter[num]', filter[num])
+        print('filter[num]', inspect(filter[num]))
         local ids = filter[num]
-        for _, v in ipairs(ids) do
-            shouldPrint[v] = isEnabled
-            print("shouldPrint[v]", shouldPrint[v])
+        if ids then
+            for _, v in ipairs(ids) do
+                shouldPrint[v] = isEnabled
+                print("shouldPrint[v]", shouldPrint[v])
+            end
         end
+        --debugChannel:push(shouldPrint)
     end
 end
 

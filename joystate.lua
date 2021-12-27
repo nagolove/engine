@@ -100,7 +100,6 @@ function JoyState:update()
    end
 
    self.state = table.concat(chunks)
-
 end
 
 return JoyState

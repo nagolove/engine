@@ -25,17 +25,15 @@ local threads: {string: lt.Thread} = {}
 -- Канал для получения различных команд основным потоком от игровых потоков.
 local main_channel = love.thread.getChannel("main_channel")
 local event_channel = lt.getChannel("event_channel")
---local draw_ready_channel = lt.getChannel("draw_ready_channel")
---local graphic_command_channel = lt.getChannel("graphic_command_channel")
---local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
-
---love.filesystem.write("syslog.txt", "identity = " .. love.filesystem.getIdentity())
 
 local Shortcut = KeyConfig.Shortcut
 local colorize = require 'ansicolors2'.ansicolors
 local ecodes = require "errorcodes"
 local format = string.format
 local pipeline = Pipeline.new()
+
+local dprint = require 'debug_print'
+local debug_print = dprint.debug_print
 
 function threaderror(thread: love.thread.Thread, errorstr: string)
     print('threaderror')
@@ -56,7 +54,7 @@ local function bindKeys()
         "show hotkeys and documentation",
         "help"
     )
-
+    --[[
     KeyConfig.bind(
         "isdown",
         { key = "f2" }, 
@@ -67,25 +65,26 @@ local function bindKeys()
         "keybind example",
         "nope"
     )
+    --]]
 end
 
 function printGraphicsInfo()
     local name, version, vendor, device = love.graphics.getRendererInfo( )
-    print(name, version, vendor, device)
+    debug_print(name, version, vendor, device)
     local stats = love.graphics.getStats( )
-    print("stats", inspect(stats))
+    debug_print("stats", inspect(stats))
     local features = love.graphics.getSupported( )
-    print("features", inspect(features))
+    debug_print("features", inspect(features))
     local limits = love.graphics.getSystemLimits( )
-    print("limits", inspect(limits))
+    debug_print("limits", inspect(limits))
     local texturetypes = love.graphics.getTextureTypes( )
-    print("texturetypes", inspect(texturetypes))
+    debug_print("texturetypes", inspect(texturetypes))
     --local pointsize = love.graphics.getMaxPointSize( )
     --print("pointsize", inspect(features))
     local imageformats = love.graphics.getImageFormats( ) 
-    print("imageformats", inspect(imageformats))
+    debug_print("imageformats", inspect(imageformats))
     local canvasformats = love.graphics.getCanvasFormats( )
-    print("canvasformats", inspect(canvasformats))
+    debug_print("canvasformats", inspect(canvasformats))
 end
 
 -- поиск аргумента командой строки. Возвращает истину или ложь.

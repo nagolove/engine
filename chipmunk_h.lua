@@ -383,10 +383,11 @@ typedef struct cpSplittingPlane {
 
 typedef struct cpPolyShape {
  cpShape shape;
- int numVerts;
+ cpFloat r;
+ //int numVerts;
+ int count;
  cpVect *verts, *tVerts;
  cpSplittingPlane *planes, *tPlanes;
- cpFloat r;
 } cpPolyShape;
 
 cpPolyShape* cpPolyShapeAlloc(void);
