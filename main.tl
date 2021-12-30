@@ -157,12 +157,9 @@ function love.load(arg: {string})
     printGraphicsInfo()
     bindKeys()
 
-    if searchArg(arg, '--debug') then
+    if searchArg(arg, '--debug') or searchArg(arg, '--silent') then
         require "mobdebug".start()
-    end
-
-    if searchArg(arg, '--silent') then
-        require "mobdebug".start()
+        print(colorize("%{red}mobdebug started"))
     end
 
     print("love.load() arg", inspect(arg))

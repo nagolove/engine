@@ -251,9 +251,14 @@ cpDataPointer cpBodyGetUserData(const cpBody *body);
 void cpBodySetUserData(cpBody *body, const cpDataPointer value);
 void cpBodyUpdateVelocity(cpBody *body, cpVect gravity, cpFloat damping, cpFloat dt);
 void cpBodyUpdatePosition(cpBody *body, cpFloat dt);
-cpVect cpBodyLocal2World(const cpBody *body, const cpVect v);
-cpVect cpBodyWorld2Local(const cpBody *body, const cpVect v);
+
+//cpVect cpBodyLocal2World(const cpBody *body, const cpVect v);
+//cpVect cpBodyWorld2Local(const cpBody *body, const cpVect v);
+
 void cpBodyResetForces(cpBody *body);
+
+cpVect cpBodyLocalToWorld(const cpBody *body, const cpVect point);
+cpVect cpBodyWorldToLocal(const cpBody *body, const cpVect point);
 
 //void cpBodyApplyForce(cpBody *body, const cpVect f, const cpVect r);
 //void cpBodyApplyImpulse(cpBody *body, const cpVect j, const cpVect r);

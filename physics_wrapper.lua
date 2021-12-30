@@ -80,12 +80,13 @@ local function init(pipeline)
 	--cpSpaceSetSleepTimeThreshold(space, 0.5f);
 	--cpSpaceSetCollisionSlop(space, 0.5f);
 
-    print(C.CP_CIRCLE_SHAPE)
-    print(C.CP_SEGMENT_SHAPE)
-    print(C.CP_POLY_SHAPE)
-    print(C.CP_NUM_SHAPES)
+    print("C.CP_CIRCLE_SHAPE", C.CP_CIRCLE_SHAPE)
+    print("C.CP_SEGMENT_SHAPE", C.CP_SEGMENT_SHAPE)
+    print("C.CP_POLY_SHAPE", C.CP_POLY_SHAPE)
+    print("C.CP_NUM_SHAPES", C.CP_NUM_SHAPES)
 
     pl = pipeline
+
     --[[
 	local width = 150.0
 	local height = 170.0
@@ -236,7 +237,7 @@ local Body = {
     getInfoStr = function(self)
         --print(colorize('%{blue}' .. 'self: ' .. inspect(self)))
         local b = self.body
-        print('b', b)
+        --print('self.body', b)
         local buf = ''
         buf = buf .. format('mass: %.3f\n', b.m)
         buf = buf .. format('inertia moment: %.3f\n', b.i)
@@ -358,7 +359,12 @@ return {
     end,
     polyShapeGetVert = function(shape, index)
         assert(shape)
-        return C.cpPolyShapeGetVert(shape, index)
+        local lvert = C.cpPolyShapeGetVert(shape, index)
+        local wvert = C.cpBodyLocalToWorld(shape.body, lvert)
+        print("lvert.x, lvert.y", lvert.x, lvert.y)
+        print("wvert.x, wvert.y", wvert.x, wvert.y)
+        --return C.cpPolyShapeGetVert(shape, index)
+        return wvert
     end,
     polyShapeGetType = function(shape)
         assert(shape)
