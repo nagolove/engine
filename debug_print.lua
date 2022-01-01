@@ -29,10 +29,13 @@ require('common')
 
 
 
-local inspect = require('inspect')
+
+
 local format = string.format
 local Filter = {}
 local PrintCallback = {}
+
+
 
 
 
@@ -54,6 +57,9 @@ local enabled = {
 
 
 local shouldPrint = {}
+
+
+local ids = {}
 
 
 local function checkNum(n)
@@ -83,8 +89,6 @@ local function checkNumbers(filt)
    end
    return true
 end
-
-local ids = {}
 
 local function parse_ids(setup)
    ids = {}
@@ -142,11 +146,16 @@ end
 
 local function debug_print(id, ...)
 
+
+
+
+
    assert(type(id) == 'string')
+   if not ids[id] then
+      local msg = format("id = '%s' not found in filter", tostring(id))
+      error(msg)
+   end
 
-
-   local msg = format("id = '%s' not found in filter", tostring(id))
-   assert(ids[id] == true, msg)
    if shouldPrint[id] then
       printCallback(...)
    end

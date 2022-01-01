@@ -1,12 +1,19 @@
+-- vim: set colorcolumn=85
+-- vim: fdm=marker
+
 local colorize = require 'ansicolors2'.ansicolors
 local lt = love.thread
 local tl = require "tl"
 local ecodes = require "errorcodes"
 local format = string.format
 
-local DEBUG_RENDER = true
+--local DEBUG_RENDER = true
 
 local resume = coroutine.resume
+
+local dprint = require 'debug_print'
+local debug_print = dprint.debug_print
+
 --local type LoadFunction = function(...:any): any...
 
 --local event_channel = lt.getChannel("event_channel")
@@ -64,6 +71,11 @@ local Pipeline_mt: metatable<Pipeline> = {
     __index = Pipeline,
 }
 
+local function timestamp(msg: string)
+    local prepared = format("%.4f : %s", love.timer.getTime(), msg)
+    debug_print("graphics", colorize('%{blue}' .. prepared))
+end
+
 function Pipeline.new(scene_prefix: string): Pipeline
     local self: Pipeline = setmetatable({} as Pipeline, Pipeline_mt)
     self.section_state = 'closed'
@@ -83,8 +95,8 @@ function Pipeline:open(func_name: string)
 
     if self.section_state ~= 'closed' then
         local msg = '%{red}Double opened section'
-        print(colorize(msg))
-        print(colorize('%{cyan}' .. debug.traceback()))
+        debug_print("graphics", colorize(msg))
+        debug_print("graphics", colorize('%{cyan}' .. debug.traceback()))
         os.exit(ecodes.ERROR_NO_SECTION)
     end
     self.section_state = 'open'
@@ -102,26 +114,30 @@ function Pipeline:pushName(_: string)
     --self.section_state = 'undefined'
 end
 
-function Pipeline:push(arg: any)
+function Pipeline:push(argument: any)
     if self.section_state ~= 'open' then
         local color_block = '%{red}'
         local msg = 'Attempt to push in pipeline with "%s" section state'
-        print(colorize(color_block .. format(msg, self.section_state)))
+        debug_print("graphics", colorize(color_block .. format(msg, self.section_state)))
         os.exit(ecodes.ERROR_NO_SECTION)
     end
-    graphic_command_channel:push(arg)
+    graphic_command_channel:push(argument)
 end
 
 function Pipeline:ready(): boolean
     local is_ready: string = draw_ready_channel:peek() as string
+
+    --timestamp('ready')
+
+    --local is_ready: string = draw_ready_channel:demand() as string
     if is_ready then
         if type(is_ready) ~= 'string' then
-            print("Type error in is_ready flag")
+            debug_print("graphics", "Type error in is_ready flag")
             os.exit(ecodes.ERROR_IS_READY_TYPE)
         end
         if is_ready ~= "ready" then
             local msg = tostring(is_ready) or ""
-            print("Bad message in draw_ready_channel: " .. msg)
+            debug_print("graphics", "Bad message in draw_ready_channel: " .. msg)
             os.exit(ecodes.ERROR_NO_READY)
         end
         draw_ready_channel:pop()
@@ -133,8 +149,9 @@ end
 function Pipeline:waitForReady(): boolean
     local timeout = 0.1 -- in seconds
     local result = draw_ready_channel:supply("ready", timeout)
+    --local result = draw_ready_channel:supply("ready")
     if not result then
-        print(colorize('%{red} draw_ready_channel:supply() is not respond'))
+        debug_print("graphics", colorize('%{red} draw_ready_channel:supply() is not respond'))
     end
     --self.section_state = 'undefined'
     return result
@@ -172,8 +189,8 @@ function Pipeline:render()
     if self.section_state ~= 'closed' then
         local color_block = '%{red}'
         local msg = 'Section not closed, but "%s"'
-        print(colorize(color_block .. format(msg, self.section_state)))
-        print(colorize('%{magenta}' .. debug.traceback()))
+        debug_print("graphics", colorize(color_block .. format(msg, self.section_state)))
+        debug_print("graphics", colorize('%{magenta}' .. debug.traceback()))
         os.exit(ecodes.ERROR_NO_SECTION)
     end
 
@@ -187,11 +204,11 @@ function Pipeline:render()
     while cmd_name do
 
         if type(cmd_name) ~= 'string' then
-            print(colorize('%{yellow}' .. debug.traceback()))
-            print(colorize('%{red}Pipeline:render()'))
-            print(colorize('%{red}type(cmd_name) = ' .. type(cmd_name)))
-            print(colorize('%{green}cmd_name = ' .. cmd_name))
-            print(colorize('%{magenta}' .. debug.traceback()))
+            debug_print("graphics", colorize('%{yellow}' .. debug.traceback()))
+            debug_print("graphics", colorize('%{red}Pipeline:render()'))
+            debug_print("graphics", colorize('%{red}type(cmd_name) = ' .. type(cmd_name)))
+            debug_print("graphics", colorize('%{green}cmd_name = ' .. cmd_name))
+            debug_print("graphics", colorize('%{magenta}' .. debug.traceback()))
             os.exit(ecodes.ERROR_NO_COMMAND)
         end
 
@@ -203,21 +220,21 @@ function Pipeline:render()
         if coro then
             local ok, errmsg: boolean, string = resume(coro) as (boolean, string)
             if not ok then
-                print(colorize('%{yellow}' .. 'cmd_name: ' .. cmd_name))
-                print(colorize('%{cyan}' .. debug.traceback()))
-                print(colorize('%{red}' .. errmsg))
+                debug_print("graphics", colorize('%{yellow}' .. 'cmd_name: ' .. cmd_name))
+                debug_print("graphics", colorize('%{cyan}' .. debug.traceback()))
+                debug_print("graphics", colorize('%{red}' .. errmsg))
                 os.exit(ecodes.ERROR_DIED_CORO)
             end
         else
             local func_name = cmd_name or "nil"
             local msg = 'Render function "%s" not found in table.'
-            print(colorize('%{red}' .. format(msg, func_name)))
+            debug_print("graphics", colorize('%{red}' .. format(msg, func_name)))
 
             --if DEBUG_RENDER then
             self:printAvaibleFunctions()
             --end
         
-            print(colorize('%{cyan}' .. debug.traceback()))
+            debug_print("graphics", colorize('%{cyan}' .. debug.traceback()))
             os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
         end
 
@@ -230,16 +247,17 @@ function Pipeline:printAvaibleFunctions()
     local color = 'magenta'
     --local color = 'cyan'
     local color_block = "%{" .. color .. "}"
-    print(colorize(color_block .. "--- Avaible render functions: ---"))
+    debug_print("graphics", colorize(color_block .. "--- Avaible render functions: ---"))
     for k, _ in pairs(self.renderFunctions) do
-        print(colorize(color_block .. k))
+        debug_print("graphics", colorize(color_block .. k))
     end
-    print(colorize(color_block .. "---------------------------------"))
+    debug_print("graphics", colorize(color_block .. "---------------------------------"))
 end
 
 -- Стягивает из канала кода все сообщения и обновляет 
 -- словарь функций рисования.
 function Pipeline:pullRenderCode()
+    -- {{{
     local rendercode: string
     repeat
         rendercode = graphic_code_channel:pop() as string
@@ -249,7 +267,7 @@ function Pipeline:pullRenderCode()
 
             if not func then
                 local msg = "%{red}Something wrong in render code: %{cyan}" 
-                print(colorize(msg .. errmsg))
+                debug_print("graphics", colorize(msg .. errmsg))
                 os.exit(ecodes.ERROR_INTERNAL_LOAD)
             else
                 local name = graphic_code_channel:pop() as string
@@ -262,12 +280,13 @@ function Pipeline:pullRenderCode()
                 self.renderFunctions[name] = coro
 
                 name = colorize('%{yellow}' .. name)
-                print('name, func, errmsg', name, func, errmsg)
-                print('rendercode', colorize('%{green}' .. '\n' .. rendercode))
+                debug_print("graphics", 'name, func, errmsg', name, func, errmsg)
+                debug_print("graphics", 'rendercode', colorize('%{green}' .. '\n' .. rendercode))
             end
 
         end
     until not rendercode
+    -- }}}
 end
 
 

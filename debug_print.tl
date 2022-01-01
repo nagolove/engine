@@ -29,11 +29,14 @@ require 'common'
     }}}
 --]]
 
-local inspect = require 'inspect'
+--local inspect = require 'inspect'
+
 local format = string.format
 local type Filter = {number: {string}}
 local type PrintCallback = function(...:any)
---local debugChannel = love.thread.getChannel("debug_print")
+
+-- Как синхронизировать?
+--local debug_channel = love.thread.getChannel("debug_print")
 
 -- Значения фильтров
 local filter: Filter = {}
@@ -54,6 +57,9 @@ local enabled: {number: boolean} = {
 
 -- Какие фильтры включены по идентификаторам
 local shouldPrint: {string: boolean} = {}
+
+-- Карта существующих идентификаторов?
+local ids: {string: boolean} = {}
 
 -- Как тестировать отдельные функции?
 local function checkNum(n: number): boolean
@@ -83,8 +89,6 @@ local function checkNumbers(filt: Filter): boolean, string
     end
     return true
 end
-
-local ids: {string: boolean} = {}
 
 local function parse_ids(setup: Filter)
     ids = {}
@@ -141,12 +145,17 @@ local function keypressed(key: string, key2: string)
 end
 
 local function debug_print(id: string, ...: any)
+
     --print('shouldPrint', inspect(shouldPrint))
-    assert(type(id) == 'string')
     --print('id', id)
     --print('ids[id]', ids[id])
-    local msg = format("id = '%s' not found in filter", tostring(id))
-    assert(ids[id] == true, msg)
+
+    assert(type(id) == 'string')
+    if not ids[id] then
+        local msg = format("id = '%s' not found in filter", tostring(id))
+        error(msg)
+    end
+
     if shouldPrint[id] then
         printCallback(...)
     end

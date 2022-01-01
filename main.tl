@@ -3,7 +3,16 @@ require "love"
 require "common"
 require "log"
 require "keyconfig"
-require 'imgui'
+
+local IMGUI_USE_STUB = false
+local im_ok, im_errmsg = pcall(function()
+    require 'imgui'
+end) as boolean, string
+if not im_ok then
+    print("Could not load imgui.dll", im_errmsg)
+    IMGUI_USE_STUB = true
+end
+
 require 'pipeline'
 
 if love.system.getOS() == 'Windows' then
@@ -11,7 +20,6 @@ if love.system.getOS() == 'Windows' then
 end
 print("package.path", package.path)
 
-local IMGUI_USE_STUB = false
 
 local inspect = require "inspect"
 local scenes = require "scenes"
