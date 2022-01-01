@@ -407,6 +407,9 @@ function love.run(): function(): string|number
                 pipeline:render()
             end
 
+            love.graphics.setColor{0, 0, 1}
+            love.graphics.rectangle("fill", 500, 500, 200, 200)
+
 			love.graphics.present()
 		end
 

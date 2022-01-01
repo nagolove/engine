@@ -96,7 +96,9 @@ return {
         --"scenes/lsystem/*.tl",
         --"scenes/nback3/*.tl",
         --"scenes/t80u/*.tl",
+        
         "scenes/t80/*.tl",
+
         --"scenes/diamond_square/*.tl",
         --"scenes/timers_animations_tl/*.tl",
         --"scenes/wavegrid/*.tl",

@@ -73,7 +73,11 @@ local Pipeline_mt: metatable<Pipeline> = {
 
 local function timestamp(msg: string)
     local prepared = format("%.4f : %s", love.timer.getTime(), msg)
-    debug_print("graphics", colorize('%{blue}' .. prepared))
+
+    -- Почини debug_print()
+    --debug_print("graphics", colorize('%{blue}' .. prepared))
+
+    print(colorize('%{blue}' .. prepared))
 end
 
 function Pipeline.new(scene_prefix: string): Pipeline
@@ -126,10 +130,10 @@ end
 
 function Pipeline:ready(): boolean
     local is_ready: string = draw_ready_channel:peek() as string
+    --local is_ready: string = draw_ready_channel:demand() as string
 
     --timestamp('ready')
 
-    --local is_ready: string = draw_ready_channel:demand() as string
     if is_ready then
         if type(is_ready) ~= 'string' then
             debug_print("graphics", "Type error in is_ready flag")
@@ -201,6 +205,8 @@ function Pipeline:render()
     --local cmd_name = graphic_command_channel:pop() as string
     ---------------------------------- 
 
+    --timestamp('render begin')
+
     while cmd_name do
 
         if type(cmd_name) ~= 'string' then
@@ -218,6 +224,9 @@ function Pipeline:render()
 
         local coro = self.renderFunctions[cmd_name]
         if coro then
+
+            --timestamp('cmd_name: ' .. cmd_name)
+
             local ok, errmsg: boolean, string = resume(coro) as (boolean, string)
             if not ok then
                 debug_print("graphics", colorize('%{yellow}' .. 'cmd_name: ' .. cmd_name))
@@ -241,6 +250,8 @@ function Pipeline:render()
         --cmd_name = graphic_command_channel:demand() as string
         cmd_name = graphic_command_channel:pop() as string
     end
+
+    --timestamp('render end')
 end
 
 function Pipeline:printAvaibleFunctions()

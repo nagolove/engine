@@ -73,7 +73,11 @@ local Pipeline_mt = {
 
 local function timestamp(msg)
    local prepared = format("%.4f : %s", love.timer.getTime(), msg)
-   debug_print("graphics", colorize('%{blue}' .. prepared))
+
+
+
+
+   print(colorize('%{blue}' .. prepared))
 end
 
 function Pipeline.new(scene_prefix)
@@ -127,7 +131,7 @@ end
 function Pipeline:ready()
    local is_ready = draw_ready_channel:peek()
 
-   timestamp('ready')
+
 
 
    if is_ready then
@@ -201,6 +205,8 @@ function Pipeline:render()
 
 
 
+
+
    while cmd_name do
 
       if type(cmd_name) ~= 'string' then
@@ -218,6 +224,9 @@ function Pipeline:render()
 
       local coro = self.renderFunctions[cmd_name]
       if coro then
+
+
+
          local ok, errmsg = resume(coro)
          if not ok then
             debug_print("graphics", colorize('%{yellow}' .. 'cmd_name: ' .. cmd_name))
@@ -241,6 +250,8 @@ function Pipeline:render()
 
       cmd_name = graphic_command_channel:pop()
    end
+
+
 end
 
 function Pipeline:printAvaibleFunctions()
