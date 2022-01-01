@@ -30,7 +30,7 @@ require 'common'
 --]]
 
 local inspect = require 'inspect'
-
+local format = string.format
 local type Filter = {number: {string}}
 local type PrintCallback = function(...:any)
 --local debugChannel = love.thread.getChannel("debug_print")
@@ -73,8 +73,8 @@ local function checkNum(n: number): boolean
 end
 
 -- Проверка на корректность введеных цифры 0-9
-local function checkNumbers(filter: Filter): boolean, string
-    for k, _ in pairs(filter) do
+local function checkNumbers(filt: Filter): boolean, string
+    for k, _ in pairs(filt) do
         local num = tonumber(k)
         -- Какие здесь дополнительные проверки нужны?
         if not (num and checkNum(num)) then
@@ -84,9 +84,21 @@ local function checkNumbers(filter: Filter): boolean, string
     return true
 end
 
+local ids: {string: boolean} = {}
+
+local function parse_ids(setup: Filter)
+    ids = {}
+    for _, row in pairs(setup) do
+        for _, id in ipairs(row) do
+            ids[id] = true
+        end
+    end
+end
+
 local function set_filter(setup: Filter)
     assert(setup)
     filter = deepCopy(setup)
+    parse_ids(setup)
     local ok, errmsg = checkNumbers(filter)
     if not ok then
         print("Error in filter setup: ", errmsg)
@@ -103,21 +115,25 @@ local function set_callback(cb: PrintCallback)
 end
 
 local function keypressed(key: string, key2: string)
-    print('key2', key2)
-    assert(key2 == nil, "Use only scancode. Second param unused.")
+    --print('key2', key2)
+    assert(key2 == nil, "Use only scancode. Second param always unused.")
+
+    --[[
+    Нужно-ли было комментировать print() в данной функции?
+    ]]
 
     local num = tonumber(key)
-    print('num', num)
+    --print('num', num)
     if checkNum(num) then
         enabled[num] = not enabled[num]
         local isEnabled = enabled[num]
-        print('filter', inspect(filter))
-        print('filter[num]', inspect(filter[num]))
-        local ids = filter[num]
-        if ids then
-            for _, v in ipairs(ids) do
+        --print('filter', inspect(filter))
+        --print('filter[num]', inspect(filter[num]))
+        local ids_list = filter[num]
+        if ids_list then
+            for _, v in ipairs(ids_list) do
                 shouldPrint[v] = isEnabled
-                print("shouldPrint[v]", shouldPrint[v])
+                --print("shouldPrint[v]", shouldPrint[v])
             end
         end
         --debugChannel:push(shouldPrint)
@@ -126,6 +142,11 @@ end
 
 local function debug_print(id: string, ...: any)
     --print('shouldPrint', inspect(shouldPrint))
+    assert(type(id) == 'string')
+    --print('id', id)
+    --print('ids[id]', ids[id])
+    local msg = format("id = '%s' not found in filter", tostring(id))
+    assert(ids[id] == true, msg)
     if shouldPrint[id] then
         printCallback(...)
     end

@@ -12,6 +12,8 @@ local ffi = require 'ffi'
 local colorize = require 'ansicolors2'.ansicolors
 local inspect = require "inspect"
 local format = string.format
+local dprint = require 'debug_print'
+local debug_print = dprint.debug_print
 
 -- След строка нужна?
 require 'chipmunk_h'
@@ -360,10 +362,8 @@ return {
     polyShapeGetVert = function(shape, index)
         assert(shape)
         local lvert = C.cpPolyShapeGetVert(shape, index)
-        local wvert = C.cpBodyLocalToWorld(shape.body, lvert)
-        print("lvert.x, lvert.y", lvert.x, lvert.y)
-        print("wvert.x, wvert.y", wvert.x, wvert.y)
-        --return C.cpPolyShapeGetVert(shape, index)
+        local body = C.cpShapeGetBody(shape)
+        local wvert = C.cpBodyLocalToWorld(body, lvert)
         return wvert
     end,
     polyShapeGetType = function(shape)

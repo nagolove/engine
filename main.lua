@@ -70,21 +70,21 @@ end
 
 function printGraphicsInfo()
    local name, version, vendor, device = love.graphics.getRendererInfo()
-   debug_print(name, version, vendor, device)
+   debug_print("graphics", name, version, vendor, device)
    local stats = love.graphics.getStats()
-   debug_print("stats", inspect(stats))
+   debug_print("graphics", "stats", inspect(stats))
    local features = love.graphics.getSupported()
-   debug_print("features", inspect(features))
+   debug_print("graphics", "features", inspect(features))
    local limits = love.graphics.getSystemLimits()
-   debug_print("limits", inspect(limits))
+   debug_print("graphics", "limits", inspect(limits))
    local texturetypes = love.graphics.getTextureTypes()
-   debug_print("texturetypes", inspect(texturetypes))
+   debug_print("graphics", "texturetypes", inspect(texturetypes))
 
 
    local imageformats = love.graphics.getImageFormats()
-   debug_print("imageformats", inspect(imageformats))
+   debug_print("graphics", "imageformats", inspect(imageformats))
    local canvasformats = love.graphics.getCanvasFormats()
-   debug_print("canvasformats", inspect(canvasformats))
+   debug_print("graphics", "canvasformats", inspect(canvasformats))
 end
 
 
@@ -154,15 +154,15 @@ function love.load(arg)
       imgui.Init()
       imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
    end
+   dprint.set_filter({
+      [1] = { "graphics" },
+   })
    printGraphicsInfo()
    bindKeys()
 
-   if searchArg(arg, '--debug') then
+   if searchArg(arg, '--debug') or searchArg(arg, '--silent') then
       require("mobdebug").start()
-   end
-
-   if searchArg(arg, '--silent') then
-      require("mobdebug").start()
+      print(colorize("%{red}mobdebug started"))
    end
 
    print("love.load() arg", inspect(arg))
