@@ -1,6 +1,7 @@
 return {
     -- Добавь комментарии к ошибкам.
 
+    ERROR_NO_SUCH_DEBUG_ID = 247,
     ERROR_DIED_CORO = 248,
     ERROR_NO_RENDER_FUNCTION = 249,
     ERROR_NO_READY = 250,

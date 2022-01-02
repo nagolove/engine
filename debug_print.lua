@@ -1,8 +1,10 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string
 
 
 
 require('common')
+local ecodes = require("errorcodes")
+local colorize = require('ansicolors2').ansicolors
 
 
 
@@ -144,6 +146,14 @@ local function keypressed(key, key2)
    end
 end
 
+local function print_ids()
+   local msg = ""
+   for k, _ in pairs(ids) do
+      msg = msg .. k .. " "
+   end
+   print("Avaible ids are: ", colorize("%{yellow}" .. msg))
+end
+
 local function debug_print(id, ...)
 
 
@@ -153,7 +163,9 @@ local function debug_print(id, ...)
    assert(type(id) == 'string')
    if not ids[id] then
       local msg = format("id = '%s' not found in filter", tostring(id))
-      error(msg)
+      print(msg)
+      print_ids()
+      os.exit(ecodes.ERROR_NO_SUCH_DEBUG_ID)
    end
 
    if shouldPrint[id] then

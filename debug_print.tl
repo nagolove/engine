@@ -3,6 +3,8 @@
 -- Фильтр для отладочного вывода
 
 require 'common'
+local ecodes = require "errorcodes"
+local colorize = require 'ansicolors2'.ansicolors
 
 --[[ {{{ 
     Применение:
@@ -144,6 +146,14 @@ local function keypressed(key: string, key2: string)
     end
 end
 
+local function print_ids()
+    local msg = ""
+    for k, _ in pairs(ids) do
+        msg = msg .. k .. " "
+    end
+    print("Avaible ids are: ", colorize("%{yellow}" .. msg))
+end
+
 local function debug_print(id: string, ...: any)
 
     --print('shouldPrint', inspect(shouldPrint))
@@ -153,7 +163,9 @@ local function debug_print(id: string, ...: any)
     assert(type(id) == 'string')
     if not ids[id] then
         local msg = format("id = '%s' not found in filter", tostring(id))
-        error(msg)
+        print(msg)
+        print_ids()
+        os.exit(ecodes.ERROR_NO_SUCH_DEBUG_ID)
     end
 
     if shouldPrint[id] then
