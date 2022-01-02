@@ -32,13 +32,17 @@ local colorize = require 'ansicolors2'.ansicolors
 --]]
 
 --local inspect = require 'inspect'
-
 local format = string.format
 local type Filter = {number: {string}}
 local type PrintCallback = function(...:any)
 
 -- Как синхронизировать?
---local debug_channel = love.thread.getChannel("debug_print")
+-- Когда нужно считывать события из каналов?
+-- Когда записывать новые значения в каналы?
+local channel_filter = love.thread.getChannel("debug_filter")
+local channel_enabled = love.thread.getChannel("debug_enabled")
+local channel_ids = love.thread.getChannel("debug_ids")
+local channel_should_print = love.thread.getChannel("debug_should_print")
 
 -- Значения фильтров
 local filter: Filter = {}
@@ -92,19 +96,21 @@ local function checkNumbers(filt: Filter): boolean, string
     return true
 end
 
-local function parse_ids(setup: Filter)
-    ids = {}
+local function parse_ids(setup: Filter): {string: boolean}
+    local ret_ids = {}
     for _, row in pairs(setup) do
         for _, id in ipairs(row) do
             ids[id] = true
         end
     end
+    return ret_ids
 end
 
 local function set_filter(setup: Filter)
     assert(setup)
     filter = deepCopy(setup)
-    parse_ids(setup)
+    ids = parse_ids(setup)
+
     local ok, errmsg = checkNumbers(filter)
     if not ok then
         print("Error in filter setup: ", errmsg)
