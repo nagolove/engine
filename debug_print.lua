@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string
 
 
 
@@ -32,13 +32,17 @@ local colorize = require('ansicolors2').ansicolors
 
 
 
-
 local format = string.format
 local Filter = {}
 local PrintCallback = {}
 
 
 
+
+local channel_filter = love.thread.getChannel("debug_filter")
+local channel_enabled = love.thread.getChannel("debug_enabled")
+local channel_ids = love.thread.getChannel("debug_ids")
+local channel_should_print = love.thread.getChannel("debug_should_print")
 
 
 local filter = {}
@@ -93,18 +97,20 @@ local function checkNumbers(filt)
 end
 
 local function parse_ids(setup)
-   ids = {}
+   local ret_ids = {}
    for _, row in pairs(setup) do
       for _, id in ipairs(row) do
-         ids[id] = true
+         ret_ids[id] = true
       end
    end
+   return ret_ids
 end
 
 local function set_filter(setup)
    assert(setup)
    filter = deepCopy(setup)
-   parse_ids(setup)
+   ids = parse_ids(setup)
+
    local ok, errmsg = checkNumbers(filter)
    if not ok then
       print("Error in filter setup: ", errmsg)
@@ -165,6 +171,7 @@ local function debug_print(id, ...)
       local msg = format("id = '%s' not found in filter", tostring(id))
       print(msg)
       print_ids()
+      print(debug.traceback())
       os.exit(ecodes.ERROR_NO_SUCH_DEBUG_ID)
    end
 

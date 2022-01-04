@@ -1,3 +1,6 @@
+-- vim: set colorcolumn=85
+-- vim: fdm=marker
+
 local file = io.popen("uname -a")
 local is_windows = false
 local is_linux = false
@@ -17,6 +20,7 @@ print("is_windows", is_windows)
 
 -- Написать функцию-сборщик файлов движка.
 function getAutomatoFiles()
+    -- {{{
     local files = {
         "asm.tl",           -- движок ассемблера для клеток
         "cell-actions.tl",  -- обработка команд клетки
@@ -39,16 +43,16 @@ function getAutomatoFiles()
         end
     end
     return files
+    -- }}}
 end
 
 print("is_linux", is_linux)
 
 local files = nil
 if is_windows then
-    files = getAutomatoFiles()
+    --files = getAutomatoFiles()
 end
-
-print("files", files)
+--print("files", files)
 
 return {
     --skip_compat53 = true,
@@ -57,31 +61,13 @@ return {
     --source_dir = "src",
     --build_dir = "app",
     include_dir = {
-        --"assets",
         "lib",
         "src",
         "include",
-        --"scenes/automato/",
-        --"",
 
-        --"scenes/nback3/",
-        --"scenes/button_test/",
-        --"scenes/nback2/libs/",
-        --"scenes/bezier-shader/",
-        --"scenes/fractaltree/",
-        --"scenes/hexfield/",
-        --"scenes/imgui-bindings/",
-        --"scenes/lsystem/",
-        --"scenes/t80u/",
         "scenes/t80/",
-        --"scenes/diamond_square/",
-        --"scenes/slog-example/",
-        --"scenes/timers_animations_tl/",
-        --"scenes/wavegrid/",
     },
     include = {
-        --"scenes/fractaltree/*.tl",
-        --"scenes/automato/*.tl",
         "scenes/empty/*.tl",
         "scenes/empty_mt/*.tl",
         "scenes/mt_coro/*.tl",
@@ -90,36 +76,10 @@ return {
         "src/*.tl",
         "*.tl",
 
-        --"scenes/bezier-shader/*.tl",
-        --"scenes/button_test/*.tl",
-        --"scenes/fractaltree/*.tl",
-        --"scenes/lsystem/*.tl",
-        --"scenes/nback3/*.tl",
-        --"scenes/t80u/*.tl",
-        
         "scenes/t80/*.tl",
-
-        --"scenes/diamond_square/*.tl",
-        --"scenes/timers_animations_tl/*.tl",
-        --"scenes/wavegrid/*.tl",
-        --"scenes/hst_reader/*.tl",
-        --"scenes/imgui-bindings/*.tl",
-        --"scenes/hst_reader/*.tl",
-        --"scenes/hexfield/*.tl",
-        --"scenes/slog-example/*.tl",
-        --"scenes/code_shader/*.tl",
-        --"../../*.tl",
+        'scenes/debug_print_mt/*.tl',
     },
     --files = files,
     exclude = {
-        --"*tabular.tl",
-        --"scenes/automato/simulator.tl",
-        --"scenes/automato/cell-actions.tl",
-        --"scenes/automato/simulator-thread.tl",
-        --"tools.tl",
-        --"scenes/automato/*.tl",
-        --"scenes/nback2/*.tl",
-        --"main.tl",
-        --"crash*.tl",
     }
 }

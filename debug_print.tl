@@ -100,7 +100,7 @@ local function parse_ids(setup: Filter): {string: boolean}
     local ret_ids = {}
     for _, row in pairs(setup) do
         for _, id in ipairs(row) do
-            ids[id] = true
+            ret_ids[id] = true
         end
     end
     return ret_ids
@@ -171,6 +171,7 @@ local function debug_print(id: string, ...: any)
         local msg = format("id = '%s' not found in filter", tostring(id))
         print(msg)
         print_ids()
+        print(debug.traceback())
         os.exit(ecodes.ERROR_NO_SUCH_DEBUG_ID)
     end
 

@@ -43,6 +43,10 @@ local pipeline = Pipeline.new()
 local dprint = require('debug_print')
 local debug_print = dprint.debug_print
 
+dprint.set_filter({
+   [1] = { 'graphics' },
+})
+
 function threaderror(thread, errorstr)
    print('threaderror')
    local fmt = "Something wrong in thread %s with %s"
