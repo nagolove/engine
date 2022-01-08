@@ -111,6 +111,9 @@ local function set_filter(setup: Filter)
     filter = deepCopy(setup)
     ids = parse_ids(setup)
 
+    channel_filter:push(setup)
+    channel_ids:push(ids)
+
     local ok, errmsg = checkNumbers(filter)
     if not ok then
         print("Error in filter setup: ", errmsg)
@@ -180,7 +183,31 @@ local function debug_print(id: string, ...: any)
     end
 end
 
+local function render(x0: number, y0: number)
+    local s = ""
+    for k, Ids in pairs(filter) do
+        local t = ""
+        local is_enabled = enabled[k]
+        if is_enabled then
+            s = "*"
+        else
+            s = "-"
+        end
+        for _, id in ipairs(Ids) do
+            t = t .. " " .. id
+        end
+    end
+
+    print('render', s)
+    assert(x0)
+    assert(y0)
+
+    local width = 300
+    love.graphics.printf(s, x0, y0, width)
+end
+
 return {
+    render = render,
     debug_print = debug_print,
     set_filter = set_filter,
     set_callback = set_callback,
