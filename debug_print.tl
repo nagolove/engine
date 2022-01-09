@@ -5,6 +5,8 @@
 require 'common'
 local ecodes = require "errorcodes"
 local colorize = require 'ansicolors2'.ansicolors
+local sload = serpent.load
+local serpent = require "serpent"
 
 --[[ {{{ 
     Применение:
@@ -45,9 +47,10 @@ local channel_ids = love.thread.getChannel("debug_ids")
 local channel_should_print = love.thread.getChannel("debug_should_print")
 
 -- Значения фильтров
-local filter: Filter = {}
+--local filter: Filter = {}
 
 -- Какие фильтры включены по клавишам
+--[[
 local enabled: {number: boolean} = {
         [0] = false, 
         [1] = false, 
@@ -60,12 +63,13 @@ local enabled: {number: boolean} = {
         [8] = false,
         [9] = false,
 }
+--]]
 
 -- Какие фильтры включены по идентификаторам
-local shouldPrint: {string: boolean} = {}
+--local shouldPrint: {string: boolean} = {}
 
 -- Карта существующих идентификаторов?
-local ids: {string: boolean} = {}
+--local ids: {string: boolean} = {}
 
 -- Как тестировать отдельные функции?
 local function checkNum(n: number): boolean
@@ -108,16 +112,20 @@ end
 
 local function set_filter(setup: Filter)
     assert(setup)
-    filter = deepCopy(setup)
-    ids = parse_ids(setup)
+    --filter = deepCopy(setup)
+    local filter = serpent.dump(setup)
+    local ids = serpent.dump(parse_ids(setup))
 
-    channel_filter:push(setup)
-    channel_ids:push(ids)
+    --channel_filter:push(setup)
+    --channel_ids:push(ids)
 
-    local ok, errmsg = checkNumbers(filter)
+    local ok, errmsg = checkNumbers(setup)
     if not ok then
-        print("Error in filter setup: ", errmsg)
+        error("Error in filter setup: " .. errmsg)
     end
+
+    channel_filter:push(filter)
+    channel_ids:push(ids)
 end
 
 local printCallback = function(...: any)
@@ -138,6 +146,40 @@ local function keypressed(key: string, key2: string)
     ]]
 
     local num = tonumber(key)
+
+    local enabled = channel_enabled:pop() as {number: boolean}
+    if not enabled then
+        enabled = {
+            [0] = false, 
+            [1] = false, 
+            [2] = false, 
+            [3] = false, 
+            [4] = false, 
+            [5] = false,
+            [6] = false,
+            [7] = false,
+            [8] = false,
+            [9] = false,
+        }
+        --error("Could not pop enabled")
+    end
+
+    local filter: Filter
+
+    filter = channel_filter:pop() as Filter
+    if not filter then
+        filter = {
+        }
+    end
+
+    local shouldPrint: {string: boolean}
+
+    shouldPrint = serpent.load(channel_should_print:pop() as string) as {string: boolean}
+    if not shouldPrint then
+        -- XXX как это будет работать?
+        shouldPrint = {}
+    end
+
     --print('num', num)
     if checkNum(num) then
         enabled[num] = not enabled[num]
@@ -153,10 +195,17 @@ local function keypressed(key: string, key2: string)
         end
         --debugChannel:push(shouldPrint)
     end
+
+    channel_enabled:push(enabled)
+    channel_should_print:push(serpent.dump(shouldPrint))
 end
 
 local function print_ids()
     local msg = ""
+
+    local ids: {string: boolean}
+    ids = serpent.load(channel_ids:peek() as string) as {string: boolean}
+
     for k, _ in pairs(ids) do
         msg = msg .. k .. " "
     end
@@ -170,6 +219,14 @@ local function debug_print(id: string, ...: any)
     --print('ids[id]', ids[id])
 
     assert(type(id) == 'string')
+
+    local ids: {string: boolean}
+    ids = serpent.load(channel_ids:peek() as string) as {string: boolean}
+
+    local shouldPrint: {string: boolean}
+    --shouldPrint = sload(channel_should_print:peek() as string) as {string: boolean}
+    shouldPrint = sload(channel_should_print:peek())
+
     if not ids[id] then
         local msg = format("id = '%s' not found in filter", tostring(id))
         print(msg)
@@ -185,7 +242,13 @@ end
 
 local function render(x0: number, y0: number)
     local s = ""
-    for k, Ids in pairs(filter) do
+
+    local filter: Filter
+    filter = sload(channel_filter:peek())
+
+    local enabled: {number: boolean}
+
+    for k, ids in pairs(filter) do
         local t = ""
         local is_enabled = enabled[k]
         if is_enabled then
@@ -193,7 +256,7 @@ local function render(x0: number, y0: number)
         else
             s = "-"
         end
-        for _, id in ipairs(Ids) do
+        for _, id in ipairs(ids) do
             t = t .. " " .. id
         end
     end
