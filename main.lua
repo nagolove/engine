@@ -413,6 +413,7 @@ function love.run()
 
 
 
+
          dprint.render(0, 0)
 
          love.graphics.present()

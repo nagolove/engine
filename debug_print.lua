@@ -32,6 +32,8 @@ local colorize = require('ansicolors2').ansicolors
 
 
 
+
+
 local format = string.format
 local Filter = {}
 local PrintCallback = {}
@@ -39,10 +41,11 @@ local PrintCallback = {}
 
 
 
-local channel_filter = love.thread.getChannel("debug_filter")
-local channel_enabled = love.thread.getChannel("debug_enabled")
-local channel_ids = love.thread.getChannel("debug_ids")
-local channel_should_print = love.thread.getChannel("debug_should_print")
+
+
+
+
+
 
 
 local filter = {}
@@ -60,6 +63,7 @@ local enabled = {
    [8] = false,
    [9] = false,
 }
+
 
 
 local shouldPrint = {}
@@ -108,16 +112,22 @@ end
 
 local function set_filter(setup)
    assert(setup)
+
    filter = deepCopy(setup)
+
+
    ids = parse_ids(setup)
 
-   channel_filter:push(setup)
-   channel_ids:push(ids)
 
-   local ok, errmsg = checkNumbers(filter)
+
+
+   local ok, errmsg = checkNumbers(setup)
    if not ok then
-      print("Error in filter setup: ", errmsg)
+      error("Error in filter setup: " .. errmsg)
    end
+
+
+
 end
 
 local printCallback = function(...)
@@ -139,6 +149,41 @@ local function keypressed(key, key2)
 
    local num = tonumber(key)
 
+
+
+   if not enabled then
+      enabled = {
+         [0] = false,
+         [1] = false,
+         [2] = false,
+         [3] = false,
+         [4] = false,
+         [5] = false,
+         [6] = false,
+         [7] = false,
+         [8] = false,
+         [9] = false,
+      }
+
+   end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    if checkNum(num) then
       enabled[num] = not enabled[num]
       local isEnabled = enabled[num]
@@ -153,10 +198,17 @@ local function keypressed(key, key2)
       end
 
    end
+
+
+
 end
 
 local function print_ids()
    local msg = ""
+
+
+
+
    for k, _ in pairs(ids) do
       msg = msg .. k .. " "
    end
@@ -170,6 +222,14 @@ local function debug_print(id, ...)
 
 
    assert(type(id) == 'string')
+
+
+
+
+
+
+
+
    if not ids[id] then
       local msg = format("id = '%s' not found in filter", tostring(id))
       print(msg)
@@ -185,7 +245,13 @@ end
 
 local function render(x0, y0)
    local s = ""
-   for k, Ids in pairs(filter) do
+
+
+
+
+
+
+   for k, ids_arr in pairs(filter) do
       local t = ""
       local is_enabled = enabled[k]
       if is_enabled then
@@ -193,13 +259,15 @@ local function render(x0, y0)
       else
          s = "-"
       end
-      for _, id in ipairs(Ids) do
+      for _, id in ipairs(ids_arr) do
          t = t .. " " .. id
       end
    end
+
    print('render', s)
    assert(x0)
    assert(y0)
+
    local width = 300
    love.graphics.printf(s, x0, y0, width)
 end

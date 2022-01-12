@@ -5,8 +5,8 @@
 require 'common'
 local ecodes = require "errorcodes"
 local colorize = require 'ansicolors2'.ansicolors
-local sload = serpent.load
-local serpent = require "serpent"
+--local sload = serpent.load
+--local serpent = require "serpent"
 
 --[[ {{{ 
     Применение:
@@ -41,16 +41,16 @@ local type PrintCallback = function(...:any)
 -- Как синхронизировать?
 -- Когда нужно считывать события из каналов?
 -- Когда записывать новые значения в каналы?
+
 local channel_filter = love.thread.getChannel("debug_filter")
-local channel_enabled = love.thread.getChannel("debug_enabled")
-local channel_ids = love.thread.getChannel("debug_ids")
+--local channel_enabled = love.thread.getChannel("debug_enabled")
+--local channel_ids = love.thread.getChannel("debug_ids")
 local channel_should_print = love.thread.getChannel("debug_should_print")
 
 -- Значения фильтров
---local filter: Filter = {}
+local filter: Filter = {}
 
 -- Какие фильтры включены по клавишам
---[[
 local enabled: {number: boolean} = {
         [0] = false, 
         [1] = false, 
@@ -66,10 +66,10 @@ local enabled: {number: boolean} = {
 --]]
 
 -- Какие фильтры включены по идентификаторам
---local shouldPrint: {string: boolean} = {}
+local shouldPrint: {string: boolean} = {}
 
 -- Карта существующих идентификаторов?
---local ids: {string: boolean} = {}
+local ids: {string: boolean} = {}
 
 -- Как тестировать отдельные функции?
 local function checkNum(n: number): boolean
@@ -112,9 +112,11 @@ end
 
 local function set_filter(setup: Filter)
     assert(setup)
-    --filter = deepCopy(setup)
-    local filter = serpent.dump(setup)
-    local ids = serpent.dump(parse_ids(setup))
+
+    filter = deepCopy(setup)
+    --filter = serpent.dump(setup)
+    --ids = serpent.dump(parse_ids(setup))
+    ids = parse_ids(setup)
 
     --channel_filter:push(setup)
     --channel_ids:push(ids)
@@ -124,8 +126,8 @@ local function set_filter(setup: Filter)
         error("Error in filter setup: " .. errmsg)
     end
 
-    channel_filter:push(filter)
-    channel_ids:push(ids)
+    --channel_filter:push(filter)
+    --channel_ids:push(ids)
 end
 
 local printCallback = function(...: any)
@@ -147,64 +149,65 @@ local function keypressed(key: string, key2: string)
 
     local num = tonumber(key)
 
-    local enabled = channel_enabled:pop() as {number: boolean}
-    if not enabled then
-        enabled = {
-            [0] = false, 
-            [1] = false, 
-            [2] = false, 
-            [3] = false, 
-            [4] = false, 
-            [5] = false,
-            [6] = false,
-            [7] = false,
-            [8] = false,
-            [9] = false,
-        }
-        --error("Could not pop enabled")
-    end
+    --local enabled = channel_enabled:pop() as {number: boolean}
 
-    local filter: Filter
+    --if not enabled then
+        --enabled = {
+            --[0] = false, 
+            --[1] = false, 
+            --[2] = false, 
+            --[3] = false, 
+            --[4] = false, 
+            --[5] = false,
+            --[6] = false,
+            --[7] = false,
+            --[8] = false,
+            --[9] = false,
+        --}
+        ----error("Could not pop enabled")
+    --end
 
-    filter = channel_filter:pop() as Filter
-    if not filter then
-        filter = {
-        }
-    end
+    --local filter: Filter
 
-    local shouldPrint: {string: boolean}
+    --filter = channel_filter:pop() as Filter
+    --if not filter then
+        --filter = {
+        --}
+    --end
 
-    shouldPrint = serpent.load(channel_should_print:pop() as string) as {string: boolean}
-    if not shouldPrint then
-        -- XXX как это будет работать?
-        shouldPrint = {}
-    end
+    --local shouldPrint: {string: boolean}
+
+    --shouldPrint = serpent.load(channel_should_print:pop() as string) as {string: boolean}
+    --if not shouldPrint then
+        ---- XXX как это будет работать?
+        --shouldPrint = {}
+    --end
 
     --print('num', num)
     if checkNum(num) then
         enabled[num] = not enabled[num]
-        local isEnabled = enabled[num]
+        --local isEnabled = enabled[num]
         --print('filter', inspect(filter))
         --print('filter[num]', inspect(filter[num]))
         local ids_list = filter[num]
         if ids_list then
             for _, v in ipairs(ids_list) do
-                shouldPrint[v] = isEnabled
+                shouldPrint[v] = enabled[num]
                 --print("shouldPrint[v]", shouldPrint[v])
             end
         end
         --debugChannel:push(shouldPrint)
     end
 
-    channel_enabled:push(enabled)
-    channel_should_print:push(serpent.dump(shouldPrint))
+    --channel_enabled:push(enabled)
+    --channel_should_print:push(serpent.dump(shouldPrint))
 end
 
 local function print_ids()
     local msg = ""
 
-    local ids: {string: boolean}
-    ids = serpent.load(channel_ids:peek() as string) as {string: boolean}
+    --local ids: {string: boolean}
+    --ids = serpent.load(channel_ids:peek() as string) as {string: boolean}
 
     for k, _ in pairs(ids) do
         msg = msg .. k .. " "
@@ -220,12 +223,12 @@ local function debug_print(id: string, ...: any)
 
     assert(type(id) == 'string')
 
-    local ids: {string: boolean}
-    ids = serpent.load(channel_ids:peek() as string) as {string: boolean}
+    --local ids: {string: boolean}
+    --ids = serpent.load(channel_ids:peek() as string) as {string: boolean}
 
-    local shouldPrint: {string: boolean}
-    --shouldPrint = sload(channel_should_print:peek() as string) as {string: boolean}
-    shouldPrint = sload(channel_should_print:peek())
+    --local shouldPrint: {string: boolean}
+    ----shouldPrint = sload(channel_should_print:peek() as string) as {string: boolean}
+    --shouldPrint = sload(channel_should_print:peek())
 
     if not ids[id] then
         local msg = format("id = '%s' not found in filter", tostring(id))
@@ -243,20 +246,19 @@ end
 local function render(x0: number, y0: number)
     local s = ""
 
-    local filter: Filter
-    filter = sload(channel_filter:peek())
+    --local filter: Filter
+    --filter = sload(channel_filter:peek())
 
-    local enabled: {number: boolean}
+    --local enabled: {number: boolean}
 
-    for k, ids in pairs(filter) do
+    for k, ids_arr in pairs(filter) do
         local t = ""
-        local is_enabled = enabled[k]
-        if is_enabled then
+        if enabled[k] then
             s = "*"
         else
             s = "-"
         end
-        for _, id in ipairs(ids) do
+        for _, id in ipairs(ids_arr) do
             t = t .. " " .. id
         end
     end
