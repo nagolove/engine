@@ -240,6 +240,7 @@ local function debug_print(id: string, ...: any)
     end
 end
 
+-- Не работает как положено
 local function render(x0: number, y0: number)
     local s = ""
 
