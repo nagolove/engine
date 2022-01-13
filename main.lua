@@ -166,9 +166,9 @@ function love.load(arg)
       imgui.Init()
       imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
    end
-   dprint.set_filter({
-      [1] = { "graphics" },
-   })
+
+
+
    printGraphicsInfo()
    bindKeys()
 
@@ -414,7 +414,7 @@ function love.run()
 
 
 
-         dprint.render(0, 0)
+
 
          love.graphics.present()
       end

@@ -6,6 +6,7 @@ require('common')
 local ecodes = require("errorcodes")
 local colorize = require('ansicolors2').ansicolors
 
+local serpent = require("serpent")
 
 
 
@@ -32,8 +33,7 @@ local colorize = require('ansicolors2').ansicolors
 
 
 
-
-
+local inspect = require('inspect')
 local format = string.format
 local Filter = {}
 local PrintCallback = {}
@@ -42,10 +42,10 @@ local PrintCallback = {}
 
 
 
+local channel_filter = love.thread.getChannel("debug_filter")
 
 
-
-
+local channel_should_print = love.thread.getChannel("debug_should_print")
 
 
 local filter = {}
@@ -114,9 +114,9 @@ local function set_filter(setup)
    assert(setup)
 
    filter = deepCopy(setup)
-
-
    ids = parse_ids(setup)
+
+
 
 
 
@@ -127,6 +127,11 @@ local function set_filter(setup)
    end
 
 
+
+
+   local filter_ser = serpent.dump(filter)
+   print('filter_ser', inspect(filter_ser))
+   channel_filter:push(filter_ser)
 
 end
 
@@ -151,48 +156,60 @@ local function keypressed(key, key2)
 
 
 
-   if not enabled then
-      enabled = {
-         [0] = false,
-         [1] = false,
-         [2] = false,
-         [3] = false,
-         [4] = false,
-         [5] = false,
-         [6] = false,
-         [7] = false,
-         [8] = false,
-         [9] = false,
-      }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   local filter_ser = channel_filter:peek()
+   if not filter_ser then
+      error('channel_filter:peek() is not accessible')
+   else
+      local ok
+      ok, filter = serpent.load(filter_ser), Filter
+      if not ok then
+         error('Could not restore filter_ser:' .. inspect(filter_ser))
+      end
    end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
    if checkNum(num) then
       enabled[num] = not enabled[num]
-      local isEnabled = enabled[num]
+
 
 
       local ids_list = filter[num]
       if ids_list then
          for _, v in ipairs(ids_list) do
-            shouldPrint[v] = isEnabled
+            shouldPrint[v] = enabled[num]
 
          end
       end
@@ -253,8 +270,7 @@ local function render(x0, y0)
 
    for k, ids_arr in pairs(filter) do
       local t = ""
-      local is_enabled = enabled[k]
-      if is_enabled then
+      if enabled[k] then
          s = "*"
       else
          s = "-"
