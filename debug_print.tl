@@ -6,7 +6,7 @@ require 'common'
 local ecodes = require "errorcodes"
 local colorize = require 'ansicolors2'.ansicolors
 --local sload = serpent.load
---local serpent = require "serpent"
+local serpent = require "serpent"
 
 --[[ {{{ 
     Применение:
@@ -33,7 +33,7 @@ local colorize = require 'ansicolors2'.ansicolors
     }}}
 --]]
 
---local inspect = require 'inspect'
+local inspect = require 'inspect'
 local format = string.format
 local type Filter = {number: {string}}
 local type PrintCallback = function(...:any)
@@ -114,11 +114,11 @@ local function set_filter(setup: Filter)
     assert(setup)
 
     filter = deepCopy(setup)
-    --filter = serpent.dump(setup)
-    --ids = serpent.dump(parse_ids(setup))
     ids = parse_ids(setup)
 
-    --channel_filter:push(setup)
+    --filter = serpent.dump(setup)
+    --ids = serpent.dump(parse_ids(setup))
+
     --channel_ids:push(ids)
 
     local ok, errmsg = checkNumbers(setup)
@@ -128,6 +128,11 @@ local function set_filter(setup: Filter)
 
     --channel_filter:push(filter)
     --channel_ids:push(ids)
+
+    local filter_ser = serpent.dump(filter)
+    print('filter_ser', inspect(filter_ser))
+    channel_filter:push(filter_ser)
+
 end
 
 local printCallback = function(...: any)
@@ -183,7 +188,19 @@ local function keypressed(key: string, key2: string)
         --shouldPrint = {}
     --end
 
+    local filter_ser = channel_filter:peek() as string
+    if not filter_ser then
+        error('channel_filter:peek() is not accessible')
+    else
+        local ok: boolean
+        ok, filter = serpent.load(filter_ser) as boolean, Filter
+        if not ok then
+            error('Could not restore filter_ser:' .. inspect(filter_ser))
+        end
+    end
+
     --print('num', num)
+
     if checkNum(num) then
         enabled[num] = not enabled[num]
         --local isEnabled = enabled[num]

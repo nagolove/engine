@@ -136,12 +136,14 @@ function Pipeline:ready(): boolean
 
     if is_ready then
         if type(is_ready) ~= 'string' then
-            debug_print("graphics", "Type error in is_ready flag")
+            --debug_print("graphics", "Type error in is_ready flag")
+            print("graphics", "Type error in is_ready flag")
             os.exit(ecodes.ERROR_IS_READY_TYPE)
         end
         if is_ready ~= "ready" then
             local msg = tostring(is_ready) or ""
-            debug_print("graphics", "Bad message in draw_ready_channel: " .. msg)
+            --debug_print("graphics", "Bad message in draw_ready_channel: " .. msg)
+            print("graphics", "Bad message in draw_ready_channel: " .. msg)
             os.exit(ecodes.ERROR_NO_READY)
         end
         draw_ready_channel:pop()
@@ -189,12 +191,13 @@ end
 Откуда они беруться?
 --]]
 function Pipeline:render()
+    local custom_print = print
 
     if self.section_state ~= 'closed' then
         local color_block = '%{red}'
         local msg = 'Section not closed, but "%s"'
-        debug_print("graphics", colorize(color_block .. format(msg, self.section_state)))
-        debug_print("graphics", colorize('%{magenta}' .. debug.traceback()))
+        custom_print("graphics", colorize(color_block .. format(msg, self.section_state)))
+        custom_print("graphics", colorize('%{magenta}' .. debug.traceback()))
         os.exit(ecodes.ERROR_NO_SECTION)
     end
 
@@ -210,11 +213,11 @@ function Pipeline:render()
     while cmd_name do
 
         if type(cmd_name) ~= 'string' then
-            debug_print("graphics", colorize('%{yellow}' .. debug.traceback()))
-            debug_print("graphics", colorize('%{red}Pipeline:render()'))
-            debug_print("graphics", colorize('%{red}type(cmd_name) = ' .. type(cmd_name)))
-            debug_print("graphics", colorize('%{green}cmd_name = ' .. cmd_name))
-            debug_print("graphics", colorize('%{magenta}' .. debug.traceback()))
+            custom_print("graphics", colorize('%{yellow}' .. debug.traceback()))
+            custom_print("graphics", colorize('%{red}Pipeline:render()'))
+            custom_print("graphics", colorize('%{red}type(cmd_name) = ' .. type(cmd_name)))
+            custom_print("graphics", colorize('%{green}cmd_name = ' .. cmd_name))
+            custom_print("graphics", colorize('%{magenta}' .. debug.traceback()))
             os.exit(ecodes.ERROR_NO_COMMAND)
         end
 
@@ -229,21 +232,21 @@ function Pipeline:render()
 
             local ok, errmsg: boolean, string = resume(coro) as (boolean, string)
             if not ok then
-                debug_print("graphics", colorize('%{yellow}' .. 'cmd_name: ' .. cmd_name))
-                debug_print("graphics", colorize('%{cyan}' .. debug.traceback()))
-                debug_print("graphics", colorize('%{red}' .. errmsg))
+                custom_print("graphics", colorize('%{yellow}' .. 'cmd_name: ' .. cmd_name))
+                custom_print("graphics", colorize('%{cyan}' .. debug.traceback()))
+                custom_print("graphics", colorize('%{red}' .. errmsg))
                 os.exit(ecodes.ERROR_DIED_CORO)
             end
         else
             local func_name = cmd_name or "nil"
             local msg = 'Render function "%s" not found in table.'
-            debug_print("graphics", colorize('%{red}' .. format(msg, func_name)))
+            custom_print("graphics", colorize('%{red}' .. format(msg, func_name)))
 
             --if DEBUG_RENDER then
             self:printAvaibleFunctions()
             --end
         
-            debug_print("graphics", colorize('%{cyan}' .. debug.traceback()))
+            custom_print("graphics", colorize('%{cyan}' .. debug.traceback()))
             os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
         end
 
