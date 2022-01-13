@@ -3,6 +3,7 @@
 -- Фильтр для отладочного вывода
 
 require 'common'
+require "love_inc".require_pls_nographic()
 local ecodes = require "errorcodes"
 local colorize = require 'ansicolors2'.ansicolors
 --local sload = serpent.load
@@ -260,7 +261,7 @@ local function debug_print(id: string, ...: any)
     end
 end
 
-local function render(x0: number, y0: number)
+local function build_str(): string
     local s = ""
 
     --local filter: Filter
@@ -280,12 +281,36 @@ local function render(x0: number, y0: number)
         end
     end
 
+    return s
+end
+
+local font_size = 32
+
+local font: love.graphics.Font
+local ok, errmsg = pcall(function()
+    font = love.graphics.newFont(font_size)
+end) as boolean, string
+
+if not ok then 
+    print("Could not create new default font:", errmsg) 
+end
+
+local function render(x0: number, y0: number)
+    local s = build_str()
+
     print('render', s)
+
     assert(x0)
     assert(y0)
 
     local width = 300
+    local old_font = love.graphics.getFont()
+    love.graphics.setFont(font)
     love.graphics.printf(s, x0, y0, width)
+    local font_height = love.graphics.getFont():getHeight()
+    y0 = y0 + font_height
+    love.graphics.printf("hello", x0, y0, width)
+    love.graphics.setFont(old_font)
 end
 
 return {
