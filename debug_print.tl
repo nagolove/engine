@@ -38,6 +38,7 @@ local inspect = require 'inspect'
 local format = string.format
 local type Filter = {number: {string}}
 local type PrintCallback = function(...:any)
+local type Loader = function(): Filter
 
 -- Как синхронизировать?
 -- Когда нужно считывать события из каналов?
@@ -193,10 +194,20 @@ local function keypressed(key: string, key2: string)
     if not filter_ser then
         error('channel_filter:peek() is not accessible')
     else
-        local ok: boolean
-        ok, filter = serpent.load(filter_ser) as boolean, Filter
+
+        --local ok: boolean
+        --ok, filter = serpent.load(filter_ser) as boolean, Filter
+        --if not ok then
+            --error('Could not restore filter_ser:' .. inspect(filter_ser))
+        --end
+
+        local ok, emsg = pcall(function()
+            filter = (load(filter_ser) as Loader)()
+        end) as (boolean, string)
+
         if not ok then
-            error('Could not restore filter_ser:' .. inspect(filter_ser))
+            local msg = "Could not restore filter_ser:" .. emsg
+            error(msg)
         end
     end
 
@@ -262,26 +273,40 @@ local function debug_print(id: string, ...: any)
 end
 
 local function build_str(): string
-    local s = ""
+    local s: {string} = {}
 
-    --local filter: Filter
-    --filter = sload(channel_filter:peek())
+    local shared_filter: Filter
+    local filter_ser = channel_filter:peek() as string
 
-    --local enabled: {number: boolean}
+    print("filter_ser", filter_ser)
 
-    for k, ids_arr in pairs(filter) do
-        local t = ""
-        if enabled[k] then
-            s = "*"
-        else
-            s = "-"
+    if filter_ser then
+        local chunk = load(filter_ser) as Loader
+
+        if not chunk then
+            error("Could not load(filter_ser)")
         end
-        for _, id in ipairs(ids_arr) do
-            t = t .. " " .. id
-        end
+
+        shared_filter = chunk()
     end
 
-    return s
+    print('filter', inspect(shared_filter))
+
+    for k, ids_arr in pairs(shared_filter) do
+        local state = "(" .. tostring(k)
+        if enabled[k] then
+            state = state .. "+"
+        else
+            state = state .. "-"
+        end
+        state = state .. "): "
+        for _, id in ipairs(ids_arr) do
+            state = state .. " " .. id
+        end
+        table.insert(s, state)
+    end
+
+    return table.concat(s)
 end
 
 local font_size = 32
@@ -307,9 +332,11 @@ local function render(x0: number, y0: number)
     local old_font = love.graphics.getFont()
     love.graphics.setFont(font)
     love.graphics.printf(s, x0, y0, width)
-    local font_height = love.graphics.getFont():getHeight()
-    y0 = y0 + font_height
-    love.graphics.printf("hello", x0, y0, width)
+
+    --local font_height = love.graphics.getFont():getHeight()
+    --y0 = y0 + font_height
+    --love.graphics.printf("hello", x0, y0, width)
+
     love.graphics.setFont(old_font)
 end
 
