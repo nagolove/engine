@@ -166,9 +166,9 @@ function love.load(arg: {string})
         imgui.Init()
         imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
     end
-    dprint.set_filter {
-        [1] = { "graphics" },
-    }
+    --dprint.set_filter {
+        --[1] = { "graphics" },
+    --}
     printGraphicsInfo()
     bindKeys()
 
@@ -414,7 +414,7 @@ function love.run(): function(): string|number
             --love.graphics.setColor{0, 0, 1}
             --love.graphics.rectangle("fill", 500, 500, 200, 200)
 
-            dprint.render(0, 0)
+            --dprint.render(0, 0)
 
 			love.graphics.present()
 		end
