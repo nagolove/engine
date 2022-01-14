@@ -226,6 +226,10 @@ function Pipeline:render()
 
 
       local coro = self.renderFunctions[cmd_name]
+
+
+      print('graphics', 'cmd_name', cmd_name)
+
       if coro then
 
 
@@ -253,6 +257,8 @@ function Pipeline:render()
 
       cmd_name = graphic_command_channel:pop()
    end
+
+   print('----------------------------------------------------')
 
 
 end
