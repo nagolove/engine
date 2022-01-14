@@ -226,6 +226,10 @@ function Pipeline:render()
         -- задержка.
 
         local coro = self.renderFunctions[cmd_name]
+
+        --debug_print('graphics', 'cmd_name', cmd_name)
+        print('graphics', 'cmd_name', cmd_name)
+
         if coro then
 
             --timestamp('cmd_name: ' .. cmd_name)
@@ -253,6 +257,8 @@ function Pipeline:render()
         --cmd_name = graphic_command_channel:demand() as string
         cmd_name = graphic_command_channel:pop() as string
     end
+
+    print('----------------------------------------------------')
 
     --timestamp('render end')
 end
