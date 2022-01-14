@@ -34,36 +34,27 @@ local serpent = require "serpent"
     }}}
 --]]
 
-local inspect = require 'inspect'
+--local inspect = require 'inspect'
 local format = string.format
-local type Filter = {number: {string}}
 local type PrintCallback = function(...:any)
-local type Loader = function(): Filter
-
--- Как синхронизировать?
--- Когда нужно считывать события из каналов?
--- Когда записывать новые значения в каналы?
+local type Filter = {number: {string}}
+local type LoaderFilter = function(): Filter
+local type Enabled = {number: boolean}
+local type LoaderEnabled = function(): Enabled
 
 local channel_filter = love.thread.getChannel("debug_filter")
---local channel_enabled = love.thread.getChannel("debug_enabled")
+local channel_enabled = love.thread.getChannel("debug_enabled")
+
 --local channel_ids = love.thread.getChannel("debug_ids")
-local channel_should_print = love.thread.getChannel("debug_should_print")
+--local channel_should_print = love.thread.getChannel("debug_should_print")
 
 -- Значения фильтров
 local filter: Filter = {}
 
 -- Какие фильтры включены по клавишам
-local enabled: {number: boolean} = {
-        [0] = false, 
-        [1] = false, 
-        [2] = false, 
-        [3] = false, 
-        [4] = false, 
-        [5] = false,
-        [6] = false,
-        [7] = false,
-        [8] = false,
-        [9] = false,
+local enabled: Enabled = {
+        [0] = false, [1] = false, [2] = false, [3] = false, [4] = false, 
+        [5] = false, [6] = false, [7] = false, [8] = false, [9] = false,
 }
 --]]
 
@@ -112,6 +103,22 @@ local function parse_ids(setup: Filter): {string: boolean}
     return ret_ids
 end
 
+local function push_shared_enabled(state: Enabled)
+    local enabled_ser = serpent.dump(state)
+
+    --print(colorize('%{cyan}enabled_ser:' .. inspect(enabled_ser)))
+    --print(colorize("%{cyan}" .. debug.traceback()))
+
+    channel_enabled:clear()
+    channel_enabled:push(enabled_ser)
+end
+
+local function push_shared_filter(state: Filter)
+    local filter_ser = serpent.dump(state)
+    channel_filter:clear()
+    channel_filter:push(filter_ser)
+end
+
 local function set_filter(setup: Filter)
     assert(setup)
 
@@ -121,19 +128,33 @@ local function set_filter(setup: Filter)
     end
 
     filter = deepCopy(setup)
-    --ids = parse_ids(setup)
+    push_shared_filter(filter)
+    push_shared_enabled(enabled)
 
-    --print(colorize('%{green}' .. 'set_filter: ' .. inspect(setup)))
+end
 
-    local filter_ser = serpent.dump(filter)
-    print('filter_ser', inspect(filter_ser))
+local function peek_shared_enabled(): Enabled
+    local shared_enabled: Enabled
+    local enabled_ser = channel_enabled:peek() as string
 
-    -- XXX Не стоит-ли заменить на цикл while?
-    if channel_filter:getCount() > 0 then
-        channel_filter:pop()
+    --print('enabled_ser', inspect(enabled_ser))
+
+    if enabled_ser then
+        local chunk = load(enabled_ser) as LoaderEnabled
+
+        if not chunk then
+            error("Could not load(enabled_ser)")
+        end
+
+        shared_enabled = chunk()
     end
 
-    channel_filter:push(filter_ser)
+    --print("filter_ser", filter_ser)
+    --print(colorize("%{red}filter_ser:" .. inspect(filter_ser)))
+    --print(colorize("%{red}shared_filter:" .. inspect(shared_filter)))
+    --print(colorize("%{red}getCount" .. channel_filter:getCount()))
+
+    return shared_enabled
 end
 
 local function peek_shared_filter(): Filter
@@ -141,7 +162,7 @@ local function peek_shared_filter(): Filter
     local filter_ser = channel_filter:peek() as string
 
     if filter_ser then
-        local chunk = load(filter_ser) as Loader
+        local chunk = load(filter_ser) as LoaderFilter
 
         if not chunk then
             error("Could not load(filter_ser)")
@@ -174,12 +195,6 @@ local function keypressed(key: string, key2: string)
 
     local shared_filter = peek_shared_filter()
 
-    --if shared_filter then
-        --filter = shared_filter
-    --else
-        --print("no shared filter")
-    --end
-
     if checkNum(num) then
         enabled[num] = not enabled[num]
         local ids_list = shared_filter[num]
@@ -190,16 +205,11 @@ local function keypressed(key: string, key2: string)
         end
     end
 
-    print("shouldPrint", inspect(shouldPrint))
-
+    push_shared_enabled(enabled)
 end
 
 local function print_ids()
     local msg = ""
-
-    --local ids: {string: boolean}
-    --ids = serpent.load(channel_ids:peek() as string) as {string: boolean}
-
     for k, _ in pairs(ids) do
         msg = msg .. k .. " "
     end
@@ -212,9 +222,6 @@ local function debug_print(id: string, ...: any)
 
     local shared_filter = peek_shared_filter()
     ids = parse_ids(shared_filter)
-
-    --print('shared_filter', inspect(shared_filter))
-    --print('ids', inspect(ids))
 
     if not ids[id] then
         local msg = format("id = '%s' not found in filter", tostring(id))
@@ -230,19 +237,19 @@ local function debug_print(id: string, ...: any)
 end
 
 local function build_str(): string
-    local s: {string} = {}
-
     local shared_filter = peek_shared_filter()
-
-    --print('filter', inspect(shared_filter))
+    local shared_enabled = peek_shared_enabled() or enabled
+    local s: {string} = {}
 
     for k, ids_arr in pairs(shared_filter) do
         local state = "(" .. tostring(k)
-        if enabled[k] then
+
+        if shared_enabled[k] then
             state = state .. "+"
         else
             state = state .. "-"
         end
+
         state = state .. "): "
 
         local count = #ids_arr
@@ -271,8 +278,6 @@ end
 local function render(x0: number, y0: number)
     local s = build_str()
 
-    --print('render', s)
-
     assert(x0)
     assert(y0)
 
@@ -280,10 +285,6 @@ local function render(x0: number, y0: number)
     local old_font = love.graphics.getFont()
     love.graphics.setFont(font)
     love.graphics.printf(s, x0, y0, width)
-
-    --local font_height = love.graphics.getFont():getHeight()
-    --y0 = y0 + font_height
-    --love.graphics.printf("hello", x0, y0, width)
 
     love.graphics.setFont(old_font)
 end
