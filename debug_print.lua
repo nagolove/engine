@@ -34,36 +34,27 @@ local serpent = require("serpent")
 
 
 
-local inspect = require('inspect')
+
 local format = string.format
-local Filter = {}
 local PrintCallback = {}
-local Loader = {}
-
-
-
-
+local Filter = {}
+local LoaderFilter = {}
+local Enabled = {}
+local LoaderEnabled = {}
 
 local channel_filter = love.thread.getChannel("debug_filter")
+local channel_enabled = love.thread.getChannel("debug_enabled")
 
 
-local channel_should_print = love.thread.getChannel("debug_should_print")
+
 
 
 local filter = {}
 
 
 local enabled = {
-   [0] = false,
-   [1] = false,
-   [2] = false,
-   [3] = false,
-   [4] = false,
-   [5] = false,
-   [6] = false,
-   [7] = false,
-   [8] = false,
-   [9] = false,
+   [0] = false, [1] = false, [2] = false, [3] = false, [4] = false,
+   [5] = false, [6] = false, [7] = false, [8] = false, [9] = false,
 }
 
 
@@ -112,6 +103,22 @@ local function parse_ids(setup)
    return ret_ids
 end
 
+local function push_shared_enabled(state)
+   local enabled_ser = serpent.dump(state)
+
+
+
+
+   channel_enabled:clear()
+   channel_enabled:push(enabled_ser)
+end
+
+local function push_shared_filter(state)
+   local filter_ser = serpent.dump(state)
+   channel_filter:clear()
+   channel_filter:push(filter_ser)
+end
+
 local function set_filter(setup)
    assert(setup)
 
@@ -121,19 +128,33 @@ local function set_filter(setup)
    end
 
    filter = deepCopy(setup)
+   push_shared_filter(filter)
+   push_shared_enabled(enabled)
+
+end
+
+local function peek_shared_enabled()
+   local shared_enabled
+   local enabled_ser = channel_enabled:peek()
 
 
 
+   if enabled_ser then
+      local chunk = load(enabled_ser)
 
-   local filter_ser = serpent.dump(filter)
-   print('filter_ser', inspect(filter_ser))
+      if not chunk then
+         error("Could not load(enabled_ser)")
+      end
 
-
-   if channel_filter:getCount() > 0 then
-      channel_filter:pop()
+      shared_enabled = chunk()
    end
 
-   channel_filter:push(filter_ser)
+
+
+
+
+
+   return shared_enabled
 end
 
 local function peek_shared_filter()
@@ -174,12 +195,6 @@ local function keypressed(key, key2)
 
    local shared_filter = peek_shared_filter()
 
-
-
-
-
-
-
    if checkNum(num) then
       enabled[num] = not enabled[num]
       local ids_list = shared_filter[num]
@@ -190,16 +205,11 @@ local function keypressed(key, key2)
       end
    end
 
-   print("shouldPrint", inspect(shouldPrint))
-
+   push_shared_enabled(enabled)
 end
 
 local function print_ids()
    local msg = ""
-
-
-
-
    for k, _ in pairs(ids) do
       msg = msg .. k .. " "
    end
@@ -212,9 +222,6 @@ local function debug_print(id, ...)
 
    local shared_filter = peek_shared_filter()
    ids = parse_ids(shared_filter)
-
-
-
 
    if not ids[id] then
       local msg = format("id = '%s' not found in filter", tostring(id))
@@ -230,19 +237,19 @@ local function debug_print(id, ...)
 end
 
 local function build_str()
-   local s = {}
-
    local shared_filter = peek_shared_filter()
-
-
+   local shared_enabled = peek_shared_enabled() or enabled
+   local s = {}
 
    for k, ids_arr in pairs(shared_filter) do
       local state = "(" .. tostring(k)
-      if enabled[k] then
+
+      if shared_enabled[k] then
          state = state .. "+"
       else
          state = state .. "-"
       end
+
       state = state .. "): "
 
       local count = #ids_arr
@@ -271,8 +278,6 @@ end
 local function render(x0, y0)
    local s = build_str()
 
-
-
    assert(x0)
    assert(y0)
 
@@ -280,10 +285,6 @@ local function render(x0, y0)
    local old_font = love.graphics.getFont()
    love.graphics.setFont(font)
    love.graphics.printf(s, x0, y0, width)
-
-
-
-
 
    love.graphics.setFont(old_font)
 end
