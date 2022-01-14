@@ -81,22 +81,23 @@ local function bindKeys()
 end
 
 function printGraphicsInfo()
+   local custom_print = print
    local name, version, vendor, device = love.graphics.getRendererInfo()
-   debug_print("graphics", name, version, vendor, device)
+   custom_print("graphics", name, version, vendor, device)
    local stats = love.graphics.getStats()
-   debug_print("graphics", "stats", inspect(stats))
+   custom_print("graphics", "stats", inspect(stats))
    local features = love.graphics.getSupported()
-   debug_print("graphics", "features", inspect(features))
+   custom_print("graphics", "features", inspect(features))
    local limits = love.graphics.getSystemLimits()
-   debug_print("graphics", "limits", inspect(limits))
+   custom_print("graphics", "limits", inspect(limits))
    local texturetypes = love.graphics.getTextureTypes()
-   debug_print("graphics", "texturetypes", inspect(texturetypes))
+   custom_print("graphics", "texturetypes", inspect(texturetypes))
 
 
    local imageformats = love.graphics.getImageFormats()
-   debug_print("graphics", "imageformats", inspect(imageformats))
+   custom_print("graphics", "imageformats", inspect(imageformats))
    local canvasformats = love.graphics.getCanvasFormats()
-   debug_print("graphics", "canvasformats", inspect(canvasformats))
+   custom_print("graphics", "canvasformats", inspect(canvasformats))
 end
 
 

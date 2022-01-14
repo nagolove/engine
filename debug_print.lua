@@ -1,8 +1,9 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
 require('common')
+require("love_inc").require_pls_nographic()
 local ecodes = require("errorcodes")
 local colorize = require('ansicolors2').ansicolors
 
@@ -37,6 +38,7 @@ local inspect = require('inspect')
 local format = string.format
 local Filter = {}
 local PrintCallback = {}
+local Loader = {}
 
 
 
@@ -113,26 +115,47 @@ end
 local function set_filter(setup)
    assert(setup)
 
-   filter = deepCopy(setup)
-   ids = parse_ids(setup)
-
-
-
-
-
-
    local ok, errmsg = checkNumbers(setup)
    if not ok then
       error("Error in filter setup: " .. errmsg)
    end
+
+   filter = deepCopy(setup)
 
 
 
 
    local filter_ser = serpent.dump(filter)
    print('filter_ser', inspect(filter_ser))
-   channel_filter:push(filter_ser)
 
+
+   if channel_filter:getCount() > 0 then
+      channel_filter:pop()
+   end
+
+   channel_filter:push(filter_ser)
+end
+
+local function peek_shared_filter()
+   local shared_filter
+   local filter_ser = channel_filter:peek()
+
+   if filter_ser then
+      local chunk = load(filter_ser)
+
+      if not chunk then
+         error("Could not load(filter_ser)")
+      end
+
+      shared_filter = chunk()
+   end
+
+
+
+
+
+
+   return shared_filter
 end
 
 local printCallback = function(...)
@@ -145,78 +168,29 @@ local function set_callback(cb)
 end
 
 local function keypressed(key, key2)
-
    assert(key2 == nil, "Use only scancode. Second param always unused.")
-
-
-
-
 
    local num = tonumber(key)
 
+   local shared_filter = peek_shared_filter()
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   local filter_ser = channel_filter:peek()
-   if not filter_ser then
-      error('channel_filter:peek() is not accessible')
-   else
-      local ok
-      ok, filter = serpent.load(filter_ser), Filter
-      if not ok then
-         error('Could not restore filter_ser:' .. inspect(filter_ser))
-      end
-   end
 
 
 
    if checkNum(num) then
       enabled[num] = not enabled[num]
-
-
-
-      local ids_list = filter[num]
+      local ids_list = shared_filter[num]
       if ids_list then
          for _, v in ipairs(ids_list) do
             shouldPrint[v] = enabled[num]
-
          end
       end
-
    end
 
-
+   print("shouldPrint", inspect(shouldPrint))
 
 end
 
@@ -234,15 +208,10 @@ end
 
 local function debug_print(id, ...)
 
-
-
-
-
    assert(type(id) == 'string')
 
-
-
-
+   local shared_filter = peek_shared_filter()
+   ids = parse_ids(shared_filter)
 
 
 
@@ -260,32 +229,63 @@ local function debug_print(id, ...)
    end
 end
 
-local function render(x0, y0)
-   local s = ""
+local function build_str()
+   local s = {}
+
+   local shared_filter = peek_shared_filter()
 
 
 
-
-
-
-   for k, ids_arr in pairs(filter) do
-      local t = ""
+   for k, ids_arr in pairs(shared_filter) do
+      local state = "(" .. tostring(k)
       if enabled[k] then
-         s = "*"
+         state = state .. "+"
       else
-         s = "-"
+         state = state .. "-"
       end
-      for _, id in ipairs(ids_arr) do
-         t = t .. " " .. id
+      state = state .. "): "
+
+      local count = #ids_arr
+      for i, id in ipairs(ids_arr) do
+         local appendix = i ~= count and "," or " "
+         state = state .. id .. appendix
       end
+
+      table.insert(s, state)
    end
 
-   print('render', s)
+   return table.concat(s)
+end
+
+local font_size = 32
+
+local font
+local ok, errmsg = pcall(function()
+   font = love.graphics.newFont(font_size)
+end), string
+
+if not ok then
+   print("Could not create new default font:", errmsg)
+end
+
+local function render(x0, y0)
+   local s = build_str()
+
+
+
    assert(x0)
    assert(y0)
 
-   local width = 300
+   local width, _ = love.graphics.getDimensions()
+   local old_font = love.graphics.getFont()
+   love.graphics.setFont(font)
    love.graphics.printf(s, x0, y0, width)
+
+
+
+
+
+   love.graphics.setFont(old_font)
 end
 
 return {
