@@ -115,26 +115,47 @@ end
 local function set_filter(setup: Filter)
     assert(setup)
 
-    filter = deepCopy(setup)
-    ids = parse_ids(setup)
-
-    --filter = serpent.dump(setup)
-    --ids = serpent.dump(parse_ids(setup))
-
-    --channel_ids:push(ids)
-
     local ok, errmsg = checkNumbers(setup)
     if not ok then
         error("Error in filter setup: " .. errmsg)
     end
 
-    --channel_filter:push(filter)
-    --channel_ids:push(ids)
+    filter = deepCopy(setup)
+    --ids = parse_ids(setup)
+
+    --print(colorize('%{green}' .. 'set_filter: ' .. inspect(setup)))
 
     local filter_ser = serpent.dump(filter)
     print('filter_ser', inspect(filter_ser))
-    channel_filter:push(filter_ser)
 
+    -- XXX Не стоит-ли заменить на цикл while?
+    if channel_filter:getCount() > 0 then
+        channel_filter:pop()
+    end
+
+    channel_filter:push(filter_ser)
+end
+
+local function peek_shared_filter(): Filter
+    local shared_filter: Filter
+    local filter_ser = channel_filter:peek() as string
+
+    if filter_ser then
+        local chunk = load(filter_ser) as Loader
+
+        if not chunk then
+            error("Could not load(filter_ser)")
+        end
+
+        shared_filter = chunk()
+    end
+
+    --print("filter_ser", filter_ser)
+    --print(colorize("%{red}filter_ser:" .. inspect(filter_ser)))
+    --print(colorize("%{red}shared_filter:" .. inspect(shared_filter)))
+    --print(colorize("%{red}getCount" .. channel_filter:getCount()))
+
+    return shared_filter
 end
 
 local printCallback = function(...: any)
@@ -147,89 +168,30 @@ local function set_callback(cb: PrintCallback)
 end
 
 local function keypressed(key: string, key2: string)
-    --print('key2', key2)
     assert(key2 == nil, "Use only scancode. Second param always unused.")
-
-    --[[
-    Нужно-ли было комментировать print() в данной функции?
-    ]]
 
     local num = tonumber(key)
 
-    --local enabled = channel_enabled:pop() as {number: boolean}
+    local shared_filter = peek_shared_filter()
 
-    --if not enabled then
-        --enabled = {
-            --[0] = false, 
-            --[1] = false, 
-            --[2] = false, 
-            --[3] = false, 
-            --[4] = false, 
-            --[5] = false,
-            --[6] = false,
-            --[7] = false,
-            --[8] = false,
-            --[9] = false,
-        --}
-        ----error("Could not pop enabled")
+    --if shared_filter then
+        --filter = shared_filter
+    --else
+        --print("no shared filter")
     --end
-
-    --local filter: Filter
-
-    --filter = channel_filter:pop() as Filter
-    --if not filter then
-        --filter = {
-        --}
-    --end
-
-    --local shouldPrint: {string: boolean}
-
-    --shouldPrint = serpent.load(channel_should_print:pop() as string) as {string: boolean}
-    --if not shouldPrint then
-        ---- XXX как это будет работать?
-        --shouldPrint = {}
-    --end
-
-    local filter_ser = channel_filter:peek() as string
-    if not filter_ser then
-        error('channel_filter:peek() is not accessible')
-    else
-
-        --local ok: boolean
-        --ok, filter = serpent.load(filter_ser) as boolean, Filter
-        --if not ok then
-            --error('Could not restore filter_ser:' .. inspect(filter_ser))
-        --end
-
-        local ok, emsg = pcall(function()
-            filter = (load(filter_ser) as Loader)()
-        end) as (boolean, string)
-
-        if not ok then
-            local msg = "Could not restore filter_ser:" .. emsg
-            error(msg)
-        end
-    end
-
-    --print('num', num)
 
     if checkNum(num) then
         enabled[num] = not enabled[num]
-        --local isEnabled = enabled[num]
-        --print('filter', inspect(filter))
-        --print('filter[num]', inspect(filter[num]))
-        local ids_list = filter[num]
+        local ids_list = shared_filter[num]
         if ids_list then
             for _, v in ipairs(ids_list) do
                 shouldPrint[v] = enabled[num]
-                --print("shouldPrint[v]", shouldPrint[v])
             end
         end
-        --debugChannel:push(shouldPrint)
     end
 
-    --channel_enabled:push(enabled)
-    --channel_should_print:push(serpent.dump(shouldPrint))
+    print("shouldPrint", inspect(shouldPrint))
+
 end
 
 local function print_ids()
@@ -246,18 +208,13 @@ end
 
 local function debug_print(id: string, ...: any)
 
-    --print('shouldPrint', inspect(shouldPrint))
-    --print('id', id)
-    --print('ids[id]', ids[id])
-
     assert(type(id) == 'string')
 
-    --local ids: {string: boolean}
-    --ids = serpent.load(channel_ids:peek() as string) as {string: boolean}
+    local shared_filter = peek_shared_filter()
+    ids = parse_ids(shared_filter)
 
-    --local shouldPrint: {string: boolean}
-    ----shouldPrint = sload(channel_should_print:peek() as string) as {string: boolean}
-    --shouldPrint = sload(channel_should_print:peek())
+    --print('shared_filter', inspect(shared_filter))
+    --print('ids', inspect(ids))
 
     if not ids[id] then
         local msg = format("id = '%s' not found in filter", tostring(id))
@@ -275,22 +232,9 @@ end
 local function build_str(): string
     local s: {string} = {}
 
-    local shared_filter: Filter
-    local filter_ser = channel_filter:peek() as string
+    local shared_filter = peek_shared_filter()
 
-    print("filter_ser", filter_ser)
-
-    if filter_ser then
-        local chunk = load(filter_ser) as Loader
-
-        if not chunk then
-            error("Could not load(filter_ser)")
-        end
-
-        shared_filter = chunk()
-    end
-
-    print('filter', inspect(shared_filter))
+    --print('filter', inspect(shared_filter))
 
     for k, ids_arr in pairs(shared_filter) do
         local state = "(" .. tostring(k)
@@ -300,9 +244,13 @@ local function build_str(): string
             state = state .. "-"
         end
         state = state .. "): "
-        for _, id in ipairs(ids_arr) do
-            state = state .. " " .. id
+
+        local count = #ids_arr
+        for i, id in ipairs(ids_arr) do
+            local appendix = i ~= count and "," or " "
+            state = state .. id .. appendix
         end
+
         table.insert(s, state)
     end
 
@@ -323,12 +271,12 @@ end
 local function render(x0: number, y0: number)
     local s = build_str()
 
-    print('render', s)
+    --print('render', s)
 
     assert(x0)
     assert(y0)
 
-    local width = 300
+    local width, _ = love.graphics.getDimensions()
     local old_font = love.graphics.getFont()
     love.graphics.setFont(font)
     love.graphics.printf(s, x0, y0, width)
