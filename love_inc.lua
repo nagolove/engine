@@ -1,5 +1,6 @@
 return {
     require_pls = function()
+        require 'love.math'
         require 'love.keyboard'
         require "love.timer"
         require 'love.joystick'
@@ -11,6 +12,7 @@ return {
         require "love.font"
     end,
     require_pls_nographic = function()
+        require 'love.math'
         require 'love.keyboard'
         require "love.timer"
         require 'love.joystick'
