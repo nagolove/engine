@@ -1,8 +1,12 @@
+-- vim: set colorcolumn=85
+-- vim: fdm=marker
+
 require "jitoptions".on()
 require "love"
 require "common"
 require "log"
 require "keyconfig"
+require 'pipeline'
 
 local IMGUI_USE_STUB = false
 local im_ok, im_errmsg = pcall(function()
@@ -13,13 +17,10 @@ if not im_ok then
     IMGUI_USE_STUB = true
 end
 
-require 'pipeline'
-
 if love.system.getOS() == 'Windows' then
     love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
 end
 print("package.path", package.path)
-
 
 local inspect = require "inspect"
 local scenes = require "scenes"
@@ -41,7 +42,7 @@ local format = string.format
 local pipeline = Pipeline.new()
 
 local dprint = require 'debug_print'
-local debug_print = dprint.debug_print
+--local debug_print = dprint.debug_print
 
 dprint.set_filter({
     [1] = {'graphics'},
@@ -66,18 +67,6 @@ local function bindKeys()
         "show hotkeys and documentation",
         "help"
     )
-    --[[
-    KeyConfig.bind(
-        "isdown",
-        { key = "f2" }, 
-        function(sc: Shortcut): boolean, Shortcut
-            print("keybind example")
-            return false, sc
-        end, 
-        "keybind example",
-        "nope"
-    )
-    --]]
 end
 
 function printGraphicsInfo()
@@ -131,33 +120,21 @@ local function findCommand(arg: {string}): string
         end
     end
 
-    --print('commands', inspect(commands))
     if #commands > 1 then
         colprint('More then one command, sorry.')
         return nil
     end
-
-    --[[
-    local list = scenes.getScenes()
-    for _, v in pairs(list) do
-        if v.name == commands[1] then
-            return commands[1]
-        end
-    end
-    --]]
 
     return commands[1]
 end
 
 local function newThread(name: string): love.thread.Thread
     local path = "scenes/" .. name .. "/init.lua"
-    --print(string.format("initOneMulti '%s'", path))
     print(colorize('%{yellow}' .. format('newThread("%s")', path)))
     local thread = love.thread.newThread(path)
     if not thread then
         error('No thread created.')
     end
-    --table.insert(threads, thread)
     threads[path] = thread
     return thread
 end
@@ -167,9 +144,7 @@ function love.load(arg: {string})
         imgui.Init()
         imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
     end
-    --dprint.set_filter {
-        --[1] = { "graphics" },
-    --}
+
     printGraphicsInfo()
     bindKeys()
 
@@ -178,30 +153,14 @@ function love.load(arg: {string})
         print(colorize("%{red}mobdebug started"))
     end
 
-    print("love.load() arg", inspect(arg))
+    print("love.load(arg)", inspect(arg))
 
     local sceneName = findCommand(arg)
 
-    --TODO : добавить загрузку произвольной сцены по пути.
-    -- К примеру `./run ./some/local/path/to/directory/with/init.tl`
-    -- Где `init.tl` представляет собой основной модуль сцены, 
-    -- экспортирующий соответствующий интерфейс.
-    -- Вопрос: какой интерфейс? Выделить `Module`
     print("sceneName", sceneName)
-    --[[
-    if sceneName then
-        --scenes.initOne(sceneName)
-    else
-        colprint("Empty scene will be runned.")
-        --scenes.initOne("empty")
-    end
-    --]]
 
     local thread = newThread(sceneName)
     thread:start()
-
-    --local timeout = 0.1
-    --pullRenderCode(timeout)
 
     -- Подождать загрузки остальных потоков
     local waitfor = 0.1
@@ -210,10 +169,6 @@ function love.load(arg: {string})
     pipeline:pullRenderCode()
 
     print('threads', colorize('%{magenta}' .. inspect(threads)))
-
-    --KeyConfig.printBinds()
-    --imgui.SetGlobalFontFromFileTTF("fonts/DroidSansMono.ttf", imguiFontSize)
-
 end
 
 local lastGCTime = love.timer.getTime()
@@ -356,25 +311,20 @@ function love.run(): function(): string|number
 	local dt = 0.
     local time = love.timer.getTime()
 
-	-- Main loop time.
 	return function(): string|number
 
-		-- Process events.
 		if love.event then
 			love.event.pump()
             local events = {}
-			for name, a,b,c,d,e,f in love.event.poll() do
-                --print('n, a, b, c, d, e, f', n, a, b, c, d, e, f)
+			for name, p1, p2, p3, p4, p5, p6 in love.event.poll() do
 				if name == "quit" then
 					if not love.quit or not love.quit() then
 						--return a or 0
                         -- XXX нет проверки возвращаемого значения
-						return (a or 0) as string
+						return (p1 or 0) as string
 					end
 				end
-                table.insert(events, {name, a, b, c, d, e, f})
-                --tmp.callHandler(name, a, b, c, d, e, f)
-				--love.handlers[name](a,b,c,d,e,f)
+                table.insert(events, {name, p1, p2, p3, p4, p5, p6})
 			end
             event_channel:push(events)
 		end
@@ -384,7 +334,6 @@ function love.run(): function(): string|number
         time = nt                
 
         -- Возможно стоит запускать реже, по таймеру?
-        --for _, t in ipairs(threads) do
         for _, t in pairs(threads) do
             local errmsg = t:getError()
             if errmsg then
@@ -407,16 +356,7 @@ function love.run(): function(): string|number
 			love.graphics.origin()
             --love.graphics.clear(love.graphics.getBackgroundColor())
             --love.graphics.clear()
-
-            if pipeline:waitForReady() then
-                pipeline:render()
-            end
-
-            --love.graphics.setColor{0, 0, 1}
-            --love.graphics.rectangle("fill", 500, 500, 200, 200)
-
-            --dprint.render(0, 0)
-
+            pipeline:render()
 			love.graphics.present()
 		end
 
@@ -430,6 +370,7 @@ function love.run(): function(): string|number
 end
 
 --[[ Добавить что-нибудь из списка?
+-- {{{
 conf: function(t: Configuration)
 directorydropped: function(path: string)
 displayrotated: function(index: number, orientation: window.DisplayOrientation)
@@ -462,4 +403,5 @@ touchreleased: function(id: any, x: number, y: number, dx: number, dy: number, p
 update: function(dt: number)
 visible: function(visible: boolean)
 wheelmoved: function(x: number, y: number)
+-- }}}}
 --]]
