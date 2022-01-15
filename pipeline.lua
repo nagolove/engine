@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string
 
 
 local colorize = require('ansicolors2').ansicolors
@@ -67,14 +67,20 @@ local State = {}
 
 
 
+
+
+
+
+
+
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
 
 
-local use_stamp = false
 
-local counter = 0
+local use_stamp = false
 
 
 
@@ -97,11 +103,12 @@ function Pipeline.new(scene_prefix)
       self.preload = self.preload .. var
    end
    self.renderFunctions = {}
+   self.counter = 0
+   self.cmd_num = 0
    return self
 end
 
 function Pipeline:open(func_name)
-
    if self.section_state ~= 'closed' then
       local msg = '%{red}Double opened section'
       debug_print("graphics", colorize(msg))
@@ -113,6 +120,7 @@ function Pipeline:open(func_name)
    assert(type(func_name) == 'string')
 
    graphic_command_channel:push(func_name)
+   self.counter = self.counter + 1
    if use_stamp then
       graphic_command_channel:push(love.timer.getTime())
    end
@@ -121,10 +129,6 @@ end
 function Pipeline:close()
    self.section_state = 'closed'
 end
-
-
-
-
 
 function Pipeline:push(argument)
    if self.section_state ~= 'open' then
@@ -136,53 +140,39 @@ function Pipeline:push(argument)
    graphic_command_channel:push(argument)
 end
 
-function Pipeline:ready()
-
-   local is_ready = draw_ready_channel:demand()
 
 
+function Pipeline:sync()
+   local timeout = 1.
 
-   if is_ready then
-      print('is_ready', is_ready)
-
-      if type(is_ready) ~= 'string' then
-
-         print("graphics", "Type error in is_ready flag")
-         os.exit(ecodes.ERROR_IS_READY_TYPE)
-      end
-
-
-
-
-
-
-
-
-
-
-      draw_ready_channel:pop()
-
-      return true
-   end
-   return false
+   draw_ready_channel:supply("ready " .. self.counter, timeout)
+   self.counter = 0
 end
+
 
 function Pipeline:waitForReady()
    local timeout = 0.5
+   local is_ready = draw_ready_channel:demand(timeout)
 
+   if is_ready then
+      print('is_ready', is_ready)
+      local ready_s, cmd_name_s
 
-   draw_ready_channel:clear()
+      ready_s, cmd_name_s = string.match(is_ready, "(%l+)%s(%d+)")
+      self.cmd_num = math.floor(tonumber(cmd_name_s))
 
-   local result = draw_ready_channel:supply("ready " .. counter, timeout)
+      if not self.cmd_num then
+         error("cmd_num is nil")
+      end
 
-
-
-   if not result then
-      debug_print("graphics", colorize('%{red} draw_ready_channel:supply() is not respond'))
+      return true
+   else
+      local msg = '%{red} draw_ready_channel:demand() is not respond'
+      debug_print("graphics", colorize(msg))
       os.exit(ecodes.ERROR_NO_READY_DEMAND)
    end
 
-   return result
+   return false
 end
 
 
@@ -227,11 +217,13 @@ function Pipeline:render()
          os.exit(ecodes.ERROR_NO_SECTION)
       end
 
+      local cmd_num = self.cmd_num
 
 
 
 
-      local cmd_name = graphic_command_channel:pop()
+
+      local cmd_name
 
 
       local stamp
@@ -241,62 +233,64 @@ function Pipeline:render()
 
 
 
-      while cmd_name do
 
-         if type(cmd_name) ~= 'string' then
-            custom_print('%{yellow}' .. debug.traceback())
-            custom_print('%{red}Pipeline:render()')
-            custom_print('%{red}type(cmd_name) = ' .. type(cmd_name))
-            custom_print('%{green}cmd_name = ' .. cmd_name)
-            custom_print('%{magenta}' .. debug.traceback())
-            os.exit(ecodes.ERROR_NO_COMMAND)
-         end
-
-
-
-
-
-         local coro = self.renderFunctions[cmd_name]
-
-
-         print('graphics', 'stamp, cmd_name', stamp, cmd_name)
-
-         if coro then
-
-
-
-            local ok, errmsg = resume(coro)
-            if not ok then
-               custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
-               custom_print('%{cyan}' .. debug.traceback())
-               custom_print('%{red}' .. errmsg)
-               os.exit(ecodes.ERROR_DIED_CORO)
-            end
-         else
-            local func_name = cmd_name or "nil"
-            local msg = 'Render function "%s" not found in table.'
-            custom_print('%{red}' .. format(msg, func_name))
-
-
-            self:printAvaibleFunctions()
-
-
-            custom_print('%{cyan}' .. debug.traceback())
-            os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
-         end
-
-
+      for _ = 1, cmd_num do
          cmd_name = graphic_command_channel:pop()
 
-         if use_stamp then
-            stamp = graphic_command_channel:pop()
-            if type(stamp) ~= "number" then
-               error('stamp is not a number: ' .. stamp)
+         if cmd_name then
+            if type(cmd_name) ~= 'string' then
+               custom_print('%{yellow}' .. debug.traceback())
+               custom_print('%{red}Pipeline:render()')
+               custom_print('%{red}type(cmd_name) = ' .. type(cmd_name))
+               custom_print('%{green}cmd_name = ' .. cmd_name or 'nil')
+               custom_print('%{magenta}' .. debug.traceback())
+               os.exit(ecodes.ERROR_NO_COMMAND)
+            end
+
+
+
+            local coro = self.renderFunctions[cmd_name]
+
+
+
+            if coro then
+               local ok, errmsg
+               ok, errmsg = resume(coro)
+               if not ok then
+                  custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
+                  custom_print('%{cyan}' .. debug.traceback())
+                  custom_print('%{red}' .. errmsg)
+                  os.exit(ecodes.ERROR_DIED_CORO)
+               end
+            else
+               local func_name = cmd_name or "nil"
+               local msg = 'Render function "%s" not found in table.'
+               custom_print('%{red}' .. format(msg, func_name))
+
+
+               self:printAvaibleFunctions()
+
+
+               custom_print('%{cyan}' .. debug.traceback())
+               os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
+            end
+
+
+
+
+            if use_stamp then
+               stamp = graphic_command_channel:pop()
+               if type(stamp) ~= "number" then
+                  error('stamp is not a number: ' .. stamp)
+               end
             end
          end
       end
 
-      print('graphic_command_channel:getCount()', graphic_command_channel:getCount())
+
+      if graphic_command_channel:getCount() ~= 0 then
+         error("graphic_command_channel is not clear")
+      end
 
       print('-----------------------------------------------------------------')
 
