@@ -1,8 +1,12 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; require("jitoptions").on()
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+
+
+require("jitoptions").on()
 require("love")
 require("common")
 require("log")
 require("keyconfig")
+require('pipeline')
 
 local IMGUI_USE_STUB = false
 local im_ok, im_errmsg = pcall(function()
@@ -13,13 +17,10 @@ if not im_ok then
    IMGUI_USE_STUB = true
 end
 
-require('pipeline')
-
 if love.system.getOS() == 'Windows' then
    love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
 end
 print("package.path", package.path)
-
 
 local inspect = require("inspect")
 local scenes = require("scenes")
@@ -41,7 +42,7 @@ local format = string.format
 local pipeline = Pipeline.new()
 
 local dprint = require('debug_print')
-local debug_print = dprint.debug_print
+
 
 dprint.set_filter({
    [1] = { 'graphics' },
@@ -65,18 +66,6 @@ local function bindKeys()
    end,
    "show hotkeys and documentation",
    "help")
-
-
-
-
-
-
-
-
-
-
-
-
 
 end
 
@@ -131,33 +120,21 @@ local function findCommand(arg)
       end
    end
 
-
    if #commands > 1 then
       colprint('More then one command, sorry.')
       return nil
    end
-
-
-
-
-
-
-
-
-
 
    return commands[1]
 end
 
 local function newThread(name)
    local path = "scenes/" .. name .. "/init.lua"
-
    print(colorize('%{yellow}' .. format('newThread("%s")', path)))
    local thread = love.thread.newThread(path)
    if not thread then
       error('No thread created.')
    end
-
    threads[path] = thread
    return thread
 end
@@ -168,8 +145,6 @@ function love.load(arg)
       imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
    end
 
-
-
    printGraphicsInfo()
    bindKeys()
 
@@ -178,30 +153,14 @@ function love.load(arg)
       print(colorize("%{red}mobdebug started"))
    end
 
-   print("love.load() arg", inspect(arg))
+   print("love.load(arg)", inspect(arg))
 
    local sceneName = findCommand(arg)
 
-
-
-
-
-
    print("sceneName", sceneName)
-
-
-
-
-
-
-
-
 
    local thread = newThread(sceneName)
    thread:start()
-
-
-
 
 
    local waitfor = 0.1
@@ -210,10 +169,6 @@ function love.load(arg)
    pipeline:pullRenderCode()
 
    print('threads', colorize('%{magenta}' .. inspect(threads)))
-
-
-
-
 end
 
 local lastGCTime = love.timer.getTime()
@@ -356,25 +311,20 @@ function love.run()
    local dt = 0.
    local time = love.timer.getTime()
 
-
    return function()
-
 
       if love.event then
          love.event.pump()
          local events = {}
-         for name, a, b, c, d, e, f in love.event.poll() do
-
+         for name, p1, p2, p3, p4, p5, p6 in love.event.poll() do
             if name == "quit" then
                if not love.quit or not love.quit() then
 
 
-                  return (a or 0)
+                  return (p1 or 0)
                end
             end
-            table.insert(events, { name, a, b, c, d, e, f })
-
-
+            table.insert(events, { name, p1, p2, p3, p4, p5, p6 })
          end
          event_channel:push(events)
       end
@@ -382,7 +332,6 @@ function love.run()
       local nt = love.timer.getTime()
       dt = nt - time
       time = nt
-
 
 
       for _, t in pairs(threads) do
@@ -407,16 +356,7 @@ function love.run()
          love.graphics.origin()
 
 
-
-         if pipeline:waitForReady() then
-            pipeline:render()
-         end
-
-
-
-
-
-
+         pipeline:render()
          love.graphics.present()
       end
 

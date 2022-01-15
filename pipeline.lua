@@ -71,14 +71,19 @@ local Pipeline_mt = {
    __index = Pipeline,
 }
 
-local function timestamp(msg)
-   local prepared = format("%.4f : %s", love.timer.getTime(), msg)
+
+local use_stamp = false
+
+local counter = 0
 
 
 
 
-   print(colorize('%{blue}' .. prepared))
-end
+
+
+
+
+
 
 function Pipeline.new(scene_prefix)
    local self = setmetatable({}, Pipeline_mt)
@@ -108,15 +113,18 @@ function Pipeline:open(func_name)
    assert(type(func_name) == 'string')
 
    graphic_command_channel:push(func_name)
+   if use_stamp then
+      graphic_command_channel:push(love.timer.getTime())
+   end
 end
 
 function Pipeline:close()
    self.section_state = 'closed'
 end
 
-function Pipeline:pushName(_)
 
-end
+
+
 
 function Pipeline:push(argument)
    if self.section_state ~= 'open' then
@@ -129,35 +137,49 @@ function Pipeline:push(argument)
 end
 
 function Pipeline:ready()
-   local is_ready = draw_ready_channel:peek()
 
+   local is_ready = draw_ready_channel:demand()
 
 
 
    if is_ready then
+      print('is_ready', is_ready)
+
       if type(is_ready) ~= 'string' then
 
          print("graphics", "Type error in is_ready flag")
          os.exit(ecodes.ERROR_IS_READY_TYPE)
       end
-      if is_ready ~= "ready" then
-         local msg = tostring(is_ready) or ""
 
-         print("graphics", "Bad message in draw_ready_channel: " .. msg)
-         os.exit(ecodes.ERROR_NO_READY)
-      end
+
+
+
+
+
+
+
+
+
       draw_ready_channel:pop()
+
       return true
    end
    return false
 end
 
 function Pipeline:waitForReady()
-   local timeout = 0.1
-   local result = draw_ready_channel:supply("ready", timeout)
+   local timeout = 0.5
+
+
+   draw_ready_channel:clear()
+
+   local result = draw_ready_channel:supply("ready " .. counter, timeout)
+
+
 
    if not result then
       debug_print("graphics", colorize('%{red} draw_ready_channel:supply() is not respond'))
+      os.exit(ecodes.ERROR_NO_READY_DEMAND)
    end
 
    return result
@@ -191,76 +213,95 @@ end
 
 
 function Pipeline:render()
-   local custom_print = print
+   if self:waitForReady() then
 
-   if self.section_state ~= 'closed' then
-      local color_block = '%{red}'
-      local msg = 'Section not closed, but "%s"'
-      custom_print("graphics", colorize(color_block .. format(msg, self.section_state)))
-      custom_print("graphics", colorize('%{magenta}' .. debug.traceback()))
-      os.exit(ecodes.ERROR_NO_SECTION)
-   end
+      local custom_print = function(s)
+         print(colorize(s))
+      end
 
-
-
-
-   local cmd_name = graphic_command_channel:demand()
-
-
-
-
-
-   while cmd_name do
-
-      if type(cmd_name) ~= 'string' then
-         custom_print("graphics", colorize('%{yellow}' .. debug.traceback()))
-         custom_print("graphics", colorize('%{red}Pipeline:render()'))
-         custom_print("graphics", colorize('%{red}type(cmd_name) = ' .. type(cmd_name)))
-         custom_print("graphics", colorize('%{green}cmd_name = ' .. cmd_name))
-         custom_print("graphics", colorize('%{magenta}' .. debug.traceback()))
-         os.exit(ecodes.ERROR_NO_COMMAND)
+      if self.section_state ~= 'closed' then
+         local color_block = '%{red}'
+         local msg = 'Section not closed, but "%s"'
+         custom_print(color_block .. format(msg, self.section_state))
+         custom_print('%{magenta}' .. debug.traceback())
+         os.exit(ecodes.ERROR_NO_SECTION)
       end
 
 
 
 
 
-      local coro = self.renderFunctions[cmd_name]
+      local cmd_name = graphic_command_channel:pop()
 
 
-      print('graphics', 'cmd_name', cmd_name)
+      local stamp
+      if use_stamp then
+         stamp = graphic_command_channel:pop()
+      end
 
-      if coro then
 
 
+      while cmd_name do
 
-         local ok, errmsg = resume(coro)
-         if not ok then
-            custom_print("graphics", colorize('%{yellow}' .. 'cmd_name: ' .. cmd_name))
-            custom_print("graphics", colorize('%{cyan}' .. debug.traceback()))
-            custom_print("graphics", colorize('%{red}' .. errmsg))
-            os.exit(ecodes.ERROR_DIED_CORO)
+         if type(cmd_name) ~= 'string' then
+            custom_print('%{yellow}' .. debug.traceback())
+            custom_print('%{red}Pipeline:render()')
+            custom_print('%{red}type(cmd_name) = ' .. type(cmd_name))
+            custom_print('%{green}cmd_name = ' .. cmd_name)
+            custom_print('%{magenta}' .. debug.traceback())
+            os.exit(ecodes.ERROR_NO_COMMAND)
          end
-      else
-         local func_name = cmd_name or "nil"
-         local msg = 'Render function "%s" not found in table.'
-         custom_print("graphics", colorize('%{red}' .. format(msg, func_name)))
 
 
-         self:printAvaibleFunctions()
 
 
-         custom_print("graphics", colorize('%{cyan}' .. debug.traceback()))
-         os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
+
+         local coro = self.renderFunctions[cmd_name]
+
+
+         print('graphics', 'stamp, cmd_name', stamp, cmd_name)
+
+         if coro then
+
+
+
+            local ok, errmsg = resume(coro)
+            if not ok then
+               custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
+               custom_print('%{cyan}' .. debug.traceback())
+               custom_print('%{red}' .. errmsg)
+               os.exit(ecodes.ERROR_DIED_CORO)
+            end
+         else
+            local func_name = cmd_name or "nil"
+            local msg = 'Render function "%s" not found in table.'
+            custom_print('%{red}' .. format(msg, func_name))
+
+
+            self:printAvaibleFunctions()
+
+
+            custom_print('%{cyan}' .. debug.traceback())
+            os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
+         end
+
+
+         cmd_name = graphic_command_channel:pop()
+
+         if use_stamp then
+            stamp = graphic_command_channel:pop()
+            if type(stamp) ~= "number" then
+               error('stamp is not a number: ' .. stamp)
+            end
+         end
       end
 
+      print('graphic_command_channel:getCount()', graphic_command_channel:getCount())
 
-      cmd_name = graphic_command_channel:pop()
+      print('-----------------------------------------------------------------')
+
+
    end
-
-   print('----------------------------------------------------')
-
-
 end
 
 function Pipeline:printAvaibleFunctions()
