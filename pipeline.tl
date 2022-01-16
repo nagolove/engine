@@ -6,6 +6,7 @@ local lt = love.thread
 local tl = require "tl"
 local ecodes = require "errorcodes"
 local format = string.format
+local smatch = string.match
 
 --local DEBUG_RENDER = true
 
@@ -19,7 +20,8 @@ local debug_print = dprint.debug_print
 --local event_channel = lt.getChannel("event_channel")
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
 local graphic_command_channel = lt.getChannel("graphic_command_channel")
-local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+local graphic_code_channel = lt.getChannel("graphic_code_channel")
+local graphic_received_in_sec_channel = lt.getChannel('graphic_received_in_sec')
 
 local enum State
     'open'
@@ -60,18 +62,27 @@ global type Pipeline = record
     render: function(Pipeline)
 
     printAvaibleFunctions: function(Pipeline)
+    get_received_in_sec: function(Pipeline): integer
 
     section_state: State
     preload: string
     scene_prefix: string
-    renderFunctions: {string:thread}
-    last_section_name: string
 
+    -- команда рисования и код ее корутины
+    renderFunctions: {string:thread}
+
+    -- множество существущих команд рисования
+    -- добавить возможность переопределения или удаления
+    render_set: {string: boolean}
 
     -- количество команд рисования отправленных за кадр
     counter: integer
     -- сколько команд рисования получить из канала
     cmd_num: integer
+
+    received_bytes: integer
+    received_in_sec: integer
+    last_render: number
 end
 
 local Pipeline_mt: metatable<Pipeline> = {
@@ -103,8 +114,12 @@ function Pipeline.new(scene_prefix: string): Pipeline
         self.preload = self.preload .. var 
     end
     self.renderFunctions = {}
+    self.render_set = {}
     self.counter = 0
     self.cmd_num = 0
+    self.last_render = love.timer.getTime()
+    self.received_bytes = 0
+    self.received_in_sec = 0
     return self
 end
 
@@ -155,10 +170,10 @@ function Pipeline:waitForReady(): boolean
     local is_ready: string = draw_ready_channel:demand(timeout) as string
 
     if is_ready then
-        print('is_ready', is_ready)
+        --print('is_ready', is_ready)
         local ready_s, cmd_name_s: string, string
 
-        ready_s, cmd_name_s = string.match(is_ready, "(%l+)%s(%d+)")
+        ready_s, cmd_name_s = smatch(is_ready, "(%l+)%s(%d+)")
         self.cmd_num = math.floor(tonumber(cmd_name_s))
 
         if not self.cmd_num then
@@ -175,7 +190,6 @@ function Pipeline:waitForReady(): boolean
     return false
 end
 
--- Не лучше-ли передавать число в качестве идентификатора объекта рисовки?
 -- Добавить проверку количества и типов аргументов функции с возможностью
 -- отключения проверки для повыщения скороти вывода.
 function Pipeline:pushCode(name: string, code: string)
@@ -224,6 +238,7 @@ function Pipeline:render()
         -- что-бы избежать блокировки?
         --local cmd_name = graphic_command_channel:demand() as string
         local cmd_name: string
+        local received_bytes: integer = 0
         ---------------------------------- 
 
         local stamp: number
@@ -232,6 +247,7 @@ function Pipeline:render()
         end
 
         --timestamp('render begin')
+
 
         --repeat
         for _ = 1, cmd_num do
@@ -255,7 +271,10 @@ function Pipeline:render()
 
                 if coro then
                     local ok, errmsg: boolean, string
+
+                    received_bytes = received_bytes + #cmd_name
                     ok, errmsg = resume(coro) as (boolean, string)
+
                     if not ok then
                         custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
                         custom_print('%{cyan}' .. debug.traceback())
@@ -267,16 +286,11 @@ function Pipeline:render()
                     local msg = 'Render function "%s" not found in table.'
                     custom_print('%{red}' .. format(msg, func_name))
 
-                    --if DEBUG_RENDER then
                     self:printAvaibleFunctions()
-                    --end
 
                     custom_print('%{cyan}' .. debug.traceback())
                     os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
                 end
-
-                --cmd_name = graphic_command_channel:demand() as string
-                --cmd_name = graphic_command_channel:pop() as string
 
                 if use_stamp then
                     stamp = graphic_command_channel:pop() as number
@@ -288,14 +302,37 @@ function Pipeline:render()
         end
         --until not cmd_name
 
-        if graphic_command_channel:getCount() ~= 0 then
-            error("graphic_command_channel:getCount() = " ..
-                tostring(graphic_command_channel:getCount()))
+        -- Обрати внимание, что здесь может идти накопление команд рисования
+        -- в межпроцессном канале
+        --if graphic_command_channel:getCount() ~= 0 then
+            --error("graphic_command_channel:getCount() = " ..
+                --tostring(graphic_command_channel:getCount()))
+        --end
+
+        --print('-----------------------------------------------------------------')
+
+        local new_last_render = love.timer.getTime()
+        local delay = 1 -- в секундах
+        local diff = new_last_render - self.last_render 
+        self.received_bytes = self.received_bytes + received_bytes
+        if diff > delay then
+            self.last_render = new_last_render
+            self.received_in_sec = self.received_bytes
+            graphic_received_in_sec_channel:clear()
+            graphic_received_in_sec_channel:push(self.received_in_sec)
+            self.received_bytes = 0
         end
 
-        print('-----------------------------------------------------------------')
-
         --timestamp('render end')
+    end
+end
+
+function Pipeline:get_received_in_sec(): integer
+    local bytes = graphic_received_in_sec_channel:peek()
+    if bytes then
+        return math.floor(tonumber(bytes))
+    else
+        return 0
     end
 end
 
