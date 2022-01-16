@@ -6,6 +6,7 @@ local lt = love.thread
 local tl = require("tl")
 local ecodes = require("errorcodes")
 local format = string.format
+local smatch = string.match
 
 
 
@@ -19,7 +20,8 @@ local debug_print = dprint.debug_print
 
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
 local graphic_command_channel = lt.getChannel("graphic_command_channel")
-local graphic_code_channel = love.thread.getChannel("graphic_code_channel")
+local graphic_code_channel = lt.getChannel("graphic_code_channel")
+local graphic_received_in_sec_channel = lt.getChannel('graphic_received_in_sec')
 
 local State = {}
 
@@ -34,6 +36,15 @@ local State = {}
 
 
  Pipeline = {}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -103,8 +114,12 @@ function Pipeline.new(scene_prefix)
       self.preload = self.preload .. var
    end
    self.renderFunctions = {}
+   self.render_set = {}
    self.counter = 0
    self.cmd_num = 0
+   self.last_render = love.timer.getTime()
+   self.received_bytes = 0
+   self.received_in_sec = 0
    return self
 end
 
@@ -155,10 +170,10 @@ function Pipeline:waitForReady()
    local is_ready = draw_ready_channel:demand(timeout)
 
    if is_ready then
-      print('is_ready', is_ready)
+
       local ready_s, cmd_name_s
 
-      ready_s, cmd_name_s = string.match(is_ready, "(%l+)%s(%d+)")
+      ready_s, cmd_name_s = smatch(is_ready, "(%l+)%s(%d+)")
       self.cmd_num = math.floor(tonumber(cmd_name_s))
 
       if not self.cmd_num then
@@ -174,7 +189,6 @@ function Pipeline:waitForReady()
 
    return false
 end
-
 
 
 
@@ -224,12 +238,14 @@ function Pipeline:render()
 
 
       local cmd_name
+      local received_bytes = 0
 
 
       local stamp
       if use_stamp then
          stamp = graphic_command_channel:pop()
       end
+
 
 
 
@@ -255,7 +271,10 @@ function Pipeline:render()
 
             if coro then
                local ok, errmsg
+
+               received_bytes = received_bytes + #cmd_name
                ok, errmsg = resume(coro)
+
                if not ok then
                   custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
                   custom_print('%{cyan}' .. debug.traceback())
@@ -267,16 +286,11 @@ function Pipeline:render()
                local msg = 'Render function "%s" not found in table.'
                custom_print('%{red}' .. format(msg, func_name))
 
-
                self:printAvaibleFunctions()
-
 
                custom_print('%{cyan}' .. debug.traceback())
                os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
             end
-
-
-
 
             if use_stamp then
                stamp = graphic_command_channel:pop()
@@ -288,13 +302,37 @@ function Pipeline:render()
       end
 
 
-      if graphic_command_channel:getCount() ~= 0 then
-         error("graphic_command_channel is not clear")
+
+
+
+
+
+
+
+
+
+      local new_last_render = love.timer.getTime()
+      local delay = 1
+      local diff = new_last_render - self.last_render
+      self.received_bytes = self.received_bytes + received_bytes
+      if diff > delay then
+         self.last_render = new_last_render
+         self.received_in_sec = self.received_bytes
+         graphic_received_in_sec_channel:clear()
+         graphic_received_in_sec_channel:push(self.received_in_sec)
+         self.received_bytes = 0
       end
 
-      print('-----------------------------------------------------------------')
 
+   end
+end
 
+function Pipeline:get_received_in_sec()
+   local bytes = graphic_received_in_sec_channel:peek()
+   if bytes then
+      return math.floor(tonumber(bytes))
+   else
+      return 0
    end
 end
 
