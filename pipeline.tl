@@ -1,6 +1,7 @@
 -- vim: set colorcolumn=85
 -- vim: fdm=marker
 
+require 'common'
 local colorize = require 'ansicolors2'.ansicolors
 local lt = love.thread
 local tl = require "tl"
@@ -13,7 +14,9 @@ local smatch = string.match
 local resume = coroutine.resume
 
 local dprint = require 'debug_print'
-local debug_print = dprint.debug_print
+--local debug_print = dprint.debug_print
+-- XXX monkey patch
+local debug_print = print
 
 --local type LoadFunction = function(...:any): any...
 
@@ -360,6 +363,8 @@ function Pipeline:pullRenderCode()
 
             if not func then
                 local msg = "%{red}Something wrong in render code: %{cyan}" 
+                local code = colorize('%{green}' .. '\n' .. linum(rendercode))
+                debug_print("graphics", 'rendercode', code)
                 debug_print("graphics", colorize(msg .. errmsg))
                 os.exit(ecodes.ERROR_INTERNAL_LOAD)
             else
@@ -374,7 +379,7 @@ function Pipeline:pullRenderCode()
 
                 name = colorize('%{yellow}' .. name)
                 debug_print("graphics", 'name, func, errmsg', name, func, errmsg)
-                debug_print("graphics", 'rendercode', colorize('%{green}' .. '\n' .. rendercode))
+                --debug_print("graphics", 'rendercode', colorize('%{green}' .. '\n' .. rendercode))
             end
 
         end
