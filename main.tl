@@ -8,6 +8,9 @@ require "log"
 require "keyconfig"
 require 'pipeline'
 
+local verts_batch = require 'verts_batch'
+verts_batch.init()
+
 local IMGUI_USE_STUB = false
 local im_ok, im_errmsg = pcall(function()
     require 'imgui'
@@ -355,8 +358,14 @@ function love.run(): function(): string|number
 		if love.graphics and love.graphics.isActive() then
 			love.graphics.origin()
             --love.graphics.clear(love.graphics.getBackgroundColor())
-            --love.graphics.clear()
+
+            love.graphics.clear()
+
             pipeline:render()
+            --if love.keyboard.isDown('escape') then
+                --verts_batch.render()
+            --end
+
 			love.graphics.present()
 		end
 
