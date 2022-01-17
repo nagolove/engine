@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 require("love")
@@ -351,3 +351,30 @@ function tobits(num, bits)
    end
    return t
 end
+
+local sqrt = math.sqrt
+
+function vec_len(x, y)
+   return sqrt(x * x + y * y)
+end
+
+function linum(code)
+   local i = 1
+   local t = {}
+
+   for line in string.gmatch(code, '(.-)[\r\n]$') do
+      print('line', line)
+      table.insert(t, i .. " " .. line .. '\n')
+      i = i + 1
+   end
+   return table.concat(t)
+end
+
+local code = [[
+    hello
+    from
+    Russia ]]
+
+print('linum', linum(code))
+print('os.exit(100)')
+os.exit(100)

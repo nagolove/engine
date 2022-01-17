@@ -1,6 +1,7 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string
 
 
+require('common')
 local colorize = require('ansicolors2').ansicolors
 local lt = love.thread
 local tl = require("tl")
@@ -13,7 +14,9 @@ local smatch = string.match
 local resume = coroutine.resume
 
 local dprint = require('debug_print')
-local debug_print = dprint.debug_print
+
+
+local debug_print = print
 
 
 
@@ -360,6 +363,8 @@ function Pipeline:pullRenderCode()
 
          if not func then
             local msg = "%{red}Something wrong in render code: %{cyan}"
+            local code = colorize('%{green}' .. '\n' .. linum(rendercode))
+            debug_print("graphics", 'rendercode', code)
             debug_print("graphics", colorize(msg .. errmsg))
             os.exit(ecodes.ERROR_INTERNAL_LOAD)
          else
@@ -374,7 +379,7 @@ function Pipeline:pullRenderCode()
 
             name = colorize('%{yellow}' .. name)
             debug_print("graphics", 'name, func, errmsg', name, func, errmsg)
-            debug_print("graphics", 'rendercode', colorize('%{green}' .. '\n' .. rendercode))
+
          end
 
       end

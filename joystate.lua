@@ -18,6 +18,7 @@ local joystick = love.joystick
 
 
 
+
 local JoyState_mt = {
    __index = JoyState,
 }

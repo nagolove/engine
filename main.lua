@@ -8,6 +8,9 @@ require("log")
 require("keyconfig")
 require('pipeline')
 
+local verts_batch = require('verts_batch')
+verts_batch.init()
+
 local IMGUI_USE_STUB = false
 local im_ok, im_errmsg = pcall(function()
    require('imgui')
@@ -356,7 +359,13 @@ function love.run()
          love.graphics.origin()
 
 
+         love.graphics.clear()
+
          pipeline:render()
+
+
+
+
          love.graphics.present()
       end
 
