@@ -50,6 +50,8 @@ local record Chipmunk
         --cpComponentNode node_private;
     end
 
+    cpvlength: function(cpVect): cpFloat
+
     --cpvzero: function(): cpVect
     --cpInitChipmunk: function()
     
