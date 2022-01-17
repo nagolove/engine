@@ -7,6 +7,7 @@ global record JoyState
     new: function(joystick.Joystick): JoyState
     update: function(JoyState)
 
+    -- получить инфу о состоянии клавиш
     state: string
 
     joy: joystick.Joystick
