@@ -358,23 +358,18 @@ function vec_len(x: number, y: number): number
     return sqrt(x * x + y * y)
 end
 
+-- Добавить лидирующие нули в нумерацию
 function linum(code: string): string
     local i = 1
     local t: {string} = {}
-    --for line in string.gmatch(code, '(%.+)[\r]\n') do
-    for line in string.gmatch(code, '(.-)[\r\n]$') do
-        print('line', line)
+    local buf = code
+    if string.sub(buf, #buf, #buf) ~= "\n" then
+        buf = buf .. '\n'
+    end
+    for line in string.gmatch(buf, '(.-)[\n]') do
+        --print('line -------------', line)
         table.insert(t, i .. " " .. line .. '\n')
         i = i + 1
     end
     return table.concat(t)
 end
-
-local code = [[
-    hello
-    from
-    Russia ]]
-
-print('linum', linum(code))
-print('os.exit(100)')
-os.exit(100)
