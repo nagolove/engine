@@ -361,10 +361,13 @@ function love.run(): function(): string|number
 
             love.graphics.clear()
 
-            pipeline:render()
-            --if love.keyboard.isDown('escape') then
-                --verts_batch.render()
-            --end
+            --pipeline:render()
+
+            if love.keyboard.isDown('q') then
+                verts_batch.render_mesh()
+            elseif love.keyboard.isDown('w') then
+                verts_batch.render_poly()
+            end
 
 			love.graphics.present()
 		end
