@@ -104,7 +104,14 @@ end
 
 local function render_mesh()
    love.graphics.setColor({ 1, 1, 1, 1 })
-   mesh:setVertices(mesh_verts)
+
+
+
+   for k, v in ipairs(verts) do
+
+      mesh:setVertices(mesh_verts, (k - 1) * 6, 6)
+   end
+
    love.graphics.draw(mesh)
 end
 
