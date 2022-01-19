@@ -28,16 +28,18 @@ local pl
 local indexType = 'uint64_t'
 local ptrType = 'cpDataPointer'
 
-local bodiesnum = 1024
 local bodies = {}
+
+--[[
+local bodiesnum = 1024 * 2
 --local bodies_C = ffi.new('(void*)[?]', bodiesnum)
 local bodies_C = ffi.new('cpDataPointer[?]', bodiesnum)
-
 local function fillbodies()
     for i = 0, bodiesnum - 1 do
         bodies_C[i] = ffi.cast(ptrType, 0)
     end
 end
+--]
 
 --[[
 local function col_begin(arb, space, data)
@@ -74,8 +76,6 @@ local function init(pipeline)
 
     print(colorize(concolor .. 'Chipmunk init'))
     cur_space = C.cpSpaceNew()
-
-    fillbodies()
 
 	--cpSpaceSetIterations(space, 30);
 	--cpSpaceSetGravity(space, cpv(0, -500));
@@ -252,6 +252,16 @@ local Body = {
         buf = buf .. format('torque: %.3f', b.t)
         return buf
     end,
+
+    bodySetPosition = function(self, x, y)
+        self.pos.x, self.pos.y = x, y
+        C.cpBodySetPosition(self.body, self.pos)
+    end,
+
+    setUserData = function(self, data)
+    end,
+    getUserData = function(self)
+    end,
 }
 
 local Body_mt = {
@@ -372,6 +382,7 @@ return {
         --print('t', t)
         return t
     end,
+
     CP_CIRCLE_SHAPE = 0,
     CP_SEGMENT_SHAPE = 1,
     CP_POLY_SHAPE = 2,

@@ -17,13 +17,18 @@ local record PhysicsWrapper
     --record Vert end
 
     record Body
+        user_data: any
         body: Cm.cpBody
-        --shape: Cm.cpShape
         applyImpulse: function(Body, impx: number, impy: number)
         getInfoStr: function(Body): string
         getPos: function(Body): Cm.cpVect
+        bodySetPosition: function(Body, x: number, y: number)
+
+        --shape: Cm.cpShape
         --polyShapeGetCount: function(Body): number
         --polyShapeGetVert: function(Body, index: number): Cm.cpVect
+        --setUserData: function(Body, data: any)
+        --getUserData: function(Body): any
     end
 
     -- Добавлять-ли сразу возможность работы с несколькими пространствами?
@@ -54,6 +59,7 @@ local record PhysicsWrapper
     polyShapeGetCount: function(Cm.cpShape): number
     polyShapeGetVert: function(Cm.cpShape, index: number): Cm.cpVect
     polyShapeGetType: function(Cm.cpShape): number
+
 end
 
 return PhysicsWrapper
