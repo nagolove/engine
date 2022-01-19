@@ -51,6 +51,7 @@ local record Chipmunk
     end
 
     cpvlength: function(cpVect): cpFloat
+    cpBodySetPosition: function(body: cpBody, pos: cpVect)
 
     --cpvzero: function(): cpVect
     --cpInitChipmunk: function()
