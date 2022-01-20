@@ -107,7 +107,11 @@ local function render_mesh()
 
 
 
-   for k, v in ipairs(verts) do
+   for k, _ in ipairs(verts) do
+      local sub_vert = {}
+
+
+
 
       mesh:setVertices(mesh_verts, (k - 1) * 6, 6)
    end

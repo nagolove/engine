@@ -159,12 +159,16 @@ function kons.new(fname, fsize)
       end,
    }
 
+   print('kons.new')
+
    local font
    local size = fsize or 20
-   if fname then
+   if type(fname) == 'string' then
       font = love.graphics.newFont(fname, size)
-   else
+   elseif type(fname) == 'number' then
       font = love.graphics.newFont(size)
+   else
+      error('kons.new() - unknown parapetr')
    end
    local inst = {
       font = font,
