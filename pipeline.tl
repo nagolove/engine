@@ -163,7 +163,8 @@ end
 function Pipeline:sync()
     local timeout = 1. -- in seconds
     --draw_ready_channel:clear()
-    draw_ready_channel:supply("ready " .. self.counter, timeout)
+    --draw_ready_channel:supply("ready " .. self.counter, timeout)
+    draw_ready_channel:push("ready " .. self.counter)--, timeout)
     self.counter = 0
 end
 
