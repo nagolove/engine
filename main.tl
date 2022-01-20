@@ -2,14 +2,15 @@
 -- vim: fdm=marker
 
 require "jitoptions".on()
+
 require "love"
 require "common"
 require "log"
-require "keyconfig"
 require 'pipeline'
+require "keyconfig"
 
-local verts_batch = require 'verts_batch'
-verts_batch.init()
+--local verts_batch = require 'verts_batch'
+--verts_batch.init()
 
 local IMGUI_USE_STUB = false
 local im_ok, im_errmsg = pcall(function()
@@ -361,13 +362,15 @@ function love.run(): function(): string|number
 
             love.graphics.clear()
 
-            --pipeline:render()
+            pipeline:render()
 
+            --[[
             if love.keyboard.isDown('q') then
                 verts_batch.render_mesh()
             elseif love.keyboard.isDown('w') then
                 verts_batch.render_poly()
             end
+            --]]
 
 			love.graphics.present()
 		end
