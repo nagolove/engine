@@ -41,6 +41,7 @@ Calls of push() and pushi() can be chained:
 require "love"
 require "common"
 
+require 'love.graphics'
 local g = love.graphics
 
 -- Если нужны новые цвета для консоли, то добавляй их в эту табличку.
