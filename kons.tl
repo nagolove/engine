@@ -74,7 +74,7 @@ local record kons
     end
     -- }}}
 
-    new: function(fname: string, fsize: integer): kons
+    new: function(fname: string|integer, fsize: integer): kons
     clear: function(kons)
 
     push: function(kons, number, string, ...:any): kons
@@ -159,12 +159,16 @@ function kons.new(fname: string, fsize: integer): kons
         end
     }
 
+    print('kons.new')
+
     local font: love.graphics.Font
     local size = fsize or 20
-    if fname then
+    if type(fname) == 'string' then
         font = love.graphics.newFont(fname, size)
-    else
+    elseif type(fname) == 'number' then
         font = love.graphics.newFont(size)
+    else
+        error('kons.new() - unknown parapetr')
     end
     local inst: kons = {
         font = font,
