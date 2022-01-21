@@ -8,7 +8,7 @@ require "common"
 require "list"
 
 --local gr = love.graphics
-local List = require "list"
+--local List = require "list"
 local inspect = require "inspect"
 local lk = love.keyboard
 local type IsPressed = function(str: string): boolean
@@ -73,8 +73,11 @@ global type KeyConfig = record
     draw: function(x: number, y: number)
     -- вызывать только если активна отрисовка
     updateList: function(dt: number)
-    getListObject: function(): List
-    setListSetupCallback: function(f: function(list: List))
+
+    -- TODO XXX вынести рисование списка объектов в отдельный модуль
+    --getListObject: function(): List
+
+    --setListSetupCallback: function(f: function(list: List))
     getShortcutsDown: function(): {KeyConfig.Shortcut}
     getShortcutsPressed: function(): {KeyConfig.Shortcut}
     -- ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ EXTERNAL INTERFACE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑ --
@@ -90,7 +93,7 @@ global type KeyConfig = record
 end
 
 -- Указатель на функцию обратного вызова применяемую после пересоздания списка.
-global shortcutsListCallback: function(list: List)
+--global shortcutsListCallback: function(list: List)
 
 -- love.keyboard.isDown()
 local shortcutsDown: {KeyConfig.Shortcut} = {}
@@ -99,7 +102,7 @@ local shortcutsDown: {KeyConfig.Shortcut} = {}
 local shortcutsPressed: {KeyConfig.Shortcut} = {}
 
 --local imgui = require 'imgui'
-local shortcutsList: List = nil
+--local shortcutsList: List = nil
 
 local record BindReference
     index: integer
@@ -126,15 +129,16 @@ end
 
 function KeyConfig.clear()
     shortcutsDown = {}
-    shortcutsList = {}
+    --shortcutsList = {}
     ids = {}
 end
 
-function KeyConfig.getListObject(): List
-    return shortcutsList
-end
+--function KeyConfig.getListObject(): List
+    --return shortcutsList
+--end
 
 function KeyConfig.prepareDrawing()
+    --[[
     shortcutsList = List.new(5, 5)
     for _, v in ipairs(shortcutsDown) do
         local message: string = v.description .. " " .. combo2str(v.combo)
@@ -165,21 +169,26 @@ function KeyConfig.prepareDrawing()
         end
         shortcutsListCallback(shortcutsList)
     end
+    --]]
 end
 
 function KeyConfig.draw(x: number, y: number)
+    --[[
     if not shortcutsList then
         KeyConfig.prepareDrawing()
     end
     -- Для рисования списка клавиш по центру экрана не хватает информации о
     -- максимальной ширине строки(ширина списка)
     shortcutsList:draw(x, y)
+    --]]
 end
 
 function KeyConfig.updateList(dt: number)
+    --[[
     if shortcutsList then
         shortcutsList:update(dt)
     end
+    --]]
 end
 
 function KeyConfig.getShortcutsDown(): {KeyConfig.Shortcut}
@@ -190,6 +199,7 @@ function KeyConfig.getShortcutsPressed(): {KeyConfig.Shortcut}
     return shortcutsPressed
 end
 
+--[[
 function KeyConfig.setListSetupCallback(f: function(list: List))
     if not f then
         error("f should'not be nil")
@@ -199,6 +209,7 @@ function KeyConfig.setListSetupCallback(f: function(list: List))
     end
     shortcutsListCallback = f
 end
+--]]
 
 function KeyConfig.compareMod(mod1: {string}, mod2: {string}): boolean
     if mod1 and mod2 then
@@ -341,7 +352,8 @@ function KeyConfig.printBinds()
 end
 
 function KeyConfig.test(shortcuts: {KeyConfig.Shortcut}, isPressed: IsPressed)
-    for i, stroke in ipairs(shortcuts) do
+    --for i, stroke in ipairs(shortcuts) do
+    for _, stroke in ipairs(shortcuts) do
         if stroke.enabled then
             local combo = stroke.combo
             local pressed = isPressed(combo.key)
@@ -358,8 +370,8 @@ function KeyConfig.test(shortcuts: {KeyConfig.Shortcut}, isPressed: IsPressed)
                 if pressed and stroke.action then
                     local rebuildlist, newShortcut: boolean, KeyConfig.Shortcut = stroke.action(stroke)
                     if rebuildlist then
-                        shortcutsList = nil
-                        shortcuts[i] = shallowCopy(newShortcut)
+                        --shortcutsList = nil
+                        --shortcuts[i] = shallowCopy(newShortcut)
                     end
                 end
             end
