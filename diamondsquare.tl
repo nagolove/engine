@@ -1,7 +1,7 @@
 -- vim: fdm=marker
 -- vim: set colorcolumn=85
 
--- Based on darkfrei code.
+-- Based on darkfrei code(https://github.com/darkfrei/love2d-lua-tests/blob/main/diamond-square/main.lua)
 -- License CC0 (Creative Commons license) (c) darkfrei, 2021
 -- https://www.youtube.com/watch?v=4GuAV1PnurU
 
