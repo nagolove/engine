@@ -93,13 +93,16 @@ local idGen = 0
 
 
 
+
+
+
 local shortcutsDown = {}
 
 
 local shortcutsPressed = {}
 
 
-local shortcutsList = nil
+
 
 local BindReference = {}
 
@@ -126,60 +129,66 @@ end
 
 function KeyConfig.clear()
    shortcutsDown = {}
-   shortcutsList = {}
+
    ids = {}
 end
 
 function KeyConfig.getListObject()
-   return shortcutsList
+
 end
 
 function KeyConfig.prepareDrawing()
-   shortcutsList = List.new(5, 5)
-   for _, v in ipairs(shortcutsDown) do
-      local message = v.description .. " " .. combo2str(v.combo)
-
-      if DEBUG_KEYCONFIG then
-         print("message", message)
-      end
-      shortcutsList:add(message)
-   end
-   for _, v in ipairs(shortcutsPressed) do
-      local message = v.description .. " " .. combo2str(v.combo)
-
-      if DEBUG_KEYCONFIG then
-         print("message", message)
-      end
-      shortcutsList:add(message)
-   end
 
 
-   table.sort(shortcutsList.items, function(a, b)
 
-      return a.message > b.message
-   end)
-   shortcutsList:done()
-   if shortcutsListCallback then
-      if DEBUG_KEYCONFIG then
-         print("shortcutsListCallback called")
-      end
-      shortcutsListCallback(shortcutsList)
-   end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 end
 
 function KeyConfig.draw(x, y)
-   if not shortcutsList then
-      KeyConfig.prepareDrawing()
-   end
 
 
-   shortcutsList:draw(x, y)
+
+
+
+
+
+
 end
 
 function KeyConfig.updateList(dt)
-   if shortcutsList then
-      shortcutsList:update(dt)
-   end
+
+
+
+
+
 end
 
 function KeyConfig.getShortcutsDown()
@@ -358,8 +367,8 @@ function KeyConfig.test(shortcuts, isPressed)
             if pressed and stroke.action then
                local rebuildlist, newShortcut = stroke.action(stroke)
                if rebuildlist then
-                  shortcutsList = nil
-                  shortcuts[i] = shallowCopy(newShortcut)
+
+
                end
             end
          end
