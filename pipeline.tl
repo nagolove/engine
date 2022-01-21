@@ -25,6 +25,8 @@ local draw_ready_channel = lt.getChannel("draw_ready_channel")
 local graphic_command_channel = lt.getChannel("graphic_command_channel")
 local graphic_code_channel = lt.getChannel("graphic_code_channel")
 local graphic_received_in_sec_channel = lt.getChannel('graphic_received_in_sec')
+local graphic_query_channel = lt.getChannel('graphic_query_channel')
+local graphic_query_res_channel = lt.getChannel('graphic_query_res_channel')
 
 local enum State
     'open'
@@ -66,6 +68,8 @@ global type Pipeline = record
 
     printAvaibleFunctions: function(Pipeline)
     get_received_in_sec: function(Pipeline): integer
+
+    getDimensions: function(Pipeline): integer, integer
 
     section_state: State
     preload: string
@@ -216,11 +220,28 @@ function Pipeline:pushCode(name: string, code: string)
     graphic_code_channel:push(name)
 end
 
+local function process_queries()
+    local query: string
+    repeat
+        query = graphic_query_channel:pop() as string
+        if query then
+            if query == 'getDimensions' then
+                local w, h = love.graphics.getDimensions()
+                graphic_query_res_channel:push(w)
+                graphic_query_res_channel:push(h)
+            else
+                error('Unkown query in process_queries()')
+            end
+        end
+    until not query
+end
+
 --[[
 Обрати внимание на мигание при рисовке.
 Откуда они беруться?
 --]]
 function Pipeline:render()
+    process_queries()
     if self:waitForReady() then
 
         local custom_print = function(s: string)
@@ -329,6 +350,13 @@ function Pipeline:render()
 
         --timestamp('render end')
     end
+end
+
+function Pipeline:getDimensions(): integer, integer
+    graphic_query_channel:supply("getDimensions")
+    local x: integer = math.floor(graphic_query_res_channel:pop() as number)
+    local y: integer = math.floor(graphic_query_res_channel:pop() as number)
+    return x, y
 end
 
 function Pipeline:get_received_in_sec(): integer
