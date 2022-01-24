@@ -50,6 +50,10 @@ require('love')
 
 
 
+
+
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
@@ -68,6 +72,7 @@ function DiamonAndSquare:save(fname)
    love.filesystem.write(fname, data)
 end
 
+
 function DiamonAndSquare:eval()
    local coro = coroutine.create(function()
       local stop = false
@@ -76,7 +81,7 @@ function DiamonAndSquare:eval()
          coroutine.yield()
          stop = self:diamond()
       until stop
-      self:normalize()
+      self:normalizeInplace()
    end)
 
    local ok
@@ -88,7 +93,7 @@ function DiamonAndSquare:eval()
    return self
 end
 
-function DiamonAndSquare:normalize()
+function DiamonAndSquare:normalizeInplace()
    for i = 1, self.mapSize do
       for j = 1, self.mapSize do
          local c = self.map[i] and self.map[i][j] or nil
@@ -103,7 +108,7 @@ function DiamonAndSquare:normalize()
    end
 end
 
-function DiamonAndSquare.new(mapn, rez, rng)
+function DiamonAndSquare.new(mapn, rng)
    if type(mapn) ~= 'number' then
       error('No mapn parameter in constructor.')
    end
@@ -111,10 +116,12 @@ function DiamonAndSquare.new(mapn, rez, rng)
    self = setmetatable({}, DiamonAndSquare_mt)
 
    self.map = {}
-   self.rez = rez
+
    self.mapSize = math.ceil(2 ^ mapn) + 1
-   self.width = self.mapSize * self.rez
-   self.height = self.mapSize * self.rez
+
+
+
+
 
 
    self.maxcanvassize = defaultcanvasSize
@@ -182,6 +189,8 @@ local function interpolate_color(a, b, t)
    return c
 end
 
+
+
 local function color(value)
 
    local n = #colors + 2
@@ -202,8 +211,9 @@ local function color(value)
    return colors[#colors]
 end
 
+local floor = math.floor
+
 function DiamonAndSquare:value(i, j)
-   local floor = math.floor
    if self.map[floor(i)] and self.map[floor(i)][floor(j)] then
       return self.map[floor(i)][floor(j)]
    end
@@ -315,21 +325,6 @@ end
 
 
 
-function DiamonAndSquare:draw2canvas()
-   love.graphics.setCanvas(self.canvas)
-   love.graphics.push()
-
-   local sx = self.maxcanvassize / self.width
-
-   love.graphics.scale(sx, sx)
-   self.scale = sx
-   self:draw(0, 0)
-   love.graphics.pop()
-   love.graphics.setCanvas()
-end
-
-
-function DiamonAndSquare:present()
 
 
 
@@ -341,25 +336,6 @@ function DiamonAndSquare:present()
 
 
 
-   local dx, dy = 0, 0
-
-   local Canvas = love.graphics.Drawable
-
-   local scale = 1 / self.scale
-
-   love.graphics.draw(self.canvas, dx, dy, 0., scale, scale)
-end
-
-function DiamonAndSquare:draw(x, y)
-   x = x or 0
-   y = y or 0
-
-   for i = 1, self.mapSize do
-      for j = 1, self.mapSize do
-         local c = self.map[i] and self.map[i][j] or nil
-         if c then
-            love.graphics.setColor(color(c ^ 2))
-            love.graphics.rectangle("fill", x + self.rez * i, y + self.rez * j, self.rez, self.rez)
 
 
 
@@ -371,9 +347,47 @@ function DiamonAndSquare:draw(x, y)
 
 
 
-         end
-      end
-   end
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 return DiamonAndSquare
