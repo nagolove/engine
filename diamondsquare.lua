@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall
 
 
 
@@ -7,8 +7,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 require('love')
 
- DiamonAndSquare = {}
-
+ DiamonAndSquare = {State = {}, }
 
 
 
@@ -58,18 +57,40 @@ local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
 
-
-local defaultcanvasSize = 4096 * 2
-
 local serpent = require('serpent')
 
-function DiamonAndSquare:load(_)
+function DiamonAndSquare:load(fname)
+   local data, size = love.filesystem.read(fname)
+   if data then
+      local f
+      local ok, errmsg = pcall(function()
+         f = load(data)()
+      end)
+      if not ok then
+         local msg_part = fname .. ': ' .. errmsg
+         print('Could not load DiamonAndSquare from ' .. msg_part)
+      end
+      self.mapSize = f.mapSize
+      self.map = f.map
+   else
+      local msg_part = fname .. ': ' .. tostring(size)
+      error('Could not load DiamonAndSquare from ' .. msg_part)
+   end
+end
 
+function DiamonAndSquare:serialize()
+   local state = {
+      mapSize = self.mapSize,
+      map = self.map,
+   }
+   return serpent.dump(state)
 end
 
 function DiamonAndSquare:save(fname)
-   local data = serpent.dump(self)
-   love.filesystem.write(fname, data)
+   local succ, msg = love.filesystem.write(fname, self:serialize())
+   if not succ then
+      error('Could not save DiamonAndSquare to ' .. fname .. ': ' .. msg)
+   end
 end
 
 
@@ -116,16 +137,8 @@ function DiamonAndSquare.new(mapn, rng)
    self = setmetatable({}, DiamonAndSquare_mt)
 
    self.map = {}
-
    self.mapSize = math.ceil(2 ^ mapn) + 1
 
-
-
-
-
-
-   self.maxcanvassize = defaultcanvasSize
-   self.canvas = love.graphics.newCanvas(self.maxcanvassize, self.maxcanvassize)
    self.chunkSize = self.mapSize - 1
    self.roughness = 2
    self.rng = rng
@@ -162,55 +175,6 @@ function DiamonAndSquare.new(mapn, rng)
    return self
 end
 
-local colors = {
-   { 24 / 255, 81 / 255, 129 / 255 },
-   { 32 / 255, 97 / 255, 157 / 255 },
-   { 35 / 255, 113 / 255, 179 / 255 },
-   { 40 / 255, 128 / 255, 206 / 255 },
-   { 60 / 255, 130 / 255, 70 / 255 },
-   { 72 / 255, 149 / 255, 81 / 255 },
-   { 88 / 255, 164 / 255, 97 / 255 },
-   { 110 / 255, 176 / 255, 120 / 255 },
-   { 84 / 255, 69 / 255, 52 / 255 },
-   { 102 / 255, 85 / 255, 66 / 255 },
-   { 120 / 255, 100 / 255, 73 / 255 },
-   { 140 / 255, 117 / 255, 86 / 255 },
-   { 207 / 255, 207 / 255, 207 / 255 },
-   { 223 / 255, 223 / 255, 223 / 255 },
-   { 239 / 255, 239 / 255, 239 / 255 },
-   { 255 / 255, 255 / 255, 255 / 255 },
-}
-
-local function interpolate_color(a, b, t)
-   local c = {}
-   for i = 1, #a do
-      c[i] = a[i] + t * (b[i] - a[i])
-   end
-   return c
-end
-
-
-
-local function color(value)
-
-   local n = #colors + 2
-
-   if value <= 1 / n then
-      return colors[1]
-   end
-
-   for i = 2, #colors do
-      if value <= i / n then
-
-         local t = (value - ((i - 1) / n)) / (1 / n)
-         return interpolate_color(colors[i - 1], colors[i], t)
-      end
-   end
-
-
-   return colors[#colors]
-end
-
 local floor = math.floor
 
 function DiamonAndSquare:value(i, j)
@@ -232,7 +196,22 @@ function DiamonAndSquare:squareValue(i, j, _)
    local value = 0.
    local n = 0
    local min, max
-   for _, corner in ipairs({ { i = i, j = j }, { i = i + self.chunkSize, j = j }, { i = i, j = j + self.chunkSize }, { i = i + self.chunkSize, j = j + self.chunkSize } }) do
+
+   local corners = {
+      { i = i, j = j },
+      { i = i + self.chunkSize, j = j },
+      { i = i, j = j + self.chunkSize },
+      { i = i + self.chunkSize, j = j + self.chunkSize },
+   }
+
+
+
+
+
+
+
+
+   for _, corner in ipairs(corners) do
       local v = self:value(corner.i, corner.j)
       if v then
 
@@ -263,7 +242,14 @@ function DiamonAndSquare:diamondValue(i, j, half)
    local value = 0.
    local n = 0
    local min, max
-   for _, corner in ipairs({ { i = i, j = j - half }, { i = i + half, j = j }, { i = i, j = j + half }, { i = i - half, j = j } }) do
+   local corners = {
+      { i = i, j = j - half },
+      { i = i + half, j = j },
+      { i = i, j = j + half },
+      { i = i - half, j = j },
+   }
+
+   for _, corner in ipairs(corners) do
       local v = self:value(corner.i, corner.j)
       if v then
          min = min and math.min(min, v) or v
@@ -295,88 +281,6 @@ function DiamonAndSquare:diamond()
    self.roughness = ceil(self.roughness / 2)
    return self.chunkSize <= 1
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
