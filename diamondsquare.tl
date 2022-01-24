@@ -17,12 +17,13 @@ global record DiamonAndSquare
     scale: number
     maxcanvassize: integer
     --rez: integer
-    mapn: integer
     map: {{number}}
+
     -- в пикселях
-    width: integer
+    --width: integer
     -- в пикселях
-    height: integer
+    --height: integer
+
     mapSize: integer
     chunkSize: integer
     roughness: integer
@@ -136,8 +137,7 @@ function DiamonAndSquare.new(mapn: integer, rng: love.math.RandomGenerator): Dia
     self = setmetatable({} as DiamonAndSquare, DiamonAndSquare_mt)
 
 	self.map = {}
-    --self.rez = rez
-	self.mapSize = math.ceil(2^mapn) + 1 -- 1025
+	self.mapSize = math.ceil(2 ^ mapn) + 1 -- 1025
 
 	self.chunkSize = self.mapSize - 1
 	self.roughness = 2
