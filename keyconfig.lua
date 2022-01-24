@@ -8,7 +8,7 @@ require("common")
 require("list")
 
 
-local List = require("list")
+
 local inspect = require("inspect")
 local lk = love.keyboard
 local IsPressed = {}
@@ -133,9 +133,9 @@ function KeyConfig.clear()
    ids = {}
 end
 
-function KeyConfig.getListObject()
 
-end
+
+
 
 function KeyConfig.prepareDrawing()
 
@@ -199,15 +199,17 @@ function KeyConfig.getShortcutsPressed()
    return shortcutsPressed
 end
 
-function KeyConfig.setListSetupCallback(f)
-   if not f then
-      error("f should'not be nil")
-   end
-   if type(f) ~= "function" then
-      error("f type is not a function, " .. type(f))
-   end
-   shortcutsListCallback = f
-end
+
+
+
+
+
+
+
+
+
+
+
 
 function KeyConfig.compareMod(mod1, mod2)
    if mod1 and mod2 then
@@ -350,7 +352,8 @@ function KeyConfig.printBinds()
 end
 
 function KeyConfig.test(shortcuts, isPressed)
-   for i, stroke in ipairs(shortcuts) do
+
+   for _, stroke in ipairs(shortcuts) do
       if stroke.enabled then
          local combo = stroke.combo
          local pressed = isPressed(combo.key)
