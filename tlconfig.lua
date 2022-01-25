@@ -66,6 +66,7 @@ return {
         "include",
 
         "scenes/t80/",
+        "scenes/sri/",
     },
     include = {
         "scenes/empty/*.tl",
@@ -76,6 +77,7 @@ return {
         "src/*.tl",
         "*.tl",
 
+        "scenes/sri/*.tl",
         "scenes/t80/*.tl",
         'scenes/debug_print_mt/*.tl',
     },
