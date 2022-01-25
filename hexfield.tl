@@ -251,9 +251,9 @@ local function newHexField(
         end
     end
 
-    function Handler:get(x: integer, y: integer): number
-        return Handler.map[x][y] or nil
-    end
+    --function Handler:get(x: integer, y: integer): number
+        --return Handler.map[x][y] or nil
+    --end
 
     local result: HexField = {}
     setmetatable(result, Handler as metatable<HexField>)
