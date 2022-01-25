@@ -225,9 +225,16 @@ global record HexField
 end
 
 -- map - 2d array
-local function newHexField(startcx: number, startcy: number, map: {{number}},rad: number, color: {number}): HexField, love.graphics.Mesh
+local function newHexField(
+    startcx: number, startcy: number, 
+    map: {{number}}, 
+    rad: number, 
+    color: {number}
+): HexField, love.graphics.Mesh
+
     --print(inspect(map))
     --print(#map)
+
     local xcount = #map
     local ycount = #map[1]
     assert(xcount == ycount)
