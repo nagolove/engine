@@ -359,8 +359,9 @@ function vec_len(x, y)
 end
 
 
-function linum(code)
-   local i = 1
+function linum(code, inc)
+   inc = inc or 0
+   local i = 1 + inc
    local t = {}
    local buf = code
    if string.sub(buf, #buf, #buf) ~= "\n" then
