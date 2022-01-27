@@ -89,6 +89,8 @@ global type Pipeline = record
 
     current_func: string
 
+    inc_linum: integer
+
     received_bytes: integer
     received_in_sec: integer
     last_render: number
@@ -122,6 +124,10 @@ function Pipeline.new(scene_prefix: string): Pipeline
         local var = format('local SCENE_PREFIX = "%s"\n', self.scene_prefix)
         self.preload = self.preload .. var 
     end
+
+    -- две строчки добавляются к нумерации
+    self.inc_linum = 2
+
     self.renderFunctions = {}
     self.render_set = {}
     self.counter = 0
@@ -406,7 +412,8 @@ function Pipeline:pullRenderCode()
 
             if not func then
                 local msg = "%{red}Something wrong in render code: %{cyan}" 
-                local code = colorize('%{green}' .. '\n' .. linum(rendercode))
+                local numerated = linum(rendercode, self.inc_linum)
+                local code = colorize('%{green}' .. '\n' .. numerated)
                 debug_print("graphics", 'rendercode', code)
                 debug_print("graphics", colorize(msg .. errmsg))
                 os.exit(ecodes.ERROR_INTERNAL_LOAD)
