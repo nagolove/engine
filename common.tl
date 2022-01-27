@@ -359,8 +359,9 @@ function vec_len(x: number, y: number): number
 end
 
 -- Добавить лидирующие нули в нумерацию
-function linum(code: string): string
-    local i = 1
+function linum(code: string, inc: integer): string
+    inc = inc or 0
+    local i = 1 + inc
     local t: {string} = {}
     local buf = code
     if string.sub(buf, #buf, #buf) ~= "\n" then
