@@ -38,7 +38,11 @@ local record PhysicsWrapper
     --render: function()
 
     newVect: function(): Cm.cpVect
-    newBoxBody: function(w: number, h: number): Body
+    
+    record Options
+        use_print: boolean
+    end
+    newBoxBody: function(w: number, h: number, params: Options): Body
 
     getBodies: function(): {Body}
 

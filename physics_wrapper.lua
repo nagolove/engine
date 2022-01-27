@@ -268,25 +268,39 @@ local Body_mt = {
     __index = Body,
 }
 
-local function newBoxBody(width, height)
+local function newBoxBody(width, height, params)
+    local use_print = params and params.use_print
+
+    --print('use_print', use_print)
+    --print('params', inspect(params))
+    --os.exit(-1)
+
     local self = setmetatable({}, Body_mt)
     table.insert(bodies, self)
 
 	local mass = width * height * DENSITY;
-    print('mass', mass)
+    if use_print then
+        print('mass', mass)
+    end
 
     -- Что такое момент?
     local moment = C.cpMomentForBox(mass, width, height);
 	--local moment = 1.
-    print('moment', moment)
+    if use_print then
+        print('moment', moment)
+    end
 
     self.body = C.cpBodyNew(mass, moment);
 	C.cpSpaceAddBody(cur_space, self.body)
-    print('self.body', self.body)
+    if use_print then
+        print('self.body', self.body)
+    end
 
     local index = #bodies
-    print('index', index)
     self.body.userData = ffi.cast(ptrType, index)
+    if use_print then
+        print('index', index)
+    end
 
     -- box is PolyShape
     local shape = C.cpBoxShapeNew(self.body, width, height, 0.)
