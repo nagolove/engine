@@ -13,7 +13,7 @@ local smatch = string.match
 
 local resume = coroutine.resume
 
-local dprint = require('debug_print')
+
 
 
 local debug_print = print
@@ -41,6 +41,8 @@ local State = {}
 
 
  Pipeline = {}
+
+
 
 
 
@@ -127,6 +129,7 @@ function Pipeline.new(scene_prefix)
    self.last_render = love.timer.getTime()
    self.received_bytes = 0
    self.received_in_sec = 0
+   self.current_func = ''
    return self
 end
 
@@ -142,6 +145,7 @@ function Pipeline:open(func_name)
    assert(type(func_name) == 'string')
 
    graphic_command_channel:push(func_name)
+   self.current_func = func_name
    self.counter = self.counter + 1
    if use_stamp then
       graphic_command_channel:push(love.timer.getTime())
@@ -156,7 +160,17 @@ function Pipeline:push(argument)
    if self.section_state ~= 'open' then
       local color_block = '%{red}'
       local msg = 'Attempt to push in pipeline with "%s" section state'
-      debug_print("graphics", colorize(color_block .. format(msg, self.section_state)))
+      local fmt_msg = format(msg, self.section_state)
+      local col_msg = colorize(color_block .. fmt_msg)
+
+      debug_print("graphics", col_msg)
+
+      color_block = '%{blue}'
+      msg = 'Current function name is "%s"'
+      fmt_msg = format(msg, self.current_func)
+      col_msg = colorize(color_block .. fmt_msg)
+      debug_print("graphics", col_msg)
+
       os.exit(ecodes.ERROR_NO_SECTION)
    end
    graphic_command_channel:push(argument)
