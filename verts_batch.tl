@@ -5,7 +5,6 @@ local verts: {{number}} = {}
 local inspect = require 'inspect'
 
 local Drawable = love.graphics.Drawable
-local mesh: love.graphics.Mesh
 
 local function load_verts()
     for line in love.filesystem.lines('verts.txt') do
@@ -32,8 +31,10 @@ local record Vertex
 end
 --]]
 
+local mesh: love.graphics.Mesh
 local mesh_verts: {{number}} = {}
 local mesh_size = 1024
+
 local function init_mesh()
     mesh = love.graphics.newMesh(mesh_size * 6, "triangles", "dynamic")
     for _, v in ipairs(verts) do
