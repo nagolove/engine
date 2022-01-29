@@ -9,8 +9,6 @@ local ecodes = require "errorcodes"
 local format = string.format
 local smatch = string.match
 
---local DEBUG_RENDER = true
-
 local resume = coroutine.resume
 
 --local dprint = require 'debug_print'
@@ -18,14 +16,17 @@ local resume = coroutine.resume
 -- XXX monkey patch
 local debug_print = print
 
---local type LoadFunction = function(...:any): any...
-
---local event_channel = lt.getChannel("event_channel")
+-- для синхронизации
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
+-- для команд и данных команд
 local graphic_command_channel = lt.getChannel("graphic_command_channel")
+-- для кода процедур рисования
 local graphic_code_channel = lt.getChannel("graphic_code_channel")
+-- для статистики переданных данных
 local graphic_received_in_sec_channel = lt.getChannel('graphic_received_in_sec')
+-- для запросов к рендеру
 local graphic_query_channel = lt.getChannel('graphic_query_channel')
+-- для ответов на запросы рендера
 local graphic_query_res_channel = lt.getChannel('graphic_query_res_channel')
 
 local enum State
@@ -330,6 +331,12 @@ function Pipeline:render()
                     local func_name = cmd_name or "nil"
                     local msg = 'Render function "%s" not found in table.'
                     custom_print('%{red}' .. format(msg, func_name))
+
+                    msg = 'Current func = "%s"'
+                    custom_print('%{blue}' .. format(msg, self.current_func))
+
+                    msg = 'Command number = %d'
+                    custom_print('%{blue}' .. format(msg, self.cmd_num))
 
                     self:printAvaibleFunctions()
 
