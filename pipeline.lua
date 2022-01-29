@@ -8,7 +8,7 @@ local tl = require("tl")
 local ecodes = require("errorcodes")
 local format = string.format
 local smatch = string.match
-
+local inspect = require('inspect')
 local resume = coroutine.resume
 
 
@@ -180,6 +180,7 @@ function Pipeline:push(argument)
 
       os.exit(ecodes.ERROR_NO_SECTION)
    end
+   self.counter = self.counter + 1
    graphic_command_channel:push(argument)
 end
 
@@ -255,6 +256,25 @@ local function process_queries()
          end
       end
    until not query
+end
+
+local function print_commands_stack()
+   local value
+   local time_start = love.timer.getTime()
+   local timeout = 0.1
+   print('command stack:')
+   repeat
+      value = graphic_command_channel:pop()
+      if value then
+         print(colorize("%{yellow}" .. inspect(value)))
+      end
+      local now = love.timer.getTime()
+      if now - time_start >= timeout then
+         local msg = "%{red} stack reading timeout " .. timeout .. ' sec.'
+         print(colorize(msg))
+         break
+      end
+   until not value
 end
 
 
@@ -339,6 +359,8 @@ function Pipeline:render()
                custom_print('%{blue}' .. format(msg, self.cmd_num))
 
                self:printAvaibleFunctions()
+
+               print_commands_stack()
 
                custom_print('%{cyan}' .. debug.traceback())
                os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
