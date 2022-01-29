@@ -9,8 +9,6 @@ local ecodes = require("errorcodes")
 local format = string.format
 local smatch = string.match
 
-
-
 local resume = coroutine.resume
 
 
@@ -19,13 +17,16 @@ local resume = coroutine.resume
 local debug_print = print
 
 
-
-
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
+
 local graphic_command_channel = lt.getChannel("graphic_command_channel")
+
 local graphic_code_channel = lt.getChannel("graphic_code_channel")
+
 local graphic_received_in_sec_channel = lt.getChannel('graphic_received_in_sec')
+
 local graphic_query_channel = lt.getChannel('graphic_query_channel')
+
 local graphic_query_res_channel = lt.getChannel('graphic_query_res_channel')
 
 local State = {}
@@ -330,6 +331,12 @@ function Pipeline:render()
                local func_name = cmd_name or "nil"
                local msg = 'Render function "%s" not found in table.'
                custom_print('%{red}' .. format(msg, func_name))
+
+               msg = 'Current func = "%s"'
+               custom_print('%{blue}' .. format(msg, self.current_func))
+
+               msg = 'Command number = %d'
+               custom_print('%{blue}' .. format(msg, self.cmd_num))
 
                self:printAvaibleFunctions()
 

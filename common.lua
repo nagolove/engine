@@ -360,6 +360,7 @@ end
 
 
 function linum(code, inc)
+
    inc = inc or 0
    local i = 1 + inc
    local t = {}
