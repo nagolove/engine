@@ -358,8 +358,9 @@ function vec_len(x: number, y: number): number
     return sqrt(x * x + y * y)
 end
 
--- Добавить лидирующие нули в нумерацию
+-- Функция добавляет к каждому началу строки ее номер.
 function linum(code: string, inc: integer): string
+    -- TODO Добавить лидирующие нули в нумерацию
     inc = inc or 0
     local i = 1 + inc
     local t: {string} = {}
