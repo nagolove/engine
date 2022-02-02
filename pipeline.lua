@@ -97,6 +97,7 @@ local State = {}
 
 
 
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -240,6 +241,15 @@ function Pipeline:pushCode(name, code)
 
    graphic_code_channel:push(code)
    graphic_code_channel:push(name)
+end
+
+function Pipeline:pushCodeFromFile(name, fname)
+   local path = self.scene_prefix .. '/' .. fname
+   local content = love.filesystem.read(path)
+   if not content then
+      error('Could not load: ' .. path)
+   end
+   self:pushCode(name, content)
 end
 
 local function process_queries()
