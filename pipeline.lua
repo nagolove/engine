@@ -36,6 +36,9 @@ local State = {}
 
 
 
+local reading_timeout = 0.05
+
+
 
 
 
@@ -164,7 +167,7 @@ function Pipeline:close()
    self.section_state = 'closed'
 end
 
-function Pipeline:push(argument)
+function Pipeline:push(...)
    if self.section_state ~= 'open' then
       local color_block = '%{red}'
       local msg = 'Attempt to push in pipeline with "%s" section state'
@@ -181,14 +184,21 @@ function Pipeline:push(argument)
 
       os.exit(ecodes.ERROR_NO_SECTION)
    end
-   self.counter = self.counter + 1
-   graphic_command_channel:push(argument)
+
+
+   for i = 1, select('#', ...) do
+      local argument = select(i, ...)
+      self.counter = self.counter + 1
+
+      graphic_command_channel:push(argument)
+   end
+
 end
 
 
 
 function Pipeline:sync()
-   local timeout = 1.
+
 
 
    draw_ready_channel:push("ready " .. self.counter)
@@ -271,7 +281,6 @@ end
 local function print_commands_stack()
    local value
    local time_start = love.timer.getTime()
-   local timeout = 0.1
    print('command stack:')
    repeat
       value = graphic_command_channel:pop()
@@ -279,7 +288,8 @@ local function print_commands_stack()
          print(colorize("%{yellow}" .. inspect(value)))
       end
       local now = love.timer.getTime()
-      if now - time_start >= timeout then
+      if now - time_start >= reading_timeout then
+         local timeout = reading_timeout
          local msg = "%{red} stack reading timeout " .. timeout .. ' sec.'
          print(colorize(msg))
          break
