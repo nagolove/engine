@@ -71,6 +71,9 @@ global type Pipeline = record
     pullRenderCode: function(Pipeline)
     render: function(Pipeline)
 
+    -- служебная
+    render_internal: function(Pipeline)
+
     printAvaibleFunctions: function(Pipeline)
     get_received_in_sec: function(Pipeline): integer
 
@@ -297,6 +300,128 @@ local function print_commands_stack()
     until not value
 end
 
+function Pipeline:render_internal()
+    local custom_print = function(s: string)
+        print(colorize(s))
+    end
+
+    if self.section_state ~= 'closed' then
+        local color_block = '%{red}'
+        local msg = 'Section not closed, but "%s"'
+        custom_print(color_block .. format(msg, self.section_state))
+        custom_print('%{magenta}' .. debug.traceback())
+        os.exit(ecodes.ERROR_NO_SECTION)
+    end
+
+    local cmd_num = self.cmd_num
+
+    ---------------------------------- 
+    -- Не лучше-ли использовать graphic_command_channel:pop()
+    -- что-бы избежать блокировки?
+    --local cmd_name = graphic_command_channel:demand() as string
+    local cmd_name: string
+    local received_bytes: integer = 0
+    ---------------------------------- 
+
+    local stamp: number
+    if use_stamp then
+        stamp = graphic_command_channel:pop() as number
+    end
+
+    --timestamp('render begin')
+
+    --repeat
+    for _ = 1, cmd_num do
+        cmd_name = graphic_command_channel:pop() as string
+
+        if cmd_name then
+            if type(cmd_name) ~= 'string' then
+                custom_print('%{yellow}' .. debug.traceback())
+                custom_print('%{red}Pipeline:render()')
+                custom_print('%{red}type(cmd_name) = ' .. type(cmd_name))
+
+                if type(cmd_name) == 'table' then
+                    local msg = inspect(cmd_name)
+                    custom_print('%{green}cmd_name = ' .. msg or 'nil')
+                else
+                    custom_print('%{green}cmd_name = ' .. cmd_name or 'nil')
+                end
+
+                custom_print('%{magenta}' .. debug.traceback())
+                os.exit(ecodes.ERROR_NO_COMMAND)
+            end
+
+            -- Добавить пропуск кадров.
+
+            local coro = self.renderFunctions[cmd_name]
+
+            --print('graphics', 'stamp, cmd_name', stamp, cmd_name)
+
+            if coro then
+                local ok, errmsg: boolean, string
+
+                received_bytes = received_bytes + #cmd_name
+                ok, errmsg = resume(coro) as (boolean, string)
+
+                if not ok then
+                    custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
+                    custom_print('%{cyan}' .. debug.traceback())
+                    custom_print('%{red}' .. errmsg)
+                    os.exit(ecodes.ERROR_DIED_CORO)
+                end
+            else
+                local func_name = cmd_name or "nil"
+                local msg = 'Render function "%s" not found in table.'
+                custom_print('%{red}' .. format(msg, func_name))
+
+                msg = 'Current func = "%s"'
+                custom_print('%{blue}' .. format(msg, self.current_func))
+
+                msg = 'Command number = %d'
+                custom_print('%{blue}' .. format(msg, self.cmd_num))
+
+                self:printAvaibleFunctions()
+
+                print_commands_stack()
+
+                custom_print('%{cyan}' .. debug.traceback())
+                os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
+            end
+
+            if use_stamp then
+                stamp = graphic_command_channel:pop() as number
+                if type(stamp) ~= "number" then
+                    error('stamp is not a number: ' .. stamp)
+                end
+            end
+        end
+    end
+    --until not cmd_name
+
+    -- Обрати внимание, что здесь может идти накопление команд рисования
+    -- в межпроцессном канале
+    --if graphic_command_channel:getCount() ~= 0 then
+        --error("graphic_command_channel:getCount() = " ..
+            --tostring(graphic_command_channel:getCount()))
+    --end
+
+    --print('-----------------------------------------------------------------')
+
+    local new_last_render = love.timer.getTime()
+    local delay = 1 -- в секундах
+    local diff = new_last_render - self.last_render 
+    self.received_bytes = self.received_bytes + received_bytes
+    if diff > delay then
+        self.last_render = new_last_render
+        self.received_in_sec = self.received_bytes
+        graphic_received_in_sec_channel:clear()
+        graphic_received_in_sec_channel:push(self.received_in_sec)
+        self.received_bytes = 0
+    end
+
+    --timestamp('render end')
+end
+
 --[[
 Обрати внимание на мигание при рисовке.
 Откуда они беруться?
@@ -304,120 +429,7 @@ end
 function Pipeline:render()
     process_queries()
     if self:waitForReady() then
-
-        local custom_print = function(s: string)
-            print(colorize(s))
-        end
-
-        if self.section_state ~= 'closed' then
-            local color_block = '%{red}'
-            local msg = 'Section not closed, but "%s"'
-            custom_print(color_block .. format(msg, self.section_state))
-            custom_print('%{magenta}' .. debug.traceback())
-            os.exit(ecodes.ERROR_NO_SECTION)
-        end
-
-        local cmd_num = self.cmd_num
-
-        ---------------------------------- 
-        -- Не лучше-ли использовать graphic_command_channel:pop()
-        -- что-бы избежать блокировки?
-        --local cmd_name = graphic_command_channel:demand() as string
-        local cmd_name: string
-        local received_bytes: integer = 0
-        ---------------------------------- 
-
-        local stamp: number
-        if use_stamp then
-            stamp = graphic_command_channel:pop() as number
-        end
-
-        --timestamp('render begin')
-
-
-        --repeat
-        for _ = 1, cmd_num do
-            cmd_name = graphic_command_channel:pop() as string
-
-            if cmd_name then
-                if type(cmd_name) ~= 'string' then
-                    custom_print('%{yellow}' .. debug.traceback())
-                    custom_print('%{red}Pipeline:render()')
-                    custom_print('%{red}type(cmd_name) = ' .. type(cmd_name))
-                    custom_print('%{green}cmd_name = ' .. cmd_name or 'nil')
-                    custom_print('%{magenta}' .. debug.traceback())
-                    os.exit(ecodes.ERROR_NO_COMMAND)
-                end
-
-                -- Добавить пропуск кадров.
-
-                local coro = self.renderFunctions[cmd_name]
-
-                --print('graphics', 'stamp, cmd_name', stamp, cmd_name)
-
-                if coro then
-                    local ok, errmsg: boolean, string
-
-                    received_bytes = received_bytes + #cmd_name
-                    ok, errmsg = resume(coro) as (boolean, string)
-
-                    if not ok then
-                        custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
-                        custom_print('%{cyan}' .. debug.traceback())
-                        custom_print('%{red}' .. errmsg)
-                        os.exit(ecodes.ERROR_DIED_CORO)
-                    end
-                else
-                    local func_name = cmd_name or "nil"
-                    local msg = 'Render function "%s" not found in table.'
-                    custom_print('%{red}' .. format(msg, func_name))
-
-                    msg = 'Current func = "%s"'
-                    custom_print('%{blue}' .. format(msg, self.current_func))
-
-                    msg = 'Command number = %d'
-                    custom_print('%{blue}' .. format(msg, self.cmd_num))
-
-                    self:printAvaibleFunctions()
-
-                    print_commands_stack()
-
-                    custom_print('%{cyan}' .. debug.traceback())
-                    os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
-                end
-
-                if use_stamp then
-                    stamp = graphic_command_channel:pop() as number
-                    if type(stamp) ~= "number" then
-                        error('stamp is not a number: ' .. stamp)
-                    end
-                end
-            end
-        end
-        --until not cmd_name
-
-        -- Обрати внимание, что здесь может идти накопление команд рисования
-        -- в межпроцессном канале
-        --if graphic_command_channel:getCount() ~= 0 then
-            --error("graphic_command_channel:getCount() = " ..
-                --tostring(graphic_command_channel:getCount()))
-        --end
-
-        --print('-----------------------------------------------------------------')
-
-        local new_last_render = love.timer.getTime()
-        local delay = 1 -- в секундах
-        local diff = new_last_render - self.last_render 
-        self.received_bytes = self.received_bytes + received_bytes
-        if diff > delay then
-            self.last_render = new_last_render
-            self.received_in_sec = self.received_bytes
-            graphic_received_in_sec_channel:clear()
-            graphic_received_in_sec_channel:push(self.received_in_sec)
-            self.received_bytes = 0
-        end
-
-        --timestamp('render end')
+        self:render_internal()
     end
 end
 
