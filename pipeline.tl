@@ -35,6 +35,9 @@ local enum State
     'undefined'
 end
 
+-- Сколько секунд писать в консоль содержимое стека после падения.
+local reading_timeout = 0.05
+
 --[[
 Сделать объект рисования с конструктором.
 Как загружать картинки?
@@ -48,7 +51,7 @@ global type Pipeline = record
     -- Добавить возбуждение ошибки если ready() возвращает ложь
     open: function(Pipeline, name: string)
     -- Затолкать данные в канал
-    push: function(Pipeline, any)
+    push: function(Pipeline, ...:any)
     -- Завершение секции отправки
     close: function(Pipeline)
     openAndClose: function(Pipeline, func_name: string)
@@ -164,7 +167,7 @@ function Pipeline:close()
     self.section_state = 'closed'
 end
 
-function Pipeline:push(argument: any)
+function Pipeline:push(...: any)
     if self.section_state ~= 'open' then
         local color_block = '%{red}'
         local msg = 'Attempt to push in pipeline with "%s" section state'
@@ -181,14 +184,21 @@ function Pipeline:push(argument: any)
 
         os.exit(ecodes.ERROR_NO_SECTION)
     end
-    self.counter = self.counter + 1
-    graphic_command_channel:push(argument)
+    --print('Pipeline:push')
+    --print('param count', select('#', ...))
+    for i = 1, select('#', ...) do
+        local argument = select(i, ...)
+        self.counter = self.counter + 1
+        --print('argument', argument)
+        graphic_command_channel:push(argument)
+    end
+    --print('----------------------------')
 end
 
 -- uses it other thread
 -- calls at the end of the frame
 function Pipeline:sync()
-    local timeout = 1. -- in seconds
+    --local timeout = 1. -- in seconds
     --draw_ready_channel:clear()
     --draw_ready_channel:supply("ready " .. self.counter, timeout)
     draw_ready_channel:push("ready " .. self.counter)--, timeout)
@@ -271,7 +281,6 @@ end
 local function print_commands_stack()
     local value: any
     local time_start = love.timer.getTime()
-    local timeout = 0.1
     print('command stack:')
     repeat
         value = graphic_command_channel:pop()
@@ -279,7 +288,8 @@ local function print_commands_stack()
             print(colorize("%{yellow}" .. inspect(value)))
         end
         local now = love.timer.getTime()
-        if now - time_start >= timeout then
+        if now - time_start >= reading_timeout then
+            local timeout = reading_timeout
             local msg = "%{red} stack reading timeout " .. timeout .. ' sec.'
             print(colorize(msg))
             break
