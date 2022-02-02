@@ -64,6 +64,7 @@ global type Pipeline = record
     waitForReady: function(Pipeline): boolean
 
     pushCode: function(Pipeline, name: string, code: string)
+    pushCodeFromFile: function(Pipeline, name: string, fname: string)
     pullRenderCode: function(Pipeline)
     render: function(Pipeline)
 
@@ -240,6 +241,15 @@ function Pipeline:pushCode(name: string, code: string)
 
     graphic_code_channel:push(code)
     graphic_code_channel:push(name)
+end
+
+function Pipeline:pushCodeFromFile(name: string, fname: string)
+    local path = self.scene_prefix .. '/' .. fname
+    local content = love.filesystem.read(path)
+    if not content then
+        error('Could not load: ' .. path)
+    end
+    self:pushCode(name, content)
 end
 
 local function process_queries()
