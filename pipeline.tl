@@ -39,10 +39,9 @@ end
 local reading_timeout = 0.05
 
 --[[
-Сделать объект рисования с конструктором.
-Как загружать картинки?
-Не удалять все объекты из очереди.
-Корутины?
+Не удалять все объекты из очереди?
+
+Какие инструменты отладки можно предложить?
 ]]
 global type Pipeline = record
     new: function(scene_prefix: string): Pipeline
@@ -187,15 +186,12 @@ function Pipeline:push(...: any)
 
         os.exit(ecodes.ERROR_NO_SECTION)
     end
-    --print('Pipeline:push')
-    --print('param count', select('#', ...))
+    
     for i = 1, select('#', ...) do
         local argument = select(i, ...)
         self.counter = self.counter + 1
-        --print('argument', argument)
         graphic_command_channel:push(argument)
     end
-    --print('----------------------------')
 end
 
 -- uses it other thread
@@ -203,8 +199,8 @@ end
 function Pipeline:sync()
     --local timeout = 1. -- in seconds
     --draw_ready_channel:clear()
-    --draw_ready_channel:supply("ready " .. self.counter, timeout)
-    draw_ready_channel:push("ready " .. self.counter)--, timeout)
+    draw_ready_channel:supply("ready " .. self.counter)
+    --draw_ready_channel:push("ready " .. self.counter)--, timeout)
     self.counter = 0
 end
 
