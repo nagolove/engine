@@ -188,14 +188,11 @@ function Pipeline:push(...)
       os.exit(ecodes.ERROR_NO_SECTION)
    end
 
-
    for i = 1, select('#', ...) do
       local argument = select(i, ...)
       self.counter = self.counter + 1
-
       graphic_command_channel:push(argument)
    end
-
 end
 
 
@@ -203,8 +200,8 @@ end
 function Pipeline:sync()
 
 
+   draw_ready_channel:supply("ready " .. self.counter)
 
-   draw_ready_channel:push("ready " .. self.counter)
    self.counter = 0
 end
 
