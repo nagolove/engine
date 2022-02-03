@@ -1026,6 +1026,9 @@ global type love = record
 		newParticleSystem: function(image: Image, buffer: number): ParticleSystem
 		newParticleSystem: function(texture: Texture, buffer: number): ParticleSystem
 		newQuad: function(x: number, y: number, width: number, height: number, sw: number, sh: number): Quad
+
+		newQuad: function(x: number, y: number, width: number, height: number, tex: love.graphics.Texture): Quad
+
 		newShader: function(code: string): Shader
 		newShader: function(pixelcode: string, vertexcode: string): Shader
 		newSpriteBatch: function(image: Image, maxsprites: number): SpriteBatch
