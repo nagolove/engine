@@ -169,6 +169,7 @@ function Pipeline:close()
     self.section_state = 'closed'
 end
 
+-- Добавить проверку количества и типов параметров в отладочном режиме.
 function Pipeline:push(...: any)
     if self.section_state ~= 'open' then
         local color_block = '%{red}'
