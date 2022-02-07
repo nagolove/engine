@@ -79,6 +79,7 @@ return {
 
         "scenes/sri/*.tl",
         "scenes/t80/*.tl",
+        'scenes/colored_text_transform_mt/*.tl',
         'scenes/debug_print_mt/*.tl',
     },
     --files = files,
