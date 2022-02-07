@@ -43,7 +43,6 @@ local reading_timeout = 0.05
 
 
 
-
  Pipeline = {}
 
 
@@ -169,6 +168,7 @@ end
 function Pipeline:close()
    self.section_state = 'closed'
 end
+
 
 function Pipeline:push(...)
    if self.section_state ~= 'open' then
