@@ -339,13 +339,15 @@ void cpBodyResetForces(cpBody *body);
 
 //void cpBodyApplyForce(cpBody *body, const cpVect f, const cpVect r);
 //void cpBodyApplyImpulse(cpBody *body, const cpVect j, const cpVect r);
+--]]
 
-void cpBodyApplyForceAtWorldPoint(cpBody *body, cpVect force, cpVect point);
-void cpBodyApplyForceAtLocalPoint(cpBody *body, cpVect force, cpVect point);
+cpBodyApplyForceAtWorldPoint: function(cpBody, force: cpVect, point: cpVect)
+cpBodyApplyForceAtLocalPoint: function(cpBody, force: cpVect, point: cpVect)
 
-void cpBodyApplyImpulseAtWorldPoint(cpBody *body, cpVect impulse, cpVect point);
-void cpBodyApplyImpulseAtLocalPoint(cpBody *body, cpVect impulse, cpVect point);
+cpBodyApplyImpulseAtWorldPoint: function(cpBody, impulse: cpVect, point: cpVect)
+cpBodyApplyImpulseAtLocalPoint: function(cpBody, impulse: cpVect, point: cpVect)
 
+--[[
 cpVect cpBodyGetVelAtWorldPoint(cpBody *body, cpVect point);
 cpVect cpBodyGetVelAtLocalPoint(cpBody *body, cpVect point);
 cpFloat cpBodyKineticEnergy(const cpBody *body);
