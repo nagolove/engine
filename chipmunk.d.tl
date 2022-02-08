@@ -308,8 +308,10 @@ cpBool cpBodyIsSleeping(const cpBody *body);
 cpBool cpBodyIsStatic(const cpBody *body);
 cpBool cpBodyIsRogue(const cpBody *body);
 cpSpace* cpBodyGetSpace(const cpBody *body);
-cpFloat cpBodyGetMass(const cpBody *body);
-void cpBodySetMass(cpBody *body, cpFloat m);
+--]]
+cpBodyGetMass: function(body: cpBody)
+cpBodySetMass: function(cpBody, m: cpFloat)
+--[[
 cpFloat cpBodyGetMoment(const cpBody *body);
 void cpBodySetMoment(cpBody *body, cpFloat i);
 cpVect cpBodyGetPos(const cpBody *body);
