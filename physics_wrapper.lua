@@ -333,7 +333,7 @@ end
 --local internal_data = ffi.new('char[1024]')
 --local void_internal_data = ffi.cast('void*', internal_data)
 
--- Почему при одном теле на сценк коллбэк вызывается два раза?
+-- Почему при одном теле на сцене коллбэк вызывается два раза?
 local function eachSpaceBody(iter)
     -- Обходное решение для передачи параметра
     C.cpSpaceEachBody(cur_space, iter, nil)
