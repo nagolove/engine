@@ -38,7 +38,7 @@ local record Chipmunk
         w: cpFloat
         t: cpFloat
         r: cpVect
-        data: cpDataPointer
+        userData: cpDataPointer
         v_limit: cpFloat
         w_limit: cpFloat
         --v_bias_private: cpVect
@@ -294,7 +294,11 @@ struct cpBody {
 
 cpBody* cpBodyAlloc(void);
 cpBody* cpBodyInit(cpBody *body, cpFloat m, cpFloat i);
-cpBody* cpBodyNew(cpFloat m, cpFloat i);
+--]]
+
+cpBodyNew: function(m: number, i: number): cpBody
+
+--[[
 cpBody* cpBodyInitStatic(cpBody *body);
 cpBody* cpBodyNewStatic(void);
 void cpBodyDestroy(cpBody *body);
@@ -354,7 +358,14 @@ cpVect cpBodyGetVelAtWorldPoint(cpBody *body, cpVect point);
 cpVect cpBodyGetVelAtLocalPoint(cpBody *body, cpVect point);
 cpFloat cpBodyKineticEnergy(const cpBody *body);
 typedef void (*cpBodyShapeIteratorFunc)(cpBody *body, cpShape *shape, void *data);
-void cpBodyEachShape(cpBody *body, cpBodyShapeIteratorFunc func, void *data);
+--]]
+
+type cpBodyShapeIteratorFunc = function(body: cpBody, shape: cpShape, data: any)
+
+--void cpBodyEachShape(cpBody *body, cpBodyShapeIteratorFunc func, void *data);
+cpBodyEachShape: function(body: cpBody, func: cpBodyShapeIteratorFunc, data: any)
+
+--[[
 typedef void (*cpBodyConstraintIteratorFunc)(cpBody *body, cpConstraint *constraint, void *data);
 void cpBodyEachConstraint(cpBody *body, cpBodyConstraintIteratorFunc func, void *data);
 typedef void (*cpBodyArbiterIteratorFunc)(cpBody *body, cpArbiter *arbiter, void *data);
@@ -497,9 +508,13 @@ cpShape* cpBoxShapeNew3(cpBody *body, cpBB box, cpFloat radius);
 cpBool cpPolyValidate(const cpVect *verts, const int numVerts);
 
 //int cpPolyShapeGetNumVerts(const cpShape *shape);
-int cpPolyShapeGetCount(const cpShape *shape);
+--]]
 
-cpVect cpPolyShapeGetVert(const cpShape *shape, int idx);
+cpPolyShapeGetCount: function(shape: cpShape): integer
+
+cpPolyShapeGetVert: function(shape: cpShape, idx: integer): cpVect
+
+--[[
 cpFloat cpPolyShapeGetRadius(const cpShape *shape);
 typedef cpBool (*cpCollisionBeginFunc)(cpArbiter *arb, cpSpace *space, void *data);
 typedef cpBool (*cpCollisionPreSolveFunc)(cpArbiter *arb, cpSpace *space, void *data);
@@ -827,24 +842,27 @@ struct cpSpace {
 };
 */
 
-struct cpSpace {
-    int iterations;
-    
-    cpVect gravity;
-    cpFloat damping;
-   
-    cpFloat idleSpeedThreshold;
-    cpFloat sleepTimeThreshold;
-    
-    cpFloat collisionSlop;
-    cpFloat collisionBias;
-    cpTimestamp collisionPersistence;
-    
-    cpDataPointer userData;
-    
-    cpTimestamp stamp;
-    cpFloat curr_dt;
+--]]
 
+record cpSpace 
+    iterations: integer
+    
+    gravity: cpVect
+    damping: number
+   
+    idleSpeedThreshold: number
+    sleepTimeThreshold: number
+    
+    collisionSlop: number
+    collisionBias: number
+    collisionPersistence: integer
+    
+    userData: cpDataPointer
+    
+    stamp: integer
+    curr_dt: integer
+    
+    --[[
     cpArray *dynamicBodies;
     cpArray *staticBodies;
     cpArray *rousedBodies;
@@ -874,6 +892,10 @@ struct cpSpace {
     cpBody *staticBody;
     cpBody _staticBody;
 };
+--]]
+end
+
+--[[
 
 cpSpace* cpSpaceAlloc(void);
 cpSpace* cpSpaceInit(cpSpace *space);
@@ -914,9 +936,13 @@ void cpSpaceAddCollisionHandler(
 );
 
 void cpSpaceRemoveCollisionHandler(cpSpace *space, cpCollisionType a, cpCollisionType b);
-cpShape* cpSpaceAddShape(cpSpace *space, cpShape *shape);
-cpShape* cpSpaceAddStaticShape(cpSpace *space, cpShape *shape);
-cpBody* cpSpaceAddBody(cpSpace *space, cpBody *body);
+--]]
+
+cpSpaceAddShape: function(space: cpSpace, shape: cpShape): cpShape
+cpSpaceAddStaticShape: function(space: cpSpace, shape: cpShape): cpShape
+cpSpaceAddBody: function(space: cpSpace, body: cpBody): cpBody
+
+--[[
 cpConstraint* cpSpaceAddConstraint(cpSpace *space, cpConstraint *constraint);
 void cpSpaceRemoveShape(cpSpace *space, cpShape *shape);
 void cpSpaceRemoveStaticShape(cpSpace *space, cpShape *shape);
@@ -964,7 +990,11 @@ cpFloat cpMomentForPoly(cpFloat m, int numVerts, const cpVect *verts, cpVect off
 cpFloat cpAreaForPoly(const int numVerts, const cpVect *verts);
 cpVect cpCentroidForPoly(const int numVerts, const cpVect *verts);
 void cpRecenterPoly(const int numVerts, cpVect *verts);
-cpFloat cpMomentForBox(cpFloat m, cpFloat width, cpFloat height);
+--]]
+
+cpMomentForBox: function(m: number, width: number, height: number): number
+
+--[[
 cpFloat cpMomentForBox2(cpFloat m, cpBB box);
 int cpConvexHull(int count, cpVect *verts, cpVect *result, int *first, cpFloat tol);
 
