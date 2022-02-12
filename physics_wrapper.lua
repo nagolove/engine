@@ -130,51 +130,10 @@ end
 --local shape_data = ffi.new('char[1024]')
 --local void_shape_data = ffi.cast('void*', shape_data)
 
---local function eachShape(body, shape, data)
-local function eachShape(_, shape, _)
-
-    --print('eachShape')
-    --print('body, shape, data:', body, shape, data)
-
-    --C.cpShapeSetFriction
-    local shape_type = shape.klass_private.type
-    --if shape_type == C.CP_CIRCLE_SHAPE then
-        --print('I am circle.')
-    --elseif shape_type == C.CP_SEGMENT_SHAPE then
-        --print('I am segment.')
-    --elseif shape_type == C.CP_POLY_SHAPE then
-
-    if shape_type == C.CP_POLY_SHAPE then
-        --print('I am poly.')
-        --local poly_shape = fff.cast('cpPolyShape*', shape)
-        local num = C.cpPolyShapeGetCount(shape)
-        local verts = {}
-        for i = 0, num - 1 do
-            local vert = C.cpPolyShapeGetVert(shape, i)
-            --print(inspect(vert))
-            --print('x, y', vert.x, vert.y)
-
-            table.insert(verts, vert.x)
-            table.insert(verts, vert.y)
-        end
-        pl:open('poly_shape')
-        pl:push(verts)
-        pl:close()
-    end
-end
-
 --local eachShape_C = ffi.cast('cpBodyShapeIteratorFunc', eachShape)
 
 --[[
 local function eachBody(body, data)
-    --print('eachBody')
-    --print('body, data', body, data)
-
-    -- Вызвать функции для перечисления всех форм тела.
-    -- Отправить вершины тел на рисовку.
-    -- Как лучше отправлять вершины? Что-бы делать более редкие передачи
-    -- данных.
-
     C.cpBodyEachShape(body, eachShape_C, void_shape_data)
 end
 
@@ -189,15 +148,14 @@ local eachBody_C = ffi.cast("cpSpaceBodyIteratorFunc", eachBody)
 --end
 
 local function update(dt)
-    --print('pw update', dt)
     C.cpSpaceStep(cur_space, dt);
-	--C.cpSpaceStep(cur_space, 0.1);
 end
 
 local function free()
 
     --[[
     -- Пример функции для удаления всех объектов - детей
+    -- Взято из документации
 void
 ChipmunkDemoFreeSpaceChildren(cpSpace *space)
 {
