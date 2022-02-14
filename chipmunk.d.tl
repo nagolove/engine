@@ -405,7 +405,12 @@ struct cpShapeClass {
 
 --]]
 
+record cpShapeClass
+    type: integer
+end
+
 record cpShape
+    klass_private: cpShapeClass
     body: cpBody
     bb: cpBB
 end
@@ -502,7 +507,11 @@ cpShape* cpPolyShapeNew2(cpBody *body, int numVerts, const cpVect *verts, cpVect
 cpPolyShape* cpBoxShapeInit(cpPolyShape *poly, cpBody *body, cpFloat width, cpFloat height);
 cpPolyShape* cpBoxShapeInit2(cpPolyShape *poly, cpBody *body, cpBB box);
 cpPolyShape* cpBoxShapeInit3(cpPolyShape *poly, cpBody *body, cpBB box, cpFloat radius);
-cpShape* cpBoxShapeNew(cpBody *body, cpFloat width, cpFloat height, cpFloat radius);
+--]]
+
+cpBoxShapeNew: function(body: cpBody, width: number, height: number, radius: number): cpShape
+
+--[[
 cpShape* cpBoxShapeNew2(cpBody *body, cpBB box);
 cpShape* cpBoxShapeNew3(cpBody *body, cpBB box, cpFloat radius);
 cpBool cpPolyValidate(const cpVect *verts, const int numVerts);
@@ -899,9 +908,15 @@ end
 
 cpSpace* cpSpaceAlloc(void);
 cpSpace* cpSpaceInit(cpSpace *space);
-cpSpace* cpSpaceNew(void);
+--]]
+
+cpSpaceNew: function(): cpSpace
+
+--[[
 void cpSpaceDestroy(cpSpace *space);
-void cpSpaceFree(cpSpace *space);
+--]]
+cpSpaceFree: function(space: cpSpace)
+--[[
 int cpSpaceGetIterations(const cpSpace *space); void cpSpaceSetIterations(cpSpace *space, int value);
 cpVect cpSpaceGetGravity(const cpSpace *space); void cpSpaceSetGravity(cpSpace *space, cpVect value);
 cpFloat cpSpaceGetDamping(const cpSpace *space); void cpSpaceSetDamping(cpSpace *space, cpFloat value);
@@ -969,17 +984,25 @@ void cpSpaceBBQuery(cpSpace *space, cpBB bb, cpLayers layers, cpGroup group, cpS
 typedef void (*cpSpaceShapeQueryFunc)(cpShape *shape, cpContactPointSet *points, void *data);
 cpBool cpSpaceShapeQuery(cpSpace *space, cpShape *shape, cpSpaceShapeQueryFunc func, void *data);
 void cpSpaceActivateShapesTouchingShape(cpSpace *space, cpShape *shape);
-typedef void (*cpSpaceBodyIteratorFunc)(cpBody *body, void *data);
-void cpSpaceEachBody(cpSpace *space, cpSpaceBodyIteratorFunc func, void *data);
-typedef void (*cpSpaceShapeIteratorFunc)(cpShape *shape, void *data);
-void cpSpaceEachShape(cpSpace *space, cpSpaceShapeIteratorFunc func, void *data);
+--]]
+
+type cpSpaceBodyIteratorFunc = function(cpBody, data: any)
+
+cpSpaceEachBody: function(space: cpSpace, func: cpSpaceBodyIteratorFunc, data: any)
+
+type cpSpaceShapeIteratorFunc = function(shape: cpShape, data: any)
+cpSpaceEachShape: function(space: cpSpace, func: cpSpaceShapeIteratorFunc, data: any)
+
+--[[
 typedef void (*cpSpaceConstraintIteratorFunc)(cpConstraint *constraint, void *data);
 void cpSpaceEachConstraint(cpSpace *space, cpSpaceConstraintIteratorFunc func, void *data);
 void cpSpaceReindexStatic(cpSpace *space);
 void cpSpaceReindexShape(cpSpace *space, cpShape *shape);
 void cpSpaceReindexShapesForBody(cpSpace *space, cpBody *body);
 void cpSpaceUseSpatialHash(cpSpace *space, cpFloat dim, int count);
-void cpSpaceStep(cpSpace *space, cpFloat dt);
+--]]
+cpSpaceStep: function(space: cpSpace, dt: number)
+--[[
 extern const char *cpVersionString;
 void cpEnableSegmentToSegmentCollisions(void);
 cpFloat cpMomentForCircle(cpFloat m, cpFloat r1, cpFloat r2, cpVect offset);
@@ -1000,6 +1023,14 @@ int cpConvexHull(int count, cpVect *verts, cpVect *result, int *first, cpFloat t
 
 --]]
 
+CP_CIRCLE_SHAPE: integer
+CP_SEGMENT_SHAPE: integer
+CP_POLY_SHAPE: integer
+
 end
+
+Chipmunk.CP_CIRCLE_SHAPE = 0
+Chipmunk.CP_SEGMENT_SHAPE = 1
+Chipmunk.CP_POLY_SHAPE = 2
 
 return Chipmunk
