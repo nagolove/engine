@@ -149,7 +149,7 @@ function love.load(arg)
       imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
    end
 
-   printGraphicsInfo()
+
    bindKeys()
 
    if searchArg(arg, '--debug') or searchArg(arg, '--silent') then

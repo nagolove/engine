@@ -38,7 +38,7 @@ local DSRender_mt = {
 
 local defaultcanvasSize = 4096 * 2
 
-local serpent = require('serpent')
+
 
 function DSRender.new(square_width)
    local self
