@@ -18,6 +18,7 @@ end
 print("is_linux", is_linux)
 print("is_windows", is_windows)
 
+--[[
 -- Написать функцию-сборщик файлов движка.
 function getAutomatoFiles()
     -- {{{
@@ -45,6 +46,7 @@ function getAutomatoFiles()
     return files
     -- }}}
 end
+--]]
 
 print("is_linux", is_linux)
 
@@ -61,6 +63,8 @@ return {
     --source_dir = "src",
     --build_dir = "app",
     include_dir = {
+        "ddd",
+        "ddd/target/debug",
         "lib",
         "src",
         "include",
@@ -82,6 +86,7 @@ return {
         'scenes/colored_text_transform_mt/*.tl',
         'scenes/textured_quad/*.tl',
         'scenes/debug_print_mt/*.tl',
+        'scenes/dynlib/*.tl',
     },
     --files = files,
     exclude = {
