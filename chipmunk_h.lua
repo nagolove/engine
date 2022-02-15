@@ -1,5 +1,8 @@
 local ffi = require'ffi'
 
+--local res = ffi.C.add(1, 2)
+--assert(res == 3)
+
 ffi.cdef[[
 typedef double cpFloat;
 cpFloat cpfmax(cpFloat a, cpFloat b);
@@ -274,6 +277,7 @@ cpVect cpBodyGetVelAtLocalPoint(cpBody *body, cpVect point);
 cpFloat cpBodyKineticEnergy(const cpBody *body);
 typedef void (*cpBodyShapeIteratorFunc)(cpBody *body, cpShape *shape, void *data);
 void cpBodyEachShape(cpBody *body, cpBodyShapeIteratorFunc func, void *data);
+
 typedef void (*cpBodyConstraintIteratorFunc)(cpBody *body, cpConstraint *constraint, void *data);
 void cpBodyEachConstraint(cpBody *body, cpBodyConstraintIteratorFunc func, void *data);
 typedef void (*cpBodyArbiterIteratorFunc)(cpBody *body, cpArbiter *arbiter, void *data);
