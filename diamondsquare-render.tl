@@ -38,7 +38,7 @@ local DSRender_mt: metatable<DSRender> = {
 --local defaultcanvasSize = 4096
 local defaultcanvasSize = 4096 * 2
 
-local serpent = require 'serpent'
+--local serpent = require 'serpent'
 
 function DSRender.new(square_width: integer): DSRender
     local self: DSRender
