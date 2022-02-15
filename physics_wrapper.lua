@@ -358,4 +358,8 @@ return {
     CP_CIRCLE_SHAPE = 0,
     CP_SEGMENT_SHAPE = 1,
     CP_POLY_SHAPE = 2,
+
+    for_each_body = function(space, cb)
+        C.cpSpaceEachBody(space, cb, nil)
+    end
 }

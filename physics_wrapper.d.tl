@@ -64,6 +64,7 @@ local record PhysicsWrapper
     polyShapeGetVert: function(Cm.cpShape, index: number): Cm.cpVect
     polyShapeGetType: function(Cm.cpShape): number
 
+    for_each_body: function(any, any)
 end
 
 return PhysicsWrapper
