@@ -7,9 +7,15 @@ edition = "2021"
 [lib]
 name = "ddd"
 crate-type = ["cdylib"]
+rustc-link-search = ["./lib"]
+#rustc-link-search = [".", "..", "./src"]
+rustc-link-lib = ["chipmunk"]
 
 [dependencies]
 #mlua = { version = "0.7", features = ["luajit", "vendored"] }
 rand = "0.8.5"
 mlua = { version = "0.7", features = ["luajit", "module"] }
 cmd_lib = { version = "1.3.0" }
+libloading = "0.7"
+libc = "0.2"
+lazy_static = "1.4.0"
