@@ -27,11 +27,16 @@ function0()
     #eval $TL --wdisable unused build && love . $1 $2 $3
     #tl build && nlove .
 
-    pushd ddd
-    cargo build && cp target/debug/libddd.so ../ddd.so && cp target/debug/libddd.so ../libddd.so 
+    #pushd ddd
+    #cargo build -Z trace-macros && cp target/debug/libddd.so ../ddd.so && cp target/debug/libddd.so ../libddd.so 
+    #cargo build && cp target/debug/libddd.so ../ddd.so && cp target/debug/libddd.so ../libddd.so 
+    #popd
+
+    pushd scenes/t80
+    ./make_lib.sh
     popd
 
-    readelf -Ws --dyn-syms ddd.so | grep open
+    #readelf -Ws --dyn-syms ddd.so | grep open
 
     if [[ teal_result -eq 0 ]]; then
         echo 'compiled.'
