@@ -94,16 +94,32 @@ extern "C" {
 //mod chipmunk_strip;
 
 static x: i64 = 0;
-type cpInitChipmunk_proto = unsafe extern fn();
+type cpInitChipmunk_proto = unsafe extern "C" fn();
 
+#[feature(new_uninit)]
 #[macro_use]
 extern crate lazy_static;
 
+//#![feature(new_uninit)]
+use std::mem::MaybeUninit;
+
+/*
 lazy_static! {
-    static ref lib: libloading::Library = libloading::Library::new("libchipmunk.so").unwrap();
+    //static ref lib: libloading::Library = libloading::Library::new("libchipmunk.so").unwrap();
+    //static ref lib: libloading::Library = libloading::Library::new("libchipmunk.so");
+    //static ref lib = libloading::Library::new("libchipmunk.so");
+    //static ref lib: Box<libloading::Library> = Box::new(libloading::Library::new("libchipmunk.so"));
+    static ref lib: Box<MaybeUninit<libloading::Library>> = Box::<libloading::Library>::new_uninit();
     //static ref cpInitChipmunk: libloading::Symbol<cpInitChipmunk_proto> = lib.get(b"cpInitChipmunk");
-    static ref cpInitChipmunk: libloading::Symbol<'static cpInitChipmunk_proto> = lib.get(b"cpInitChipmunk");
+    //static ref cpInitChipmunk: libloading::Symbol<'static cpInitChipmunk_proto> = lib.get(b"cpInitChipmunk");
 }
+*/
+
+//static lib: Box<MaybeUninit<libloading::Library>> = Box::<libloading::Library>::new_uninit();
+//static mut lib: MaybeUninit<libloading::Library>> = MaybeUninit<libloading::Library>::new_uninit();
+//static mut lib: MaybeUninit<libloading::Library> = MaybeUninit<libloading::Library>::uninit();
+static mut lib: MaybeUninit<libloading::Library> = MaybeUninit::<libloading::Library>::uninit();
+static mut cpInitChipmunk: MaybeUninit<libloading::Symbol<cpInitChipmunk_proto>> = MaybeUninit::<libloading::Symbol<cpInitChipmunk_proto>>::uninit();
 
 /*
  *fn call_dynamic() {
@@ -122,9 +138,39 @@ fn init(_: &Lua, _: ()) -> LuaResult<()> {
     //unsafe {
         //snappy_compress(ptr::null_mut, 19, ptr::null_mut, ptr::null_mut);
     //}
+    
+    //unsafe {
+        //cpInitChipmunk();
+    //}
+    
     unsafe {
-        cpInitChipmunk();
+        let loaded = libloading::Library::new("libchipmunk.so").unwrap();
+        lib.write(loaded);
     }
+
+    unsafe {
+        let role = &mut *lib.as_mut_ptr();
+        //cpInitChipmunk.write(role.get::<libloading::Library>(b"cpInitChipmunk"));
+        //cpInitChipmunk = role.get::<libloading::Library>(b"cpInitChipmunk").unwrap();
+        let something = role.get::<libloading::Library>(b"cpInitChipmunk");
+
+        match something {
+            Ok(fun) => {
+                //cpInitChipmunk.write(fun as cpInitChipmunk_proto);
+                //fun();
+                //cpInitChipmunk.write(fun);
+            },
+            Err(error) => {
+                panic!("Blah-blah-blah {}", error);
+            }
+        }
+
+        //let x = role.get(b"cpInitChipmunk").unwrap();
+        //x();
+        //cpInitChipmunk.write(role.get::<libloading::Library>(b"cpInitChipmunk").unwrap());
+    }
+    //cpInitChipmunk = lib.get(b"cpInitChipmunk");
+
     println!("inited");
     Ok(())
 }
