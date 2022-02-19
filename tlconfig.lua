@@ -63,8 +63,8 @@ return {
     --source_dir = "src",
     --build_dir = "app",
     include_dir = {
-        "ddd",
-        "ddd/target/debug",
+        --"ddd",
+        --"ddd/target/debug",
         "lib",
         "src",
         "include",
