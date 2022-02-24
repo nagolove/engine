@@ -32,8 +32,15 @@ function0()
     #cargo build && cp target/debug/libddd.so ../ddd.so && cp target/debug/libddd.so ../libddd.so 
     #popd
 
-    pushd scenes/t80
+    pushd scenes/$@
     ./make_lib.sh
+    local make_result=$?
+    if [[ make_result -eq 0 ]]; then
+        echo "scenes/$@ library not compiled."
+        kill 1
+    else
+        echo "scenes/$@ library compiled."
+    fi
     popd
 
     #readelf -Ws --dyn-syms ddd.so | grep open

@@ -22,5 +22,5 @@ end
 
 -- Не ловится ошибка, что отсутствует реализация Pipeline.new()
 -- Компиляция успешная, падение происходит во время выполнения.
-local pipeline = Pipeline.new()
+--local pipeline = Pipeline.new()
 

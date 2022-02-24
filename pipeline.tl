@@ -258,6 +258,8 @@ function Pipeline:pushCodeFromFile(name: string, fname: string)
     local content = love.filesystem.read(path)
     if not content then
         error('Could not load: ' .. path)
+    else
+        print(name, 'loaded from', path)
     end
     self:pushCode(name, content)
 end

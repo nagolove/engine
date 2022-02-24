@@ -111,6 +111,7 @@ end
 
 local ids: {string: BindReference} = {}
 
+--[[
 local function combo2str(stroke: KeyConfig.BindAccord): string
     local res = ""
     if stroke.mod then
@@ -126,6 +127,7 @@ local function combo2str(stroke: KeyConfig.BindAccord): string
     end
     return '[' .. res .. ']'
 end
+--]]
 
 function KeyConfig.clear()
     shortcutsDown = {}
@@ -172,7 +174,8 @@ function KeyConfig.prepareDrawing()
     --]]
 end
 
-function KeyConfig.draw(x: number, y: number)
+--function KeyConfig.draw(x: number, y: number)
+function KeyConfig.draw(_: number, _: number)
     --[[
     if not shortcutsList then
         KeyConfig.prepareDrawing()
@@ -183,7 +186,8 @@ function KeyConfig.draw(x: number, y: number)
     --]]
 end
 
-function KeyConfig.updateList(dt: number)
+--function KeyConfig.updateList(dt: number)
+function KeyConfig.updateList(_: number)
     --[[
     if shortcutsList then
         shortcutsList:update(dt)
@@ -368,7 +372,8 @@ function KeyConfig.test(shortcuts: {KeyConfig.Shortcut}, isPressed: IsPressed)
                     end
                 end
                 if pressed and stroke.action then
-                    local rebuildlist, newShortcut: boolean, KeyConfig.Shortcut = stroke.action(stroke)
+                    --local rebuildlist, newShortcut: boolean, KeyConfig.Shortcut = stroke.action(stroke)
+                    local rebuildlist, _: boolean, KeyConfig.Shortcut = stroke.action(stroke)
                     if rebuildlist then
                         --shortcutsList = nil
                         --shortcuts[i] = shallowCopy(newShortcut)

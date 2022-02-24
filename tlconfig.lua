@@ -70,6 +70,7 @@ return {
         "include",
 
         "scenes/t80/",
+        "scenes/lua_capi/",
         "scenes/sri/",
     },
     include = {
@@ -77,6 +78,7 @@ return {
         "scenes/empty_mt/*.tl",
         "scenes/mt_coro/*.tl",
         "scenes/chipmunk_mt/*.tl",
+        "scenes/lua_capi/*.tl",
 
         "src/*.tl",
         "*.tl",

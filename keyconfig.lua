@@ -111,21 +111,23 @@ local BindReference = {}
 
 local ids = {}
 
-local function combo2str(stroke)
-   local res = ""
-   if stroke.mod then
-      for k, key in ipairs(stroke.mod) do
-         res = res .. key
-         if k < #stroke.mod then
-            res = res .. " + "
-         end
-      end
-      res = res .. " + " .. stroke.key
-   else
-      res = stroke.key
-   end
-   return '[' .. res .. ']'
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function KeyConfig.clear()
    shortcutsDown = {}
@@ -172,7 +174,8 @@ function KeyConfig.prepareDrawing()
 
 end
 
-function KeyConfig.draw(x, y)
+
+function KeyConfig.draw(_, _)
 
 
 
@@ -183,7 +186,8 @@ function KeyConfig.draw(x, y)
 
 end
 
-function KeyConfig.updateList(dt)
+
+function KeyConfig.updateList(_)
 
 
 
@@ -368,7 +372,8 @@ function KeyConfig.test(shortcuts, isPressed)
                end
             end
             if pressed and stroke.action then
-               local rebuildlist, newShortcut = stroke.action(stroke)
+
+               local rebuildlist, _ = stroke.action(stroke)
                if rebuildlist then
 
 
