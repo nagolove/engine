@@ -44,6 +44,7 @@ local reading_timeout = 0.05
 Какие инструменты отладки можно предложить?
 ]]
 global type Pipeline = record
+
     new: function(scene_prefix: string): Pipeline
 
     -- Вход в секцию отправки
@@ -62,7 +63,6 @@ global type Pipeline = record
     -- Блокирующий вызов(синхронизация с потоком рисования.
     sync: function(Pipeline)
 
-    --waitForReady: function(Pipeline): boolean
     waitForReady: function(Pipeline): boolean
 
     pushCode: function(Pipeline, name: string, code: string)
@@ -205,7 +205,6 @@ function Pipeline:sync()
     self.counter = 0
 end
 
--- used in main(render) thread
 function Pipeline:waitForReady(): boolean
     local timeout = 0.5
     local is_ready: string = draw_ready_channel:demand(timeout) as string
@@ -225,7 +224,8 @@ function Pipeline:waitForReady(): boolean
     else
         local msg = '%{red} draw_ready_channel:demand() is not respond'
         debug_print("graphics", colorize(msg))
-        os.exit(ecodes.ERROR_NO_READY_DEMAND)
+        --os.exit(ecodes.ERROR_NO_READY_DEMAND)
+        --return 'timeout'
     end
 
     return false
@@ -264,6 +264,7 @@ function Pipeline:pushCodeFromFile(name: string, fname: string)
     self:pushCode(name, content)
 end
 
+-- обработка разных запросов(ширина и высота вывода) к рендеру и выдача ответов
 local function process_queries()
     local query: string
     repeat
