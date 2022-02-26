@@ -103,6 +103,12 @@ local reading_timeout = 0.05
 
 
 
+
+
+
+
+
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -205,7 +211,6 @@ function Pipeline:sync()
    self.counter = 0
 end
 
-
 function Pipeline:waitForReady()
    local timeout = 0.5
    local is_ready = draw_ready_channel:demand(timeout)
@@ -225,7 +230,8 @@ function Pipeline:waitForReady()
    else
       local msg = '%{red} draw_ready_channel:demand() is not respond'
       debug_print("graphics", colorize(msg))
-      os.exit(ecodes.ERROR_NO_READY_DEMAND)
+
+
    end
 
    return false
@@ -263,6 +269,7 @@ function Pipeline:pushCodeFromFile(name, fname)
    end
    self:pushCode(name, content)
 end
+
 
 local function process_queries()
    local query

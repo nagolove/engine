@@ -22,7 +22,7 @@ if not im_ok then
 end
 
 if love.system.getOS() == 'Windows' then
-   love.filesystem.setCRequirePath(love.filesystem.getCRequirePath() .. ";lib\\?.dll")
+
 end
 print("package.path", package.path)
 
@@ -52,10 +52,10 @@ dprint.set_filter({
    [1] = { 'graphics' },
 })
 
-function threaderror(thread, errorstr)
-   print('threaderror')
+function love.threaderror(thread, errorstr)
+   print(colorize('${greeb}threaderror'))
    local fmt = "Something wrong in thread %s with %s"
-   print(format(fmt, tostring(thread), errorstr))
+   print(colorize("${red}" .. format(fmt, tostring(thread), errorstr)))
    os.exit(ecodes.ERROR_THREAD)
 end
 
