@@ -108,7 +108,6 @@ local reading_timeout = 0.05
 
 
 
-
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -504,6 +503,18 @@ function Pipeline:pullRenderCode()
 
 end
 
+function Pipeline:openPushAndClose(func_name, ...)
+   self:open(func_name)
+   self:push(...)
+
+
+
+
+
+
+
+   self:close()
+end
 
 function Pipeline:openAndClose(func_name)
    self:open(func_name)
