@@ -54,7 +54,12 @@ global type Pipeline = record
     push: function(Pipeline, ...:any)
     -- Завершение секции отправки
     close: function(Pipeline)
+
+    -- отправить команду без параметров
     openAndClose: function(Pipeline, func_name: string)
+
+    -- отправить команду с параметрами
+    openPushAndClose: function(Pipeline, func_name: string, ...:any)
 
     -- Отправить имя функции для рисования.
     --pushName: function(Pipeline, name: string)
@@ -498,6 +503,18 @@ function Pipeline:pullRenderCode()
     -- }}}
 end
 
+function Pipeline:openPushAndClose(func_name: string, ...:any)
+    self:open(func_name)
+    self:push(...)
+
+    --for i = 1, select('#', ...) do
+        --local argument = select(i, ...)
+        --self.counter = self.counter + 1
+        --graphic_command_channel:push(argument)
+    --end
+
+    self:close()
+end
 
 function Pipeline:openAndClose(func_name: string)
     self:open(func_name)
