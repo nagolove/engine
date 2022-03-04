@@ -108,6 +108,7 @@ local reading_timeout = 0.05
 
 
 
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -369,6 +370,7 @@ function Pipeline:render_internal()
             ok, errmsg = resume(coro)
 
             if not ok then
+               custom_print('%{blue} resume render coroutine error.')
                custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
                custom_print('%{cyan}' .. debug.traceback())
                custom_print('%{red}' .. errmsg)
