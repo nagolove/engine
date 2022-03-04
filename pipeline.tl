@@ -79,6 +79,7 @@ global type Pipeline = record
     render_internal: function(Pipeline)
 
     printAvaibleFunctions: function(Pipeline)
+    -- возвращает количество байт переданных за секунду через канал команд
     get_received_in_sec: function(Pipeline): integer
 
     getDimensions: function(Pipeline): integer, integer
@@ -369,6 +370,7 @@ function Pipeline:render_internal()
                 ok, errmsg = resume(coro) as (boolean, string)
 
                 if not ok then
+                    custom_print('%{blue} resume render coroutine error.')
                     custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
                     custom_print('%{cyan}' .. debug.traceback())
                     custom_print('%{red}' .. errmsg)
