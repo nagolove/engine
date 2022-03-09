@@ -109,6 +109,8 @@ local reading_timeout = 0.05
 
 
 
+
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -257,6 +259,16 @@ function Pipeline:pushCode(name, code)
 
    graphic_code_channel:push(code)
    graphic_code_channel:push(name)
+end
+
+function Pipeline:pushCodeFromFileRoot(name, fname)
+   local content = love.filesystem.read(fname)
+   if not content then
+      error('Could not load: ' .. fname)
+   else
+      print(name, 'loaded from', fname)
+   end
+   self:pushCode(name, content)
 end
 
 function Pipeline:pushCodeFromFile(name, fname)

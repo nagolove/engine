@@ -53,6 +53,8 @@ require('love')
 
 
 
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
