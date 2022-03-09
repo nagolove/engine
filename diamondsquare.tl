@@ -29,18 +29,20 @@ global record DiamonAndSquare
     roughness: integer
     rng: love.math.RandomGenerator
 
+    -- PUBLIC
     new: function(mapn: integer, rng: love.math.RandomGenerator): DiamonAndSquare
 
-    random: function(DiamonAndSquare, min: number, max: number): number
-
+    -- основная функция - сознать карту высот
+    eval: function(DiamonAndSquare): DiamonAndSquare
     -- сохранить в строку
     serialize: function(DiamonAndSquare): string
     -- сохранить в файл
     save: function(DiamonAndSquare, fname: string)
     -- загрузить из файла
     load: function(DiamonAndSquare, fname: string)
-    -- генерировать карту высот
-    eval: function(DiamonAndSquare): DiamonAndSquare
+
+    -- PRIVATE
+    random: function(DiamonAndSquare, min: number, max: number): number
 
     -- нормализовать значения высот к диапазону 0..1
     normalizeInplace: function(DiamonAndSquare)
