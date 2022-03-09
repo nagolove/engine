@@ -72,6 +72,8 @@ global type Pipeline = record
 
     pushCode: function(Pipeline, name: string, code: string)
     pushCodeFromFile: function(Pipeline, name: string, fname: string)
+    -- загрузить код без префикс-каталога сцены
+    pushCodeFromFileRoot: function(name: string, fname: string)
     pullRenderCode: function(Pipeline)
     render: function(Pipeline)
 
@@ -257,6 +259,16 @@ function Pipeline:pushCode(name: string, code: string)
 
     graphic_code_channel:push(code)
     graphic_code_channel:push(name)
+end
+
+function Pipeline:pushCodeFromFileRoot(name: string, fname: string)
+    local content = love.filesystem.read(fname)
+    if not content then
+        error('Could not load: ' .. fname)
+    else
+        print(name, 'loaded from', fname)
+    end
+    self:pushCode(name, content)
 end
 
 function Pipeline:pushCodeFromFile(name: string, fname: string)
