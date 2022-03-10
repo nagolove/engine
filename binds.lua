@@ -1,4 +1,4 @@
-require("camera")
+local TCamera = require("camera")
 require("keyconfig")
 
 local inspect = require("inspect")

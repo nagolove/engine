@@ -43,7 +43,7 @@ local reading_timeout = 0.05
 
 
 
- Pipeline = {}
+local Pipeline = {}
 
 
 
@@ -534,3 +534,5 @@ function Pipeline:openAndClose(func_name)
    self:open(func_name)
    self:close()
 end
+
+return Pipeline

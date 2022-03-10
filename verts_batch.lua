@@ -109,7 +109,7 @@ local function render_mesh()
 
 
    for k, _ in ipairs(verts) do
-      local sub_vert = {}
+
 
 
 

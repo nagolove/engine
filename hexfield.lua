@@ -12,11 +12,11 @@ local gr = love.graphics
 
 
 function getHexPolygonWidth(hex)
-   return dist(hex[3], hex[4], hex[11], hex[12])
+   return distance(hex[3], hex[4], hex[11], hex[12])
 end
 
 function getHexPolygonHeight(hex)
-   return dist(hex[1], hex[2], hex[7], hex[8])
+   return distance(hex[1], hex[2], hex[7], hex[8])
 end
 
  Hex = {}
@@ -176,7 +176,7 @@ end
 
 function addLine(array, x1, y1, x2, y2)
 
-   local len = dist(x1, y1, x2, y2)
+   local len = distance(x1, y1, x2, y2)
 
 
    print("array", type(array))

@@ -2,7 +2,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 require("love")
-require("camera")
+local TCamera = require("camera")
 
 
 
@@ -52,7 +52,7 @@ require("camera")
 
 
 
-function trim(s)
+function trim_str(s)
    return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
 
@@ -128,7 +128,7 @@ function safeSend(shader, name, ...)
    end
 end
 
-function dist(x1, y1, x2, y2)
+function distance(x1, y1, x2, y2)
    return ((x2 - x1) ^ 2 + (y2 - y1) ^ 2) ^ 0.5
 end
 

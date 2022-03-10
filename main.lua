@@ -6,7 +6,7 @@ require("jitoptions").on()
 require("love")
 require("common")
 require("log")
-require('pipeline')
+local Pipeline = require('pipeline')
 require("keyconfig")
 
 

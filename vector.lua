@@ -86,7 +86,7 @@ function vector:toPolar()
    return atan2(self.x, self.y), self:len()
 end
 
-function fromPolar(angle, radius)
+local function fromPolar(angle, radius)
    radius = radius or 1
    return new(cos(angle) * radius, sin(angle) * radius)
 end
@@ -258,7 +258,7 @@ function vector:trimmed(maxLen)
    return self:clone():trimInplace(maxLen)
 end
 
- VecModule = {}
+local VecModule = {}
 
 
 

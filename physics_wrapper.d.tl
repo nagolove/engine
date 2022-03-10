@@ -1,6 +1,6 @@
 --local Chipmunk = require 'chipmunk'
 local Cm = require 'chipmunk'
-require 'pipeline'
+local Pipeline = require 'pipeline'
 
 -- Teal - поддержка числовых перечислений. Как может выглядеть?
 --global CP_CIRCLE_SHAPE = 0

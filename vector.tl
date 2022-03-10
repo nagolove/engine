@@ -86,7 +86,7 @@ function vector:toPolar(): number, number
     return atan2(self.x, self.y), self:len()
 end
 
-function fromPolar(angle: number, radius: number): vector
+local function fromPolar(angle: number, radius: number): vector
     radius = radius or 1
     return new(cos(angle) * radius, sin(angle) * radius)
 end
@@ -258,7 +258,7 @@ function vector:trimmed(maxLen: number): vector
     return self:clone():trimInplace(maxLen)
 end
 
-global record VecModule
+local record VecModule
     new  : function(number, number): vector
     fromPolar       : function(number, number): vector
     randomDirection : function(number, number): vector

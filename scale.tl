@@ -1,4 +1,4 @@
-require "camera"
+local TCamera = require "camera"
 
 -- коэффициент на который домножаю при переводе из метров в пиксели
 --M2PIX = 10
@@ -22,7 +22,7 @@ local function scalePoints2PIX(t: {any: any}): {any: any}
     return res
 end
 
-local function scalePoint2CameraWorldCoords(cam: Camera, points: {number}): {number}
+local function scalePoint2CameraWorldCoords(cam: TCamera, points: {number}): {number}
     local res: {number} = {}
     for i = 1, #points - 1 do
         local x, y = cam:worldCoords(points[i], points[i + 1])

@@ -43,7 +43,7 @@ local reading_timeout = 0.05
 
 Какие инструменты отладки можно предложить?
 ]]
-global type Pipeline = record
+local type Pipeline = record
 
     new: function(scene_prefix: string): Pipeline
 
@@ -534,3 +534,5 @@ function Pipeline:openAndClose(func_name: string)
     self:open(func_name)
     self:close()
 end
+
+return Pipeline

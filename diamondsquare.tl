@@ -6,14 +6,16 @@
 -- https://www.youtube.com/watch?v=4GuAV1PnurU
 
 require 'love'
+local Pipeline = require 'pipeline'
 
-global record DiamonAndSquare
+local record DiamonAndSquare
 
     record State
         map: {{number}}
         mapSize: integer
     end
 
+    pipeline: Pipeline
     scale: number
     maxcanvassize: integer
     --rez: integer
@@ -30,7 +32,11 @@ global record DiamonAndSquare
     rng: love.math.RandomGenerator
 
     -- PUBLIC
-    new: function(mapn: integer, rng: love.math.RandomGenerator): DiamonAndSquare
+    new: function(
+        mapn: integer, 
+        rng: love.math.RandomGenerator,
+        pl: Pipeline
+    ): DiamonAndSquare
 
     -- основная функция - сознать карту высот
     eval: function(DiamonAndSquare): DiamonAndSquare
@@ -131,13 +137,20 @@ function DiamonAndSquare:normalizeInplace()
     end
 end
 
-function DiamonAndSquare.new(mapn: integer, rng: love.math.RandomGenerator): DiamonAndSquare
+function DiamonAndSquare.new(
+    mapn: integer, 
+    rng: love.math.RandomGenerator,
+    pl: Pipeline
+): DiamonAndSquare
+
     if type(mapn) ~= 'number' then
         error('No mapn parameter in constructor.')
     end
     local self: DiamonAndSquare
     self = setmetatable({} as DiamonAndSquare, DiamonAndSquare_mt)
 
+    assert(pl, "pipeline is nil")
+    self.pipeline = pl
 	self.map = {}
 	self.mapSize = math.ceil(2 ^ mapn) + 1 -- 1025
 
@@ -176,6 +189,7 @@ function DiamonAndSquare.new(mapn: integer, rng: love.math.RandomGenerator): Dia
 	
     return self
 end
+--]]
 
 local floor = math.floor
 

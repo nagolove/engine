@@ -84,8 +84,8 @@ end
 
 local function replaceCodes(str: string): string
     str = string.gsub(str,"(%%{(.-)})", 
-        function(_: string, str: string): string
-            return escapeKeys(str) 
+        function(_: string, s: string): string
+            return escapeKeys(s) 
         end
     )
     return str

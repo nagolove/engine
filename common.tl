@@ -2,7 +2,7 @@
 -- vim: set colorcolumn=85
 
 require "love"
-require "camera"
+local TCamera = require "camera"
 
 -- Однопоточная или мультипоточная схема. 
 -- По-умолчанию используется однопоточная схема.
@@ -26,7 +26,7 @@ global type Scene = record
     keypressed: function(string)
     keyreleased: function(string)
     wheelmoved: function(number, number)
-    getCamera: function(): Camera
+    getCamera: function(): TCamera
     -- Что-бы сцена исполнялась в отдельном потоке нужно реализовать следущую
     -- функцию с возвратом "multi"
     getSceneType: function(): SceneType
@@ -52,7 +52,7 @@ end
 
 -- Обрезать пробелы с друх сторон строки.
 -- from http://lua-users.org/wiki/StringTrim
-function trim(s: string): string
+function trim_str(s: string): string
    return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
 
@@ -128,7 +128,7 @@ function safeSend(shader: love.graphics.Shader, name: string, ...: any)
   end
 end
 
-function dist(x1: number, y1: number, x2: number, y2: number): number
+function distance(x1: number, y1: number, x2: number, y2: number): number
     return ((x2 - x1) ^ 2 + (y2 - y1) ^ 2) ^ 0.5 
 end
 

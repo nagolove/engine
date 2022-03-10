@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall
 
 
 
@@ -6,8 +6,14 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 require('love')
+local Pipeline = require('pipeline')
 
- DiamonAndSquare = {State = {}, }
+local DiamonAndSquare = {State = {}, }
+
+
+
+
+
 
 
 
@@ -131,13 +137,20 @@ function DiamonAndSquare:normalizeInplace()
    end
 end
 
-function DiamonAndSquare.new(mapn, rng)
+function DiamonAndSquare.new(
+   mapn,
+   rng,
+   pl)
+
+
    if type(mapn) ~= 'number' then
       error('No mapn parameter in constructor.')
    end
    local self
    self = setmetatable({}, DiamonAndSquare_mt)
 
+   assert(pl, "pipeline is nil")
+   self.pipeline = pl
    self.map = {}
    self.mapSize = math.ceil(2 ^ mapn) + 1
 
@@ -176,6 +189,7 @@ function DiamonAndSquare.new(mapn, rng)
 
    return self
 end
+
 
 local floor = math.floor
 

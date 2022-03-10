@@ -109,7 +109,7 @@ local function render_mesh()
     --mesh:setVertices(mesh_verts)
 
     for k, _ in ipairs(verts) do
-        local sub_vert: {number} = {}
+        --local sub_vert: {number} = {}
         --for i = (k - 1) * 6, 6 do
             --table.insert(sub_vert, mesh_verts[i])
         --end

@@ -12,11 +12,11 @@ local gr = love.graphics
 --local vec2 = require "vector-light"
 
 function getHexPolygonWidth(hex: {number}): number
-    return dist(hex[3], hex[4], hex[11], hex[12])
+    return distance(hex[3], hex[4], hex[11], hex[12])
 end
 
 function getHexPolygonHeight(hex: {number}): number
-    return dist(hex[1], hex[2], hex[7], hex[8])
+    return distance(hex[1], hex[2], hex[7], hex[8])
 end
 
 global record Hex 
@@ -176,7 +176,7 @@ end
 -- добавляет линию из пары треугольников и шести вершин
 function addLine(array: {{number}}, x1: number, y1: number, x2: number, y2: number)
     --TODO Оптимизировать вектора
-    local len = dist(x1, y1, x2, y2)
+    local len = distance(x1, y1, x2, y2)
 
     --local dirx, diry = vec(x2 - x1) / len, vec(y2 - y1) / len
     print("array", type(array))

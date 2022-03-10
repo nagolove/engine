@@ -1,4 +1,4 @@
-require "camera"
+local TCamera = require "camera"
 require "keyconfig"
 
 local inspect = require "inspect"
@@ -23,7 +23,7 @@ local cameraSettings: CameraSettings = {
 local Shortcut = KeyConfig.Shortcut
 local animTimer = require "Timer".new()
 
-local function bindCameraControl(camera: Camera)
+local function bindCameraControl(camera: TCamera)
     local cam = camera
     print("bindCameraControl", inspect(cam))
 
