@@ -107,8 +107,10 @@ function DiamonAndSquare:eval(): DiamonAndSquare
         local stop = false
         repeat
             self:square()
+            -- Здесь отправлять данные на рисование промежуточного результата.
             coroutine.yield()
             stop = self:diamond()
+            -- Здесь отправлять данные на рисование промежуточного результата.
         until stop
         self:normalizeInplace()
     end)
@@ -157,15 +159,37 @@ function DiamonAndSquare.new(
     local map: {{number}} = {}
     local yield = coroutine.yield
     local mapSize: integer = 0
+    -- Размер одного прямоугольника карты в пикселях.
+    local rez = 32
+    local gr = love.graphics
 
-    love.graphics.setFont(font)
-        love.graphics.setColor {0, 0, 0, 1}
-        local y = posy
-        for _, v in pairs(buffer) do
-            love.graphics.print(v, posx, y)
-            y = y + font:getHeight()
+    local function draw()
+        x = x or 0
+        y = y or 0
+
+        for i = 1, mapSize do
+            for j = 1, mapSize do
+                local c = map[i] and map[i][j] or nil
+                if c then
+                    gr.setColor(color(c^2))
+                    gr.rectangle("fill", x + rez*i, y + rez*j, rez, rez)
+
+                    --if map_n < 5 then
+                        --if c < 0.75 then
+                            --love.graphics.setColor(1,1,1)
+                        --else
+                            --love.graphics.setColor(0,0,0)
+                        --end
+                        --love.graphics.print(tostring(math.floor(c*100)), rez*i, rez*j)
+                    --end
+
+                end
+            end
         end
-        local function flush()
+    end
+
+    local function flush()
+        draw()
     end
 
     local function map()
