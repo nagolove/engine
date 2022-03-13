@@ -151,6 +151,66 @@ function DiamonAndSquare.new(
 
     assert(pl, "pipeline is nil")
     self.pipeline = pl
+
+    self.pipeline:pushCode('diamondsquare', [[
+    local color = require 'height_map'.color
+    local map: {{number}} = {}
+    local yield = coroutine.yield
+    local mapSize: integer = 0
+
+    love.graphics.setFont(font)
+        love.graphics.setColor {0, 0, 0, 1}
+        local y = posy
+        for _, v in pairs(buffer) do
+            love.graphics.print(v, posx, y)
+            y = y + font:getHeight()
+        end
+        local function flush()
+    end
+
+    local function map()
+        mapSize = graphic_command_channel:demand() as integer
+        if type(mapSize) ~= 'number' then
+            error('diamondsquare: mapSize should be an integer value.')
+        end
+
+        local s = graphic_command_channel:demand() as string
+        if type(s) ~= 'string' then
+            error('diamondsquare: map data should be a string value.')
+        end
+
+        local ok, errmsg = pcall(function()
+            map = load(s)()
+        end) as (boolean, string)
+        if not ok then
+            error('diamondsquare: Could not load map data.')
+        end
+    end
+
+    while true do
+        local cmd: string
+
+        repeat
+            cmd = graphic_command_channel:demand() as string
+
+            -- Загрузить карту и нарисовать ее в холст.
+            if cmd == "map" then
+                map()
+                break
+            -- Рисовать карту из холста.
+            elseif cmd == 'flush' then
+                flush()
+                break
+            else
+                error('diamondsquare unkonwn command: ' .. cmd)
+            end
+
+        until not cmd
+
+        yield()
+    end
+    ]])
+
 	self.map = {}
 	self.mapSize = math.ceil(2 ^ mapn) + 1 -- 1025
 
@@ -182,7 +242,7 @@ function DiamonAndSquare.new(
 
 		local value = self.rng:random()
 
-		value = 0.5-0.5*math.cos(value*math.pi)
+		value = 0.5 - 0.5 * math.cos(value * math.pi)
 		self.map[i] = self.map[i] or {}
 		self.map[i][j] = value
 	end
