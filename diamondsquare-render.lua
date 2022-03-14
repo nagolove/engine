@@ -1,29 +1,40 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local load = _tl_compat and _tl_compat.load or load; local pcall = _tl_compat and _tl_compat.pcall or pcall
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall
 local yield = coroutine.yield
 local gr = love.graphics
 local inspect = require("inspect")
-local color = require('height_map').color
+local get_color = require('height_map').color
 local map = {}
 
 local mapSize = 0
 
 local rez = 32
 
-local function draw()
+local function sub_draw(i1, i2, j1, j2)
    local x = 0
    local y = 0
 
-   print('diamondsquare')
-   print('draw')
-   print('mapSize', mapSize)
-   print('#map, #map[1]', #map, #map[1])
 
-   for i = 1, mapSize do
-      for j = 1, mapSize do
+
+
+
+
+
+
+
+
+   local abs_i, abs_j = i1, j1
+
+   for i = i1, i2 do
+      abs_j = j1
+      for j = j1, j2 do
          local c = map[i] and map[i][j] or nil
          if c then
-            gr.setColor(color(c ^ 2))
-            gr.rectangle("fill", x + rez * i, y + rez * j, rez, rez)
+            local color = get_color(c ^ 2)
+
+
+            gr.setColor(color)
+
+            gr.rectangle("fill", x + rez * abs_i, y + rez * abs_j, rez, rez)
 
 
 
@@ -35,12 +46,30 @@ local function draw()
 
 
          end
+         abs_j = abs_j + 1
       end
+      abs_i = abs_i + 1
    end
 end
 
 local function flush()
-   draw()
+
+
+   local ceil = math.ceil
+
+   local r = math.random()
+   if r < 1 / 4 then
+      sub_draw(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
+   elseif r > 1 / 4 and r < 1 / 4 * 2 then
+      sub_draw(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
+   elseif r > 1 / 4 * 2 and r < 1 / 4 * 3 then
+      sub_draw(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
+   else
+      sub_draw(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
+   end
+
+
+
 end
 
 local function read_map()
@@ -55,17 +84,13 @@ local function read_map()
    end
 
    local decompress = love.data.decompress
-   local s = 'wefefwe'
 
-   local uncompressed = decompress("string", 'gzip', s)
-   if not uncompressed then
-      error('diamondsquare: could not decompress map data.')
-   end
+   local uncompressed = decompress("string", 'gzip', compressed)
+
 
    local ok, errmsg = pcall(function()
+      map = load(uncompressed)()
 
-      map = load(uncompressed)
-      print('map', inspect(map))
    end)
    if not ok then
       error('diamondsquare: Could not load map data.')

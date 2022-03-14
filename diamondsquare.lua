@@ -72,6 +72,7 @@ local DiamonAndSquare = {State = {}, }
 
 
 
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
@@ -80,6 +81,16 @@ local serpent = require('serpent')
 
 function DiamonAndSquare:render()
    self.pipeline:openPushAndClose('diamondsquare', 'flush')
+end
+
+function DiamonAndSquare:send2render()
+   local uncompressed = serpent.dump(self.map)
+   local compress = love.data.compress
+   local compressed = compress('string', 'gzip', uncompressed, 9)
+   print('#compressed', #compressed)
+   self.pipeline:openPushAndClose(
+   'diamondsquare', 'map', self.mapSize, compressed)
+
 end
 
 function DiamonAndSquare:load(fname)
@@ -175,12 +186,19 @@ function DiamonAndSquare.new(
    'diamondsquare', 'diamondsquare-render.lua')
 
 
+   self.rng = rng
+   self.mapn = mapn
+   self:reset()
+
+   return self
+end
+
+function DiamonAndSquare:reset()
    self.map = {}
-   self.mapSize = math.ceil(2 ^ mapn) + 1
+   self.mapSize = math.ceil(2 ^ self.mapn) + 1
 
    self.chunkSize = self.mapSize - 1
    self.roughness = 2
-   self.rng = rng
 
    local corners = {
       {
@@ -210,8 +228,6 @@ function DiamonAndSquare.new(
       self.map[i] = self.map[i] or {}
       self.map[i][j] = value
    end
-
-   return self
 end
 
 
