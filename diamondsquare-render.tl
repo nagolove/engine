@@ -66,6 +66,28 @@ local function crazy_test()
     end
 end
 
+local record CanvasNode
+    canvas: gr.Canvas
+
+    -- индексы
+    i1: integer
+    i2: integer
+    j1: integer
+    j2: integer
+end
+
+local canvas_nodes: {CanvasNode} = {}
+
+local function newCanvasNode(i1: integer, i2: integer, j1: integer, j2: integer)
+    local w, h = rez * ceil(mapSize / 2), rez * ceil(mapSize / 2)
+    table.insert(canvas_nodes, {canvas = gr.newCanvas(w, h),
+        i1 = i1,
+        i2 = i2,
+        j1 = j1,
+        j2 = j2,
+    })
+end
+
 local function flush()
     --crazy_test()
 
@@ -73,6 +95,9 @@ local function flush()
     sub_draw(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
     sub_draw(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
     sub_draw(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
+
+    gr.setColor{1, 0, 0, 1}
+    gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
 end
 
 local function read_map()
@@ -98,6 +123,11 @@ local function read_map()
     if not ok then
         error('diamondsquare: Could not load map data.')
     end
+
+    newCanvasNode(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
+    newCanvasNode(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
+    newCanvasNode(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
+    newCanvasNode(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
 end
 
 while true do
