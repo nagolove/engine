@@ -81,6 +81,7 @@ global type KeyConfig = record
     getShortcutsDown: function(): {KeyConfig.Shortcut}
     getShortcutsPressed: function(): {KeyConfig.Shortcut}
     -- ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ EXTERNAL INTERFACE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑ --
+
     -- INTERNAL ↓↓ -- INTERNAL -- ↓↓ INTERNAL --
     prepareDrawing: function()
     checkExistHotkey: function(list: {Shortcut}, combo: BindAccord): boolean
