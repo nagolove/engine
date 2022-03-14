@@ -61,11 +61,26 @@ local DiamonAndSquare = {State = {}, }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
 
 local serpent = require('serpent')
+
+function DiamonAndSquare:render()
+   self.pipeline:openPushAndClose('diamondsquare', 'flush')
+end
 
 function DiamonAndSquare:load(fname)
    local data, size = love.filesystem.read(fname)
@@ -86,19 +101,21 @@ function DiamonAndSquare:load(fname)
    end
 end
 
-function DiamonAndSquare:serialize()
-   local state = {
-      mapSize = self.mapSize,
-      map = self.map,
-   }
-   return serpent.dump(state)
-end
+
+
+
+
+
+
+
+
+
 
 function DiamonAndSquare:save(fname)
-   local succ, msg = love.filesystem.write(fname, self:serialize())
-   if not succ then
-      error('Could not save DiamonAndSquare to ' .. fname .. ': ' .. msg)
-   end
+
+
+
+
 end
 
 
@@ -154,86 +171,9 @@ function DiamonAndSquare.new(
    assert(pl, "pipeline is nil")
    self.pipeline = pl
 
-   self.pipeline:pushCode('diamondsquare', [[
-    local color = require 'height_map'.color
-    local map: {{number}} = {}
-    local yield = coroutine.yield
-    local mapSize: integer = 0
-    -- Размер одного прямоугольника карты в пикселях.
-    local rez = 32
-    local gr = love.graphics
+   self.pipeline:pushCodeFromFileRoot(
+   'diamondsquare', 'diamondsquare-render.lua')
 
-    local function draw()
-        x = x or 0
-        y = y or 0
-
-        for i = 1, mapSize do
-            for j = 1, mapSize do
-                local c = map[i] and map[i][j] or nil
-                if c then
-                    gr.setColor(color(c^2))
-                    gr.rectangle("fill", x + rez*i, y + rez*j, rez, rez)
-
-                    --if map_n < 5 then
-                        --if c < 0.75 then
-                            --love.graphics.setColor(1,1,1)
-                        --else
-                            --love.graphics.setColor(0,0,0)
-                        --end
-                        --love.graphics.print(tostring(math.floor(c*100)), rez*i, rez*j)
-                    --end
-
-                end
-            end
-        end
-    end
-
-    local function flush()
-        draw()
-    end
-
-    local function map()
-        mapSize = graphic_command_channel:demand() as integer
-        if type(mapSize) ~= 'number' then
-            error('diamondsquare: mapSize should be an integer value.')
-        end
-
-        local s = graphic_command_channel:demand() as string
-        if type(s) ~= 'string' then
-            error('diamondsquare: map data should be a string value.')
-        end
-
-        local ok, errmsg = pcall(function()
-            map = load(s)()
-        end) as (boolean, string)
-        if not ok then
-            error('diamondsquare: Could not load map data.')
-        end
-    end
-
-    while true do
-        local cmd: string
-
-        repeat
-            cmd = graphic_command_channel:demand() as string
-
-            -- Загрузить карту и нарисовать ее в холст.
-            if cmd == "map" then
-                map()
-                break
-            -- Рисовать карту из холста.
-            elseif cmd == 'flush' then
-                flush()
-                break
-            else
-                error('diamondsquare unkonwn command: ' .. cmd)
-            end
-
-        until not cmd
-
-        yield()
-    end
-    ]])
 
    self.map = {}
    self.mapSize = math.ceil(2 ^ mapn) + 1
