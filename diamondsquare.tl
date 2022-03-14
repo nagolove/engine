@@ -38,14 +38,25 @@ local record DiamonAndSquare
         pl: Pipeline
     ): DiamonAndSquare
 
+    --[[
+    Порядок использования:
+        eval() send2render() render()
+    или
+        eval() save() send2render() render()
+    или
+        load() send2render() render()
+    --]]
+
     -- основная функция - сознать карту высот
     eval: function(DiamonAndSquare): DiamonAndSquare
-    -- сохранить в строку
-    serialize: function(DiamonAndSquare): string
     -- сохранить в файл
     save: function(DiamonAndSquare, fname: string)
     -- загрузить из файла
     load: function(DiamonAndSquare, fname: string)
+    -- отправить на рисование
+    send2render: function(DiamonAndSquare)
+    -- рисовать
+    render: function(DiamonAndSquare)
 
     -- PRIVATE
     random: function(DiamonAndSquare, min: number, max: number): number
@@ -67,6 +78,10 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
 
 local serpent = require 'serpent'
 
+function DiamonAndSquare:render()
+    self.pipeline:openPushAndClose('diamondsquare', 'flush')
+end
+
 function DiamonAndSquare:load(fname: string)
     local data, size = love.filesystem.read(fname)
     if data then
@@ -86,6 +101,7 @@ function DiamonAndSquare:load(fname: string)
     end
 end
 
+--[[
 function DiamonAndSquare:serialize(): string
     local state: DiamonAndSquare.State = {
         mapSize = self.mapSize,
@@ -93,12 +109,13 @@ function DiamonAndSquare:serialize(): string
     }
     return serpent.dump(state)
 end
+--]]
 
 function DiamonAndSquare:save(fname: string)
-    local succ, msg = love.filesystem.write(fname, self:serialize())
-    if not succ then
-        error('Could not save DiamonAndSquare to ' .. fname .. ': ' .. msg)
-    end
+    --local succ, msg = love.filesystem.write(fname, self:serialize())
+    --if not succ then
+        --error('Could not save DiamonAndSquare to ' .. fname .. ': ' .. msg)
+    --end
 end
 
 -- добавить анимацию процесса разбиения
@@ -154,86 +171,9 @@ function DiamonAndSquare.new(
     assert(pl, "pipeline is nil")
     self.pipeline = pl
 
-    self.pipeline:pushCode('diamondsquare', [[
-    local color = require 'height_map'.color
-    local map: {{number}} = {}
-    local yield = coroutine.yield
-    local mapSize: integer = 0
-    -- Размер одного прямоугольника карты в пикселях.
-    local rez = 32
-    local gr = love.graphics
-
-    local function draw()
-        x = x or 0
-        y = y or 0
-
-        for i = 1, mapSize do
-            for j = 1, mapSize do
-                local c = map[i] and map[i][j] or nil
-                if c then
-                    gr.setColor(color(c^2))
-                    gr.rectangle("fill", x + rez*i, y + rez*j, rez, rez)
-
-                    --if map_n < 5 then
-                        --if c < 0.75 then
-                            --love.graphics.setColor(1,1,1)
-                        --else
-                            --love.graphics.setColor(0,0,0)
-                        --end
-                        --love.graphics.print(tostring(math.floor(c*100)), rez*i, rez*j)
-                    --end
-
-                end
-            end
-        end
-    end
-
-    local function flush()
-        draw()
-    end
-
-    local function map()
-        mapSize = graphic_command_channel:demand() as integer
-        if type(mapSize) ~= 'number' then
-            error('diamondsquare: mapSize should be an integer value.')
-        end
-
-        local s = graphic_command_channel:demand() as string
-        if type(s) ~= 'string' then
-            error('diamondsquare: map data should be a string value.')
-        end
-
-        local ok, errmsg = pcall(function()
-            map = load(s)()
-        end) as (boolean, string)
-        if not ok then
-            error('diamondsquare: Could not load map data.')
-        end
-    end
-
-    while true do
-        local cmd: string
-
-        repeat
-            cmd = graphic_command_channel:demand() as string
-
-            -- Загрузить карту и нарисовать ее в холст.
-            if cmd == "map" then
-                map()
-                break
-            -- Рисовать карту из холста.
-            elseif cmd == 'flush' then
-                flush()
-                break
-            else
-                error('diamondsquare unkonwn command: ' .. cmd)
-            end
-
-        until not cmd
-
-        yield()
-    end
-    ]])
+    self.pipeline:pushCodeFromFileRoot(
+        'diamondsquare', 'diamondsquare-render.lua'
+    )
 
 	self.map = {}
 	self.mapSize = math.ceil(2 ^ mapn) + 1 -- 1025
