@@ -1,7 +1,8 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local table = _tl_compat and _tl_compat.table or table
 local yield = coroutine.yield
 local gr = love.graphics
 local inspect = require("inspect")
+local ceil = math.ceil
 local get_color = require('height_map').color
 local map = {}
 
@@ -9,9 +10,15 @@ local mapSize = 0
 
 local rez = 32
 
-local function sub_draw(i1, i2, j1, j2)
-   local x = 0
-   local y = 0
+
+
+local function sub_draw(
+   i1, i2, j1, j2,
+   dx,
+   dy)
+
+   local x = dx or 0
+   local y = dy or 0
 
 
 
@@ -21,11 +28,14 @@ local function sub_draw(i1, i2, j1, j2)
 
 
 
+   local abs_i_init, abs_j_init = 1, 1
 
-   local abs_i, abs_j = i1, j1
+
+
+   local abs_i, abs_j = abs_i_init, abs_j_init
 
    for i = i1, i2 do
-      abs_j = j1
+      abs_j = abs_j_init
       for j = j1, j2 do
          local c = map[i] and map[i][j] or nil
          if c then
@@ -52,11 +62,7 @@ local function sub_draw(i1, i2, j1, j2)
    end
 end
 
-local function flush()
-
-
-   local ceil = math.ceil
-
+local function crazy_test()
    local r = math.random()
    if r < 1 / 4 then
       sub_draw(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
@@ -67,9 +73,60 @@ local function flush()
    else
       sub_draw(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
    end
+end
+
+local CanvasNode = {}
 
 
 
+
+
+
+
+
+
+local canvas_nodes = {}
+
+local function newCanvasNode(i1, i2, j1, j2)
+   local w, h = rez * ceil(mapSize / 2), rez * ceil(mapSize / 2)
+   table.insert(canvas_nodes, { canvas = gr.newCanvas(w, h),
+i1 = i1,
+i2 = i2,
+j1 = j1,
+j2 = j2,
+   })
+end
+
+local function bake()
+   gr.setColor({ 1, 1, 1, 1 })
+   for _, node in ipairs(canvas_nodes) do
+      gr.setCanvas(node.canvas)
+      sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
+      gr.setCanvas()
+   end
+end
+
+local function draw_bakes()
+   gr.setColor({ 1, 1, 1, 1 })
+   for _, node in ipairs(canvas_nodes) do
+      local x, y = node.i1 * rez, node.j1 * rez
+      gr.draw(node.canvas, x, y)
+   end
+end
+
+local function save_bakes()
+   for k, node in ipairs(canvas_nodes) do
+      node.canvas:newImageData():encode('png', "map" .. tostring(k) .. ".png")
+   end
+end
+
+local function flush()
+
+
+   draw_bakes()
+
+   gr.setColor({ 1, 0, 0, 1 })
+   gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
 end
 
 local function read_map()
@@ -95,6 +152,14 @@ local function read_map()
    if not ok then
       error('diamondsquare: Could not load map data.')
    end
+
+   newCanvasNode(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
+   newCanvasNode(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
+   newCanvasNode(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
+   newCanvasNode(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
+
+   bake()
+   save_bakes()
 end
 
 while true do
@@ -105,6 +170,7 @@ while true do
 
 
       if cmd == "map" then
+         canvas_nodes = {}
          read_map()
          break
 
