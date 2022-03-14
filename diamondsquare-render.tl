@@ -10,9 +10,15 @@ local mapSize: integer = 0
 -- Размер одного прямоугольника карты в пикселях.
 local rez = 32
 
-local function sub_draw(i1: integer, i2: integer, j1: integer, j2: integer)
-    local x = 0
-    local y = 0
+-- i1, i2, j1, j2 - индексы
+-- dx, dy - _необязательное_ смещение в пикслелях для всей картинки
+local function sub_draw(
+    i1: integer, i2: integer, j1: integer, j2: integer, 
+    dx: number,
+    dy: number
+)
+    local x = dx or 0
+    local y = dy or 0
 
     --print('diamondsquare')
     --print('draw')
@@ -22,11 +28,14 @@ local function sub_draw(i1: integer, i2: integer, j1: integer, j2: integer)
     --for i = 1, mapSize do
     --for j = 1, mapSize do
 
+    local abs_i_init, abs_j_init = 1, 1
+    --local abs_i_init, abs_j_init = i1, j1
+
     -- индексы для рисования
-    local abs_i, abs_j: integer, integer = i1, j1
+    local abs_i, abs_j: integer, integer = abs_i_init, abs_j_init
     -- i, j - индексы для выборки из карты
     for i = i1, i2 do
-        abs_j = j1
+        abs_j = abs_j_init
         for j = j1, j2 do
             local c = map[i] and map[i][j] or nil
             if c then
@@ -88,13 +97,33 @@ local function newCanvasNode(i1: integer, i2: integer, j1: integer, j2: integer)
     })
 end
 
+local function bake()
+    gr.setColor{1, 1, 1, 1}
+    for _, node in ipairs(canvas_nodes) do
+        gr.setCanvas(node.canvas)
+        sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
+        gr.setCanvas()
+    end
+end
+
+local function draw_bakes()
+    gr.setColor{1, 1, 1, 1}
+    for _, node in ipairs(canvas_nodes) do
+        local x, y = node.i1 * rez, node.j1 * rez
+        gr.draw(node.canvas as gr.Drawable, x, y)
+    end
+end
+
+local function save_bakes()
+    for k, node in ipairs(canvas_nodes) do
+        node.canvas:newImageData():encode('png', "map" .. tostring(k) .. ".png")
+    end
+end
+
 local function flush()
     --crazy_test()
 
-    sub_draw(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
-    sub_draw(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
-    sub_draw(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
-    sub_draw(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
+    draw_bakes()
 
     gr.setColor{1, 0, 0, 1}
     gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
@@ -128,6 +157,9 @@ local function read_map()
     newCanvasNode(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
     newCanvasNode(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
     newCanvasNode(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
+
+    bake()
+    save_bakes()
 end
 
 while true do
@@ -138,6 +170,7 @@ while true do
 
         -- Загрузить карту и нарисовать ее в холст.
         if cmd == "map" then
+            canvas_nodes = {}
             read_map()
             break
         -- Рисовать карту из холста.
