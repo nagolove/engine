@@ -316,12 +316,14 @@ function testflag(set, flag)
    return set % (2 * flag) >= flag
 end
 
+
 function setflag(set, flag)
    if set % (2 * flag) >= flag then
       return set
    end
    return set + flag
 end
+
 
 function clear(set, flag)
    if set % (2 * flag) >= flag then
