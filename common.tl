@@ -316,6 +316,7 @@ function testflag(set: number, flag: number): boolean
   return set % (2*flag) >= flag
 end
 
+-- Установить бит номер flag
 function setflag(set: number, flag: number): number
   if set % (2*flag) >= flag then
     return set
@@ -323,6 +324,7 @@ function setflag(set: number, flag: number): number
   return set + flag
 end
 
+-- Сбросить бит номер flag
 function clear(set: number, flag: number): number
   if set % (2*flag) >= flag then
     return set - flag
