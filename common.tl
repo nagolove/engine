@@ -377,3 +377,16 @@ function linum(code: string, inc: integer): string
     end
     return table.concat(t)
 end
+
+function is_rgba(color: {number}): boolean
+    return 
+        type(color) == 'table' and
+        type(color[1]) == 'number' and
+        type(color[2]) == 'number' and
+        type(color[3]) == 'number' and
+        type(color[4]) == 'number' and
+        color[1] >= 0. and color[1] <= 1. and
+        color[2] >= 0. and color[1] <= 1. and
+        color[3] >= 0. and color[1] <= 1. and
+        color[4] >= 0. and color[1] <= 1.
+end
