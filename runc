@@ -33,7 +33,10 @@ function0()
     #popd
 
     pushd scenes/$@
-    make
+    # проверяю вызов команды сборки на успешность завершения
+    if ! make; then
+        exit
+    fi
     popd
 
     #readelf -Ws --dyn-syms ddd.so | grep open
