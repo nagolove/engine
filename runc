@@ -33,7 +33,7 @@ function0()
     #popd
 
     pushd scenes/$@
-    ./make_lib.sh
+    make
     popd
 
     #readelf -Ws --dyn-syms ddd.so | grep open
