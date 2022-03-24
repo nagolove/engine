@@ -34,7 +34,8 @@ function0()
 
     pushd scenes/$@
     # проверяю вызов команды сборки на успешность завершения
-    if ! make; then
+    #if ! make; then
+    if ! make config=debug; then
         exit
     fi
     popd
