@@ -30,9 +30,9 @@ make_things()
     #done
 
     # Генерация lua кода из teal кода
-    local tl_build="$TL build"
-    echo $tl_build
-    local teal_result=$?
+    tl_build="$TL build"
+    $tl_build
+    teal_result=$?
 
     #eval $TL build && love . $1 $2 $3
     #eval $TL build && love . $1 $2 $3
