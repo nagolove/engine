@@ -1,23 +1,39 @@
 #!/usr/bin/env bash
 
-#TL="tl"
-#TL="$HOME/projects/tl/tl"
 TL="tl"
 eval $TL --version
 
-function0()
+make_things()
 {
-    #(tl build)
+    if [[ $# -eq 0 ]] ; then
+        echo "No scene name for love"
+        exit 1
+    fi
+
+    build_mode="release"
+
+    # Сборка новых аргументов что-бы выкинуть ключ --debug из списка.
+    for i in "$@" ; do
+        if [[ $i == "--debug" ]] ; then
+            build_mode="debug"
+        else
+            newparams+=("$i")
+        fi
+    done
+   
+    # Установка новых аргуметов функции
+    set -- "${newparams[@]}" 
+
+    # Распечатать аргументы функции
+    #for i in "$@" ; do
+        #echo "$i"
+    #done
+
+    # Генерация lua кода из teal кода
     local tl_build="$TL build"
     echo $tl_build
-    #($tl_build)
-    $tl_build
     local teal_result=$?
 
-    #(exit 0)
-    #(exit 1)
-    #(exit -1)
-    #TL="~/projects/tl-master/tl"
     #eval $TL build && love . $1 $2 $3
     #eval $TL build && love . $1 $2 $3
     #if test $Tl -eq 0; then
@@ -27,15 +43,11 @@ function0()
     #eval $TL --wdisable unused build && love . $1 $2 $3
     #tl build && nlove .
 
-    #pushd ddd
-    #cargo build -Z trace-macros && cp target/debug/libddd.so ../ddd.so && cp target/debug/libddd.so ../libddd.so 
-    #cargo build && cp target/debug/libddd.so ../ddd.so && cp target/debug/libddd.so ../libddd.so 
-    #popd
-
+    echo $@
     pushd scenes/$@
+    echo "mode: $build_mode"
     # проверяю вызов команды сборки на успешность завершения
-    #if ! make; then
-    if ! make config=debug; then
+    if ! make config=$build_mode; then
         exit
     fi
     popd
@@ -51,5 +63,4 @@ function0()
 
 }
 
-#function0 "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
-function0 "$@"
+make_things "$@"
