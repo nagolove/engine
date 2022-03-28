@@ -26,7 +26,6 @@ echo -e "${Green}|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 TL="tl"
 echo Teal version: $($TL --version)
-exit
 
 make_things()
 {
