@@ -27,6 +27,8 @@ echo -e "${Green}|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 TL="tl"
 echo Teal version: $($TL --version)
 
+separate_line
+
 make_things()
 {
     if [[ $# -eq 0 ]] ; then
@@ -74,6 +76,7 @@ make_things()
     echo "mode: $build_mode"
     # проверяю вызов команды сборки на успешность завершения
     if ! make config=$build_mode; then
+        echo "C module not compiled."
         exit
     fi
     popd
