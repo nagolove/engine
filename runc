@@ -1,7 +1,32 @@
 #!/usr/bin/env bash
 
+#Colors:
+Black='\033[0;30m'
+Dark_Gray='\033[1;30m'
+Red='\033[0;31m'
+Light_Red='\033[1;31m'
+Green='\033[0;32m'
+Light_Green='\033[1;32m'
+Orange='\033[0;33m'
+Yellow='\033[1;33m'
+Blue='\033[0;34m'
+Light_Blue='\033[1;34m'
+Purple='\033[0;35m'
+Light_Purple='\033[1;35m'
+Cyan='\033[0;36m'
+Light_Cyan='\033[1;36m'
+Light_Gray='\033[0;37m'
+White='\033[1;37m'
+NO_COL='\033[0m' # No Color
+
+separate_line()
+{
+echo -e "${Green}||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||${NO_COL}"
+}
+
 TL="tl"
-eval $TL --version
+echo Teal version: $($TL --version)
+exit
 
 make_things()
 {
@@ -43,6 +68,8 @@ make_things()
     #eval $TL --wdisable unused build && love . $1 $2 $3
     #tl build && nlove .
 
+    separate_line
+
     echo $@
     pushd scenes/$@
     echo "mode: $build_mode"
@@ -56,6 +83,7 @@ make_things()
 
     if [[ teal_result -eq 0 ]]; then
         echo 'compiled.'
+        separate_line
         love . "$@"
     else
         echo 'not compiled.'
