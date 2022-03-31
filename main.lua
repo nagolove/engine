@@ -45,6 +45,12 @@ local ecodes = require("errorcodes")
 local format = string.format
 local pipeline = Pipeline.new()
 
+local lastWindowHeaderUpdateTime = love.timer.getTime()
+local quant = 1
+local titlePrefix = "xcaustic engine "
+
+
+
 local dprint = require('debug_print')
 
 
@@ -144,6 +150,8 @@ local function newThread(name)
 end
 
 function love.load(arg)
+   love.window.setTitle(titlePrefix)
+
    if not IMGUI_USE_STUB then
       imgui.Init()
       imgui.SetGlobalFontFromArchiveTTF("fonts/DroidSansMono.ttf", imguiFontSize)
@@ -187,17 +195,15 @@ local function collectGarbage()
    end
 end
 
-local lastWindowHeaderUpdateTime = love.timer.getTime()
-local quant = 1
-local titlePrefix = "caustic engine "
-
-
 function love.update(dt)
 
-   local now = love.timer.getTime()
-   if now - lastWindowHeaderUpdateTime > quant then
-      love.window.setTitle(titlePrefix .. love.timer.getFPS())
-   end
+
+
+
+
+
+
+
 
    if showHelp then
       KeyConfig.updateList(dt)
