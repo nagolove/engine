@@ -283,6 +283,7 @@ function Pipeline:pushCodeFromFile(name: string, fname: string)
 end
 
 -- обработка разных запросов(ширина и высота вывода) к рендеру и выдача ответов
+-- XXX Где лучше разместить этот цикл обработки?
 local function process_queries()
     local query: string
     repeat
@@ -446,10 +447,10 @@ end
 Откуда они беруться?
 --]]
 function Pipeline:render()
-    process_queries()
     if self:waitForReady() then
         self:render_internal()
     end
+    process_queries()
 end
 
 function Pipeline:getDimensions(): integer, integer
