@@ -283,6 +283,7 @@ function Pipeline:pushCodeFromFile(name, fname)
 end
 
 
+
 local function process_queries()
    local query
    repeat
@@ -446,10 +447,10 @@ end
 
 
 function Pipeline:render()
-   process_queries()
    if self:waitForReady() then
       self:render_internal()
    end
+   process_queries()
 end
 
 function Pipeline:getDimensions()
