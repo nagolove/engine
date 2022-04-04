@@ -10,6 +10,7 @@
     --y: number
 --end
 
+--[[
 local type Pipeline = record
     new: function(): Pipeline
     -- Вход в секцию отправки
@@ -19,8 +20,23 @@ local type Pipeline = record
     -- Завершение секции отправки
     leave: function(Pipeline)
 end
+--]]
 
 -- Не ловится ошибка, что отсутствует реализация Pipeline.new()
 -- Компиляция успешная, падение происходит во время выполнения.
 --local pipeline = Pipeline.new()
 
+--[[
+function get_foos<T>():{T}
+   return {}
+end
+--]]
+
+function get_foos():{integer}
+   return {}
+end
+
+
+--local foos:{integer} = get_foos()
+local foos:{integer} = get_foos()
+print(foos)
