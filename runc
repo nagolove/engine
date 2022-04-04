@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+##### Some strict BASH rules:
+set -Eeuo pipefail
+set -o nounset
+set -o errexit
+#####
+
 #Colors:
 Black='\033[0;30m'
 Dark_Gray='\033[1;30m'
