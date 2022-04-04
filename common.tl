@@ -189,7 +189,7 @@ function pointInPolygon(pgon: {number}, tx: number, ty: number): boolean
     -- }}}
 end
 
-local u8 = require "utf8"
+--local u8 = require "utf8"
 
 -- Добавляет в текстовый объект цветной текст линейно интерполируя цвета от 
 -- fromcolor до tocolor для каждого символа.
