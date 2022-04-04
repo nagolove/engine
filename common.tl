@@ -202,7 +202,9 @@ function makeDescentColorText(
     fromcolor: {number}, tocolor: {number},
     ...: any
 ): number
---]]
+--]
+
+--[[
 function makeDescentColorText(
     textobj: love.graphics.Text,
     textstr: string,
@@ -217,12 +219,10 @@ function makeDescentColorText(
     assert(#fromcolor == 4, "fromcolor should have 4 components")
     assert(#tocolor == 4, "tocolor should have 4 components")
 
-    --[[
-    print("textobj", textobj)
-    print("textstr", textstr)
-    print("fromcolor", inspect(fromcolor))
-    print("tocolor", inspect(tocolor))
-    --]]
+    --print("textobj", textobj)
+    --print("textstr", textstr)
+    --print("fromcolor", inspect(fromcolor))
+    --print("tocolor", inspect(tocolor))
 
     local slen = u8.len(textstr)
     print("slen", slen)
@@ -240,10 +240,8 @@ function makeDescentColorText(
     print("d_b", d_b)
     print("d_a", d_a)
 
-    --[[
-    Рассчитать цвет для приращения к начальному исходя из разницы цветов и 
-    количества символов в стрке
-    --]]
+    --Рассчитать цвет для приращения к начальному исходя из разницы цветов и 
+    --количества символов в стрке
 
     local coloredtext = {}
     for _, codepoint in u8.codes(textstr) do
@@ -259,6 +257,7 @@ function makeDescentColorText(
     return textobj:add(coloredtext, x, y, angle, sx, sy, ox, oy, kx, ky)
     --return textobj:add(coloredtext, unpack(args))
 end
+--]]
 
 local function mesh2str(mesh: love.graphics.Mesh, i: integer): string
      local x, y, u, v, r, g, b, a = mesh:getVertex(i)
