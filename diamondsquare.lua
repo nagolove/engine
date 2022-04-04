@@ -122,7 +122,8 @@ end
 
 
 
-function DiamonAndSquare:save(fname)
+function DiamonAndSquare:save(_)
+
 
 
 
