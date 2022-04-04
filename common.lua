@@ -189,7 +189,7 @@ function pointInPolygon(pgon, tx, ty)
 
 end
 
-local u8 = require("utf8")
+
 
 
 
