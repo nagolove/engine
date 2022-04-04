@@ -122,7 +122,8 @@ function DiamonAndSquare:serialize(): string
 end
 --]]
 
-function DiamonAndSquare:save(fname: string)
+function DiamonAndSquare:save(_: string)
+--function DiamonAndSquare:save(fname: string)
     --local succ, msg = love.filesystem.write(fname, self:serialize())
     --if not succ then
         --error('Could not save DiamonAndSquare to ' .. fname .. ': ' .. msg)
