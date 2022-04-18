@@ -40,3 +40,11 @@ end
 --local foos:{integer} = get_foos()
 local foos:{integer} = get_foos()
 print(foos)
+
+--[[
+local record Some
+    func1: function();
+    func2: function();
+end
+--]]
+
