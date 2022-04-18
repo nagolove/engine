@@ -32,6 +32,7 @@ function get_foos<T>():{T}
 end
 --]]
 
+--[[
 function get_foos():{integer}
    return {}
 end
@@ -40,6 +41,7 @@ end
 --local foos:{integer} = get_foos()
 local foos:{integer} = get_foos()
 print(foos)
+--]]
 
 --[[
 local record Some
@@ -47,4 +49,39 @@ local record Some
     func2: function();
 end
 --]]
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+
+-- Идеи по лучшему сообщению об ошибке такого рода.
+
+local enum Command
+    "circle"
+    "line"
+    "rect"
+end
+
+local commands = {}
+
+function commands.circle(_: number)
+end
+
+function commands.line(_: number)
+end
+
+function commands.rect(_: integer)
+end
+
+local cmd: Command = 'circle'
+commands[cmd]()
+
+--1 error:
+--example.tl:71:10: cannot index, not all enum values map to record fields of the same type
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
