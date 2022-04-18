@@ -65,7 +65,7 @@ end
 
 local commands = {}
 
-function commands.circle(_: number)
+function commands.circle(_: string)
 end
 
 function commands.line(_: number)
@@ -77,8 +77,42 @@ end
 local cmd: Command = 'circle'
 commands[cmd]()
 
+-- Текущее сообщение об ошибке:
 --1 error:
 --example.tl:71:10: cannot index, not all enum values map to record fields of the same type
+
+-- Предложение:
+-- Показывать первое несоответствие одного типа другому.
+--example.tl:71:10: cannot index, not all enum values map to record fields of the same type( function(string) ~= function(number) )
+
+-- Предложение по реализации:
+--[[
+    return match_all_record_field_names(idxnode, a, field_names, 
+    "cannot index, not all enum values map to record fields of the same type( <f> ~= <t>)")
+--]]
+
+--[[
+   local function match_all_record_field_names(node: Node, a: Type, field_names: {string}, errmsg: string): Type
+      local t: Type
+      for _, k in ipairs(field_names) do
+         local f = a.fields[k]
+         if not t then
+            t = f
+         else
+            if not same_type(f, t) then
+               t = nil
+               break
+            end
+         end
+      end
+      if t then
+         return t
+      else
+         -- using string.gsub() for templating errmsg 
+         return node_error(node, errmsg)
+      end
+   end
+--]]
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
