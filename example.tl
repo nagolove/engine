@@ -57,6 +57,7 @@ end
 
 -- Идеи по лучшему сообщению об ошибке такого рода.
 
+--[[
 local enum Command
     "circle"
     "line"
@@ -76,6 +77,7 @@ end
 
 local cmd: Command = 'circle'
 commands[cmd]()
+--]]
 
 -- Текущее сообщение об ошибке:
 --1 error:
