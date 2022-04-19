@@ -486,10 +486,17 @@ function Pipeline:pullRenderCode()
 
    local rendercode
    repeat
+      local name
       rendercode = graphic_code_channel:pop()
 
       if rendercode then
-         local func, errmsg = tl.load(rendercode)
+         name = graphic_code_channel:pop()
+         if not name then
+            error('No name for drawing function.')
+         end
+         local func, errmsg = tl.load(rendercode, name)
+
+
 
          if not func then
             local msg = "%{red}Something wrong in render code: %{cyan}"
@@ -499,11 +506,6 @@ function Pipeline:pullRenderCode()
             debug_print("graphics", colorize(msg .. errmsg))
             os.exit(ecodes.ERROR_INTERNAL_LOAD)
          else
-            local name = graphic_code_channel:pop()
-            if not name then
-               error('No name for drawing function.')
-            end
-
 
             local coro = coroutine.create(func)
             self.renderFunctions[name] = coro
