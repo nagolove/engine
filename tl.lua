@@ -127,6 +127,12 @@ local tl = {TypeCheckOptions = {}, Env = {}, Symbol = {}, Result = {}, Error = {
 
 
 
+
+
+
+
+
+
 tl.version = function()
    return VERSION
 end
@@ -1117,6 +1123,16 @@ local KeyParsed = {}
 
 
 
+local Attribute = {}
+
+
+
+
+local is_attribute = {
+   ["const"] = true,
+   ["close"] = true,
+}
+
 local Node = {ExpectedContext = {}, }
 
 
@@ -2106,7 +2122,6 @@ parse_expression_and_tk = function(ps, i, tk)
 end
 
 local function parse_variable_name(ps, i)
-   local is_const = false
    local node
    i, node = verify_kind(ps, i, "identifier")
    if not node then
@@ -2117,17 +2132,15 @@ local function parse_variable_name(ps, i)
       local annotation
       i, annotation = verify_kind(ps, i, "identifier")
       if annotation then
-         if annotation.tk == "const" then
-            is_const = true
-         else
+         if not is_attribute[annotation.tk] then
             fail(ps, i, "unknown variable annotation: " .. annotation.tk)
          end
       else
          fail(ps, i, "expected a variable annotation")
       end
       i = verify_tk(ps, i, ">")
+      node.attribute = annotation.tk
    end
-   node.is_const = is_const
    return i, node
 end
 
@@ -2511,6 +2524,7 @@ local metamethod_names = {
    ["__tostring"] = true,
    ["__pairs"] = true,
    ["__gc"] = true,
+   ["__close"] = true,
 }
 
 parse_record_body = function(ps, i, def, node)
@@ -3382,7 +3396,8 @@ local primitive = {
    ["thread"] = "thread",
 }
 
-function tl.pretty_print_ast(ast, mode)
+function tl.pretty_print_ast(ast, gen_target, mode)
+   local err
    local indent = 0
 
    local opts
@@ -3514,8 +3529,22 @@ function tl.pretty_print_ast(ast, mode)
       ["local_declaration"] = {
          after = function(node, children)
             local out = { y = node.y, h = 0 }
-            table.insert(out, "local")
-            add_child(out, children[1], " ")
+            table.insert(out, "local ")
+            for i, var in ipairs(node.vars) do
+               if i > 1 then
+                  add_string(out, ", ")
+               end
+               add_string(out, var.tk)
+               if var.attribute then
+                  if gen_target ~= "5.4" and var.attribute == "close" then
+                     err = "attempt to emit a <close> attribute for a non 5.4 target"
+                  end
+
+                  if gen_target == "5.4" then
+                     add_string(out, " <" .. var.attribute .. ">")
+                  end
+               end
+            end
             if children[3] then
                table.insert(out, " =")
                add_child(out, children[3], " ")
@@ -3970,6 +3999,10 @@ function tl.pretty_print_ast(ast, mode)
    visit_node.cbs["type_identifier"] = visit_node.cbs["variable"]
 
    local out = recurse_node(ast, visit_node, visit_type)
+   if err then
+      return nil, err
+   end
+
    local code
    if opts.preserve_newlines then
       code = { y = 1, h = 0 }
@@ -4486,6 +4519,10 @@ local Variable = {}
 
 
 
+local function var_is_const(v)
+   return v.attribute ~= nil
+end
+
 local function sorted_keys(m)
    local keys = {}
    for k, _ in pairs(m) do
@@ -4810,6 +4847,8 @@ local function init_globals(lax)
                ["write"] = a_type({ typename = "function", args = VARARG({ NOMINAL_FILE, STRING }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
 
             },
+            meta_fields = { ["__close"] = FUNCTION },
+            meta_field_order = { "__close" },
          }),
       }),
       ["metatable"] = a_type({
@@ -5171,7 +5210,7 @@ rets = TUPLE({ a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ 
    NOMINAL_METATABLE_OF_ALPHA.found = standard_library["metatable"]
 
    for name, typ in pairs(standard_library) do
-      globals[name] = { t = typ, needs_compat = stdlib_compat[name], is_const = true }
+      globals[name] = { t = typ, needs_compat = stdlib_compat[name], attribute = "const" }
    end
 
 
@@ -5200,6 +5239,10 @@ tl.init_env = function(lax, gen_compat, gen_target, predefined)
       else
          gen_target = "5.3"
       end
+   end
+
+   if gen_target == "5.4" and gen_compat ~= "off" then
+      return nil, "gen-compat must be explicitly 'off' when gen-target is '5.4'"
    end
 
    local globals, standard_library = init_globals(lax)
@@ -5236,7 +5279,14 @@ end
 
 tl.type_check = function(ast, opts)
    opts = opts or {}
-   local env = opts.env or tl.init_env(opts.lax, opts.gen_compat, opts.gen_target)
+   local env = opts.env
+   if not env then
+      local err
+      env, err = tl.init_env(opts.lax, opts.gen_compat, opts.gen_target)
+      if err then
+         return nil, err
+      end
+   end
    local lax = opts.lax
    local filename = opts.filename
 
@@ -5280,13 +5330,13 @@ tl.type_check = function(ast, opts)
          typename = "record",
          field_order = sorted_keys(globals),
          fields = globals,
-      }), false
+      }), nil
    end
 
    local function find_var_type(name, raw)
       local var = find_var(name, raw)
       if var then
-         return var.t, var.is_const
+         return var.t, var.attribute
       end
    end
 
@@ -5570,10 +5620,7 @@ tl.type_check = function(ast, opts)
       for i = nst, 1, -1 do
          local scope = st[i]
          if scope[emptytable.assigned_to] then
-            scope[emptytable.assigned_to] = {
-               t = t,
-               is_const = false,
-            }
+            scope[emptytable.assigned_to] = { t = t }
             t.inferred_at = node
             t.inferred_at_file = filename
          end
@@ -5583,7 +5630,7 @@ tl.type_check = function(ast, opts)
    local function find_global(name)
       local scope = st[1]
       if scope[name] then
-         return scope[name].t, scope[name].is_const
+         return scope[name].t, var_is_const(scope[name])
       end
    end
 
@@ -5675,13 +5722,13 @@ tl.type_check = function(ast, opts)
       node.symbol_list_slot = symbol_list_n
    end
 
-   local function add_var(node, var, valtype, is_const, is_narrowing, dont_check_redeclaration)
+   local function add_var(node, var, valtype, attribute, is_narrowing, dont_check_redeclaration)
       if lax and node and is_unknown(valtype) and (var ~= "self" and var ~= "...") and not is_narrowing then
          add_unknown(node, var)
       end
       local scope = st[#st]
       local old_var = scope[var]
-      if not is_const then
+      if not attribute then
          valtype = shallow_copy(valtype)
          valtype.tk = nil
       end
@@ -5701,7 +5748,7 @@ tl.type_check = function(ast, opts)
 
             check_if_redeclaration(var, node)
          end
-         scope[var] = { t = valtype, is_const = is_const, is_narrowed = is_narrowing, declared_at = node }
+         scope[var] = { t = valtype, attribute = attribute, is_narrowed = is_narrowing, declared_at = node }
          if old_var then
 
 
@@ -6150,6 +6197,9 @@ tl.type_check = function(ast, opts)
          if #t1.rets ~= #t2.rets then
             return false, terr(t1, "different number of return values: got " .. #t1.args .. ", expected " .. #t2.args)
          end
+         if t1.is_method ~= t2.is_method then
+            return false, terr(t1, "method and non-method are not the same type")
+         end
          local all_errs = {}
          for i = 1, #t1.args do
             arg_check(same_type, t1.args[i], t2.args[i], t1, i, all_errs)
@@ -6553,8 +6603,11 @@ tl.type_check = function(ast, opts)
          if (not t2.args.is_va) and #t1.args > #t2.args then
             table.insert(all_errs, error_in_type(t1, "incompatible number of arguments: got " .. #t1.args .. " %s, expected " .. #t2.args .. " %s", t1.args, t2.args))
          else
-            for i = (t1.is_method and 2 or 1), #t1.args do
-               arg_check(is_a, t1.args[i], t2.args[i] or ANY, nil, i, all_errs)
+            local f1 = t1.is_method and 2 or 1
+            local f2 = t2.is_method and 2 or 1
+            for i = f1, #t1.args do
+               arg_check(is_a, t1.args[i], t2.args[f2] or ANY, nil, i, all_errs)
+               f2 = f2 + 1
             end
          end
          local diff_by_va = #t2.rets - #t1.rets == 1 and t2.rets.is_va
@@ -6614,6 +6667,28 @@ tl.type_check = function(ast, opts)
       local ok, match_errs = is_a(t1, t2)
       add_errs_prefixing(match_errs, errors, context .. ": " .. (name and (name .. ": ") or ""), node)
       return ok
+   end
+
+   local function type_is_closable(t)
+      if t.typename == "invalid" then
+         return false
+      end
+      if same_type(t, NIL) then
+         return true
+      end
+      t = resolve_nominal(t)
+      return t.meta_fields and t.meta_fields["__close"] ~= nil
+   end
+
+   local definitely_not_closable_exprs = {
+      ["string"] = true,
+      ["number"] = true,
+      ["integer"] = true,
+      ["boolean"] = true,
+      ["table_literal"] = true,
+   }
+   local function expr_is_definitely_not_closable(e)
+      return definitely_not_closable_exprs[e.kind]
    end
 
    local unknown_dots = {}
@@ -6911,7 +6986,7 @@ tl.type_check = function(ast, opts)
       if lax and is_unknown(valtype) and (var ~= "self" and var ~= "...") then
          add_unknown(node, var)
       end
-      st[1][var] = { t = valtype, is_const = is_const }
+      st[1][var] = { t = valtype, attribute = is_const and "const" or nil }
       if node then
          node.type = node.type or valtype
       end
@@ -7474,7 +7549,7 @@ tl.type_check = function(ast, opts)
             local t = shallow_copy(f.typ)
             t.inferred_at = f.where and where
             t.inferred_at_file = filename
-            add_var(nil, v, t, true, true)
+            add_var(nil, v, t, "const", true)
          end
       end
    end
@@ -7875,7 +7950,7 @@ tl.type_check = function(ast, opts)
       ["local_type"] = {
          before = function(node)
             node.value.type, node.value.is_alias = resolve_nominal_typetype(node.value.newtype)
-            add_var(node.var, node.var.tk, node.value.type, node.var.is_const)
+            add_var(node.var, node.var.tk, node.value.type, node.var.attribute)
          end,
          after = function(node, _children)
             dismiss_unresolved(node.var.tk)
@@ -7886,16 +7961,17 @@ tl.type_check = function(ast, opts)
       ["global_type"] = {
          before = function(node)
             node.value.newtype, node.value.is_alias = resolve_nominal_typetype(node.value.newtype)
-            add_global(node.var, node.var.tk, node.value.newtype, node.var.is_const)
+            add_global(node.var, node.var.tk, node.value.newtype, node.var.attribute ~= nil)
          end,
          after = function(node, _children)
             local existing, existing_is_const = find_global(node.var.tk)
             local var = node.var
             if existing then
-               if existing_is_const == true and not var.is_const then
+               local is_const = var.attribute == "const"
+               if existing_is_const == true and not is_const then
                   node_error(var, "global was previously declared as <const>: " .. var.tk)
                end
-               if existing_is_const == false and var.is_const then
+               if existing_is_const == false and is_const then
                   node_error(var, "global was previously declared as not <const>: " .. var.tk)
                end
                if not same_type(existing, node.value.newtype) then
@@ -7915,8 +7991,20 @@ tl.type_check = function(ast, opts)
          end,
          before_expressions = set_expected_types_to_decltypes,
          after = function(node, children)
+            local encountered_close = false
             local vals = get_assignment_values(children[3], #node.vars)
             for i, var in ipairs(node.vars) do
+               if var.attribute == "close" then
+                  if opts.gen_target == "5.4" then
+                     if encountered_close then
+                        node_error(var, "only one <close> per declaration is allowed")
+                     else
+                        encountered_close = true
+                     end
+                  else
+                     node_error(var, "<close> attribute is only valid for Lua 5.4 (current target is " .. tostring(opts.gen_target) .. ")")
+                  end
+               end
                local decltype = node.decltype and node.decltype[i]
                local infertype = vals and vals[i]
                if lax and infertype and infertype.typename == "nil" then
@@ -7934,8 +8022,16 @@ tl.type_check = function(ast, opts)
                end
                t.inferred_len = nil
 
+               if var.attribute == "close" then
+                  if not type_is_closable(t) then
+                     node_error(var, "to-be-closed variable " .. var.tk .. " has a non-closable type %s", t)
+                  elseif node.exps and node.exps[i] and expr_is_definitely_not_closable(node.exps[i]) then
+                     node_error(var, "to-be-closed variable " .. var.tk .. " assigned a non-closable value")
+                  end
+               end
+
                assert(var)
-               add_var(var, var.tk, t, var.is_const, is_localizing_a_variable(node, i))
+               add_var(var, var.tk, t, var.attribute, is_localizing_a_variable(node, i))
 
                dismiss_unresolved(var.tk)
             end
@@ -7956,16 +8052,20 @@ tl.type_check = function(ast, opts)
                if decltype and infertype then
                   assert_is_a(node.vars[i], infertype, decltype, "in global declaration", var.tk)
                end
+               if var.attribute == "close" then
+                  node_error(var, "globals may not be <close>")
+               end
                local t = decltype or infertype
                local existing, existing_is_const = find_global(var.tk)
                if existing then
+                  local is_const = var.attribute == "const"
                   if infertype and existing_is_const then
                      node_error(var, "cannot reassign to <const> global: " .. var.tk)
                   end
-                  if existing_is_const == true and not var.is_const then
+                  if existing_is_const == true and not is_const then
                      node_error(var, "global was previously declared as <const>: " .. var.tk)
                   end
-                  if existing_is_const == false and var.is_const then
+                  if existing_is_const == false and is_const then
                      node_error(var, "global was previously declared as not <const>: " .. var.tk)
                   end
                   if t and not same_type(existing, t) then
@@ -7979,7 +8079,7 @@ tl.type_check = function(ast, opts)
                      t.assigned_to = var.tk
                   end
                   t.inferred_len = nil
-                  add_global(var, var.tk, t, var.is_const)
+                  add_global(var, var.tk, t, var.attribute ~= nil)
                   var.type = t
 
                   dismiss_unresolved(var.tk)
@@ -7996,14 +8096,14 @@ tl.type_check = function(ast, opts)
             local exps = flatten_list(vals)
             for i, vartype in ipairs(children[1]) do
                local varnode = node.vars[i]
-               local is_const = varnode.is_const
+               local attr = varnode.attribute
                if varnode.kind == "variable" then
                   if widen_back_var(varnode.tk) then
-                     vartype, is_const = find_var_type(varnode.tk)
+                     vartype, attr = find_var_type(varnode.tk)
                   end
                end
-               if is_const then
-                  node_error(varnode, "cannot assign to <const> variable")
+               if attr then
+                  node_error(varnode, "cannot assign to <" .. attr .. "> variable")
                end
                if vartype then
                   local val = exps[i]
@@ -8013,7 +8113,7 @@ tl.type_check = function(ast, opts)
                      assert_is_a(varnode, val, vartype, "in assignment")
                      if varnode.kind == "variable" and vartype.typename == "union" then
 
-                        add_var(varnode, varnode.tk, val, false, true)
+                        add_var(varnode, varnode.tk, val, nil, true)
                      end
                   else
                      node_error(varnode, "variable is not being assigned a value")
@@ -8265,30 +8365,31 @@ node.exps[3] and node.exps[3].type, }
       ["table_literal"] = {
          before = function(node)
             if node.expected then
-               if node.expected.typename == "tupletable" then
+               local decltype = resolve_tuple_and_nominal(node.expected)
+               if decltype.typename == "tupletable" then
                   for _, child in ipairs(node) do
                      local n = child.key.constnum
                      if n and is_positive_int(n) then
-                        child.value.expected = node.expected.types[n]
+                        child.value.expected = decltype.types[n]
                      end
                   end
-               elseif is_array_type(node.expected) then
+               elseif is_array_type(decltype) then
                   for _, child in ipairs(node) do
                      if child.key.constnum then
-                        child.value.expected = node.expected.elements
+                        child.value.expected = decltype.elements
                      end
                   end
-               elseif node.expected.typename == "map" then
+               elseif decltype.typename == "map" then
                   for _, child in ipairs(node) do
-                     child.key.expected = node.expected.keys
-                     child.value.expected = node.expected.values
+                     child.key.expected = decltype.keys
+                     child.value.expected = decltype.values
                   end
                end
 
-               if is_record_type(node.expected) then
+               if is_record_type(decltype) then
                   for _, child in ipairs(node) do
                      if child.key.conststr then
-                        child.value.expected = node.expected.fields[child.key.conststr]
+                        child.value.expected = decltype.fields[child.key.conststr]
                      end
                   end
                end
@@ -8499,7 +8600,7 @@ node.exps[3] and node.exps[3].type, }
                if ok then
                   node.name.type = fn_type
                else
-                  local name = tl.pretty_print_ast(node.fn_owner, { preserve_indent = true, preserve_newlines = false })
+                  local name = tl.pretty_print_ast(node.fn_owner, opts.gen_target, { preserve_indent = true, preserve_newlines = false })
                   node_error(node, "cannot add undeclared function '" .. node.name.tk .. "' outside of the scope where '" .. name .. "' was originally declared")
                end
             else
@@ -8777,9 +8878,9 @@ node.exps[3] and node.exps[3].type, }
             end
 
             if node.tk == "_G" then
-               node.type, node.is_const = simulate_g()
+               node.type, node.attribute = simulate_g()
             else
-               node.type, node.is_const = find_var_type(node.tk)
+               node.type, node.attribute = find_var_type(node.tk)
             end
             if node.type and is_typetype(node.type) then
                node.type = a_type({
@@ -8804,7 +8905,7 @@ node.exps[3] and node.exps[3].type, }
       },
       ["type_identifier"] = {
          after = function(node, _children)
-            node.type, node.is_const = find_var_type(node.tk)
+            node.type, node.attribute = find_var_type(node.tk)
             if node.type == nil then
                if lax then
                   node.type = UNKNOWN
@@ -9413,6 +9514,7 @@ function tl.process_string(input, is_lua, env, filename)
       filename = filename,
       lax = is_lua,
       gen_compat = env.gen_compat,
+      gen_target = env.gen_target,
       env = env,
    }
    local result = tl.type_check(program, opts)
@@ -9423,14 +9525,16 @@ function tl.process_string(input, is_lua, env, filename)
 end
 
 tl.gen = function(input, env)
-   env = env or tl.init_env()
+   env = env or assert(tl.init_env(), "Default environment initialization failed")
    local result = tl.process_string(input, false, env)
 
    if (not result.ast) or #result.syntax_errors > 0 then
       return nil, result
    end
 
-   return tl.pretty_print_ast(result.ast), result
+   local code
+   code, result.gen_error = tl.pretty_print_ast(result.ast, env.gen_target)
+   return code, result
 end
 
 local function tl_package_loader(module_name)
@@ -9458,8 +9562,10 @@ local function tl_package_loader(module_name)
          run_internal_compiler_checks = false,
       })
 
-      local code = tl.pretty_print_ast(program, true)
-      local chunk, err = load(code, module_name, "t")
+
+
+      local code = assert(tl.pretty_print_ast(program, tl.package_loader_env.gen_target, true))
+      local chunk, err = load(code, "@" .. found_filename, "t")
       if chunk then
          return function()
             local ret = chunk()
@@ -9481,6 +9587,33 @@ function tl.loader()
    end
 end
 
+function tl.target_from_lua_version(str)
+   if str == "Lua 5.1" or
+      str == "Lua 5.2" then
+      return "5.1"
+   elseif str == "Lua 5.3" then
+      return "5.3"
+   elseif str == "Lua 5.4" then
+      return "5.4"
+   end
+end
+
+local function env_for(lax, env_tbl)
+   if not env_tbl then
+      if not tl.package_loader_env then
+         tl.package_loader_env = tl.init_env(lax)
+      end
+      return tl.package_loader_env
+   end
+
+   if not tl.load_envs then
+      tl.load_envs = setmetatable({}, { __mode = "k" })
+   end
+
+   tl.load_envs[env_tbl] = tl.load_envs[env_tbl] or tl.init_env(lax)
+   return tl.load_envs[env_tbl]
+end
+
 tl.load = function(input, chunkname, mode, ...)
    local tokens = tl.lex(input)
    local errs = {}
@@ -9488,7 +9621,36 @@ tl.load = function(input, chunkname, mode, ...)
    if #errs > 0 then
       return nil, (chunkname or "") .. ":" .. errs[1].y .. ":" .. errs[1].x .. ": " .. errs[1].msg
    end
-   local code = tl.pretty_print_ast(program, true)
+
+   local lax = chunkname and not not chunkname:match("lua$")
+   if not tl.package_loader_env then
+      tl.package_loader_env = tl.init_env(lax)
+   end
+
+   local result = tl.type_check(program, {
+      lax = lax,
+      filename = chunkname or ("string \"" .. input:sub(45) .. (#input > 45 and "..." or "") .. "\""),
+      env = env_for(lax, ...),
+      run_internal_compiler_checks = false,
+   })
+
+   if mode and mode:match("c") then
+      if #result.type_errors > 0 then
+         local errout = {}
+         for _, err in ipairs(result.type_errors) do
+            table.insert(errout, err.filename .. ":" .. err.y .. ":" .. err.x .. ": " .. (err.msg or ""))
+         end
+         return nil, table.concat(errout, "\n")
+      end
+
+      mode = mode:gsub("c", "")
+   end
+
+   local code, err = tl.pretty_print_ast(program, tl.target_from_lua_version(_VERSION), true)
+   if not code then
+      return nil, err
+   end
+
    return load(code, chunkname, mode, ...)
 end
 
