@@ -486,11 +486,18 @@ function Pipeline:pullRenderCode()
     -- {{{
     local rendercode: string
     repeat
+        local name: string
         rendercode = graphic_code_channel:pop() as string
 
         if rendercode then
-            local func, errmsg = tl.load(rendercode)
-
+            name = graphic_code_channel:pop() as string
+            if not name then
+                error('No name for drawing function.')
+            end
+            local func, errmsg = tl.load(rendercode, name)
+            -- XXX Проверка типов при использовании модуля love
+            --local func, errmsg = tl.load(rendercode, name, 'ct')
+            
             if not func then
                 local msg = "%{red}Something wrong in render code: %{cyan}" 
                 local numerated = linum(rendercode, self.inc_linum)
@@ -499,11 +506,6 @@ function Pipeline:pullRenderCode()
                 debug_print("graphics", colorize(msg .. errmsg))
                 os.exit(ecodes.ERROR_INTERNAL_LOAD)
             else
-                local name = graphic_code_channel:pop() as string
-                if not name then
-                    error('No name for drawing function.')
-                end
-
                 -- Нужно-ли добавлять все функции подряд в таблицу?
                 local coro = coroutine.create(func)
                 self.renderFunctions[name] = coro
