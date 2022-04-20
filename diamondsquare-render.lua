@@ -1,4 +1,9 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local table = _tl_compat and _tl_compat.table or table
+
+
+require('love')
+
+local colorize = require('ansicolors2').ansicolors
 local yield = coroutine.yield
 local gr = love.graphics
 local inspect = require("inspect")
@@ -162,6 +167,47 @@ local function read_map()
    save_bakes()
 end
 
+local Command = {}
+
+
+
+
+local cmd_circle_buf = {}
+local cmd_circle_buf_maxnum = 16 * 2
+
+local function push_cbuf(cmd)
+   if #cmd_circle_buf >= cmd_circle_buf_maxnum then
+      table.remove(cmd_circle_buf, 1)
+   end
+   table.insert(cmd_circle_buf, cmd)
+end
+
+local function print_stack()
+   print(colorize(
+   "%{blue}cmd stack: " ..
+   inspect(cmd_circle_buf) ..
+   "%{reset}"))
+
+end
+
+local commands = {}
+
+
+function commands.map()
+   canvas_nodes = {}
+   read_map()
+   return false
+end
+
+
+function commands.flush()
+   flush()
+   return false
+end
+
+
+local cmd_num = 0
+
 while true do
    local cmd
 
@@ -169,18 +215,16 @@ while true do
       cmd = graphic_command_channel:demand()
 
 
-      if cmd == "map" then
-         canvas_nodes = {}
-         read_map()
+      local fun = commands[cmd]
+      if not fun then
+         print_stack()
+         error('diamonandsquare unknown command: ' .. cmd)
+      end
+      if not fun() then
          break
-
-      elseif cmd == 'flush' then
-         flush()
-         break
-      else
-         error('diamondsquare unkonwn command: ' .. cmd)
       end
 
+      cmd_num = cmd_num + 1
    until not cmd
 
    yield()
