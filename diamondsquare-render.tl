@@ -1,4 +1,9 @@
 global graphic_command_channel: love.thread.Channel
+global SCENE_PREFIX: string
+
+require 'love'
+
+local colorize = require('ansicolors2').ansicolors
 local yield = coroutine.yield
 local gr = love.graphics
 local inspect = require "inspect"
@@ -162,25 +167,64 @@ local function read_map()
     save_bakes()
 end
 
+local enum Command
+    "map"
+    "flush"
+end
+
+local cmd_circle_buf: {Command} = {}
+local cmd_circle_buf_maxnum = 16 * 2
+
+local function push_cbuf(cmd: Command)
+    if #cmd_circle_buf >= cmd_circle_buf_maxnum then
+        table.remove(cmd_circle_buf, 1)
+    end
+    table.insert(cmd_circle_buf, cmd)
+end
+
+local function print_stack()
+    print(colorize(
+        "%{blue}cmd stack: " .. 
+        inspect(cmd_circle_buf) .. 
+        "%{reset}"
+    ))
+end
+
+local commands = {}
+
+-- Загрузить карту и нарисовать ее в холст.
+function commands.map(): boolean
+    canvas_nodes = {}
+    read_map()
+    return false
+end
+
+-- Рисовать карту из холста.
+function commands.flush(): boolean
+    flush()
+    return false
+end
+
+-- счетчик команд
+local cmd_num = 0
+
 while true do
-    local cmd: string
+    local cmd: Command
 
     repeat
-        cmd = graphic_command_channel:demand() as string
+        cmd = graphic_command_channel:demand() as Command
+        --push_cbuf(cmd)
 
-        -- Загрузить карту и нарисовать ее в холст.
-        if cmd == "map" then
-            canvas_nodes = {}
-            read_map()
+        local fun = commands[cmd]
+        if not fun then
+            print_stack()
+            error('diamonandsquare unknown command: ' .. cmd)
+        end
+        if not fun() then
             break
-        -- Рисовать карту из холста.
-        elseif cmd == 'flush' then
-            flush()
-            break
-        else
-            error('diamondsquare unkonwn command: ' .. cmd)
         end
 
+        cmd_num = cmd_num + 1
     until not cmd
 
     yield()
