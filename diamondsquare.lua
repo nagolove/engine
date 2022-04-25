@@ -184,7 +184,8 @@ function DiamonAndSquare.new(
    self.pipeline = pl
 
    self.pipeline:pushCodeFromFileRoot(
-   'diamondsquare', 'diamondsquare-render.lua')
+
+   'diamondsquare', 'rdr_diamondsquare.lua')
 
 
    self.rng = rng
