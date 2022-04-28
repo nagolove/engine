@@ -1,11 +1,16 @@
-local jit = require 'jit'
 
 local function off()
-    jit.off()
+    pcall(function()
+        local jit = require 'jit'
+        jit.off()
+    end)
 end
 
 local function on()
-    jit.on()
+    pcall(function()
+        local jit = require 'jit'
+        jit.on()
+    end)
 end
 
 return {
