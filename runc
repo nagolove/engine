@@ -92,7 +92,8 @@ make_things()
     if [[ teal_result -eq 0 ]]; then
         echo 'compiled.'
         separate_line
-        love . "$@"
+        #love . "$@"
+        ~/projects/love_nojit/src/.libs/love . "$@"
     else
         echo 'not compiled.'
     fi
