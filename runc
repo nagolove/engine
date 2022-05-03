@@ -93,7 +93,8 @@ make_things()
         echo 'compiled.'
         separate_line
         #love . "$@"
-        ~/projects/love_nojit/src/.libs/love . "$@"
+        #~/projects/love_nojit/src/.libs/love . "$@"
+        gdb -ex run --args ~/projects/love_nojit/src/.libs/love . t80 
     else
         echo 'not compiled.'
     fi
