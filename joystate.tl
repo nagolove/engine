@@ -19,20 +19,8 @@ local record JoyState
     hat: joystick.JoystickHat
 end
 
-local record DummyJoyState
-    new: function(joystick.Joystick): JoyState
-    update: function(JoyState)
-
-    -- получить инфу о состоянии клавиш
-    state: string
-end
-
 local JoyState_mt: metatable<JoyState> = {
     __index = JoyState,
-}
-
-local DummyJoyState_mt: metatable<DummyJoyState> = {
-    __index = DummyJoyState,
 }
 
 function JoyState.new(joy: joystick.Joystick): JoyState
