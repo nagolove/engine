@@ -3,7 +3,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local colorize = require('ansicolors2').ansicolors
 local joystick = love.joystick
 
- JoyState = {}
+local JoyState = {}
 
 
 
@@ -12,6 +12,14 @@ local joystick = love.joystick
 
 
 
+
+
+
+
+
+
+
+local DummyJoyState = {}
 
 
 
@@ -21,6 +29,10 @@ local joystick = love.joystick
 
 local JoyState_mt = {
    __index = JoyState,
+}
+
+local DummyJoyState_mt = {
+   __index = DummyJoyState,
 }
 
 function JoyState.new(joy)
