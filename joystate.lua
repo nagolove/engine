@@ -19,20 +19,8 @@ local JoyState = {}
 
 
 
-local DummyJoyState = {}
-
-
-
-
-
-
-
 local JoyState_mt = {
    __index = JoyState,
-}
-
-local DummyJoyState_mt = {
-   __index = DummyJoyState,
 }
 
 function JoyState.new(joy)
