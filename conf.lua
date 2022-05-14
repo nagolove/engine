@@ -43,7 +43,9 @@ function love.conf(t)
 
     t.window.x = nil                    -- The x-coordinate of the window's position in the specified display (number)
     t.window.y = nil                    -- The y-coordinate of the window's position in the specified display (number)
-    t.window.x = 1920 + 1920 / 2                    -- The x-coordinate of the window's position in the specified display (number)
+
+    --t.window.x = 1920 + 1920 / 2                    -- The x-coordinate of the window's position in the specified display (number)
+
     --t.window.y = 49                    -- The y-coordinate of the window's position in the specified display (number)
 
     t.modules.audio = true              -- Enable the audio module (boolean)
