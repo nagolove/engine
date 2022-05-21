@@ -13,7 +13,9 @@ local map = {}
 
 local mapSize = 0
 
-local rez = 32
+local rez = 8
+
+
 
 
 
