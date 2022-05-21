@@ -8,6 +8,8 @@
 require 'love'
 local Pipeline = require 'pipeline'
 
+local das = require "diamond_and_square"
+
 --[[
 XXX Ошибки разработки.
 -- {{{
