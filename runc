@@ -77,6 +77,7 @@ make_things()
 
     separate_line
 
+    # Что значит $@ ?? Передача параметра функции?
     echo $@
     pushd scenes/$@
     echo "mode: $build_mode"
@@ -86,6 +87,15 @@ make_things()
         exit
     fi
     popd
+
+    separate_line
+
+    echo "mode: $build_mode"
+    # проверяю вызов команды сборки на успешность завершения
+    if ! make config=$build_mode; then
+        echo "C module not compiled."
+        exit
+    fi
 
     #readelf -Ws --dyn-syms ddd.so | grep open
 
