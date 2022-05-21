@@ -171,7 +171,7 @@ int diamond_and_square_new(lua_State *lua) {
     ctx->map = calloc(sizeof(double), ctx->mapSize * ctx->mapSize);
 
     lua_pushvalue(lua, 2);
-    ctx->random_regindex = lua_ref(lua, LUA_REGISTRYINDEX);
+    ctx->random_regindex = luaL_ref(lua, LUA_REGISTRYINDEX);
     /*lua_rawgeti(lua, LUA_REGISTRYINDEX, ctx->random_regindex);*/
 
     struct {
@@ -203,12 +203,16 @@ int diamond_and_square_new(lua_State *lua) {
     // }}}
 }
 
+void square_value(Context *ctx, int i, int j, double *min, double *max) {
+}
+
 void square(Context *ctx) {
     int half = floor(ctx->chunkSize / 2.);
     for(int i = 0; i < ctx->mapSize - 1; i += ctx->chunkSize) {
         for(int j = 0; j < ctx->mapSize - 1; j += ctx->chunkSize) {
             double min = 0., max = 0.;
             /*square_value(ctx, i, j, half, NULL, &min, &max);*/
+            square_value(ctx, i, j, &min, &max);
             double rnd_value = 0.;
             map_set(ctx, i + half, j + half, rnd_value);
         }
@@ -258,7 +262,6 @@ int diamond_and_square_get(lua_State *lua) {
     // }}}
 }
 
-/*
 int diamond_and_square_get_mapsize(lua_State *lua) {
     check_argsnum(lua, 1);
     luaL_checktype(lua, 1, LUA_TUSERDATA);
@@ -266,7 +269,6 @@ int diamond_and_square_get_mapsize(lua_State *lua) {
     lua_pushnumber(lua, ctx->mapSize);
     return 1;
 }
-*/
 
 int register_module(lua_State *lua) {
     static const struct luaL_Reg functions[] =
