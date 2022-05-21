@@ -284,13 +284,6 @@ function DiamonAndSquare:squareValue(i: number, j: number, _: number): number, n
         {i = i + self.chunkSize, j = j + self.chunkSize}
     }
 
-    --for _, corner in ipairs ({
-        --{i=i, j=j}, 
-        --{i=i+self.chunkSize, j=j}, 
-        --{i=i, j=j+self.chunkSize}, 
-        --{i=i+self.chunkSize, j=j+self.chunkSize}}
-    --) do
-
     for _, corner in ipairs(corners) do
         local v = self:value(corner.i, corner.j)
         if v then
