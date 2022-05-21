@@ -13,7 +13,9 @@ local map: {{number}} = {}
 
 local mapSize: integer = 0
 -- Размер одного прямоугольника карты в пикселях.
-local rez = 32
+local rez = 8
+--local rez = 32
+--local rez = 128 + 64 + 32 + 32
 
 -- i1, i2, j1, j2 - индексы
 -- dx, dy - _необязательное_ смещение в пикслелях для всей картинки
