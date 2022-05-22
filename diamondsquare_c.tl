@@ -32,6 +32,7 @@ diamondsquare_common.tl
 интерфейс модуля может быть заменен C реализацией.
 -- }}}
 --]]
+
 local record DiamonAndSquare
 
     record State
@@ -39,22 +40,23 @@ local record DiamonAndSquare
         mapSize: integer
     end
 
+    generator: das.Generator
     pipeline: Pipeline
-    scale: number
-    maxcanvassize: integer
-    --rez: integer
-    map: {{number}}
+    --map: {{number}}
 
     -- в пикселях
     --width: integer
     -- в пикселях
     --height: integer
 
+    --[[
     mapSize: integer
     chunkSize: integer
     roughness: integer
-    rng: love.math.RandomGenerator
     mapn: integer
+    --]]
+
+    rng: love.math.RandomGenerator
 
     -- PUBLIC
     new: function(
@@ -117,45 +119,9 @@ function DiamonAndSquare:send2render()
     )
 end
 
-function DiamonAndSquare:load(fname: string)
-    local data, size = love.filesystem.read(fname)
-    if data then
-        local f: DiamonAndSquare.State
-        local ok, errmsg = pcall(function()
-            f = load(data)() as DiamonAndSquare.State
-        end) as (boolean, string)
-        if not ok then
-            local msg_part = fname .. ': ' .. errmsg
-            print('Could not load DiamonAndSquare from ' .. msg_part)
-        end
-        self.mapSize = f.mapSize
-        self.map = f.map
-    else
-        local msg_part = fname .. ': ' .. tostring(size)
-        error('Could not load DiamonAndSquare from ' .. msg_part)
-    end
-end
-
---[[
-function DiamonAndSquare:serialize(): string
-    local state: DiamonAndSquare.State = {
-        mapSize = self.mapSize,
-        map = self.map,
-    }
-    return serpent.dump(state)
-end
---]]
-
-function DiamonAndSquare:save(_: string)
---function DiamonAndSquare:save(fname: string)
-    --local succ, msg = love.filesystem.write(fname, self:serialize())
-    --if not succ then
-        --error('Could not save DiamonAndSquare to ' .. fname .. ': ' .. msg)
-    --end
-end
-
 -- добавить анимацию процесса разбиения
 function DiamonAndSquare:eval(): DiamonAndSquare
+    --[[
     local coro = coroutine.create(function()
         local stop = false
         repeat
@@ -174,6 +140,8 @@ function DiamonAndSquare:eval(): DiamonAndSquare
         ok = coroutine.resume(coro)
     end
     ---------
+    --]]
+    self.generator:eval()
     return self
 end
 
@@ -212,9 +180,15 @@ function DiamonAndSquare.new(
         'diamondsquare', 'rdr_diamondsquare.lua'
     )
 
+    self.generator = das.new(mapn, function(): number
+        return rng:random()
+    end)
+
+    --[[
     self.rng = rng
     self.mapn = mapn
     self:reset()
+    --]]
 
     return self
 end

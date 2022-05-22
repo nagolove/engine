@@ -274,7 +274,7 @@ int register_module(lua_State *lua) {
     static const struct luaL_Reg functions[] =
     {
         // {{{
-        {"diamond_and_square_new", diamond_and_square_new},
+        {"new", diamond_and_square_new},
         {NULL, NULL}
         // }}}
     };
