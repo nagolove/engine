@@ -126,7 +126,7 @@ int diamond_and_square_internal_free(lua_State *lua) {
     return 0;
 }
 
-inline double map_set(Context *ctx, int i, int j, double value) {
+inline static double map_set(Context *ctx, int i, int j, double value) {
 #ifdef DEBUG
     if (i < 0 || i >= ctx->mapSize) {
         printf("map_set(): i out of range 0..%d\n", ctx->mapSize);
@@ -140,7 +140,7 @@ inline double map_set(Context *ctx, int i, int j, double value) {
     return ctx->map[i * ctx->mapSize + j] = value;
 }
 
-inline double map_get(Context *ctx, int i, int j) {
+inline static double map_get(Context *ctx, int i, int j) {
 #ifdef DEBUG
     if (i < 0 || i >= ctx->mapSize) {
         printf("map_set(): i out of range 0..%d\n", ctx->mapSize);
@@ -165,6 +165,11 @@ int diamond_and_square_new(lua_State *lua) {
     Context *ctx = lua_newuserdata(lua, sizeof(Context));
     memset(ctx, 0, sizeof(Context));
 
+    luaL_getmetatable(lua, "_DiamondSquare");
+    // [.., ud, {M}]
+    lua_setmetatable(lua, -2);
+    // [.., {ud}]
+    
     ctx->mapSize = pow(2, mapn) + 1;
     ctx->chunkSize = ctx->mapSize - 1;
     ctx->roughness = 2;
@@ -174,13 +179,14 @@ int diamond_and_square_new(lua_State *lua) {
     ctx->random_regindex = luaL_ref(lua, LUA_REGISTRYINDEX);
     /*lua_rawgeti(lua, LUA_REGISTRYINDEX, ctx->random_regindex);*/
 
+    int limit = ctx->mapSize - 1;
     struct {
         int i, j;
     } corners[4] = {
-        { .i = 1, .j = 1},
-        { .i = ctx->mapSize, .j = 1},
-        { .i = ctx->mapSize, .j = ctx->mapSize},
-        { .i = 1, .j = ctx->mapSize},
+        { .i = 0, .j = 0},
+        { .i = limit, .j = 0},
+        { .i = limit, .j = limit},
+        { .i = 0, .j = limit},
     };
 
     LOG("diamond_and_square_new: [%s]\n", stack_dump(lua));
@@ -193,7 +199,10 @@ int diamond_and_square_new(lua_State *lua) {
         lua_pushvalue(lua, 2);
         lua_call(lua, 0, 1);
         double value = lua_tonumber(lua, -1);
+        lua_remove(lua, -1);
+        // TODO исправить математику
         value = 0.5 - 0.5 * cos(value * M_PI);
+        LOG("i = %d, j = %d\n", i, j);
         map_set(ctx, i, j, value);
     }
 
@@ -293,7 +302,7 @@ static const struct luaL_Reg DiamondSquare_methods[] =
     // }}}
 };
 
-extern int luaopen_wrp(lua_State *lua) {
+extern int luaopen_diamond_and_square(lua_State *lua) {
     register_methods(lua, "_DiamondSquare", DiamondSquare_methods);
     printf("diamond&square module was opened [%s]\n", stack_dump(lua));
     return register_module(lua);

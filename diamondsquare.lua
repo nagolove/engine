@@ -8,6 +8,28 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 require('love')
 local Pipeline = require('pipeline')
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local DiamonAndSquare = {State = {}, }
 
 
@@ -261,13 +283,6 @@ function DiamonAndSquare:squareValue(i, j, _)
       { i = i, j = j + self.chunkSize },
       { i = i + self.chunkSize, j = j + self.chunkSize },
    }
-
-
-
-
-
-
-
 
    for _, corner in ipairs(corners) do
       local v = self:value(corner.i, corner.j)

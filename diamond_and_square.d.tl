@@ -3,11 +3,15 @@ local record DiamondAndSquare
     type RandomCallback = function(): number
 
     record Generator
-        internal_free: function()
-        eval: function()
+        internal_free: function(Generator)
+
+        -- XXX not implemented
+        is_freed: function(Generator): boolean
+
+        eval: function(Generator)
         -- индексация с 0 по get_mapsize() - 1
-        get: function(i: integer, j: integer): number
-        get_mapsize: function(): integer
+        get: function(Generator, i: integer, j: integer): number
+        get_mapsize: function(Generator): integer
     end
 
     new: function(size: integer, rc: RandomCallback): Generator

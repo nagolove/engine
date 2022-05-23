@@ -1,3 +1,5 @@
+local Pipeline = require 'pipeline'
+
 local record DiamonAndSquare_common
 
     record State
@@ -27,41 +29,43 @@ local record DiamonAndSquare_common
     new: function(
         mapn: integer, 
         rng: RandomCallback
-    ): DiamonAndSquare
+    ): DiamonAndSquare_common
 
-    --[[
-    Порядок использования:
-        eval() send2render() render()
-    или
-        eval() save() send2render() render()
-    или
-        load() send2render() render()
-    --]]
+    --Порядок использования:
+        --eval() send2render() render()
+    --или
+        --eval() save() send2render() render()
+    --или
+        --load() send2render() render()
+
+    type DiamonAndSquare_cmn = DiamonAndSquare_common
 
     -- основная функция - сознать карту высот
-    eval: function(DiamonAndSquare): DiamonAndSquare
+    eval: function(DiamonAndSquare_cmn): DiamonAndSquare_cmn
     -- сохранить в файл
-    save: function(DiamonAndSquare, fname: string)
+    save: function(DiamonAndSquare_cmn, fname: string)
     -- загрузить из файла
-    load: function(DiamonAndSquare, fname: string)
+    load: function(DiamonAndSquare_cmn, fname: string)
     -- отправить на рисование
-    send2render: function(DiamonAndSquare)
+    send2render: function(DiamonAndSquare_cmn)
     -- рисовать
-    render: function(DiamonAndSquare)
+    render: function(DiamonAndSquare_cmn)
 
     -- PRIVATE
-    random: function(DiamonAndSquare, min: number, max: number): number
-    reset: function(DiamonAndSquare)
+    random: function(DiamonAndSquare_cmn, min: number, max: number): number
+    reset: function(DiamonAndSquare_cmn)
     -- нормализовать значения высот к диапазону 0..1
-    normalizeInplace: function(DiamonAndSquare)
+    normalizeInplace: function(DiamonAndSquare_cmn)
     -- шаг алмаза
-    diamond: function(DiamonAndSquare): boolean
-    diamondValue: function(DiamonAndSquare, i: number, j: number, half: number): number, number, number
+    diamond: function(DiamonAndSquare_cmn): boolean
+    diamondValue: function(DiamonAndSquare_cmn, i: number, j: number, half: number): number, number, number
     -- шаг квадрат(?)
-    square: function(DiamonAndSquare)
-    squareValue: function(DiamonAndSquare, number, number, number): number, number, number
-    value: function(DiamonAndSquare, number, number): number
+    square: function(DiamonAndSquare_cmn)
+    squareValue: function(DiamonAndSquare_cmn, number, number, number): number, number, number
+    value: function(DiamonAndSquare_cmn, number, number): number
 end
+
+--[[
 
 local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
     __index = DiamonAndSquare,
@@ -76,29 +80,6 @@ function DiamonAndSquare:getCompressedMap(): string
     --print('#compressed', #compressed)
     return compressed
 end
-
---[[
-function DiamonAndSquare:load(fname: string)
-    -- {{{
-    local data, size = love.filesystem.read(fname)
-    if data then
-        local f: DiamonAndSquare.State
-        local ok, errmsg = pcall(function()
-            f = load(data)() as DiamonAndSquare.State
-        end) as (boolean, string)
-        if not ok then
-            local msg_part = fname .. ': ' .. errmsg
-            print('Could not load DiamonAndSquare from ' .. msg_part)
-        end
-        self.mapSize = f.mapSize
-        self.map = f.map
-    else
-        local msg_part = fname .. ': ' .. tostring(size)
-        error('Could not load DiamonAndSquare from ' .. msg_part)
-    end
-    -- }}}
-end
---]]
 
 function DiamonAndSquare_common:newCoroutine(): thread
     local coro = coroutine.create(function()
@@ -204,7 +185,6 @@ function DiamonAndSquare:reset()
         self.map[i][j] = value
     end
 end
---]]
 
 local floor = math.floor
 
