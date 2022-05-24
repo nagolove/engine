@@ -52,6 +52,7 @@ typedef struct {
     int mapSize;
     int chunkSize, roughness;
     int random_regindex; // LUA_REGISTRYINDEX функции обратного вызова ГПСЧ.
+    lua_State *lua;
     // }}}
 } Context;
 
@@ -154,6 +155,20 @@ inline static double map_get(Context *ctx, int i, int j) {
     return ctx->map[i * ctx->mapSize + j];
 }
 
+double internal_random(Context *ctx) {
+    lua_rawgeti(ctx->lua, LUA_REGISTRYINDEX, ctx->random_regindex);
+    lua_call(ctx->lua, 0, 1);
+    double value = lua_tonumber(ctx->lua, -1);
+    lua_remove(ctx->lua, -1);
+    return value;
+}
+
+double random_range(Context *ctx, double min, double max) {
+	/*local r = 4*(self.rng:random()-0.5)^3 + 0.5*/
+/*--	https://www.desmos.com/calculator/toxjtsovev*/
+    return min + internal_random(ctx) * (max - min);
+}
+
 int diamond_and_square_new(lua_State *lua) {
     // {{{
     check_argsnum(lua, 2);
@@ -169,7 +184,8 @@ int diamond_and_square_new(lua_State *lua) {
     // [.., ud, {M}]
     lua_setmetatable(lua, -2);
     // [.., {ud}]
-    
+
+    ctx->lua = lua;
     ctx->mapSize = pow(2, mapn) + 1;
     ctx->chunkSize = ctx->mapSize - 1;
     ctx->roughness = 2;
@@ -191,16 +207,14 @@ int diamond_and_square_new(lua_State *lua) {
 
     LOG("diamond_and_square_new: [%s]\n", stack_dump(lua));
 
-    // XXX Использование константы в сравнеии (i < 4)
+    // XXX Использование константы в сравнеии (i < 4), лучше использовать
+    // переменную, расчитанную от длины массива.
     for(int corner_idx = 0; corner_idx < 4; ++corner_idx) {
         int i = corners[corner_idx].i;
         int j = corners[corner_idx].j;
 
-        lua_pushvalue(lua, 2);
-        lua_call(lua, 0, 1);
-        double value = lua_tonumber(lua, -1);
-        lua_remove(lua, -1);
-        // TODO исправить математику
+        double value = internal_random(ctx);
+        // TODO исправить математику, откуда такие коэффициенты?
         value = 0.5 - 0.5 * cos(value * M_PI);
         LOG("i = %d, j = %d\n", i, j);
         map_set(ctx, i, j, value);
@@ -212,7 +226,54 @@ int diamond_and_square_new(lua_State *lua) {
     // }}}
 }
 
+inline static double *value(Context *ctx, int i, int j) {
+    if (i >= 0 && i < ctx->mapSize && j >= 0 && j < ctx->mapSize) {
+        return &ctx->map[i * ctx->mapSize + j];
+    } else {
+        return NULL;
+    }
+}
+
+inline static double min_value(double a, double b) {
+    if (a < b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+inline static double max_value(double a, double b) {
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
 void square_value(Context *ctx, int i, int j, double *min, double *max) {
+    assert(min);
+    assert(max);
+
+    struct {
+        int i, j;
+    } corners[4] = {
+        { .i = i, .j = j},
+        { .i = i + ctx->chunkSize, .j = j },
+        { .i = i, .j = j + ctx->chunkSize },
+        { .i = i + ctx->chunkSize, .j = j + ctx->chunkSize },
+    };
+
+    for(int corner_idx = 0; corner_idx < 4; ++corner_idx) {
+        double *v = value(ctx, corners[corner_idx].i, corners[corner_idx].j);
+        if (v) {
+            /*
+            *min = *min && min_value(*min, *v) || *v;
+            *max = *max && max_value(*max, *v) || *v;
+            */
+            *min = *min ? min_value(*min, *v) : *v;
+            *max = *max ? max_value(*max, *v) : *v;
+        }
+    }
 }
 
 void square(Context *ctx) {
@@ -220,7 +281,6 @@ void square(Context *ctx) {
     for(int i = 0; i < ctx->mapSize - 1; i += ctx->chunkSize) {
         for(int j = 0; j < ctx->mapSize - 1; j += ctx->chunkSize) {
             double min = 0., max = 0.;
-            /*square_value(ctx, i, j, half, NULL, &min, &max);*/
             square_value(ctx, i, j, &min, &max);
             double rnd_value = 0.;
             map_set(ctx, i + half, j + half, rnd_value);

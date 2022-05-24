@@ -258,8 +258,18 @@ end
 local floor = math.floor
 
 function DiamonAndSquare:value(i: number, j: number): number
+    --print(i - floor(i))
+    --print(j - floor(j))
+    if (i - floor(i) > 0.) then
+        print('i', i)
+    end
+    if (j - floor(j) > 0.) then
+        print('j', j)
+    end
 	if self.map[floor(i)] and self.map[floor(i)][floor(j)] then
 		return self.map[floor(i)][floor(j)]
+    else
+        --print('no such cell, i, j', i, j)
 	end
 end
 
@@ -269,7 +279,11 @@ function DiamonAndSquare:random(min: number, max: number): number
 --	https://www.desmos.com/calculator/toxjtsovev
     local result = min + r*(max-min)
     --print('DiamonAndSquare:random()', min, max, result)
-    return result
+    if love.keyboard.isDown('l') then
+        return result
+    else
+        return min + self.rng:random()*(max-min)
+    end
 end
 
 function DiamonAndSquare:squareValue(i: number, j: number, _: number): number, number, number

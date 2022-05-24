@@ -258,8 +258,18 @@ end
 local floor = math.floor
 
 function DiamonAndSquare:value(i, j)
+
+
+   if (i - floor(i) > 0.) then
+      print('i', i)
+   end
+   if (j - floor(j) > 0.) then
+      print('j', j)
+   end
    if self.map[floor(i)] and self.map[floor(i)][floor(j)] then
       return self.map[floor(i)][floor(j)]
+   else
+
    end
 end
 
@@ -269,7 +279,11 @@ function DiamonAndSquare:random(min, max)
 
    local result = min + r * (max - min)
 
-   return result
+   if love.keyboard.isDown('l') then
+      return result
+   else
+      return min + self.rng:random() * (max - min)
+   end
 end
 
 function DiamonAndSquare:squareValue(i, j, _)
