@@ -291,6 +291,7 @@ function DiamonAndSquare:squareValue(i, j, _)
    local n = 0
    local min, max
 
+
    local corners = {
       { i = i, j = j },
       { i = i + self.chunkSize, j = j },
@@ -329,12 +330,15 @@ function DiamonAndSquare:diamondValue(i, j, half)
    local value = 0.
    local n = 0
    local min, max
+
+
    local corners = {
       { i = i, j = j - half },
       { i = i + half, j = j },
       { i = i, j = j + half },
       { i = i - half, j = j },
    }
+
 
    for _, corner in ipairs(corners) do
       local v = self:value(corner.i, corner.j)

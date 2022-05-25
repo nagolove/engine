@@ -290,7 +290,8 @@ function DiamonAndSquare:squareValue(i: number, j: number, _: number): number, n
 	local value = 0.
 	local n = 0
 	local min, max: number, number
-    
+   
+    -- Увеличение индексов
     local corners = {
         {i = i, j = j}, 
         {i = i + self.chunkSize, j = j}, 
@@ -329,12 +330,15 @@ function DiamonAndSquare:diamondValue(i: number, j: number, half: number): numbe
 	local value = 0.
 	local n = 0
 	local min, max: number, number
+
+    -- Уменьшение индексов
     local corners = {
         {i = i, j = j - half}, 
         {i = i  +  half, j = j}, 
         {i = i, j = j  +  half}, 
         {i = i - half, j = j},
     }
+
 	--for _, corner in ipairs({{i=i, j=j-half}, {i=i+half, j=j}, {i=i, j=j+half}, {i=i-half, j=j}}) do
     for _, corner in ipairs(corners) do
 		local v = self:value (corner.i, corner.j)

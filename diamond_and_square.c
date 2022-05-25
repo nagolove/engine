@@ -254,6 +254,8 @@ void square_value(Context *ctx, int i, int j, double *min, double *max) {
     assert(min);
     assert(max);
 
+    // Увеличение индексов
+    // TODO Стоит вынести массив corners из функции и передавать как аргумент?
     struct {
         int i, j;
     } corners[4] = {
@@ -288,14 +290,67 @@ void square(Context *ctx) {
     }
 }
 
+void diamond_value(
+        Context *ctx, 
+        int i, int j, int half, 
+        double *min, double *max
+) {
+
+    // Уменьшение индексов
+    struct {
+        int i, j;
+    } corners[4] = {
+        {.i = i, .j = j - half}, 
+        {.i = i  +  half, .j = j}, 
+        {.i = i, .j = j  +  half}, 
+        {.i = i - half, .j = j},
+    };
+
+    for(int corner_idx = 0; corner_idx < 4; ++corner_idx) {
+        double *v = value(ctx, corners[corner_idx].i, corners[corner_idx].j);
+        if (v) {
+            *min = *min ? min_value(*min, *v) : *v;
+            *max = *max ? max_value(*max, *v) : *v;
+        }
+    }
+}
+
+bool diamond(Context *ctx) {
+    int half = floor(ctx->chunkSize / 2.);
+    int mapSize = ctx->mapSize;
+    int chunkSize = ctx->mapSize;
+    for(int i = 0; i < ctx->mapSize - 1; i += half) {
+        for(int j = (i + half) % chunkSize; j < mapSize - 1; j += chunkSize) {
+            double min = 0., max = 0.;
+            diamond_value(ctx, i, j, half, &min, &max);
+            double value = random_range(ctx, min, max);
+            map_set(ctx, i, j, value);
+        }
+    }
+
+    ctx->chunkSize = ceil(ctx->chunkSize / 2.);
+    ctx->roughness = ceil(ctx->roughness / 2.);
+
+    return ctx->chunkSize <= 1;
+}
+
 int diamond_and_square_eval(lua_State *lua) {
     check_argsnum(lua, 1);
     Context *ctx = luaL_checkudata(lua, 1, "_DiamondSquare");
+
+    LOG("diamond_and_square_eval: [%s]\n", stack_dump(lua));
 
     if (!ctx->map) {
         lua_pushstring(lua, "diamond_and_square_eval: map was deallocated");
         lua_error(lua);
     }
+
+    /*bool stop = false;*/
+    bool stop = true;
+    do {
+        square(ctx);
+        stop = diamond(ctx);
+    } while (!stop);
 
     return 0;
 }
