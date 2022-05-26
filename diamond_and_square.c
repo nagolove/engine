@@ -30,6 +30,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <lauxlib.h>
 #include <lua.h>
@@ -156,10 +157,16 @@ inline static double map_get(Context *ctx, int i, int j) {
 }
 
 double internal_random(Context *ctx) {
+    /*
     lua_rawgeti(ctx->lua, LUA_REGISTRYINDEX, ctx->random_regindex);
     lua_call(ctx->lua, 0, 1);
     double value = lua_tonumber(ctx->lua, -1);
+    LOG("internal_random: value = %.3f\n", value);
     lua_remove(ctx->lua, -1);
+    */
+    double value = rand() / (double)RAND_MAX;
+    /*double value = rand();*/
+    LOG("internal_random = %f\n", value);
     return value;
 }
 
@@ -167,6 +174,35 @@ double random_range(Context *ctx, double min, double max) {
 	/*local r = 4*(self.rng:random()-0.5)^3 + 0.5*/
 /*--	https://www.desmos.com/calculator/toxjtsovev*/
     return min + internal_random(ctx) * (max - min);
+}
+
+void reset(Context *ctx) {
+    ctx->chunkSize = ctx->initialChunkSize;
+
+    int limit = ctx->mapSize - 1;
+    struct {
+        int i, j;
+    } corners[4] = {
+        { .i = 0, .j = 0},
+        { .i = limit, .j = 0},
+        { .i = limit, .j = limit},
+        { .i = 0, .j = limit},
+    };
+
+    // XXX Использование константы в сравнеии (i < 4), лучше использовать
+    // переменную, расчитанную от длины массива.
+    for(int corner_idx = 0; corner_idx < 4; ++corner_idx) {
+        int i = corners[corner_idx].i;
+        int j = corners[corner_idx].j;
+
+        double value = internal_random(ctx);
+        // TODO исправить математику, откуда такие коэффициенты?
+        value = 0.5 - 0.5 * cos(value * M_PI);
+        LOG("i = %d, j = %d\n", i, j);
+        map_set(ctx, i, j, value);
+    }
+
+    LOG("diamond_and_square_new: [%s]\n", stack_dump(ctx->lua));
 }
 
 int diamond_and_square_new(lua_State *lua) {
@@ -195,33 +231,9 @@ int diamond_and_square_new(lua_State *lua) {
     ctx->random_regindex = luaL_ref(lua, LUA_REGISTRYINDEX);
     /*lua_rawgeti(lua, LUA_REGISTRYINDEX, ctx->random_regindex);*/
 
-    int limit = ctx->mapSize - 1;
-    struct {
-        int i, j;
-    } corners[4] = {
-        { .i = 0, .j = 0},
-        { .i = limit, .j = 0},
-        { .i = limit, .j = limit},
-        { .i = 0, .j = limit},
-    };
-
     LOG("diamond_and_square_new: [%s]\n", stack_dump(lua));
-
-    // XXX Использование константы в сравнеии (i < 4), лучше использовать
-    // переменную, расчитанную от длины массива.
-    for(int corner_idx = 0; corner_idx < 4; ++corner_idx) {
-        int i = corners[corner_idx].i;
-        int j = corners[corner_idx].j;
-
-        double value = internal_random(ctx);
-        // TODO исправить математику, откуда такие коэффициенты?
-        value = 0.5 - 0.5 * cos(value * M_PI);
-        LOG("i = %d, j = %d\n", i, j);
-        map_set(ctx, i, j, value);
-    }
-
-    LOG("diamond_and_square_new: [%s]\n", stack_dump(lua));
-
+    reset(ctx);
+    
     return 1;
     // }}}
 }
@@ -247,6 +259,21 @@ inline static double max_value(double a, double b) {
         return a;
     } else {
         return b;
+    }
+}
+
+void normalize_implace(Context *ctx) {
+    for(int i = 0; i < ctx->mapSize; ++i) {
+        for(int j = 0; j < ctx->mapSize; ++j) {
+            double *v = value(ctx, i, j);
+            if (v) {
+                if (*v > 1.) {
+                    map_set(ctx, i, j, 1.);
+                } else if (*v < 0) {
+                    map_set(ctx, i, j, 0.);
+                }
+            }
+        }
     }
 }
 
@@ -279,6 +306,7 @@ void square_value(Context *ctx, int i, int j, double *min, double *max) {
 }
 
 void square(Context *ctx) {
+    LOG("square\n");
     int half = floor(ctx->chunkSize / 2.);
     for(int i = 0; i < ctx->mapSize - 1; i += ctx->chunkSize) {
         for(int j = 0; j < ctx->mapSize - 1; j += ctx->chunkSize) {
@@ -316,11 +344,14 @@ void diamond_value(
 }
 
 bool diamond(Context *ctx) {
+    LOG("diamond\n")
     int half = floor(ctx->chunkSize / 2.);
+    LOG("half = %d\n", half);
     int mapSize = ctx->mapSize;
     int chunkSize = ctx->mapSize;
     for(int i = 0; i < ctx->mapSize - 1; i += half) {
         for(int j = (i + half) % chunkSize; j < mapSize - 1; j += chunkSize) {
+            LOG("i: %d j: %d\n", i, j);
             double min = 0., max = 0.;
             diamond_value(ctx, i, j, half, &min, &max);
             double value = random_range(ctx, min, max);
@@ -328,6 +359,7 @@ bool diamond(Context *ctx) {
         }
     }
 
+    LOG("ctx->chunkSize = %d\n", ctx->chunkSize);
     ctx->chunkSize = ceil(ctx->chunkSize / 2.);
 
     return ctx->chunkSize <= 1;
@@ -344,14 +376,26 @@ int diamond_and_square_eval(lua_State *lua) {
         lua_error(lua);
     }
 
-    ctx->chunkSize = ctx->initialChunkSize;
+    reset(ctx);
 
-    /*bool stop = false;*/
-    bool stop = true;
+    bool stop = false;
+    /*bool stop = true;*/
+    /*int i = 0;*/
+    /*LOG("cycle\n");*/
     do {
-        square(ctx);
+        /*square(ctx);*/
         stop = diamond(ctx);
+
+        /*
+        if (i > 100) {
+            break;
+        }
+        i++;
+        printf("i = %d\n", i);
+        */
     } while (!stop);
+
+    normalize_implace(ctx);
 
     return 0;
 }
@@ -421,6 +465,7 @@ static const struct luaL_Reg DiamondSquare_methods[] =
 extern int luaopen_diamond_and_square(lua_State *lua) {
     register_methods(lua, "_DiamondSquare", DiamondSquare_methods);
     printf("diamond&square module was opened [%s]\n", stack_dump(lua));
+    srand(time(NULL));
     return register_module(lua);
 }
 
