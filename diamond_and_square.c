@@ -50,7 +50,7 @@ typedef struct {
     // {{{
     double *map;
     int mapSize;
-    int chunkSize, roughness;
+    int chunkSize, initialChunkSize;
     int random_regindex; // LUA_REGISTRYINDEX функции обратного вызова ГПСЧ.
     lua_State *lua;
     // }}}
@@ -187,8 +187,8 @@ int diamond_and_square_new(lua_State *lua) {
 
     ctx->lua = lua;
     ctx->mapSize = pow(2, mapn) + 1;
-    ctx->chunkSize = ctx->mapSize - 1;
-    ctx->roughness = 2;
+    ctx->initialChunkSize = ctx->mapSize - 1;
+    ctx->chunkSize = ctx->initialChunkSize;
     ctx->map = calloc(sizeof(double), ctx->mapSize * ctx->mapSize);
 
     lua_pushvalue(lua, 2);
@@ -329,7 +329,6 @@ bool diamond(Context *ctx) {
     }
 
     ctx->chunkSize = ceil(ctx->chunkSize / 2.);
-    ctx->roughness = ceil(ctx->roughness / 2.);
 
     return ctx->chunkSize <= 1;
 }
@@ -344,6 +343,8 @@ int diamond_and_square_eval(lua_State *lua) {
         lua_pushstring(lua, "diamond_and_square_eval: map was deallocated");
         lua_error(lua);
     }
+
+    ctx->chunkSize = ctx->initialChunkSize;
 
     /*bool stop = false;*/
     bool stop = true;
