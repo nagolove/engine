@@ -152,6 +152,28 @@ function DiamonAndSquare:save(_: string)
     --end
 end
 
+function DiamonAndSquare:newCoroutine(): thread
+    return coroutine.create(function()
+        local stop = false
+        repeat
+            --self:square()
+            -- Здесь отправлять данные на рисование промежуточного результата.
+            coroutine.yield()
+            stop = self:diamond()
+            coroutine.yield()
+            -- Здесь отправлять данные на рисование промежуточного результата.
+        until stop
+        self:normalizeInplace()
+    end)
+    --[[
+    local ok: boolean
+    ok = coroutine.resume(coro)
+    while ok do
+        ok = coroutine.resume(coro)
+    end
+    --]]
+end
+
 -- добавить анимацию процесса разбиения
 function DiamonAndSquare:eval(): DiamonAndSquare
     local coro = coroutine.create(function()
