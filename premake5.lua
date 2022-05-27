@@ -41,6 +41,9 @@ workspace "xcaustic"
     filter "configurations:Debug"
     defines { "DEBUG" }
     symbols "On"
+    buildoptions {
+        "-g3",
+    }
 
     filter "configurations:Release"
     defines { "NDEBUG" }
