@@ -242,24 +242,29 @@ inline static double *value(Context *ctx, int i, int j) {
     if (i >= 0 && i < ctx->mapSize && j >= 0 && j < ctx->mapSize) {
         return &ctx->map[i * ctx->mapSize + j];
     } else {
+        LOG("value is NULL for [%d, %d]\n", i, j);
         return NULL;
     }
 }
 
 inline static double min_value(double a, double b) {
-    if (a < b) {
-        return a;
-    } else {
-        return b;
-    }
+    return a < b ? a : b;
+    /*
+     *if (a < b) {
+     *    return a;
+     *} else {
+     *    return b;
+     *}
+     */
 }
 
 inline static double max_value(double a, double b) {
-    if (a > b) {
-        return a;
-    } else {
-        return b;
-    }
+    return a > b ? a : b;
+    /*if (a > b) {*/
+        /*return a;*/
+    /*} else {*/
+        /*return b;*/
+    /*}*/
 }
 
 void normalize_implace(Context *ctx) {
@@ -323,6 +328,8 @@ void diamond_value(
         int i, int j, int half, 
         double *min, double *max
 ) {
+    *min = 10000.;
+    *max = -10000.;
 
     // Уменьшение индексов
     struct {
@@ -337,8 +344,10 @@ void diamond_value(
     for(int corner_idx = 0; corner_idx < 4; ++corner_idx) {
         double *v = value(ctx, corners[corner_idx].i, corners[corner_idx].j);
         if (v) {
-            *min = *min ? min_value(*min, *v) : *v;
-            *max = *max ? max_value(*max, *v) : *v;
+            /**min = *min ? min_value(*min, *v) : *v;*/
+            /**max = *max ? max_value(*max, *v) : *v;*/
+            *min = min_value(*min, *v);
+            *max = max_value(*max, *v);
         }
     }
 }
