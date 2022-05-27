@@ -157,7 +157,7 @@ function DiamonAndSquare:eval()
    local coro = coroutine.create(function()
       local stop = false
       repeat
-         self:square()
+
 
          coroutine.yield()
          stop = self:diamond()
@@ -171,6 +171,7 @@ function DiamonAndSquare:eval()
    while ok do
       ok = coroutine.resume(coro)
    end
+
 
    return self
 end
@@ -222,7 +223,7 @@ function DiamonAndSquare:reset()
    self.mapSize = math.ceil(2 ^ self.mapn) + 1
 
    self.chunkSize = self.mapSize - 1
-   self.roughness = 2
+
 
    local corners = {
       {
@@ -316,6 +317,7 @@ end
 
 
 function DiamonAndSquare:square()
+   print('square')
    local half = math.floor(self.chunkSize / 2)
    for i = 1, self.mapSize - 1, self.chunkSize do
       for j = 1, self.mapSize - 1, self.chunkSize do
@@ -327,9 +329,7 @@ function DiamonAndSquare:square()
 end
 
 function DiamonAndSquare:diamondValue(i, j, half)
-   local value = 0.
-   local n = 0
-   local min, max
+   local min, max = 1000., -1000.
 
 
    local corners = {
@@ -343,25 +343,27 @@ function DiamonAndSquare:diamondValue(i, j, half)
    for _, corner in ipairs(corners) do
       local v = self:value(corner.i, corner.j)
       if v then
-         min = min and math.min(min, v) or v
-         max = max and math.max(max, v) or v
-         value = value + v
-         n = n + 1
+
+
+         min = math.min(min, v)
+         max = math.max(max, v)
       end
    end
-   return value / n, min, max
+   return min, max
 end
 
 function DiamonAndSquare:diamond()
+   print('--------------------- diamond ---------------------')
    local half = self.chunkSize / 2
+   print('half', half)
    local ceil = math.ceil
 
    for i = 1, self.mapSize, half do
-
       for j = (i + half) % self.chunkSize, self.mapSize, self.chunkSize do
+         print('i: ' .. i .. ' j:' .. j)
 
-
-         local _, min, max = self:diamondValue(i, j, half)
+         local min, max = self:diamondValue(i, j, half)
+         print('min, max', min, max)
          self.map[ceil(i)] = self.map[ceil(i)] or {}
          self.map[ceil(i)][ceil(j)] = self:random(min, max)
 
@@ -369,7 +371,7 @@ function DiamonAndSquare:diamond()
    end
 
    self.chunkSize = ceil(self.chunkSize / 2)
-   self.roughness = ceil(self.roughness / 2)
+
    return self.chunkSize <= 1
 end
 

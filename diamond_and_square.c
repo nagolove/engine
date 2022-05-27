@@ -354,6 +354,7 @@ bool diamond(Context *ctx) {
             LOG("i: %d j: %d\n", i, j);
             double min = 0., max = 0.;
             diamond_value(ctx, i, j, half, &min, &max);
+            LOG("min, max %f, %f\n", min, max);
             double value = random_range(ctx, min, max);
             map_set(ctx, i, j, value);
         }
