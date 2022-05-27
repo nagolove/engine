@@ -37,6 +37,7 @@ local record DiamonAndSquare
         mapSize: integer
     end
 
+    renderobj_name: string
     pipeline: Pipeline
     scale: number
     maxcanvassize: integer
@@ -51,13 +52,15 @@ local record DiamonAndSquare
     mapSize: integer
     chunkSize: integer
     --roughness: integer
-    rng: love.math.RandomGenerator
+    rng: RandomCallback
     mapn: integer
+
+    type RandomCallback = function(): number
 
     -- PUBLIC
     new: function(
         mapn: integer, 
-        rng: love.math.RandomGenerator,
+        rng: RandomCallback,
         pl: Pipeline
     ): DiamonAndSquare
 
@@ -102,7 +105,7 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
 local serpent = require 'serpent'
 
 function DiamonAndSquare:render()
-    self.pipeline:openPushAndClose('diamondsquare', 'flush')
+    self.pipeline:openPushAndClose(self.renderobj_name, 'flush')
 end
 
 function DiamonAndSquare:send2render()
@@ -111,7 +114,7 @@ function DiamonAndSquare:send2render()
     local compressed = compress('string', 'gzip', uncompressed, 9) as string
     print('#compressed', #compressed)
     self.pipeline:openPushAndClose(
-        'diamondsquare', 'map', self.mapSize, compressed
+        self.renderobj_name, 'map', self.mapSize, compressed
     )
 end
 
@@ -213,9 +216,11 @@ function DiamonAndSquare:normalizeInplace()
     end
 end
 
+global renderobj_counter = 0
+
 function DiamonAndSquare.new(
     mapn: integer, 
-    rng: love.math.RandomGenerator,
+    rng: DiamonAndSquare.RandomCallback,
     pl: Pipeline
 ): DiamonAndSquare
 
@@ -228,9 +233,11 @@ function DiamonAndSquare.new(
     assert(pl, "pipeline is nil")
     self.pipeline = pl
 
+    self.renderobj_name = "diamondsquare" .. renderobj_counter
+    renderobj_counter = renderobj_counter + 1
     self.pipeline:pushCodeFromFileRoot(
         --'diamondsquare', 'diamondsquare-render.lua'
-        'diamondsquare', 'rdr_diamondsquare.lua'
+        self.renderobj_name, 'rdr_diamondsquare.lua'
     )
 
     self.rng = rng
@@ -269,7 +276,7 @@ function DiamonAndSquare:reset()
 	for _, corner in ipairs(corners) do
 		local i, j = corner.i, corner.j
 
-		local value = self.rng:random()
+		local value = self.rng()
 
 		value = 0.5 - 0.5 * math.cos(value * math.pi)
 		self.map[i] = self.map[i] or {}
@@ -298,14 +305,15 @@ end
 
 function DiamonAndSquare:random(min: number, max: number): number
 	--local r = 4*(math.random ()-0.5)^3 + 0.5
-	local r = 4*(self.rng:random()-0.5)^3 + 0.5
+	local r = 4*(self.rng()-0.5)^3 + 0.5
 --	https://www.desmos.com/calculator/toxjtsovev
     local result = min + r*(max-min)
     --print('DiamonAndSquare:random()', min, max, result)
+    -- XXX
     if love.keyboard.isDown('l') then
         return result
     else
-        return min + self.rng:random()*(max-min)
+        return min + self.rng()*(max-min)
     end
 end
 
