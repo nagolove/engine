@@ -95,6 +95,9 @@ local DiamonAndSquare = {State = {}, }
 
 
 
+
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
@@ -102,7 +105,7 @@ local DiamonAndSquare_mt = {
 local serpent = require('serpent')
 
 function DiamonAndSquare:render()
-   self.pipeline:openPushAndClose('diamondsquare', 'flush')
+   self.pipeline:openPushAndClose(self.renderobj_name, 'flush')
 end
 
 function DiamonAndSquare:send2render()
@@ -111,7 +114,7 @@ function DiamonAndSquare:send2render()
    local compressed = compress('string', 'gzip', uncompressed, 9)
    print('#compressed', #compressed)
    self.pipeline:openPushAndClose(
-   'diamondsquare', 'map', self.mapSize, compressed)
+   self.renderobj_name, 'map', self.mapSize, compressed)
 
 end
 
@@ -145,6 +148,28 @@ end
 
 
 function DiamonAndSquare:save(_)
+
+
+
+
+
+end
+
+function DiamonAndSquare:newCoroutine()
+   return coroutine.create(function()
+      local stop = false
+      repeat
+
+
+         coroutine.yield()
+         stop = self:diamond()
+         coroutine.yield()
+
+      until stop
+      self:normalizeInplace()
+   end)
+
+
 
 
 
@@ -191,6 +216,8 @@ function DiamonAndSquare:normalizeInplace()
    end
 end
 
+renderobj_counter = 0
+
 function DiamonAndSquare.new(
    mapn,
    rng,
@@ -206,9 +233,11 @@ function DiamonAndSquare.new(
    assert(pl, "pipeline is nil")
    self.pipeline = pl
 
+   self.renderobj_name = "diamondsquare" .. renderobj_counter
+   renderobj_counter = renderobj_counter + 1
    self.pipeline:pushCodeFromFileRoot(
 
-   'diamondsquare', 'rdr_diamondsquare.lua')
+   self.renderobj_name, 'rdr_diamondsquare.lua')
 
 
    self.rng = rng
@@ -247,7 +276,7 @@ function DiamonAndSquare:reset()
    for _, corner in ipairs(corners) do
       local i, j = corner.i, corner.j
 
-      local value = self.rng:random()
+      local value = self.rng()
 
       value = 0.5 - 0.5 * math.cos(value * math.pi)
       self.map[i] = self.map[i] or {}
@@ -276,14 +305,15 @@ end
 
 function DiamonAndSquare:random(min, max)
 
-   local r = 4 * (self.rng:random() - 0.5) ^ 3 + 0.5
+   local r = 4 * (self.rng() - 0.5) ^ 3 + 0.5
 
    local result = min + r * (max - min)
+
 
    if love.keyboard.isDown('l') then
       return result
    else
-      return min + self.rng:random() * (max - min)
+      return min + self.rng() * (max - min)
    end
 end
 

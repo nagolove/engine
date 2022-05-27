@@ -46,6 +46,7 @@ end
 
 function CoroProcessor:update()
    for k, v in pairs(self.coros) do
+
       if #v >= 1 then
          local msgs = self.messages[k]
          local msg
