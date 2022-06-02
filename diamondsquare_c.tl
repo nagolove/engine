@@ -56,10 +56,12 @@ local record DiamonAndSquare
     --]]
     mapn: integer
 
+    type RandomCallback = function(): number
+
     -- PUBLIC
     new: function(
         mapn: integer, 
-        rng: love.math.RandomGenerator,
+        rng: RandomCallback,
         pl: Pipeline
     ): DiamonAndSquare
 
@@ -141,7 +143,7 @@ end
 
 function DiamonAndSquare.new(
     mapn: integer, 
-    rng: love.math.RandomGenerator,
+    rng: DiamonAndSquare.RandomCallback,
     pl: Pipeline
 ): DiamonAndSquare
 
@@ -160,9 +162,7 @@ function DiamonAndSquare.new(
         'diamondsquare', 'rdr_diamondsquare.lua'
     )
 
-    self.generator = das.new(mapn, function(): number
-        return rng:random()
-    end)
+    self.generator = das.new(mapn, rng)
 
     --[[
     self.rng = rng
