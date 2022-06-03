@@ -13,9 +13,11 @@ local map = {}
 
 local mapSize = 0
 
+
 local rez = 8
 
 
+local x_pos, y_pos = 0., 0.
 
 
 
@@ -116,7 +118,7 @@ end
 local function draw_bakes()
    gr.setColor({ 1, 1, 1, 1 })
    for _, node in ipairs(canvas_nodes) do
-      local x, y = node.i1 * rez, node.j1 * rez
+      local x, y = x_pos + node.i1 * rez, y_pos + node.j1 * rez
       gr.draw(node.canvas, x, y)
    end
 end
@@ -127,49 +129,8 @@ local function save_bakes()
    end
 end
 
-local function flush()
-
-
-   draw_bakes()
-
-   gr.setColor({ 1, 0, 0, 1 })
-   gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
-end
-
-local function read_map()
-   mapSize = graphic_command_channel:demand()
-   if type(mapSize) ~= 'number' then
-      error('diamondsquare: mapSize should be an integer value.')
-   end
-
-   local compressed = graphic_command_channel:demand()
-   if type(compressed) ~= 'string' then
-      error('diamondsquare: map data should be a string value.')
-   end
-
-   local decompress = love.data.decompress
-
-   local uncompressed = decompress("string", 'gzip', compressed)
-
-
-   local ok, errmsg = pcall(function()
-      map = load(uncompressed)()
-
-   end)
-   if not ok then
-      error('diamondsquare: Could not load map data.')
-   end
-
-   newCanvasNode(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
-   newCanvasNode(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
-   newCanvasNode(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
-   newCanvasNode(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
-
-   bake()
-   save_bakes()
-end
-
 local Command = {}
+
 
 
 
@@ -197,13 +158,54 @@ local commands = {}
 
 function commands.map()
    canvas_nodes = {}
-   read_map()
+
+   mapSize = graphic_command_channel:demand()
+   if type(mapSize) ~= 'number' then
+      error('diamondsquare: mapSize should be an integer value.')
+   end
+
+   local compressed = graphic_command_channel:demand()
+   if type(compressed) ~= 'string' then
+      error('diamondsquare: map data should be a string value.')
+   end
+
+   local decompress = love.data.decompress
+   local uncompressed = decompress("string", 'gzip', compressed)
+
+   local ok, errmsg = pcall(function()
+      map = load(uncompressed)()
+   end)
+   if not ok then
+      error('diamondsquare: Could not load map data.')
+   end
+
+
+
+   newCanvasNode(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
+   newCanvasNode(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
+   newCanvasNode(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
+   newCanvasNode(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
+
+   bake()
+   save_bakes()
+   return false
+end
+
+function commands.set_position()
+   local x = graphic_command_channel:demand()
+   local y = graphic_command_channel:demand()
+   x_pos, y_pos = x, y
    return false
 end
 
 
 function commands.flush()
-   flush()
+
+
+   draw_bakes()
+
+   gr.setColor({ 1, 0, 0, 1 })
+   gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
    return false
 end
 
