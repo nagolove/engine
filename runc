@@ -104,7 +104,8 @@ make_things()
         separate_line
         #love . "$@"
         #~/projects/love_nojit/src/.libs/love . "$@"
-        gdb -ex run --args ~/projects/love_nojit/src/.libs/love . t80 
+        #gdb -ex run --args ~/projects/love_nojit/src/.libs/love . t80 
+        gdb -ex run --args ~/projects/love_nojit/src/.libs/love . "$@"
     else
         echo 'not compiled.'
     fi
