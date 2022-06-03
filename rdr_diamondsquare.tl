@@ -13,9 +13,11 @@ local map: {{number}} = {}
 
 local mapSize: integer = 0
 -- Размер одного прямоугольника карты в пикселях.
+-- TODO Перенести в параметры
 local rez = 8
 --local rez = 32
 --local rez = 128 + 64 + 32 + 32
+local x_pos, y_pos = 0., 0.
 
 -- i1, i2, j1, j2 - индексы
 -- dx, dy - _необязательное_ смещение в пикслелях для всей картинки
@@ -116,7 +118,7 @@ end
 local function draw_bakes()
     gr.setColor{1, 1, 1, 1}
     for _, node in ipairs(canvas_nodes) do
-        local x, y = node.i1 * rez, node.j1 * rez
+        local x, y = x_pos + node.i1 * rez, y_pos + node.j1 * rez
         gr.draw(node.canvas as gr.Drawable, x, y)
     end
 end
@@ -127,50 +129,9 @@ local function save_bakes()
     end
 end
 
-local function flush()
-    --crazy_test()
-
-    draw_bakes()
-
-    gr.setColor{1, 0, 0, 1}
-    gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
-end
-
-local function read_map()
-    mapSize = graphic_command_channel:demand() as integer
-    if type(mapSize) ~= 'number' then
-        error('diamondsquare: mapSize should be an integer value.')
-    end
-
-    local compressed = graphic_command_channel:demand() as string
-    if type(compressed) ~= 'string' then
-        error('diamondsquare: map data should be a string value.')
-    end
-
-    local decompress = love.data.decompress
-    --local s = 'wefefwe'
-    local uncompressed = decompress("string", 'gzip', compressed)
-    --local uncompressed = decompress("string", 'gzip', s)
-
-    local ok, errmsg = pcall(function()
-        map = load(uncompressed as string)() as {{number}}
-        --print('map', inspect(map))
-    end) as (boolean, string)
-    if not ok then
-        error('diamondsquare: Could not load map data.')
-    end
-
-    newCanvasNode(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
-    newCanvasNode(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
-    newCanvasNode(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
-    newCanvasNode(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
-
-    bake()
-    save_bakes()
-end
-
 local enum Command
     "map"
+    "set_position"
     "flush"
 end
 
@@ -197,13 +158,54 @@ local commands = {}
 -- Загрузить карту и нарисовать ее в холст.
 function commands.map(): boolean
     canvas_nodes = {}
-    read_map()
+
+    mapSize = graphic_command_channel:demand() as integer
+    if type(mapSize) ~= 'number' then
+        error('diamondsquare: mapSize should be an integer value.')
+    end
+
+    local compressed = graphic_command_channel:demand() as string
+    if type(compressed) ~= 'string' then
+        error('diamondsquare: map data should be a string value.')
+    end
+
+    local decompress = love.data.decompress
+    local uncompressed = decompress("string", 'gzip', compressed)
+
+    local ok, errmsg = pcall(function()
+        map = load(uncompressed as string)() as {{number}}
+    end) as (boolean, string)
+    if not ok then
+        error('diamondsquare: Could not load map data.')
+    end
+
+    -- TODO Автоматически исходя из размера максимально возможного размера
+    -- текстуры подбирать наилучшее количество нод.
+    newCanvasNode(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
+    newCanvasNode(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
+    newCanvasNode(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
+    newCanvasNode(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
+
+    bake()
+    save_bakes()
+    return false
+end
+
+function commands.set_position(): boolean
+    local x = graphic_command_channel:demand() as number
+    local y = graphic_command_channel:demand() as number
+    x_pos, y_pos = x, y
     return false
 end
 
 -- Рисовать карту из холста.
 function commands.flush(): boolean
-    flush()
+    --crazy_test()
+
+    draw_bakes()
+
+    gr.setColor{1, 0, 0, 1}
+    gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
     return false
 end
 
