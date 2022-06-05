@@ -297,10 +297,10 @@ function DiamonAndSquare:value(i: number, j: number): number
     --print(i - floor(i))
     --print(j - floor(j))
     if (i - floor(i) > 0.) then
-        print('i', i)
+        --print('i', i)
     end
     if (j - floor(j) > 0.) then
-        print('j', j)
+        --print('j', j)
     end
 	if self.map[floor(i)] and self.map[floor(i)][floor(j)] then
 		return self.map[floor(i)][floor(j)]
@@ -396,7 +396,7 @@ function DiamonAndSquare:diamond(): boolean
 
 	for i = 1, self.mapSize, half do
 		for j = (i+half)%self.chunkSize, self.mapSize, self.chunkSize do
-            print ('i: '..i .. ' j:'.. j)
+            --print ('i: '..i .. ' j:'.. j)
 --			if (i + j)%half == 0 then
 				local min, max = self:diamondValue(i, j, half)
                 print('min, max', min, max)
