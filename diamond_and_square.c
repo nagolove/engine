@@ -198,7 +198,7 @@ void reset(Context *ctx) {
         double value = internal_random(ctx);
         // TODO исправить математику, откуда такие коэффициенты?
         value = 0.5 - 0.5 * cos(value * M_PI);
-        LOG("i = %d, j = %d\n", i, j);
+        /*LOG("i = %d, j = %d\n", i, j);*/
         map_set(ctx, i, j, value);
     }
 

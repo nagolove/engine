@@ -1,5 +1,7 @@
 local Pipeline = require 'pipeline'
 
+global renderobj_counter = 0
+
 local record DiamonAndSquare_common
 
     record State

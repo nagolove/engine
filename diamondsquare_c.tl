@@ -33,6 +33,8 @@ diamondsquare_common.tl
 -- }}}
 --]]
 
+require 'diamondsquare_common'
+
 local record DiamonAndSquare
 
     record State
@@ -41,6 +43,7 @@ local record DiamonAndSquare
     end
 
     generator: das.Generator
+    renderobj_name: string
     pipeline: Pipeline
     --map: {{number}}
 
@@ -84,6 +87,7 @@ local record DiamonAndSquare
     send2render: function(DiamonAndSquare)
     -- рисовать
     render: function(DiamonAndSquare)
+    setPosition: function(DiamonAndSquare)
 end
 
 local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
@@ -92,8 +96,12 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
 
 local serpent = require 'serpent'
 
+function DiamonAndSquare:setPosition(x: number, y: number)
+    self.pipeline:openPushAndClose(self.renderobj_name, 'set_position', x, y)
+end
+
 function DiamonAndSquare:render()
-    self.pipeline:openPushAndClose('diamondsquare', 'flush')
+    self.pipeline:openPushAndClose(self.renderobj_name, 'flush')
 end
 
 function DiamonAndSquare:send2render()
@@ -109,7 +117,7 @@ function DiamonAndSquare:send2render()
     local compressed = compress('string', 'gzip', uncompressed, 9) as string
     print('#compressed', #compressed)
     self.pipeline:openPushAndClose(
-        'diamondsquare', 'map', self.generator:get_mapsize(), compressed
+        self.renderobj_name, 'map', self.generator:get_mapsize(), compressed
     )
 end
 
@@ -156,10 +164,13 @@ function DiamonAndSquare.new(
     assert(pl, "pipeline is nil")
     self.pipeline = pl
     self.mapn = 0
+    print('renderobj_counter', renderobj_counter)
+    renderobj_counter = renderobj_counter + 1
+    self.renderobj_name = "diamondsquare" .. renderobj_counter
 
     self.pipeline:pushCodeFromFileRoot(
         --'diamondsquare', 'diamondsquare-render.lua'
-        'diamondsquare', 'rdr_diamondsquare.lua'
+        self.renderobj_name, 'rdr_diamondsquare.lua'
     )
 
     self.generator = das.new(mapn, rng)

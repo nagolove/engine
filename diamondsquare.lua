@@ -30,7 +30,11 @@ local Pipeline = require('pipeline')
 
 
 
+
+require('diamondsquare_common')
+
 local DiamonAndSquare = {State = {}, }
+
 
 
 
@@ -103,6 +107,10 @@ local DiamonAndSquare_mt = {
 }
 
 local serpent = require('serpent')
+
+function DiamonAndSquare:setPosition(x, y)
+   self.pipeline:openPushAndClose(self.renderobj_name, 'set_position', x, y)
+end
 
 function DiamonAndSquare:render()
    self.pipeline:openPushAndClose(self.renderobj_name, 'flush')
@@ -215,8 +223,6 @@ function DiamonAndSquare:normalizeInplace()
       end
    end
 end
-
-renderobj_counter = 0
 
 function DiamonAndSquare.new(
    mapn,

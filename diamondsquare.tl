@@ -30,6 +30,9 @@ diamondsquare_common.tl
 интерфейс модуля может быть заменен C реализацией.
 -- }}}
 --]]
+
+require 'diamondsquare_common'
+
 local record DiamonAndSquare
 
     record State
@@ -83,6 +86,7 @@ local record DiamonAndSquare
     send2render: function(DiamonAndSquare)
     -- рисовать
     render: function(DiamonAndSquare)
+    setPosition: function(DiamonAndSquare)
 
     -- PRIVATE
     random: function(DiamonAndSquare, min: number, max: number): number
@@ -103,6 +107,10 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
 }
 
 local serpent = require 'serpent'
+
+function DiamonAndSquare:setPosition(x: number, y: number)
+    self.pipeline:openPushAndClose(self.renderobj_name, 'set_position', x, y)
+end
 
 function DiamonAndSquare:render()
     self.pipeline:openPushAndClose(self.renderobj_name, 'flush')
@@ -215,8 +223,6 @@ function DiamonAndSquare:normalizeInplace()
         end
     end
 end
-
-global renderobj_counter = 0
 
 function DiamonAndSquare.new(
     mapn: integer, 
