@@ -399,7 +399,7 @@ function DiamonAndSquare:diamond(): boolean
             --print ('i: '..i .. ' j:'.. j)
 --			if (i + j)%half == 0 then
 				local min, max = self:diamondValue(i, j, half)
-                print('min, max', min, max)
+                --print('min, max', min, max)
 				self.map[ceil(i)] = self.map[ceil(i)] or {}
 				self.map[ceil(i)][ceil(j)] = self:random (min, max)
 --			end
