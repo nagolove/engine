@@ -360,10 +360,10 @@ bool diamond(Context *ctx) {
     int chunkSize = ctx->mapSize;
     for(int i = 0; i < ctx->mapSize - 1; i += half) {
         for(int j = (i + half) % chunkSize; j < mapSize - 1; j += chunkSize) {
-            LOG("i: %d j: %d\n", i, j);
+            /*LOG("i: %d j: %d\n", i, j);*/
             double min = 0., max = 0.;
             diamond_value(ctx, i, j, half, &min, &max);
-            LOG("min, max %f, %f\n", min, max);
+            /*LOG("min, max %f, %f\n", min, max);*/
             double value = random_range(ctx, min, max);
             map_set(ctx, i, j, value);
         }
