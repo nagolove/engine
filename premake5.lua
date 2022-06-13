@@ -42,7 +42,7 @@ workspace "xcaustic"
     defines { "DEBUG" }
     symbols "On"
     buildoptions {
-        "-g3",
+        "-ggdb3",
     }
 
     filter "configurations:Release"

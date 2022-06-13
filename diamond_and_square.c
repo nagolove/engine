@@ -49,7 +49,7 @@ if (!cur_space) {                                       \
 
 typedef struct {
     // {{{
-    double *map;
+    double *map; // 2d array of heights
     int mapSize;
     int chunkSize, initialChunkSize;
     int random_regindex; // LUA_REGISTRYINDEX функции обратного вызова ГПСЧ.
@@ -176,7 +176,7 @@ double random_range(Context *ctx, double min, double max) {
     return min + internal_random(ctx) * (max - min);
 }
 
-void reset(Context *ctx) {
+void diamond_and_square_reset(Context *ctx) {
     ctx->chunkSize = ctx->initialChunkSize;
 
     int limit = ctx->mapSize - 1;
@@ -202,7 +202,7 @@ void reset(Context *ctx) {
         map_set(ctx, i, j, value);
     }
 
-    LOG("diamond_and_square_new: [%s]\n", stack_dump(ctx->lua));
+    LOG("diamond_and_square_reset: [%s]\n", stack_dump(ctx->lua));
 }
 
 int diamond_and_square_new(lua_State *lua) {
@@ -229,10 +229,10 @@ int diamond_and_square_new(lua_State *lua) {
 
     lua_pushvalue(lua, 2);
     ctx->random_regindex = luaL_ref(lua, LUA_REGISTRYINDEX);
-    /*lua_rawgeti(lua, LUA_REGISTRYINDEX, ctx->random_regindex);*/
+    /*lua_rawgeti(lua, LUA_REGISTRYINDEX, ctx->random_regindex); // usage example*/
 
     LOG("diamond_and_square_new: [%s]\n", stack_dump(lua));
-    reset(ctx);
+    diamond_and_square_reset(ctx);
     
     return 1;
     // }}}
@@ -249,6 +249,7 @@ inline static double *value(Context *ctx, int i, int j) {
 
 inline static double min_value(double a, double b) {
     return a < b ? a : b;
+
     /*
      *if (a < b) {
      *    return a;
@@ -256,15 +257,18 @@ inline static double min_value(double a, double b) {
      *    return b;
      *}
      */
+
 }
 
 inline static double max_value(double a, double b) {
     return a > b ? a : b;
+
     /*if (a > b) {*/
         /*return a;*/
     /*} else {*/
         /*return b;*/
     /*}*/
+
 }
 
 void normalize_implace(Context *ctx) {
@@ -300,10 +304,12 @@ void square_value(Context *ctx, int i, int j, double *min, double *max) {
     for(int corner_idx = 0; corner_idx < 4; ++corner_idx) {
         double *v = value(ctx, corners[corner_idx].i, corners[corner_idx].j);
         if (v) {
+
             /*
             *min = *min && min_value(*min, *v) || *v;
             *max = *max && max_value(*max, *v) || *v;
             */
+
             *min = *min ? min_value(*min, *v) : *v;
             *max = *max ? max_value(*max, *v) : *v;
         }
@@ -344,8 +350,10 @@ void diamond_value(
     for(int corner_idx = 0; corner_idx < 4; ++corner_idx) {
         double *v = value(ctx, corners[corner_idx].i, corners[corner_idx].j);
         if (v) {
+
             /**min = *min ? min_value(*min, *v) : *v;*/
             /**max = *max ? max_value(*max, *v) : *v;*/
+
             *min = min_value(*min, *v);
             *max = max_value(*max, *v);
         }
@@ -386,7 +394,7 @@ int diamond_and_square_eval(lua_State *lua) {
         lua_error(lua);
     }
 
-    reset(ctx);
+    diamond_and_square_reset(ctx);
 
     bool stop = false;
     /*bool stop = true;*/

@@ -8,6 +8,7 @@
 require 'love'
 local Pipeline = require 'pipeline'
 
+local inspect = require "inspect"
 local das = require "diamond_and_square"
 
 --[[
@@ -52,8 +53,9 @@ local record DiamonAndSquare
     -- в пикселях
     --height: integer
 
-    --[[
+    rez: integer
     mapSize: integer
+    --[[
     chunkSize: integer
     roughness: integer
     --]]
@@ -88,6 +90,8 @@ local record DiamonAndSquare
     -- рисовать
     render: function(DiamonAndSquare)
     setPosition: function(DiamonAndSquare)
+    getFieldSize: function(): integer
+    setRez: function(rez: integer)
 end
 
 local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
@@ -112,6 +116,16 @@ function DiamonAndSquare:send2render()
             map[#map][j] = self.generator:get(i - 1, j - 1)
         end
     end
+    --local tabular_t = require("tabular").show2
+    --local tabular_t = require("tabular").show
+    print('------------------- map ------------------- ')
+    for i = 1, #map do
+        print("i = ", i, inspect(map[i]))
+        print()
+    end
+    print('------------------- map ------------------- ')
+    --print(tabular_t(map))
+
     local uncompressed = serpent.dump(map)
     local compress = love.data.compress
     local compressed = compress('string', 'gzip', uncompressed, 9) as string
@@ -123,27 +137,6 @@ end
 
 -- добавить анимацию процесса разбиения
 function DiamonAndSquare:eval(): DiamonAndSquare
-    --[[
-    local coro = coroutine.create(function()
-        local stop = false
-        repeat
-            self:square()
-            -- Здесь отправлять данные на рисование промежуточного результата.
-            coroutine.yield()
-            stop = self:diamond()
-            -- Здесь отправлять данные на рисование промежуточного результата.
-        until stop
-        self:normalizeInplace()
-    end)
-    ---------
-    local ok: boolean
-    ok = coroutine.resume(coro)
-    while ok do
-        ok = coroutine.resume(coro)
-    end
-    ---------
-    --]]
-
     print('self.generator', self.generator, type(self.generator))
     self.generator:eval()
     return self
@@ -167,6 +160,8 @@ function DiamonAndSquare.new(
     print('renderobj_counter', renderobj_counter)
     renderobj_counter = renderobj_counter + 1
     self.renderobj_name = "diamondsquare" .. renderobj_counter
+    self.mapSize = math.ceil(2 ^ self.mapn) + 1 -- 1025
+    self.rez = 8
 
     self.pipeline:pushCodeFromFileRoot(
         --'diamondsquare', 'diamondsquare-render.lua'
@@ -186,6 +181,17 @@ end
 
 function DiamonAndSquare:reset()
     -- заглушка
+end
+
+function DiamonAndSquare:getFieldSize(): integer
+    return self.rez * self.mapSize
+end
+
+function DiamonAndSquare:setRez(rez: integer)
+    self.pipeline:openPushAndClose(
+        self.renderobj_name,
+        'set_rez', self.rez
+    )
 end
 
 return DiamonAndSquare

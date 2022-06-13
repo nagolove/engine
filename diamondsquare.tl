@@ -44,7 +44,7 @@ local record DiamonAndSquare
     pipeline: Pipeline
     scale: number
     maxcanvassize: integer
-    --rez: integer
+    rez: integer
     map: {{number}}
 
     -- в пикселях
@@ -87,6 +87,8 @@ local record DiamonAndSquare
     -- рисовать
     render: function(DiamonAndSquare)
     setPosition: function(DiamonAndSquare)
+    getFieldSize: function(): integer
+    setRez: function(rez: integer)
 
     -- PRIVATE
     random: function(DiamonAndSquare, min: number, max: number): number
@@ -121,8 +123,22 @@ function DiamonAndSquare:send2render()
     local compress = love.data.compress
     local compressed = compress('string', 'gzip', uncompressed, 9) as string
     print('#compressed', #compressed)
+
     self.pipeline:openPushAndClose(
-        self.renderobj_name, 'map', self.mapSize, compressed
+        self.renderobj_name, 
+        'map', self.mapSize, compressed
+    )
+    self.pipeline:openPushAndClose(
+        self.renderobj_name,
+        'set_rez', self.rez
+    )
+
+end
+
+function DiamonAndSquare:setRez(rez: integer)
+    self.pipeline:openPushAndClose(
+        self.renderobj_name,
+        'set_rez', self.rez
     )
 end
 
@@ -190,7 +206,7 @@ function DiamonAndSquare:eval(): DiamonAndSquare
     local coro = coroutine.create(function()
         local stop = false
         repeat
-            --self:square()
+            self:square()
             -- Здесь отправлять данные на рисование промежуточного результата.
             coroutine.yield()
             stop = self:diamond()
@@ -249,6 +265,7 @@ function DiamonAndSquare.new(
     self.rng = rng
     self.mapn = mapn
     self:reset()
+    self.rez = 8
 
     return self
 end
@@ -409,6 +426,10 @@ function DiamonAndSquare:diamond(): boolean
 	self.chunkSize = ceil(self.chunkSize/2)
 	--self.roughness = ceil(self.roughness/2)
 	return self.chunkSize <= 1
+end
+
+function DiamonAndSquare:getFieldSize(): integer
+    return self.rez * self.mapSize
 end
 
 --[[

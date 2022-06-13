@@ -102,6 +102,8 @@ local DiamonAndSquare = {State = {}, }
 
 
 
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
@@ -121,8 +123,22 @@ function DiamonAndSquare:send2render()
    local compress = love.data.compress
    local compressed = compress('string', 'gzip', uncompressed, 9)
    print('#compressed', #compressed)
+
    self.pipeline:openPushAndClose(
-   self.renderobj_name, 'map', self.mapSize, compressed)
+   self.renderobj_name,
+   'map', self.mapSize, compressed)
+
+   self.pipeline:openPushAndClose(
+   self.renderobj_name,
+   'set_rez', self.rez)
+
+
+end
+
+function DiamonAndSquare:setRez(rez)
+   self.pipeline:openPushAndClose(
+   self.renderobj_name,
+   'set_rez', self.rez)
 
 end
 
@@ -190,7 +206,7 @@ function DiamonAndSquare:eval()
    local coro = coroutine.create(function()
       local stop = false
       repeat
-
+         self:square()
 
          coroutine.yield()
          stop = self:diamond()
@@ -249,6 +265,7 @@ function DiamonAndSquare.new(
    self.rng = rng
    self.mapn = mapn
    self:reset()
+   self.rez = 8
 
    return self
 end
@@ -409,6 +426,10 @@ function DiamonAndSquare:diamond()
    self.chunkSize = ceil(self.chunkSize / 2)
 
    return self.chunkSize <= 1
+end
+
+function DiamonAndSquare:getFieldSize()
+   return self.rez * self.mapSize
 end
 
 

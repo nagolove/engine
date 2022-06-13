@@ -135,6 +135,7 @@ local Command = {}
 
 
 
+
 local cmd_circle_buf = {}
 local cmd_circle_buf_maxnum = 16 * 2
 
@@ -154,6 +155,11 @@ local function print_stack()
 end
 
 local commands = {}
+
+function commands.set_rez()
+   rez = graphic_command_channel:demand()
+   return false
+end
 
 
 function commands.map()

@@ -130,9 +130,10 @@ local function save_bakes()
 end
 
 local enum Command
-    "map"
-    "set_position"
-    "flush"
+    "map"               -- загрузить сжатую карту
+    "set_position"      -- установить координаты рисования
+    "flush"             -- рисовать
+    "set_rez"           -- установить размер квадратика поля
 end
 
 local cmd_circle_buf: {Command} = {}
@@ -154,6 +155,11 @@ local function print_stack()
 end
 
 local commands = {}
+
+function commands.set_rez(): boolean
+    rez = graphic_command_channel:demand() as integer
+    return false
+end
 
 -- Загрузить карту и нарисовать ее в холст.
 function commands.map(): boolean

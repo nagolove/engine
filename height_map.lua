@@ -25,6 +25,7 @@ local function interpolate_color(a, b, t)
    return c
 end
 
+
 local function color(value)
 
    local n = #colors + 2

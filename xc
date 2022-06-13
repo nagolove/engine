@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# vim: fdm=marker
+# vim: set colorcolumn=85
 
 ##### Some strict BASH rules:
 set -Eeuo pipefail
@@ -6,7 +8,7 @@ set -o nounset
 set -o errexit
 #####
 
-#Colors:
+# {{{ Colors:
 Black='\033[0;30m'
 Dark_Gray='\033[1;30m'
 Red='\033[0;31m'
@@ -24,6 +26,7 @@ Light_Cyan='\033[1;36m'
 Light_Gray='\033[0;37m'
 White='\033[1;37m'
 NO_COL='\033[0m' # No Color
+# }}}
 
 separate_line()
 {
@@ -37,6 +40,8 @@ separate_line
 
 make_things()
 {
+    pushd ~/myprojects/xcaustic
+
     if [[ $# -eq 0 ]] ; then
         echo "No scene name for love"
         exit 1
@@ -110,6 +115,7 @@ make_things()
         echo 'not compiled.'
     fi
 
+    popd
 }
 
 make_things "$@"

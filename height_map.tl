@@ -25,6 +25,7 @@ local function interpolate_color(a: {number}, b: {number}, t: number): {number}
     return c
 end
 
+-- В каком диапазоне входящее значение?
 local function color(value: number): {number}
     --print('color', value)
     local n = #colors + 2
