@@ -5,9 +5,6 @@
 -- License CC0 (Creative Commons license) (c) darkfrei, 2021
 -- https://www.youtube.com/watch?v=4GuAV1PnurU
 
-require 'love'
-local Pipeline = require 'pipeline'
-
 --[[
 XXX Ошибки разработки.
 -- {{{
@@ -30,6 +27,12 @@ diamondsquare_common.tl
 интерфейс модуля может быть заменен C реализацией.
 -- }}}
 --]]
+
+require 'love'
+
+local Pipeline = require 'pipeline'
+local format = string.format
+local inspect = require "inspect"
 
 require 'diamondsquare_common'
 
@@ -89,6 +92,8 @@ local record DiamonAndSquare
     setPosition: function(DiamonAndSquare)
     getFieldSize: function(): integer
     setRez: function(rez: integer)
+
+    printMap2File: function(DiamonAndSquare, filenum: integer)
 
     -- PRIVATE
     random: function(DiamonAndSquare, min: number, max: number): number
@@ -203,16 +208,47 @@ end
 
 -- добавить анимацию процесса разбиения
 function DiamonAndSquare:eval(): DiamonAndSquare
+
+    local filenum = 0
+    print('------------------------------------------------------------')
+    self:printMap2File(filenum)
+    filenum = filenum + 1
+    print('------------------------------------------------------------')
+
     local coro = coroutine.create(function()
         local stop = false
         repeat
             self:square()
+
+            ----------------------------------------
+            self:printMap2File(filenum)
+            filenum = filenum + 1
+            ----------------------------------------
+
             -- Здесь отправлять данные на рисование промежуточного результата.
             coroutine.yield()
             stop = self:diamond()
-            -- Здесь отправлять данные на рисование промежуточного результата.
+
+            --[[ 
+            Здесь отправлять данные на рисование промежуточного результата.
+            Данные будут не отправляться, а всегда присутствовать в map.
+            На каждом шаге корутина обновляет состояние map.
+            Как экономно передавать состояние map? Только измененное состояние?
+            --]]
+
+            ----------------------------------------
+            self:printMap2File(filenum)
+            filenum = filenum + 1
+            ----------------------------------------
+
         until stop
         self:normalizeInplace()
+
+        ----------------------------------------
+        self:printMap2File(filenum)
+        filenum = filenum + 1
+        ----------------------------------------
+
     end)
     ---------
     local ok: boolean
@@ -323,24 +359,30 @@ function DiamonAndSquare:value(i: number, j: number): number
 		return self.map[floor(i)][floor(j)]
     else
         --print('no such cell, i, j', i, j)
+        print(format("value is NULL for [%d, %d]", i, j));
 	end
 end
 
 function DiamonAndSquare:random(min: number, max: number): number
 	--local r = 4*(math.random ()-0.5)^3 + 0.5
-	local r = 4*(self.rng()-0.5)^3 + 0.5
+	--local r = 4*(self.rng()-0.5)^3 + 0.5
 --	https://www.desmos.com/calculator/toxjtsovev
-    local result = min + r*(max-min)
+    --local result = min + r*(max-min)
     --print('DiamonAndSquare:random()', min, max, result)
+
     -- XXX
+    --[[
     if love.keyboard.isDown('l') then
         return result
     else
         return min + self.rng()*(max-min)
     end
+    --]]
+
+    return min + self.rng()*(max-min)
 end
 
-function DiamonAndSquare:squareValue(i: number, j: number, _: number): number, number
+function DiamonAndSquare:squareValue(i: number, j: number): number, number
 	local min, max: number, number
    
     -- Увеличение индексов
@@ -370,7 +412,7 @@ function DiamonAndSquare:square()
 	local half = math.floor(self.chunkSize / 2)
 	for i = 1, self.mapSize - 1, self.chunkSize do
 		for j = 1, self.mapSize - 1, self.chunkSize do
-			local min, max = self:squareValue (i, j, half)
+			local min, max = self:squareValue (i, j)
             self.map[i+half] = self.map[i+half] or {}
 			self.map[i+half][j+half] = self:random(min, max)
 		end
@@ -426,6 +468,20 @@ end
 
 function DiamonAndSquare:getFieldSize(): integer
     return self.rez * self.mapSize
+end
+
+function DiamonAndSquare:printMap2File(filenum: integer)
+    assert(type(filenum) == 'number' and filenum >= 0)
+
+    local file = io.open(string.format('map.lua.%d.txt', filenum), "w+")
+	--for i = 1, #self.map do
+    for k, v in ipairs(self.map) do
+        --print(inspect(self.map[i]))
+        --local str = inspect(self.map[i])
+        local str = inspect(v)
+        file:write(str .. '\n')
+	end
+    file:close()
 end
 
 --[[
