@@ -74,6 +74,23 @@ typedef struct {
        
 const double SUPER_MIN = -99999;
 
+void print_map(Context *ctx, int filenum) {
+    assert(filenum >= 0);
+    char fname[64] = {0, };
+    sprintf(fname, "map.c.%d.txt", filenum);
+
+    FILE *file = fopen(fname, "w+");
+    for(int i = 0; i < ctx->chunkSize; i++) {
+        for(int j = 0; j < ctx->chunkSize; j++) {
+            printf("%f ", ctx->map[ctx->mapSize * i + j]);
+            fprintf(file, "%f ", ctx->map[ctx->mapSize * i + j]);
+        }
+        printf("\n");
+        fprintf(file, "\n");
+    }
+    fclose(file);
+}
+
 void check_argsnum(lua_State *lua, int num) {
     static char formated_msg[64] = {0, };
     const char *msg = "Function should receive only %d argument(s).\n";
@@ -133,7 +150,7 @@ double internal_random(Context *ctx) {
     lua_remove(ctx->lua, -1);
 
     //double value = rand() / (double)RAND_MAX;
-    LOG("internal_random = %.3f\n", rnd_value);
+    /*LOG("internal_random = %.3f\n", rnd_value);*/
     return rnd_value;
 }
 
@@ -213,6 +230,7 @@ int diamond_and_square_new(lua_State *lua) {
 }
 
 inline static double *value(Context *ctx, int i, int j) {
+    /*if (i >= 0 && i < ctx->mapSize && j >= 0 && j < ctx->mapSize) {*/
     if (i >= 0 && i < ctx->mapSize && j >= 0 && j < ctx->mapSize) {
         if (ctx->map[i * ctx->mapSize + j] > SUPER_MIN) {
             return &ctx->map[i * ctx->mapSize + j];
@@ -301,10 +319,10 @@ void square(Context *ctx) {
     LOG("square\n");
     int half = floor(ctx->chunkSize / 2.);
     // XXX Использовать -1 или -2 ??
-    //for(int i = 0; i < ctx->mapSize - 1; i += ctx->chunkSize) {
-    //    for(int j = 0; j < ctx->mapSize - 1; j += ctx->chunkSize) {
-    for(int i = 0; i < ctx->mapSize - 2; i += ctx->chunkSize) {
-        for(int j = 0; j < ctx->mapSize - 2; j += ctx->chunkSize) {
+    for(int i = 0; i < ctx->mapSize - 1; i += ctx->chunkSize) {
+        for(int j = 0; j < ctx->mapSize - 1; j += ctx->chunkSize) {
+    /*for(int i = 0; i < ctx->mapSize - 2; i += ctx->chunkSize) {*/
+        /*for(int j = 0; j < ctx->mapSize - 2; j += ctx->chunkSize) {*/
             double min = 0., max = 0.;
             square_value(ctx, i, j, &min, &max);
             double rnd_value = random_range(ctx, min, max);
@@ -321,7 +339,6 @@ void diamond_value(
     *min = 100000.;
     *max = -100000.;
 
-    // Уменьшение индексов
     struct {
         int i, j;
     } corners[4] = {
@@ -350,14 +367,14 @@ bool diamond(Context *ctx) {
     LOG("half = %d\n", half);
     int mapSize = ctx->mapSize;
     int chunkSize = ctx->chunkSize;
-    for(int i = 0; i < ctx->mapSize - 1; i += half) {
+    for(int i = 0; i < mapSize - 1; i += half) {
         for(int j = (i + half) % chunkSize; j < mapSize - 1; j += chunkSize) {
             /*LOG("i: %d j: %d\n", i, j);*/
             double min = 0., max = 0.;
             diamond_value(ctx, i, j, half, &min, &max);
             /*LOG("min, max %f, %f\n", min, max);*/
-            double value = random_range(ctx, min, max);
-            map_set(ctx, i, j, value);
+            double rnd_value = random_range(ctx, min, max);
+            map_set(ctx, i, j, rnd_value);
         }
     }
 
@@ -371,7 +388,9 @@ int diamond_and_square_eval(lua_State *lua) {
     check_argsnum(lua, 1);
     Context *ctx = luaL_checkudata(lua, 1, "_DiamondSquare");
 
+    LOG("\n")
     LOG("diamond_and_square_eval: [%s]\n", stack_dump(lua));
+    LOG("\n")
 
     if (!ctx->map) {
         lua_pushstring(lua, "diamond_and_square_eval: map was deallocated");
@@ -379,23 +398,19 @@ int diamond_and_square_eval(lua_State *lua) {
     }
 
     diamond_and_square_reset(ctx);
+    int filenum = 0;
+    print_map(ctx, filenum++);
 
     bool stop = false;
-    /*bool stop = true;*/
-    /*int i = 0;*/
-    /*LOG("cycle\n");*/
     do {
         square(ctx);
+        print_map(ctx, filenum++);
         stop = diamond(ctx);
-
-        //if (i > 100) {
-            //break;
-        //}
-        //i++;
-        //printf("i = %d\n", i);
+        print_map(ctx, filenum++);
     } while (!stop);
 
-    /*normalize_implace(ctx);*/
+    normalize_implace(ctx);
+    print_map(ctx, filenum++);
 
     return 0;
 }
