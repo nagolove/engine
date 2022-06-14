@@ -8,6 +8,7 @@ workspace "xcaustic"
         "/home/nagolove/myprojects/lua_capi",
     }
     buildoptions { 
+        "-ggdb3",
         "-fPIC",
         "-Wall",
         "-Werror",
@@ -41,9 +42,6 @@ workspace "xcaustic"
     filter "configurations:Debug"
     defines { "DEBUG" }
     symbols "On"
-    buildoptions {
-        "-ggdb3",
-    }
 
     filter "configurations:Release"
     defines { "NDEBUG" }

@@ -70,6 +70,8 @@ typedef struct {
 
 // }}}
 #endif // DEBUG
+       //
+const double SUPER_MIN = -99999;
 
 void uint64t_to_bitstr(uint64_t value, char *buf) {
     // {{{
@@ -231,6 +233,13 @@ int diamond_and_square_new(lua_State *lua) {
     ctx->random_regindex = luaL_ref(lua, LUA_REGISTRYINDEX);
     /*lua_rawgeti(lua, LUA_REGISTRYINDEX, ctx->random_regindex); // usage example*/
 
+    const double init_value = SUPER_MIN; // Каким значением инициализировать?
+    for(int i = 0; i < ctx->mapSize; i++) {
+        for(int j = 0; j < ctx->mapSize; j++) {
+            map_set(ctx, i, j, init_value);
+        }
+    }
+
     LOG("diamond_and_square_new: [%s]\n", stack_dump(lua));
     diamond_and_square_reset(ctx);
     
@@ -240,7 +249,11 @@ int diamond_and_square_new(lua_State *lua) {
 
 inline static double *value(Context *ctx, int i, int j) {
     if (i >= 0 && i < ctx->mapSize && j >= 0 && j < ctx->mapSize) {
-        return &ctx->map[i * ctx->mapSize + j];
+        if (ctx->map[i * ctx->mapSize + j] > SUPER_MIN) {
+            return &ctx->map[i * ctx->mapSize + j];
+        } else {
+            return NULL;
+        }
     } else {
         LOG("value is NULL for [%d, %d]\n", i, j);
         return NULL;
@@ -248,26 +261,24 @@ inline static double *value(Context *ctx, int i, int j) {
 }
 
 inline static double min_value(double a, double b) {
-    return a < b ? a : b;
+    /*return a < b ? a : b;*/
 
-    /*
-     *if (a < b) {
-     *    return a;
-     *} else {
-     *    return b;
-     *}
-     */
+    if (a < b) {
+        return a;
+    } else {
+        return b;
+    }
 
 }
 
 inline static double max_value(double a, double b) {
-    return a > b ? a : b;
+    /*return a > b ? a : b;*/
 
-    /*if (a > b) {*/
-        /*return a;*/
-    /*} else {*/
-        /*return b;*/
-    /*}*/
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
 
 }
 
@@ -310,8 +321,13 @@ void square_value(Context *ctx, int i, int j, double *min, double *max) {
             *max = *max && max_value(*max, *v) || *v;
             */
 
+            /*
             *min = *min ? min_value(*min, *v) : *v;
             *max = *max ? max_value(*max, *v) : *v;
+            */
+
+            *min = min_value(*min, *v);
+            *max = max_value(*max, *v);
         }
     }
 }
@@ -319,11 +335,14 @@ void square_value(Context *ctx, int i, int j, double *min, double *max) {
 void square(Context *ctx) {
     LOG("square\n");
     int half = floor(ctx->chunkSize / 2.);
-    for(int i = 0; i < ctx->mapSize - 1; i += ctx->chunkSize) {
-        for(int j = 0; j < ctx->mapSize - 1; j += ctx->chunkSize) {
+    // XXX Использовать -1 или -2 ??
+    //for(int i = 0; i < ctx->mapSize - 1; i += ctx->chunkSize) {
+    //    for(int j = 0; j < ctx->mapSize - 1; j += ctx->chunkSize) {
+    for(int i = 0; i < ctx->mapSize - 2; i += ctx->chunkSize) {
+        for(int j = 0; j < ctx->mapSize - 2; j += ctx->chunkSize) {
             double min = 0., max = 0.;
             square_value(ctx, i, j, &min, &max);
-            double rnd_value = 0.;
+            double rnd_value = random_range(ctx, min, max);
             map_set(ctx, i + half, j + half, rnd_value);
         }
     }
@@ -334,8 +353,8 @@ void diamond_value(
         int i, int j, int half, 
         double *min, double *max
 ) {
-    *min = 10000.;
-    *max = -10000.;
+    *min = 100000.;
+    *max = -100000.;
 
     // Уменьшение индексов
     struct {
@@ -365,7 +384,7 @@ bool diamond(Context *ctx) {
     int half = floor(ctx->chunkSize / 2.);
     LOG("half = %d\n", half);
     int mapSize = ctx->mapSize;
-    int chunkSize = ctx->mapSize;
+    int chunkSize = ctx->chunkSize;
     for(int i = 0; i < ctx->mapSize - 1; i += half) {
         for(int j = (i + half) % chunkSize; j < mapSize - 1; j += chunkSize) {
             /*LOG("i: %d j: %d\n", i, j);*/
@@ -401,19 +420,17 @@ int diamond_and_square_eval(lua_State *lua) {
     /*int i = 0;*/
     /*LOG("cycle\n");*/
     do {
-        /*square(ctx);*/
+        square(ctx);
         stop = diamond(ctx);
 
-        /*
-        if (i > 100) {
-            break;
-        }
-        i++;
-        printf("i = %d\n", i);
-        */
+        //if (i > 100) {
+            //break;
+        //}
+        //i++;
+        //printf("i = %d\n", i);
     } while (!stop);
 
-    normalize_implace(ctx);
+    /*normalize_implace(ctx);*/
 
     return 0;
 }

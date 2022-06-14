@@ -7,8 +7,8 @@
 # https://iridakos.com/programming/2018/03/01/bash-programmable-completion-tutorial
 _dothis_completions()
 {
-    COMPREPLY=($(compgen -W "$(ls scenes)" "${COMP_WORDS[1]}"))
+    COMPREPLY=($(compgen -W "$(ls ~/myprojects/xcaustic/scenes)" "${COMP_WORDS[1]}"))
 }
 
-complete -F _dothis_completions run
-complete -F _dothis_completions runc
+complete -F _dothis_completions xc
+#complete -F _dothis_completions runc

@@ -103,7 +103,6 @@ local DiamonAndSquare = {State = {}, }
 
 
 
-
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
@@ -123,22 +122,8 @@ function DiamonAndSquare:send2render()
    local compress = love.data.compress
    local compressed = compress('string', 'gzip', uncompressed, 9)
    print('#compressed', #compressed)
-
    self.pipeline:openPushAndClose(
-   self.renderobj_name,
-   'map', self.mapSize, compressed)
-
-   self.pipeline:openPushAndClose(
-   self.renderobj_name,
-   'set_rez', self.rez)
-
-
-end
-
-function DiamonAndSquare:setRez(rez)
-   self.pipeline:openPushAndClose(
-   self.renderobj_name,
-   'set_rez', self.rez)
+   self.renderobj_name, 'map', self.mapSize, compressed)
 
 end
 
@@ -183,14 +168,15 @@ function DiamonAndSquare:newCoroutine()
    return coroutine.create(function()
       local stop = false
       repeat
-         self:square()
 
+
+         self:send2render()
          coroutine.yield()
          stop = self:diamond()
          coroutine.yield()
 
       until stop
-
+      self:normalizeInplace()
    end)
 
 
@@ -203,23 +189,23 @@ end
 
 
 function DiamonAndSquare:eval()
-   local coro = coroutine.create(function()
-      local stop = false
-      repeat
-         self:square()
 
-         coroutine.yield()
-         stop = self:diamond()
 
-      until stop
-      self:normalizeInplace()
-   end)
 
-   local ok
-   ok = coroutine.resume(coro)
-   while ok do
-      ok = coroutine.resume(coro)
-   end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
    return self
@@ -265,7 +251,6 @@ function DiamonAndSquare.new(
    self.rng = rng
    self.mapn = mapn
    self:reset()
-   self.rez = 8
 
    return self
 end
@@ -314,10 +299,10 @@ function DiamonAndSquare:value(i, j)
 
 
    if (i - floor(i) > 0.) then
-
+      print('i', i)
    end
    if (j - floor(j) > 0.) then
-
+      print('j', j)
    end
    if self.map[floor(i)] and self.map[floor(i)][floor(j)] then
       return self.map[floor(i)][floor(j)]
@@ -341,6 +326,8 @@ function DiamonAndSquare:random(min, max)
 end
 
 function DiamonAndSquare:squareValue(i, j, _)
+   local value = 0.
+   local n = 0
    local min, max
 
 
@@ -359,9 +346,11 @@ function DiamonAndSquare:squareValue(i, j, _)
 
          min = min and math.min(min, v) or v
          max = max and math.max(max, v) or v
+         value = value + v
+         n = n + 1
       end
    end
-   return min, max
+   return value / n, min, max
 end
 
 
@@ -370,7 +359,7 @@ function DiamonAndSquare:square()
    local half = math.floor(self.chunkSize / 2)
    for i = 1, self.mapSize - 1, self.chunkSize do
       for j = 1, self.mapSize - 1, self.chunkSize do
-         local min, max = self:squareValue(i, j, half)
+         local _, min, max = self:squareValue(i, j, half)
          self.map[i + half] = self.map[i + half] or {}
          self.map[i + half][j + half] = self:random(min, max)
       end
@@ -409,10 +398,10 @@ function DiamonAndSquare:diamond()
 
    for i = 1, self.mapSize, half do
       for j = (i + half) % self.chunkSize, self.mapSize, self.chunkSize do
-
+         print('i: ' .. i .. ' j:' .. j)
 
          local min, max = self:diamondValue(i, j, half)
-
+         print('min, max', min, max)
          self.map[ceil(i)] = self.map[ceil(i)] or {}
          self.map[ceil(i)][ceil(j)] = self:random(min, max)
 
@@ -422,10 +411,6 @@ function DiamonAndSquare:diamond()
    self.chunkSize = ceil(self.chunkSize / 2)
 
    return self.chunkSize <= 1
-end
-
-function DiamonAndSquare:getFieldSize()
-   return self.rez * self.mapSize
 end
 
 
