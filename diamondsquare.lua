@@ -1,4 +1,27 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6,34 +29,16 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 require('love')
+
 local Pipeline = require('pipeline')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+local format = string.format
+local inspect = require("inspect")
 
 require('diamondsquare_common')
 
 local DiamonAndSquare = {State = {}, }
+
+
 
 
 
@@ -203,16 +208,47 @@ end
 
 
 function DiamonAndSquare:eval()
+
+   local filenum = 0
+   print('------------------------------------------------------------')
+   self:printMap2File(filenum)
+   filenum = filenum + 1
+   print('------------------------------------------------------------')
+
    local coro = coroutine.create(function()
       local stop = false
       repeat
          self:square()
 
+
+         self:printMap2File(filenum)
+         filenum = filenum + 1
+
+
+
          coroutine.yield()
          stop = self:diamond()
 
+
+
+
+
+
+
+
+
+         self:printMap2File(filenum)
+         filenum = filenum + 1
+
+
       until stop
       self:normalizeInplace()
+
+
+      self:printMap2File(filenum)
+      filenum = filenum + 1
+
+
    end)
 
    local ok
@@ -323,24 +359,30 @@ function DiamonAndSquare:value(i, j)
       return self.map[floor(i)][floor(j)]
    else
 
+      print(format("value is NULL for [%d, %d]", i, j));
    end
 end
 
 function DiamonAndSquare:random(min, max)
 
-   local r = 4 * (self.rng() - 0.5) ^ 3 + 0.5
-
-   local result = min + r * (max - min)
 
 
-   if love.keyboard.isDown('l') then
-      return result
-   else
-      return min + self.rng() * (max - min)
-   end
+
+
+
+
+
+
+
+
+
+
+
+
+   return min + self.rng() * (max - min)
 end
 
-function DiamonAndSquare:squareValue(i, j, _)
+function DiamonAndSquare:squareValue(i, j)
    local min, max
 
 
@@ -370,7 +412,7 @@ function DiamonAndSquare:square()
    local half = math.floor(self.chunkSize / 2)
    for i = 1, self.mapSize - 1, self.chunkSize do
       for j = 1, self.mapSize - 1, self.chunkSize do
-         local min, max = self:squareValue(i, j, half)
+         local min, max = self:squareValue(i, j)
          self.map[i + half] = self.map[i + half] or {}
          self.map[i + half][j + half] = self:random(min, max)
       end
@@ -426,6 +468,20 @@ end
 
 function DiamonAndSquare:getFieldSize()
    return self.rez * self.mapSize
+end
+
+function DiamonAndSquare:printMap2File(filenum)
+   assert(type(filenum) == 'number' and filenum >= 0)
+
+   local file = io.open(string.format('map.lua.%d.txt', filenum), "w+")
+
+   for k, v in ipairs(self.map) do
+
+
+      local str = inspect(v)
+      file:write(str .. '\n')
+   end
+   file:close()
 end
 
 

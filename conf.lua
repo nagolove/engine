@@ -41,11 +41,11 @@ function love.conf(t)
     t.window.highdpi = false            -- Enable high-dpi mode for the window on a Retina display (boolean)
     t.window.usedpiscale = true         -- Enable automatic DPI scaling when highdpi is set to true as well (boolean)
 
-    t.window.x = nil                    -- The x-coordinate of the window's position in the specified display (number)
-    t.window.y = nil                    -- The y-coordinate of the window's position in the specified display (number)
+    --t.window.x = nil                    -- The x-coordinate of the window's position in the specified display (number)
+    --t.window.y = nil                    -- The y-coordinate of the window's position in the specified display (number)
 
     t.window.x = 1920 + 1920 / 2                    -- The x-coordinate of the window's position in the specified display (number)
-    t.window.x = 300
+    --t.window.x = 300
 
     --t.window.y = 49                    -- The y-coordinate of the window's position in the specified display (number)
 
