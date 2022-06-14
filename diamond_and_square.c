@@ -70,41 +70,9 @@ typedef struct {
 
 // }}}
 #endif // DEBUG
-       //
+      
+       
 const double SUPER_MIN = -99999;
-
-void uint64t_to_bitstr(uint64_t value, char *buf) {
-    // {{{
-    assert(buf && "buf should not be a nil");
-    char *last = buf;
-
-    union BitMap {
-        struct {
-            unsigned char _0: 1;
-            unsigned char _1: 1;
-            unsigned char _2: 1;
-            unsigned char _3: 1;
-            unsigned char _4: 1;
-            unsigned char _5: 1;
-            unsigned char _6: 1;
-            unsigned char _7: 1;
-        } b[8];
-        uint64_t u;
-    } bp = { .u = value, };
-
-    for(int i = 0; i < sizeof(value); ++i) {
-        last += sprintf(last, "%d", (int)bp.b[i]._0);
-        last += sprintf(last, "%d", (int)bp.b[i]._1);
-        last += sprintf(last, "%d", (int)bp.b[i]._2);
-        last += sprintf(last, "%d", (int)bp.b[i]._3);
-        last += sprintf(last, "%d", (int)bp.b[i]._4);
-        last += sprintf(last, "%d", (int)bp.b[i]._5);
-        last += sprintf(last, "%d", (int)bp.b[i]._6);
-        last += sprintf(last, "%d", (int)bp.b[i]._7);
-        last += sprintf(last, " ");
-    }
-    // }}}
-}
 
 void check_argsnum(lua_State *lua, int num) {
     static char formated_msg[64] = {0, };
@@ -159,17 +127,14 @@ inline static double map_get(Context *ctx, int i, int j) {
 }
 
 double internal_random(Context *ctx) {
-    /*
     lua_rawgeti(ctx->lua, LUA_REGISTRYINDEX, ctx->random_regindex);
     lua_call(ctx->lua, 0, 1);
-    double value = lua_tonumber(ctx->lua, -1);
-    LOG("internal_random: value = %.3f\n", value);
+    double rnd_value = lua_tonumber(ctx->lua, -1);
     lua_remove(ctx->lua, -1);
-    */
-    double value = rand() / (double)RAND_MAX;
-    /*double value = rand();*/
-    LOG("internal_random = %f\n", value);
-    return value;
+
+    //double value = rand() / (double)RAND_MAX;
+    LOG("internal_random = %.3f\n", rnd_value);
+    return rnd_value;
 }
 
 double random_range(Context *ctx, double min, double max) {
