@@ -118,12 +118,16 @@ function DiamonAndSquare:send2render()
    end
 
 
-   print('------------------- map ------------------- ')
-   for i = 1, #map do
-      print("i = ", i, inspect(map[i]))
-      print()
-   end
-   print('------------------- map ------------------- ')
+
+
+
+
+
+
+
+
+
+
 
 
    local uncompressed = serpent.dump(map)
