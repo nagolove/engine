@@ -118,6 +118,8 @@ function DiamonAndSquare:send2render()
     end
     --local tabular_t = require("tabular").show2
     --local tabular_t = require("tabular").show
+
+    --[[
     print('------------------- map ------------------- ')
     for i = 1, #map do
         print("i = ", i, inspect(map[i]))
@@ -125,6 +127,8 @@ function DiamonAndSquare:send2render()
     end
     print('------------------- map ------------------- ')
     --print(tabular_t(map))
+    --]]
+
 
     local uncompressed = serpent.dump(map)
     local compress = love.data.compress
