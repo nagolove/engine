@@ -15,7 +15,7 @@ local mapSize: integer = 0
 -- Размер одного прямоугольника карты в пикселях.
 -- TODO Перенести в параметры
 local rez = 8
---local rez = 32
+--local rez = 128
 --local rez = 128 + 64 + 32 + 32
 local x_pos, y_pos = 0., 0.
 
@@ -171,6 +171,7 @@ function commands.map(): boolean
     end
 
     local compressed = graphic_command_channel:demand() as string
+    print('commands.map, #compressed', size2human(#compressed))
     if type(compressed) ~= 'string' then
         error('diamondsquare: map data should be a string value.')
     end
