@@ -116,6 +116,7 @@ function DiamonAndSquare:send2render()
             map[#map][j] = self.generator:get(i - 1, j - 1)
         end
     end
+
     --local tabular_t = require("tabular").show2
     --local tabular_t = require("tabular").show
 
@@ -129,15 +130,29 @@ function DiamonAndSquare:send2render()
     --print(tabular_t(map))
     --]]
 
-
+    local fname = "map.data." .. randomFilenameStr() .. ".txt"
     local uncompressed = serpent.dump(map)
     print('#uncompressed', size2human(#uncompressed))
     local compress = love.data.compress
     local compressed = compress('string', 'gzip', uncompressed, 9) as string
     print('#compressed', size2human(#compressed))
+
+    local struct = require 'struct'
+    local packed = struct.pack("L", self.generator:get_mapsize())
+    love.filesystem.write(fname, "", 0)
+    love.filesystem.append(fname, packed, #packed)
+    love.filesystem.append(fname, compressed, #compressed)
+
+    -- Вызов в другом потоке
+    --self.pipeline:openPushAndClose(
+        --self.renderobj_name, 'map', self.generator:get_mapsize(), compressed
+    --)
+
+    -- Вызов в другом потоке
     self.pipeline:openPushAndClose(
-        self.renderobj_name, 'map', self.generator:get_mapsize(), compressed
+        self.renderobj_name, 'map', fname
     )
+
 end
 
 -- добавить анимацию процесса разбиения

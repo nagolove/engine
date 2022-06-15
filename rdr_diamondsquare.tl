@@ -165,6 +165,7 @@ end
 function commands.map(): boolean
     canvas_nodes = {}
 
+    --[[
     mapSize = graphic_command_channel:demand() as integer
     if type(mapSize) ~= 'number' then
         error('diamondsquare: mapSize should be an integer value.')
@@ -181,6 +182,31 @@ function commands.map(): boolean
 
     local ok, errmsg = pcall(function()
         map = load(uncompressed as string)() as {{number}}
+    end) as (boolean, string)
+    if not ok then
+        error('diamondsquare: Could not load map data.')
+    end
+    --]]
+
+    local fname = graphic_command_channel:demand() as string
+    print('commands.map: fname', fname)
+    local content, size = love.filesystem.read(fname)
+    local struct = require 'struct'
+
+    mapSize = struct.unpack('L', content) as integer
+    print('mapSize', mapSize)
+
+    -- Откусывание начиная с 9 байта, до конца строчки
+    local compressed = string.sub(content, 9, -1)
+
+    local decompress = love.data.decompress
+    local uncompressed = decompress("string", 'gzip', compressed)
+
+    local serpent = require 'serpent'
+    local ok, errmsg = pcall(function()
+        --map = load(uncompressed as string)() as {{number}}
+        local ok: boolean
+        ok, map = serpent.load(uncompressed as string) as (boolean, {{number}})
     end) as (boolean, string)
     if not ok then
         error('diamondsquare: Could not load map data.')
