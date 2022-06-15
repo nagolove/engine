@@ -76,6 +76,7 @@ const double SUPER_MIN = -99999;
 const double SUPER_MAX =  99999;
 
 void print_map(Context *ctx, int filenum) {
+    /*
     assert(filenum >= 0);
     char fname[64] = {0, };
     sprintf(fname, "map.c.%d.txt", filenum);
@@ -90,6 +91,7 @@ void print_map(Context *ctx, int filenum) {
         fprintf(file, "\n");
     }
     fclose(file);
+    */
 }
 
 void check_argsnum(lua_State *lua, int num) {
@@ -471,15 +473,22 @@ int register_module(lua_State *lua) {
     return 1;
 }
 
+static int diamond_and_square_get_as_string(lua_State *lua) {
+    return 0;
+}
+
 static const struct luaL_Reg DiamondSquare_methods[] =
 {
     // {{{
     {"internal_free", diamond_and_square_internal_free},
     {"eval", diamond_and_square_eval},
 
-    // Быстрее возвращать состояние всей карты целиком, в виде строки?
+    // Возращащает значение ячейки по индексу
     {"get", diamond_and_square_get},
+    // Возвращает размер карты
     {"get_mapsize", diamond_and_square_get_mapsize},
+    // Возвращает карту в виде строчки
+    {"get_as_string", diamond_and_square_get_as_string},
 
     {NULL, NULL}
     // }}}
