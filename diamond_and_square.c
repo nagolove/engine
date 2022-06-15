@@ -216,12 +216,14 @@ int diamond_and_square_new(lua_State *lua) {
     ctx->random_regindex = luaL_ref(lua, LUA_REGISTRYINDEX);
     /*lua_rawgeti(lua, LUA_REGISTRYINDEX, ctx->random_regindex); // usage example*/
 
+    /*
     const double init_value = SUPER_MIN; // Каким значением инициализировать?
     for(int i = 0; i < ctx->mapSize; i++) {
         for(int j = 0; j < ctx->mapSize; j++) {
             map_set(ctx, i, j, init_value);
         }
     }
+    // */
 
     LOG("diamond_and_square_new: [%s]\n", stack_dump(lua));
     diamond_and_square_reset(ctx);
@@ -267,8 +269,8 @@ inline static double max_value(double a, double b) {
 }
 
 void normalize_implace(Context *ctx) {
-    for(int i = 0; i < ctx->mapSize; ++i) {
-        for(int j = 0; j < ctx->mapSize; ++j) {
+    for(int i = 0; i < ctx->mapSize - 1; ++i) {
+        for(int j = 0; j < ctx->mapSize - 1; ++j) {
             double *v = value(ctx, i, j);
             if (v) {
                 if (*v > 1.) {
@@ -355,10 +357,6 @@ void diamond_value(
     for(int corner_idx = 0; corner_idx < 4; ++corner_idx) {
         double *v = value(ctx, corners[corner_idx].i, corners[corner_idx].j);
         if (v) {
-
-            /**min = *min ? min_value(*min, *v) : *v;*/
-            /**max = *max ? max_value(*max, *v) : *v;*/
-
             *min = min_value(*min, *v);
             *max = max_value(*max, *v);
         }
@@ -478,8 +476,11 @@ static const struct luaL_Reg DiamondSquare_methods[] =
     // {{{
     {"internal_free", diamond_and_square_internal_free},
     {"eval", diamond_and_square_eval},
+
+    // Быстрее возвращать состояние всей карты целиком, в виде строки?
     {"get", diamond_and_square_get},
     {"get_mapsize", diamond_and_square_get_mapsize},
+
     {NULL, NULL}
     // }}}
 };
