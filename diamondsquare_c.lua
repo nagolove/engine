@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local math = _tl_compat and _tl_compat.math or math
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local string = _tl_compat and _tl_compat.string or string
 
 
 
@@ -8,6 +8,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 require('love')
 local Pipeline = require('pipeline')
 
+local format = string.format
 local inspect = require("inspect")
 local das = require("diamond_and_square")
 
@@ -117,35 +118,32 @@ function DiamonAndSquare:send2render()
       end
    end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
    local fname = "map.data." .. randomFilenameStr() .. ".txt"
-   local uncompressed = serpent.dump(map)
-   print('#uncompressed', size2human(#uncompressed))
+
    local compress = love.data.compress
-   local compressed = compress('string', 'gzip', uncompressed, 9)
-   print('#compressed', size2human(#compressed))
-
    local struct = require('struct')
-   local packed = struct.pack("L", self.generator:get_mapsize())
+   local packed_mapsize = struct.pack("L", self.generator:get_mapsize())
+
    love.filesystem.write(fname, "", 0)
-   love.filesystem.append(fname, packed, #packed)
-   love.filesystem.append(fname, compressed, #compressed)
+   love.filesystem.append(fname, packed_mapsize, #packed_mapsize)
 
+   print('map', #map)
+   print('mapSize', self.mapSize)
+   local packed_mapsize = struct.pack("L", self.generator:get_mapsize())
 
+   for i = 1, #map do
+      local row = map[i]
+      local uncompressed = serpent.dump(row)
+      local compressed = compress('string', 'gzip', uncompressed, 9)
 
+      print(format('row[%d]', i))
+      print('#uncompressed', size2human(#uncompressed))
+      print('#compressed', size2human(#compressed))
 
+      local packed_rowlen = struct.pack("L", #compressed)
+      love.filesystem.append(fname, packed_rowlen, #packed_rowlen)
+      love.filesystem.append(fname, compressed, #compressed)
+   end
 
 
 
@@ -176,11 +174,11 @@ function DiamonAndSquare.new(
 
    assert(pl, "pipeline is nil")
    self.pipeline = pl
-   self.mapn = 0
+
    print('renderobj_counter', renderobj_counter)
    renderobj_counter = renderobj_counter + 1
    self.renderobj_name = "diamondsquare" .. renderobj_counter
-   self.mapSize = math.ceil(2 ^ self.mapn) + 1
+
    self.rez = 8
 
    self.pipeline:pushCodeFromFileRoot(
@@ -189,6 +187,7 @@ function DiamonAndSquare.new(
 
 
    self.generator = das.new(mapn, rng)
+   self.mapSize = self.generator:get_mapsize()
 
 
 

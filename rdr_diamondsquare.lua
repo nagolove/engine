@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local table = _tl_compat and _tl_compat.table or table
 
 
 require('love')
@@ -9,13 +9,17 @@ local gr = love.graphics
 local inspect = require("inspect")
 local ceil = math.ceil
 local get_color = require('height_map').color
+
+
+
+
 local map = {}
 
 local mapSize = 0
 
 
-local rez = 8
 
+local rez = 32
 
 local x_pos, y_pos = 0., 0.
 
@@ -28,14 +32,6 @@ local function sub_draw(
 
    local x = dx or 0
    local y = dy or 0
-
-
-
-
-
-
-
-
 
    local abs_i_init, abs_j_init = 1, 1
 
@@ -93,7 +89,6 @@ local CanvasNode = {}
 
 
 
-
 local canvas_nodes = {}
 
 local function newCanvasNode(i1, i2, j1, j2)
@@ -122,6 +117,9 @@ local function draw_bakes()
       gr.draw(node.canvas, x, y)
    end
 end
+
+
+
 
 local function save_bakes()
    for k, node in ipairs(canvas_nodes) do
@@ -165,52 +163,39 @@ end
 function commands.map()
    canvas_nodes = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
    local fname = graphic_command_channel:demand()
    print('commands.map: fname', fname)
-   local content, size = love.filesystem.read(fname)
+   local mapFile = love.filesystem.newFile(fname, 'r')
+   print('mapFile', mapFile)
    local struct = require('struct')
 
-   mapSize = struct.unpack('L', content)
+   local decompress = love.data.decompress
+   local ulong_size = 8
+   local content = mapFile:read(ulong_size)
+   print('content', content)
+   print('#content', #content)
+   mapSize = math.ceil(struct.unpack('L', content))
    print('mapSize', mapSize)
 
+   map = {}
+   for i = 1, mapSize do
+      local row_len_s = mapFile:read(ulong_size)
+      local row_len = struct.unpack('L', row_len_s)
+      local compressed = mapFile:read(row_len)
+      local uncompressed = decompress("string", 'gzip', compressed)
 
-   local compressed = string.sub(content, 9, -1)
-
-   local decompress = love.data.decompress
-   local uncompressed = decompress("string", 'gzip', compressed)
-
-   local serpent = require('serpent')
-   local ok, errmsg = pcall(function()
-
-      local ok
-      ok, map = serpent.load(uncompressed)
-   end)
-   if not ok then
-      error('diamondsquare: Could not load map data.')
+      local ok, errmsg = pcall(function()
+         map[#map + 1] = load(uncompressed)()
+      end)
+      if not ok then
+         error('diamondsquare: Could not load map data.')
+      end
    end
+
+   mapFile:close()
+
+
+
 
 
 
@@ -233,6 +218,9 @@ end
 
 
 function commands.flush()
+
+
+
 
 
    draw_bakes()
