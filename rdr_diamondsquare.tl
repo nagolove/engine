@@ -9,13 +9,17 @@ local gr = love.graphics
 local inspect = require "inspect"
 local ceil = math.ceil
 local get_color = require 'height_map'.color
+
+-- Зачем хранить карту как глобальную переменную модуля?
+-- Также нет необходимости в хранении карты целиком так как она используется
+-- один раз отрисовке, при запекании холстов.
 local map: {{number}} = {}
 
 local mapSize: integer = 0
 -- Размер одного прямоугольника карты в пикселях.
 -- TODO Перенести в параметры
-local rez = 8
---local rez = 128
+--local rez = 8
+local rez = 32
 --local rez = 128 + 64 + 32 + 32
 local x_pos, y_pos = 0., 0.
 
@@ -29,15 +33,7 @@ local function sub_draw(
     local x = dx or 0
     local y = dy or 0
 
-    --print('diamondsquare')
-    --print('draw')
-    --print('mapSize', mapSize)
-    --print('#map, #map[1]', #map, #map[1])
-
-    --for i = 1, mapSize do
-    --for j = 1, mapSize do
-
-    local abs_i_init, abs_j_init = 1, 1
+    local abs_i_init, abs_j_init = 1, 1 -- почему единицы используются?
     --local abs_i_init, abs_j_init = i1, j1
 
     -- индексы для рисования
@@ -86,7 +82,6 @@ end
 
 local record CanvasNode
     canvas: gr.Canvas
-
     -- индексы
     i1: integer
     i2: integer
@@ -123,6 +118,9 @@ local function draw_bakes()
     end
 end
 
+-- Если карта от соответствующего семени генератора псевдослучайных чисел
+-- уже отображалась, то записывать в холст куски карты с диска.
+-- Какое максимальное количество карт хранить, по объему места на диске?
 local function save_bakes()
     for k, node in ipairs(canvas_nodes) do
         node.canvas:newImageData():encode('png', "map" .. tostring(k) .. ".png")
@@ -165,59 +163,53 @@ end
 function commands.map(): boolean
     canvas_nodes = {}
 
-    --[[
-    mapSize = graphic_command_channel:demand() as integer
-    if type(mapSize) ~= 'number' then
-        error('diamondsquare: mapSize should be an integer value.')
-    end
-
-    local compressed = graphic_command_channel:demand() as string
-    print('commands.map, #compressed', size2human(#compressed))
-    if type(compressed) ~= 'string' then
-        error('diamondsquare: map data should be a string value.')
-    end
-
-    local decompress = love.data.decompress
-    local uncompressed = decompress("string", 'gzip', compressed)
-
-    local ok, errmsg = pcall(function()
-        map = load(uncompressed as string)() as {{number}}
-    end) as (boolean, string)
-    if not ok then
-        error('diamondsquare: Could not load map data.')
-    end
-    --]]
-
     local fname = graphic_command_channel:demand() as string
     print('commands.map: fname', fname)
-    local content, size = love.filesystem.read(fname)
+    local mapFile = love.filesystem.newFile(fname, 'r')
+    print('mapFile', mapFile)
     local struct = require 'struct'
 
-    mapSize = struct.unpack('L', content) as integer
+    local decompress = love.data.decompress
+    local ulong_size = 8 -- Размер модификатора L в struct.pack()
+    local content = mapFile:read(ulong_size)
+    print('content', content)
+    print('#content', #content)
+    mapSize = math.ceil(struct.unpack('L', content) as number)
     print('mapSize', mapSize)
 
-    -- Откусывание начиная с 9 байта, до конца строчки
-    local compressed = string.sub(content, 9, -1)
+    map = {} -- Двумерный массив высот
+    for i = 1, mapSize do
+        local row_len_s = mapFile:read(ulong_size)
+        local row_len = struct.unpack('L', row_len_s) as number
+        local compressed = mapFile:read(row_len)
+        local uncompressed = decompress("string", 'gzip', compressed)
 
-    local decompress = love.data.decompress
-    local uncompressed = decompress("string", 'gzip', compressed)
-
-    local serpent = require 'serpent'
-    local ok, errmsg = pcall(function()
-        --map = load(uncompressed as string)() as {{number}}
-        local ok: boolean
-        ok, map = serpent.load(uncompressed as string) as (boolean, {{number}})
-    end) as (boolean, string)
-    if not ok then
-        error('diamondsquare: Could not load map data.')
+        local ok, errmsg = pcall(function()
+            map[#map + 1] = load(uncompressed as string)() as {number}
+        end) as (boolean, string)
+        if not ok then
+            error('diamondsquare: Could not load map data.')
+        end
     end
+
+    mapFile:close()
 
     -- TODO Автоматически исходя из размера максимально возможного размера
     -- текстуры подбирать наилучшее количество нод.
+    -- * Разрешение экрана
+    -- * Максимальный размер текстуры
+    -- * Размер карты в пикселях
+
+    local maxCanvasSize = 1024
+    local mapWidth = mapSize * rez
+    local canvasNum = math.ceil(mapWidth / maxCanvasSize)
+
     newCanvasNode(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
     newCanvasNode(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
     newCanvasNode(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
     newCanvasNode(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
+
+    createCanvases()
 
     bake()
     save_bakes()
@@ -235,6 +227,9 @@ end
 function commands.flush(): boolean
     --crazy_test()
 
+    -- Получать значение координат левого верхнего угла
+    -- До этого получить значение разрешения экрана
+    -- Рисовать только те холсты, которые попадают на экран
     draw_bakes()
 
     gr.setColor{1, 0, 0, 1}

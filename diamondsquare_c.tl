@@ -8,6 +8,7 @@
 require 'love'
 local Pipeline = require 'pipeline'
 
+local format = string.format
 local inspect = require "inspect"
 local das = require "diamond_and_square"
 
@@ -117,38 +118,35 @@ function DiamonAndSquare:send2render()
         end
     end
 
-    --local tabular_t = require("tabular").show2
-    --local tabular_t = require("tabular").show
+    local fname = "map.data." .. randomFilenameStr() .. ".txt"
 
-    --[[
-    print('------------------- map ------------------- ')
+    local compress = love.data.compress
+    local struct = require 'struct'
+    local packed_mapsize = struct.pack("L", self.generator:get_mapsize())
+
+    love.filesystem.write(fname, "", 0)
+    love.filesystem.append(fname, packed_mapsize, #packed_mapsize)
+
+    print('map', #map)
+    print('mapSize', self.mapSize)
+    local packed_mapsize = struct.pack("L", self.generator:get_mapsize())
+
     for i = 1, #map do
-        print("i = ", i, inspect(map[i]))
-        print()
+        local row = map[i]
+        local uncompressed = serpent.dump(row)
+        local compressed = compress('string', 'gzip', uncompressed, 9) as string
+
+        print(format('row[%d]', i))
+        print('#uncompressed', size2human(#uncompressed))
+        print('#compressed', size2human(#compressed))
+
+        local packed_rowlen = struct.pack("L", #compressed)
+        love.filesystem.append(fname, packed_rowlen, #packed_rowlen)
+        love.filesystem.append(fname, compressed, #compressed)
     end
-    print('------------------- map ------------------- ')
-    --print(tabular_t(map))
     --]]
 
-    local fname = "map.data." .. randomFilenameStr() .. ".txt"
-    local uncompressed = serpent.dump(map)
-    print('#uncompressed', size2human(#uncompressed))
-    local compress = love.data.compress
-    local compressed = compress('string', 'gzip', uncompressed, 9) as string
-    print('#compressed', size2human(#compressed))
-
-    local struct = require 'struct'
-    local packed = struct.pack("L", self.generator:get_mapsize())
-    love.filesystem.write(fname, "", 0)
-    love.filesystem.append(fname, packed, #packed)
-    love.filesystem.append(fname, compressed, #compressed)
-
-    -- Вызов в другом потоке
-    --self.pipeline:openPushAndClose(
-        --self.renderobj_name, 'map', self.generator:get_mapsize(), compressed
-    --)
-
-    -- Вызов в другом потоке
+    -- Вызов "метода" в другом потоке
     self.pipeline:openPushAndClose(
         self.renderobj_name, 'map', fname
     )
@@ -176,11 +174,11 @@ function DiamonAndSquare.new(
 
     assert(pl, "pipeline is nil")
     self.pipeline = pl
-    self.mapn = 0
+    --self.mapn = 0
     print('renderobj_counter', renderobj_counter)
     renderobj_counter = renderobj_counter + 1
     self.renderobj_name = "diamondsquare" .. renderobj_counter
-    self.mapSize = math.ceil(2 ^ self.mapn) + 1 -- 1025
+    --self.mapSize = math.ceil(2 ^ self.mapn) + 1 -- 1025
     self.rez = 8
 
     self.pipeline:pushCodeFromFileRoot(
@@ -189,6 +187,7 @@ function DiamonAndSquare.new(
     )
 
     self.generator = das.new(mapn, rng)
+    self.mapSize = self.generator:get_mapsize()
 
     --[[
     self.rng = rng
