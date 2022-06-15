@@ -389,3 +389,9 @@ type(color) == 'table' and
    color[3] >= 0. and color[1] <= 1. and
    color[4] >= 0. and color[1] <= 1.
 end
+
+function size2human(n)
+   local kilo = n / 1024
+
+   return string.format("%d Kb", kilo)
+end

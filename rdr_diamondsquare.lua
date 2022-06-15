@@ -171,6 +171,7 @@ function commands.map()
    end
 
    local compressed = graphic_command_channel:demand()
+   print('commands.map, #compressed', size2human(#compressed))
    if type(compressed) ~= 'string' then
       error('diamondsquare: map data should be a string value.')
    end

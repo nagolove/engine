@@ -131,9 +131,10 @@ function DiamonAndSquare:send2render()
 
 
    local uncompressed = serpent.dump(map)
+   print('#uncompressed', size2human(#uncompressed))
    local compress = love.data.compress
    local compressed = compress('string', 'gzip', uncompressed, 9)
-   print('#compressed', #compressed)
+   print('#compressed', size2human(#compressed))
    self.pipeline:openPushAndClose(
    self.renderobj_name, 'map', self.generator:get_mapsize(), compressed)
 
