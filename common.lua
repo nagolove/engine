@@ -395,3 +395,12 @@ function size2human(n)
 
    return string.format("%d Kb", kilo)
 end
+
+function randomFilenameStr(len)
+   local s = ""
+   len = len or 5
+   for i = 1, len do
+      s = s .. tostring(math.ceil(math.random() * 10))
+   end
+   return s
+end

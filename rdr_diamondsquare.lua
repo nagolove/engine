@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 require('love')
@@ -165,22 +165,48 @@ end
 function commands.map()
    canvas_nodes = {}
 
-   mapSize = graphic_command_channel:demand()
-   if type(mapSize) ~= 'number' then
-      error('diamondsquare: mapSize should be an integer value.')
-   end
 
-   local compressed = graphic_command_channel:demand()
-   print('commands.map, #compressed', size2human(#compressed))
-   if type(compressed) ~= 'string' then
-      error('diamondsquare: map data should be a string value.')
-   end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   local fname = graphic_command_channel:demand()
+   print('commands.map: fname', fname)
+   local content, size = love.filesystem.read(fname)
+   local struct = require('struct')
+
+   mapSize = struct.unpack('L', content)
+   print('mapSize', mapSize)
+
+
+   local compressed = string.sub(content, 9, -1)
 
    local decompress = love.data.decompress
    local uncompressed = decompress("string", 'gzip', compressed)
 
+   local serpent = require('serpent')
    local ok, errmsg = pcall(function()
-      map = load(uncompressed)()
+
+      local ok
+      ok, map = serpent.load(uncompressed)
    end)
    if not ok then
       error('diamondsquare: Could not load map data.')

@@ -130,13 +130,28 @@ function DiamonAndSquare:send2render()
 
 
 
+   local fname = "map.data." .. randomFilenameStr() .. ".txt"
    local uncompressed = serpent.dump(map)
    print('#uncompressed', size2human(#uncompressed))
    local compress = love.data.compress
    local compressed = compress('string', 'gzip', uncompressed, 9)
    print('#compressed', size2human(#compressed))
+
+   local struct = require('struct')
+   local packed = struct.pack("L", self.generator:get_mapsize())
+   love.filesystem.write(fname, "", 0)
+   love.filesystem.append(fname, packed, #packed)
+   love.filesystem.append(fname, compressed, #compressed)
+
+
+
+
+
+
+
    self.pipeline:openPushAndClose(
-   self.renderobj_name, 'map', self.generator:get_mapsize(), compressed)
+   self.renderobj_name, 'map', fname)
+
 
 end
 
