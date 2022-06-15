@@ -389,3 +389,9 @@ function is_rgba(color: {number}): boolean
         color[3] >= 0. and color[1] <= 1. and
         color[4] >= 0. and color[1] <= 1.
 end
+
+function size2human(n: integer): string
+    local kilo = n / 1024
+    --local rest = n - kilo
+    return string.format("%d Kb", kilo)
+end
