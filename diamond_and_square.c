@@ -73,6 +73,7 @@ typedef struct {
       
        
 const double SUPER_MIN = -99999;
+const double SUPER_MAX =  99999;
 
 void print_map(Context *ctx, int filenum) {
     assert(filenum >= 0);
@@ -179,11 +180,11 @@ void diamond_and_square_reset(Context *ctx) {
         int i = corners[corner_idx].i;
         int j = corners[corner_idx].j;
 
-        double value = internal_random(ctx);
+        double rnd_value = internal_random(ctx);
         // TODO исправить математику, откуда такие коэффициенты?
-        value = 0.5 - 0.5 * cos(value * M_PI);
+        rnd_value = 0.5 - 0.5 * cos(rnd_value * M_PI);
         /*LOG("i = %d, j = %d\n", i, j);*/
-        map_set(ctx, i, j, value);
+        map_set(ctx, i, j, rnd_value);
     }
 
     LOG("diamond_and_square_reset: [%s]\n", stack_dump(ctx->lua));
@@ -283,6 +284,9 @@ void normalize_implace(Context *ctx) {
 void square_value(Context *ctx, int i, int j, double *min, double *max) {
     assert(min);
     assert(max);
+
+    *min = 100000.;
+    *max = -100000.;
 
     // Увеличение индексов
     // TODO Стоит вынести массив corners из функции и передавать как аргумент?
@@ -404,8 +408,11 @@ int diamond_and_square_eval(lua_State *lua) {
     bool stop = false;
     do {
         square(ctx);
+
         print_map(ctx, filenum++);
+
         stop = diamond(ctx);
+
         print_map(ctx, filenum++);
     } while (!stop);
 
