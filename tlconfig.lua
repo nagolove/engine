@@ -69,7 +69,7 @@ return {
         "src",
         "include",
 
-        --"scenes/t80/",
+        "scenes/t80/",
         --"scenes/lua_capi/",
         --"scenes/sri/",
     },
@@ -80,11 +80,11 @@ return {
         --"scenes/chipmunk_mt/*.tl",
         --"scenes/lua_capi/*.tl",
 
-        "src/*.tl",
+        --"src/*.tl",
         "*.tl",
 
         --"scenes/sri/*.tl",
-        --"scenes/t80/*.tl",
+        "scenes/t80/*.tl",
         "scenes/diamond_square/*.tl",
         --'scenes/colored_text_transform_mt/*.tl',
         --'scenes/textured_quad/*.tl',
