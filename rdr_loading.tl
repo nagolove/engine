@@ -8,7 +8,8 @@ local yield = coroutine.yield
 local colorize = require 'ansicolors2'.ansicolors
 
 local fontName = "/DejaVuSansMono.ttf" -- Когда получать параметры шрифта?
-local fontSize = 128
+--local fontSize = 128
+local fontSize = 110
 
 local font = gr.newFont(SCENE_PREFIX .. fontName, fontSize)
 if not font then
@@ -17,7 +18,7 @@ end
 
 local color = {0.9, 0, 0, 1}
 local value = 0.
-local message: string = ""
+local message: string = "Карта создается"
 
 local enum Command
     'flush'
@@ -41,28 +42,35 @@ function commands.progress(): boolean
     value = v
 end
 
-local line = boxifyTextParagraph(
-    message .. '\n' .. '░░░░░░░░░░░░░░░░░░░░░░',
-    'center'
-)
-
 function commands.flush(): boolean
-    local x, y = 0, 0
+    local x, y = 0., 0.
     local prevFont = gr.getFont()
     local prevColor = {gr.getColor()}
 
     gr.setFont(font)
     gr.setColor(color)
 
-    -- └┐┘┌ ─ │
-    --[[
-┌────────────────┐
-│  f о р р       │
-└────────────────┘
-    --]]
-    -- ░░░░░░░░░░░░░░░░░░░░░░
-    -- ██████████████████████
-    gr.print(message, x, y)
+    --print('commands.flush()')
+
+    local list = boxifyTextParagraph(
+        {
+            message,
+            "░░░░░░░░░░░░░░░░░░",
+        },
+        'center'
+    )
+
+    for k, v in ipairs(list) do
+        print(v)
+    end
+
+    local scrW, scrH = gr.getDimensions()
+    y = math.ceil((scrH - #list * font:getHeight()) / 2) 
+
+    for k, line in ipairs(list) do
+        gr.print(line, x, y)
+        y = y + gr.getFont():getHeight()
+    end
 
     gr.setFont(prevFont)
     gr.setColor(prevColor)
