@@ -52,6 +52,7 @@ local record DiamonAndSquare
     mapSize: integer
     mapn: integer
     done: boolean
+    thread: love.thread
 
     type RandomCallback = function(): number
 
@@ -109,6 +110,11 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
 local serpent = require 'serpent'
 
 function DiamonAndSquare:doneAsync(): boolean
+    --[[
+    Проверить, что поток создан и запущен. Иначе ошибка.
+    Проверить канал сообщений. Если есть сообщение с именем карты и 
+    положительным результатом запуска(boolean), то вернуть истину.
+    --]]
     return self.done
 end
 
@@ -166,8 +172,16 @@ end
 
 function DiamonAndSquare:evalAsync()
     print('self.generator', self.generator, type(self.generator))
-    self.done = false
+
+    self.thread = love.thread.newThread("generator_thread.lua")
+    self.thread:start()
+
+    --[[
+    local tstart = love.timer.getTime()
     self.generator:eval()
+    local tfinish = love.timer.getTime()
+    print('map generated for', (tfinish - tstart) * 1000., "sec.")
+    --]]
 end
 
 -- добавить анимацию процесса разбиения
