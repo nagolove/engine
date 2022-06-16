@@ -189,7 +189,7 @@ function pointInPolygon(pgon: {number}, tx: number, ty: number): boolean
     -- }}}
 end
 
---local u8 = require "utf8"
+local u8 = require "utf8"
 
 -- Добавляет в текстовый объект цветной текст линейно интерполируя цвета от 
 -- fromcolor до tocolor для каждого символа.
@@ -369,6 +369,7 @@ function linum(code: string, inc: integer): string
     if string.sub(buf, #buf, #buf) ~= "\n" then
         buf = buf .. '\n'
     end
+    -- Проход по символу-разделителю строки
     for line in string.gmatch(buf, '(.-)[\n]') do
         --print('line -------------', line)
         table.insert(t, i .. " " .. line .. '\n')
@@ -403,4 +404,50 @@ function randomFilenameStr(len: integer): string
         s = s.. tostring(math.ceil(math.random() * 10))
     end
     return s
+end
+
+local enum Justfify
+    "none"
+    "center"
+end
+
+-- Упаковывает многострочный текст в рамку из псевдографических символов.
+-- Возвращает массив строчек.
+function boxifyTextParagraph(s: string, j: Justfify): {string}
+    j = j or "none"
+    local list: {string} = {}
+    local maxlen = 0
+    local rep = string.rep
+    local ceil = math.ceil
+
+    -- Проход по символу-разделителю строки
+    for line in string.gmatch(s, '(.-)[\n]') do
+        local len = u8.len(line)
+        if len > maxlen then
+            maxlen = len
+        end
+    end
+
+    if j == 'none' then
+        for line in string.gmatch(s, '(.-)[\n]') do
+            local num = maxlen - u8.len(line)
+            table.insert(list, '│' .. line .. rep(' ', num) .. '│')
+        end
+    elseif j == 'center' then
+        for line in string.gmatch(s, '(.-)[\n]') do
+            local len = u8.len(line)
+            local num = maxlen - len
+            local num1 = ceil(num / 2)
+            -- Если четное количество символов в строке, то нужно сократить
+            -- количество пробелов, иначе ошибка выравнивания.
+            local num2 = len % 2 ~= 0 and ceil(num / 2) or ceil(num / 2) - 1
+            local str = '│' .. rep(' ', num1) .. line .. rep(' ', num2) .. '│'
+            table.insert(list, str)
+        end
+    end
+
+    table.insert(list, 1, '┌' .. rep("─", maxlen) .. '┐')
+    table.insert(list, #list + 1, '└' .. rep("─", maxlen) .. '┘')
+
+    return list
 end
