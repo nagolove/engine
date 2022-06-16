@@ -55,7 +55,6 @@ function commands.flush()
    local list = boxifyTextParagraph(
    {
       message,
-      "",
       "░░░░░░░░░░░░░░░░░░",
    },
    'center')

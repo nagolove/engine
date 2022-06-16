@@ -411,6 +411,8 @@ local Justfify = {}
 
 
 
+local Input = {}
+
 
 
 function boxifyTextParagraph(input, j)
@@ -465,6 +467,49 @@ function boxifyTextParagraph(input, j)
 
    return list
 end
+
+
+
+function makeProgressBar(symbols_len, ratio)
+   local ch_clean = "░"
+   local ch_filled = "▓"
+
+   if ratio < 0 then
+      ratio = 0.
+   end
+   if ratio > 1 then
+      ratio = 1.
+   end
+
+   local rep = string.rep
+   local clean_num = math.ceil((1. - ratio) * symbols_len)
+   local filled_num = math.floor(ratio * symbols_len)
+   local res = rep(ch_filled, filled_num) .. rep(ch_clean, clean_num)
+
+
+   if u8.len(res) > symbols_len then
+      return string.sub(res, 1, #res - 2)
+   else
+      return res
+   end
+end
+
+
+function test_makeProgressBar()
+   local len = 20
+   local stepsnum = 100
+   for i = 1, stepsnum do
+      print(makeProgressBar(len, i / stepsnum))
+   end
+end
+
+
+
+
+
+
+
+
 
 function test_boxifyTextParagraph()
 
