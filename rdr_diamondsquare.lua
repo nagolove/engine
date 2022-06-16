@@ -93,11 +93,12 @@ local canvas_nodes = {}
 
 local function newCanvasNode(i1, i2, j1, j2)
    local w, h = rez * ceil(mapSize / 2), rez * ceil(mapSize / 2)
-   table.insert(canvas_nodes, { canvas = gr.newCanvas(w, h),
-i1 = i1,
-i2 = i2,
-j1 = j1,
-j2 = j2,
+   table.insert(canvas_nodes, {
+      canvas = gr.newCanvas(w, h),
+      i1 = i1,
+      i2 = i2,
+      j1 = j1,
+      j2 = j2,
    })
 end
 
@@ -199,10 +200,17 @@ function commands.map()
 
 
 
+
+   local maxCanvasSize = 1024
+   local mapWidth = mapSize * rez
+   local canvasNum = math.ceil(mapWidth / maxCanvasSize)
+
    newCanvasNode(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
    newCanvasNode(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
    newCanvasNode(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
    newCanvasNode(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
+
+
 
    bake()
    save_bakes()

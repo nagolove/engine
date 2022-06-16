@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert
 
 
 
@@ -8,8 +8,8 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 require('love')
 local Pipeline = require('pipeline')
 
-local format = string.format
-local inspect = require("inspect")
+
+
 local das = require("diamond_and_square")
 
 
@@ -95,11 +95,22 @@ local DiamonAndSquare = {State = {}, }
 
 
 
+
+
+
+
+
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
 
 local serpent = require('serpent')
+
+function DiamonAndSquare:doneAsync()
+   return self.done
+end
 
 function DiamonAndSquare:setPosition(x, y)
    self.pipeline:openPushAndClose(self.renderobj_name, 'set_position', x, y)
@@ -136,9 +147,9 @@ function DiamonAndSquare:send2render()
       local uncompressed = serpent.dump(row)
       local compressed = compress('string', 'gzip', uncompressed, 9)
 
-      print(format('row[%d]', i))
-      print('#uncompressed', size2human(#uncompressed))
-      print('#compressed', size2human(#compressed))
+
+
+
 
       local packed_rowlen = struct.pack("L", #compressed)
       love.filesystem.append(fname, packed_rowlen, #packed_rowlen)
@@ -153,11 +164,16 @@ function DiamonAndSquare:send2render()
 
 end
 
+function DiamonAndSquare:evalAsync()
+   print('self.generator', self.generator, type(self.generator))
+   self.done = false
+   self.generator:eval()
+end
+
 
 function DiamonAndSquare:eval()
    print('self.generator', self.generator, type(self.generator))
    self.generator:eval()
-   return self
 end
 
 function DiamonAndSquare.new(
@@ -186,6 +202,7 @@ function DiamonAndSquare.new(
    self.renderobj_name, 'rdr_diamondsquare.lua')
 
 
+   self.done = true
    self.generator = das.new(mapn, rng)
    self.mapSize = self.generator:get_mapsize()
 
@@ -200,6 +217,7 @@ end
 
 function DiamonAndSquare:reset()
 
+
 end
 
 function DiamonAndSquare:getFieldSize()
@@ -207,6 +225,7 @@ function DiamonAndSquare:getFieldSize()
 end
 
 function DiamonAndSquare:setRez(rez)
+   self.rez = rez
    self.pipeline:openPushAndClose(
    self.renderobj_name,
    'set_rez', self.rez)
