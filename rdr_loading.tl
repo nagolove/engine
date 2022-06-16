@@ -1,39 +1,6 @@
 -- vim: set colorcolumn=85
 -- vim: fdm=marker
 
---[[ {{{ Documentation
-record LinesBuffer
-    -- добавить идентификатор и запись. 
-    -- Цикл обработки команд не прерывается.
-    add: function(id: string|number, message: string)
-
-    -- Удалить запись из словаря.
-    remove: function(id: string, message: string)
-
-    -- Очистить словарь и прервать цикл обработки команд.
-    clear: function()
-
-    -- Рисовать и прервать цикл обработки команд.
-    flush: function()
-
-    -- Прервать цикл обработки команд.
-    -- Используется при множественном добавлении или удалении.
-    enough: function()
-
-    -- Рисовать рамку вокруг таблицы или нет.
-    -- Перерасчитывает ширину рамки.
-    border: function(boolean)
-
-    -- Установить рисование таблицы по центру экрана.
-    align_center: function()
-
-    -- Установить точку рисования таблицы. 
-    -- Сбрасывается вызовом align_center()
-    pos: function(x: number, y: number)
-end
--- }}} 
---]] 
-    
 global SCENE_PREFIX: string
 global graphic_command_channel: love.thread.Channel
 local gr = love.graphics
@@ -50,6 +17,7 @@ end
 
 local color = {0.9, 0, 0, 1}
 local value = 0.
+local message: string = ""
 
 local enum Command
     'flush'
@@ -73,6 +41,11 @@ function commands.progress(): boolean
     value = v
 end
 
+local line = boxifyTextParagraph(
+    message .. '\n' .. '░░░░░░░░░░░░░░░░░░░░░░',
+    'center'
+)
+
 function commands.flush(): boolean
     local x, y = 0, 0
     local prevFont = gr.getFont()
@@ -81,7 +54,15 @@ function commands.flush(): boolean
     gr.setFont(font)
     gr.setColor(color)
 
-    gr.print('Загрузка карты', x, y)
+    -- └┐┘┌ ─ │
+    --[[
+┌────────────────┐
+│  f о р р       │
+└────────────────┘
+    --]]
+    -- ░░░░░░░░░░░░░░░░░░░░░░
+    -- ██████████████████████
+    gr.print(message, x, y)
 
     gr.setFont(prevFont)
     gr.setColor(prevColor)
