@@ -19,6 +19,8 @@ end
 local color = {0.9, 0, 0, 1}
 local value = 0.
 local message: string = "Карта создается"
+local barLength = 20
+local bar = ""
 
 local enum Command
     'flush'
@@ -40,6 +42,7 @@ function commands.progress(): boolean
         error('Progress value should ve in 0..1 range.')
     end
     value = v
+    bar = makeProgressBar(barLength, value)
 end
 
 function commands.flush(): boolean
@@ -55,14 +58,16 @@ function commands.flush(): boolean
     local list = boxifyTextParagraph(
         {
             message,
-            "░░░░░░░░░░░░░░░░░░",
+            bar,
         },
         'center'
     )
 
+    --[[
     for k, v in ipairs(list) do
         print(v)
     end
+    --]]
 
     local scrW, scrH = gr.getDimensions()
     y = math.ceil((scrH - #list * font:getHeight()) / 2) 
