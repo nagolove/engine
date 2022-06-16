@@ -411,9 +411,10 @@ local enum Justfify
     "center"
 end
 
+local type Input = string|{string}
+
 -- Упаковывает многострочный текст в рамку из псевдографических символов.
 -- Возвращает массив строчек и строчку максимальной длины.
-local type Input = string|{string}
 function boxifyTextParagraph(input: Input, j: Justfify): {string}, integer
     j = j or "none"
     local list: {string} = {}
@@ -467,6 +468,49 @@ function boxifyTextParagraph(input: Input, j: Justfify): {string}, integer
     return list
 end
 
+-- Возвращает строчку прогрессбара из символов псевдографики.
+-- Принимает длину результирующей строки и коэффиент в диапазоне 0..1
+function makeProgressBar(symbols_len: integer, ratio: number): string
+    local ch_clean = "░"
+    local ch_filled = "▓"
+
+    if ratio < 0 then
+        ratio = 0.
+    end
+    if ratio > 1 then
+        ratio = 1.
+    end
+
+    local rep = string.rep
+    local clean_num = math.ceil((1. - ratio) * symbols_len)
+    local filled_num = math.floor(ratio * symbols_len)
+    local res = rep(ch_filled, filled_num) .. rep(ch_clean, clean_num)
+
+    -- Откусываю один лишний символ если он есть
+    if u8.len(res) > symbols_len then
+        return string.sub(res, 1, #res - 2)
+    else
+        return res
+    end
+end
+
+-- {{{ Testing test_makeProgressBar()
+function test_makeProgressBar()
+    local len = 20
+    local stepsnum = 100
+    for i = 1, stepsnum do
+        print(makeProgressBar(len, i / stepsnum))
+    end
+end
+
+--[[
+test_makeProgressBar()
+print('os.exit(101)')
+os.exit()
+--]]
+-- }}}
+
+-- {{{ Testing boxifyTextParagraph
 function test_boxifyTextParagraph()
     -- {{{ Текст для тестирования
     local message = [[
@@ -535,4 +579,4 @@ test_boxifyTextParagraph()
 print('os.exit(100)')
 os.exit(100)
 --]]
-
+-- }}}
