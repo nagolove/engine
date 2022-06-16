@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math
 
 
 
@@ -8,7 +8,8 @@ local yield = coroutine.yield
 local colorize = require('ansicolors2').ansicolors
 
 local fontName = "/DejaVuSansMono.ttf"
-local fontSize = 128
+
+local fontSize = 110
 
 local font = gr.newFont(SCENE_PREFIX .. fontName, fontSize)
 if not font then
@@ -17,7 +18,7 @@ end
 
 local color = { 0.9, 0, 0, 1 }
 local value = 0.
-local message = ""
+local message = "Карта создается"
 
 local Command = {}
 
@@ -41,13 +42,8 @@ function commands.progress()
    value = v
 end
 
-local line = boxifyTextParagraph(
-message .. '\n' .. '░░░░░░░░░░░░░░░░░░░░░░',
-'center')
-
-
 function commands.flush()
-   local x, y = 0, 0
+   local x, y = 0., 0.
    local prevFont = gr.getFont()
    local prevColor = { gr.getColor() }
 
@@ -56,13 +52,26 @@ function commands.flush()
 
 
 
+   local list = boxifyTextParagraph(
+   {
+      message,
+      "",
+      "░░░░░░░░░░░░░░░░░░",
+   },
+   'center')
 
 
+   for k, v in ipairs(list) do
+      print(v)
+   end
 
+   local scrW, scrH = gr.getDimensions()
+   y = math.ceil((scrH - #list * font:getHeight()) / 2)
 
-
-
-   gr.print(message, x, y)
+   for k, line in ipairs(list) do
+      gr.print(line, x, y)
+      y = y + gr.getFont():getHeight()
+   end
 
    gr.setFont(prevFont)
    gr.setColor(prevColor)

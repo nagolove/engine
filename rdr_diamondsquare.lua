@@ -18,8 +18,8 @@ local map = {}
 local mapSize = 0
 
 
+local rez = 8
 
-local rez = 32
 
 local x_pos, y_pos = 0., 0.
 

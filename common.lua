@@ -413,15 +413,28 @@ local Justfify = {}
 
 
 
-function boxifyTextParagraph(s, j)
+function boxifyTextParagraph(input, j)
    j = j or "none"
    local list = {}
    local maxlen = 0
    local rep = string.rep
    local ceil = math.ceil
+   local floor = math.floor
 
 
-   for line in string.gmatch(s, '(.-)[\n]') do
+   local lines = {}
+
+   if type(input) == 'string' then
+      for line in string.gmatch(input, '(.-)[\n]') do
+         table.insert(lines, line)
+      end
+   elseif type(input) == 'table' then
+      lines = input
+   else
+      error('Unsupported data type: ' .. type(input))
+   end
+
+   for _, line in ipairs(lines) do
       local len = u8.len(line)
       if len > maxlen then
          maxlen = len
@@ -429,18 +442,19 @@ function boxifyTextParagraph(s, j)
    end
 
    if j == 'none' then
-      for line in string.gmatch(s, '(.-)[\n]') do
+      for _, line in ipairs(lines) do
          local num = maxlen - u8.len(line)
          table.insert(list, '│' .. line .. rep(' ', num) .. '│')
       end
    elseif j == 'center' then
-      for line in string.gmatch(s, '(.-)[\n]') do
+      print('maxlen', maxlen)
+      for _, line in ipairs(lines) do
          local len = u8.len(line)
          local num = maxlen - len
-         local num1 = ceil(num / 2)
+         local num1 = ceil(num / 2.)
+         local num2 = floor(num / 2.)
 
 
-         local num2 = len % 2 ~= 0 and ceil(num / 2) or ceil(num / 2) - 1
          local str = '│' .. rep(' ', num1) .. line .. rep(' ', num2) .. '│'
          table.insert(list, str)
       end
@@ -450,4 +464,67 @@ function boxifyTextParagraph(s, j)
    table.insert(list, #list + 1, '└' .. rep("─", maxlen) .. '┘')
 
    return list
+end
+
+function test_boxifyTextParagraph()
+
+   local message = [[
+
+- Да. Например, в одном из последних Ваших рассказов он у
+Вас срывает все планы  вражеского  шпиона,  который  собирался
+выкрасть  чертежи  атомной  бомбы.  Насколько  я  помню,   ему
+удается-таки завлечь шпиона в западню, схватить его и  вернуть
+украденные документы. 
+        А  затем,  м-р  Мейсон,  Вы  раскрываете
+содержание документов, заставив Вашего  героя  читать  их,  и,
+таким образом, даете возможность и  читателям  узнать,  о  чем
+идет речь. Документы излагаются очень подробно. Вы,  например,
+подчеркиваете, что для создания критической  массы  необходимо
+22,7 фунта урана-235, называете материалы, из которых  сделана
+оболочка  бомбы,  подробно  излагаете  конструкцию   взрывного
+устройства, а затем сообщаете  о  ее  разрушительной  силе  на
+определенном участке.
+
+- Да. Например, в одном из последних Ваших рассказов он у
+Вас срывает все планы  вражеского  шпиона,  который  собирался
+выкрасть  чертежи  атомной  бомбы.  Насколько  я  помню,   ему
+удается-таки завлечь шпиона в западню, схватить его и  вернуть
+    украденные документы. 
+    А  затем,  м-р  Мейсон,  Вы  раскрываете
+содержание документов, заставив Вашего  героя  читать  их,  и,
+таким образом, даете возможность и  читателям  узнать,  о  чем
+идет речь. Документы излагаются очень подробно. Вы,  например,
+подчеркиваете, что для создания критической  массы  необходимо
+22,7 фунта урана-235, называете материалы, из которых  сделана
+оболочка  бомбы,  подробно  излагаете  конструкцию   взрывного
+устройства, а затем сообщаете  о  ее  разрушительной  силе  на
+определенном участке.
+
+]]
+
+
+   local lines
+
+   lines = boxifyTextParagraph(message, 'none')
+   for k, v in ipairs(lines) do
+      print(v)
+   end
+
+   lines = boxifyTextParagraph(message, 'center')
+   for k, v in ipairs(lines) do
+      print(v)
+   end
+
+   lines = boxifyTextParagraph(
+   {
+      "BBB",
+      "Карта создается",
+      "оооооооофффффф",
+   },
+   'center')
+
+   for k, v in ipairs(lines) do
+      print(v)
+   end
+
 end
