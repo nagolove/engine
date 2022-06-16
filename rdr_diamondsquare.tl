@@ -18,8 +18,8 @@ local map: {{number}} = {}
 local mapSize: integer = 0
 -- Размер одного прямоугольника карты в пикселях.
 -- TODO Перенести в параметры
---local rez = 8
-local rez = 32
+local rez = 8
+--local rez = 32
 --local rez = 128 + 64 + 32 + 32
 local x_pos, y_pos = 0., 0.
 
