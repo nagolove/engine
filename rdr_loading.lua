@@ -3,39 +3,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 local gr = love.graphics
 local yield = coroutine.yield
 local colorize = require('ansicolors2').ansicolors
@@ -50,6 +17,7 @@ end
 
 local color = { 0.9, 0, 0, 1 }
 local value = 0.
+local message = ""
 
 local Command = {}
 
@@ -73,6 +41,11 @@ function commands.progress()
    value = v
 end
 
+local line = boxifyTextParagraph(
+message .. '\n' .. '░░░░░░░░░░░░░░░░░░░░░░',
+'center')
+
+
 function commands.flush()
    local x, y = 0, 0
    local prevFont = gr.getFont()
@@ -81,7 +54,15 @@ function commands.flush()
    gr.setFont(font)
    gr.setColor(color)
 
-   gr.print('Загрузка карты', x, y)
+
+
+
+
+
+
+
+
+   gr.print(message, x, y)
 
    gr.setFont(prevFont)
    gr.setColor(prevColor)
