@@ -5,9 +5,15 @@ require "love.thread"
 
 local generator_channel = love.thread.getChannel("generator_channel")
 local yield = coroutine.yield
+local das = require "diamond_and_square"
 
 local enum Command
+    -- Создание объекта генератора с аргументами
+    'init'
+    -- Генерация карты
     "gen"
+    -- Отправить в канал имя файла с созданной картой
+    'get_fname'
 end
 
 --[[
