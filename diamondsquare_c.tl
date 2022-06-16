@@ -173,7 +173,10 @@ end
 -- добавить анимацию процесса разбиения
 function DiamonAndSquare:eval()
     print('self.generator', self.generator, type(self.generator))
+    local tstart = love.timer.getTime()
     self.generator:eval()
+    local tfinish = love.timer.getTime()
+    print('map generated for', (tfinish - tstart) * 1000., "sec.")
 end
 
 function DiamonAndSquare.new(
