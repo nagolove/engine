@@ -412,16 +412,30 @@ local enum Justfify
 end
 
 -- Упаковывает многострочный текст в рамку из псевдографических символов.
--- Возвращает массив строчек.
-function boxifyTextParagraph(s: string, j: Justfify): {string}
+-- Возвращает массив строчек и строчку максимальной длины.
+local type Input = string|{string}
+function boxifyTextParagraph(input: Input, j: Justfify): {string}, integer
     j = j or "none"
     local list: {string} = {}
     local maxlen = 0
     local rep = string.rep
     local ceil = math.ceil
+    local floor = math.floor
 
     -- Проход по символу-разделителю строки
-    for line in string.gmatch(s, '(.-)[\n]') do
+    local lines: {string} = {}
+
+    if type(input) == 'string' then
+        for line in string.gmatch(input as string, '(.-)[\n]') do
+            table.insert(lines, line)
+        end
+    elseif type(input) == 'table' then
+        lines = input as {string}
+    else
+        error('Unsupported data type: ' .. type(input))
+    end
+
+    for _, line in ipairs(lines) do
         local len = u8.len(line)
         if len > maxlen then
             maxlen = len
@@ -429,18 +443,19 @@ function boxifyTextParagraph(s: string, j: Justfify): {string}
     end
 
     if j == 'none' then
-        for line in string.gmatch(s, '(.-)[\n]') do
+        for _, line in ipairs(lines) do
             local num = maxlen - u8.len(line)
             table.insert(list, '│' .. line .. rep(' ', num) .. '│')
         end
     elseif j == 'center' then
-        for line in string.gmatch(s, '(.-)[\n]') do
+        print('maxlen', maxlen)
+        for _, line in ipairs(lines) do
             local len = u8.len(line)
             local num = maxlen - len
-            local num1 = ceil(num / 2)
-            -- Если четное количество символов в строке, то нужно сократить
-            -- количество пробелов, иначе ошибка выравнивания.
-            local num2 = len % 2 ~= 0 and ceil(num / 2) or ceil(num / 2) - 1
+            local num1 = ceil(num / 2.)
+            local num2 = floor(num / 2.)
+
+            --print('line, #line, num, num2', line, len, num, num2)
             local str = '│' .. rep(' ', num1) .. line .. rep(' ', num2) .. '│'
             table.insert(list, str)
         end
@@ -451,3 +466,73 @@ function boxifyTextParagraph(s: string, j: Justfify): {string}
 
     return list
 end
+
+function test_boxifyTextParagraph()
+    -- {{{ Текст для тестирования
+    local message = [[
+
+- Да. Например, в одном из последних Ваших рассказов он у
+Вас срывает все планы  вражеского  шпиона,  который  собирался
+выкрасть  чертежи  атомной  бомбы.  Насколько  я  помню,   ему
+удается-таки завлечь шпиона в западню, схватить его и  вернуть
+украденные документы. 
+        А  затем,  м-р  Мейсон,  Вы  раскрываете
+содержание документов, заставив Вашего  героя  читать  их,  и,
+таким образом, даете возможность и  читателям  узнать,  о  чем
+идет речь. Документы излагаются очень подробно. Вы,  например,
+подчеркиваете, что для создания критической  массы  необходимо
+22,7 фунта урана-235, называете материалы, из которых  сделана
+оболочка  бомбы,  подробно  излагаете  конструкцию   взрывного
+устройства, а затем сообщаете  о  ее  разрушительной  силе  на
+определенном участке.
+
+- Да. Например, в одном из последних Ваших рассказов он у
+Вас срывает все планы  вражеского  шпиона,  который  собирался
+выкрасть  чертежи  атомной  бомбы.  Насколько  я  помню,   ему
+удается-таки завлечь шпиона в западню, схватить его и  вернуть
+    украденные документы. 
+    А  затем,  м-р  Мейсон,  Вы  раскрываете
+содержание документов, заставив Вашего  героя  читать  их,  и,
+таким образом, даете возможность и  читателям  узнать,  о  чем
+идет речь. Документы излагаются очень подробно. Вы,  например,
+подчеркиваете, что для создания критической  массы  необходимо
+22,7 фунта урана-235, называете материалы, из которых  сделана
+оболочка  бомбы,  подробно  излагаете  конструкцию   взрывного
+устройства, а затем сообщаете  о  ее  разрушительной  силе  на
+определенном участке.
+
+]]
+-- }}}
+
+    local lines: {string}
+
+    lines = boxifyTextParagraph(message,'none')
+    for k, v in ipairs(lines) do
+        print(v)
+    end
+
+    lines = boxifyTextParagraph(message,'center')
+    for k, v in ipairs(lines) do
+        print(v)
+    end
+
+    lines = boxifyTextParagraph(
+        {
+            "BBB",
+            "Карта создается",
+            "оооооооофффффф", 
+        },
+        'center'
+    )
+    for k, v in ipairs(lines) do
+        print(v)
+    end
+
+end
+
+--[[
+test_boxifyTextParagraph()
+print('os.exit(100)')
+os.exit(100)
+--]]
+
