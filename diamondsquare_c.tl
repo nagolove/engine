@@ -8,8 +8,8 @@
 require 'love'
 local Pipeline = require 'pipeline'
 
-local format = string.format
-local inspect = require "inspect"
+--local format = string.format
+--local inspect = require "inspect"
 local das = require "diamond_and_square"
 
 --[[
@@ -47,20 +47,11 @@ local record DiamonAndSquare
     generator: das.Generator
     renderobj_name: string
     pipeline: Pipeline
-    --map: {{number}}
-
-    -- в пикселях
-    --width: integer
-    -- в пикселях
-    --height: integer
 
     rez: integer
     mapSize: integer
-    --[[
-    chunkSize: integer
-    roughness: integer
-    --]]
     mapn: integer
+    done: boolean
 
     type RandomCallback = function(): number
 
@@ -71,28 +62,44 @@ local record DiamonAndSquare
         pl: Pipeline
     ): DiamonAndSquare
 
-    --[[
-    Порядок использования:
-        eval() send2render() render()
-    или
-        eval() save() send2render() render()
-    или
+    --[[ {{{ Порядок использования:
+        eval() send2render() render() или
+        eval() save() send2render() render() или
         load() send2render() render()
+    -- }}}
     --]]
 
-    -- основная функция - сознать карту высот
-    eval: function(DiamonAndSquare): DiamonAndSquare
-    -- сохранить в файл
-    save: function(DiamonAndSquare, fname: string)
-    -- загрузить из файла
-    load: function(DiamonAndSquare, fname: string)
-    -- отправить на рисование
+    -- Основная функция - сознать карту высот
+    eval: function(DiamonAndSquare)
+
+    -- Основная функция - сознать карту высот. 
+    -- Выполняется в отдельном потоке. Сразу возвращает управление.
+    evalAsync: function(DiamonAndSquare)
+
+    -- Возвращает истину когда карта создана
+    doneAsync: function(DiamonAndSquare): boolean
+
+    -- Отправить на рисование
     send2render: function(DiamonAndSquare)
-    -- рисовать
+    -- Рисовать
     render: function(DiamonAndSquare)
-    setPosition: function(DiamonAndSquare)
-    getFieldSize: function(): integer
-    setRez: function(rez: integer)
+
+    --[[
+    -- Сохранить в файл
+    save: function(DiamonAndSquare, fname: string)
+    -- Загрузить из файла
+    load: function(DiamonAndSquare, fname: string)
+    --]]
+
+    -- Установить координаты рисования карты
+    setPosition: function(DiamonAndSquare, x: number, y: number)
+
+    -- Возвращает размер поля в пикселях
+    getFieldSize: function(DiamonAndSquare): integer
+
+    -- Устанавливает размер одного квадратика карты в пикселях. 
+    -- Вызывается до send2render()
+    setRez: function(DiamonAndSquare, rez: integer)
 end
 
 local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
@@ -100,6 +107,10 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
 }
 
 local serpent = require 'serpent'
+
+function DiamonAndSquare:doneAsync(): boolean
+    return self.done
+end
 
 function DiamonAndSquare:setPosition(x: number, y: number)
     self.pipeline:openPushAndClose(self.renderobj_name, 'set_position', x, y)
@@ -136,9 +147,9 @@ function DiamonAndSquare:send2render()
         local uncompressed = serpent.dump(row)
         local compressed = compress('string', 'gzip', uncompressed, 9) as string
 
-        print(format('row[%d]', i))
-        print('#uncompressed', size2human(#uncompressed))
-        print('#compressed', size2human(#compressed))
+        --print(format('row[%d]', i))
+        --print('#uncompressed', size2human(#uncompressed))
+        --print('#compressed', size2human(#compressed))
 
         local packed_rowlen = struct.pack("L", #compressed)
         love.filesystem.append(fname, packed_rowlen, #packed_rowlen)
@@ -153,11 +164,16 @@ function DiamonAndSquare:send2render()
 
 end
 
+function DiamonAndSquare:evalAsync()
+    print('self.generator', self.generator, type(self.generator))
+    self.done = false
+    self.generator:eval()
+end
+
 -- добавить анимацию процесса разбиения
-function DiamonAndSquare:eval(): DiamonAndSquare
+function DiamonAndSquare:eval()
     print('self.generator', self.generator, type(self.generator))
     self.generator:eval()
-    return self
 end
 
 function DiamonAndSquare.new(
@@ -186,6 +202,7 @@ function DiamonAndSquare.new(
         self.renderobj_name, 'rdr_diamondsquare.lua'
     )
 
+    self.done = true
     self.generator = das.new(mapn, rng)
     self.mapSize = self.generator:get_mapsize()
 
@@ -199,7 +216,8 @@ function DiamonAndSquare.new(
 end
 
 function DiamonAndSquare:reset()
-    -- заглушка
+    -- Заглушка
+    -- Что делать с этой функцией? Удалить или оставить?
 end
 
 function DiamonAndSquare:getFieldSize(): integer
@@ -207,6 +225,7 @@ function DiamonAndSquare:getFieldSize(): integer
 end
 
 function DiamonAndSquare:setRez(rez: integer)
+    self.rez = rez
     self.pipeline:openPushAndClose(
         self.renderobj_name,
         'set_rez', self.rez
