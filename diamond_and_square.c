@@ -306,17 +306,6 @@ void square_value(Context *ctx, int i, int j, double *min, double *max) {
     for(int corner_idx = 0; corner_idx < 4; ++corner_idx) {
         double *v = value(ctx, corners[corner_idx].i, corners[corner_idx].j);
         if (v) {
-
-            /*
-            *min = *min && min_value(*min, *v) || *v;
-            *max = *max && max_value(*max, *v) || *v;
-            */
-
-            /*
-            *min = *min ? min_value(*min, *v) : *v;
-            *max = *max ? max_value(*max, *v) : *v;
-            */
-
             *min = min_value(*min, *v);
             *max = max_value(*max, *v);
         }
@@ -344,6 +333,9 @@ void diamond_value(
         int i, int j, int half, 
         double *min, double *max
 ) {
+    assert(min);
+    assert(max);
+
     *min = 100000.;
     *max = -100000.;
 
@@ -367,7 +359,8 @@ void diamond_value(
 
 bool diamond(Context *ctx) {
     LOG("diamond\n")
-    int half = floor(ctx->chunkSize / 2.);
+    // Деление чанков пополам, внутренние точки
+    int half = floor(ctx->chunkSize / 2.); 
     LOG("half = %d\n", half);
     int mapSize = ctx->mapSize;
     int chunkSize = ctx->chunkSize;
