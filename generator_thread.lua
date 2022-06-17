@@ -8,6 +8,7 @@ local args = { ... }
 local inspect = require('inspect')
 print('args', inspect(args))
 
+require('love.timer')
 require("love.thread")
 require("love.math")
 require('common')

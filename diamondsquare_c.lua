@@ -113,9 +113,15 @@ local DiamonAndSquare_mt = {
 function DiamonAndSquare:doneAsync()
    local gen_status_channel = love.thread.getChannel("gen_status_channel")
    local fname = gen_status_channel:pop()
+
+   if self.thread and self.thread:getError() then
+      print('generator_thread.tl crashed with', self.thread:getError())
+   end
+
    if fname then
+      print('fname', fname)
       self.fname = fname
-      print('self.fname', self.fname)
+      self:send2render()
    end
    return self.fname ~= nil
 end
@@ -130,46 +136,8 @@ end
 
 function DiamonAndSquare:send2render()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   if self.fname then
-
-      self.pipeline:openPushAndClose(
-      self.renderobj_name, 'map', self.fname)
-
-   end
+   self.pipeline:openPushAndClose(
+   self.renderobj_name, 'map', self.fname)
 
 end
 
