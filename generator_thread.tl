@@ -1,62 +1,97 @@
 -- vim: fdm=marker
 -- vim: set colorcolumn=85
 
-require "love.thread"
+print('generator_thread: started')
 
-local generator_channel = love.thread.getChannel("generator_channel")
+local args = {...}
+
+local inspect = require 'inspect'
+print('args', inspect(args))
+
+require "love.thread"
+require "love.math"
+require 'common'
+
+local gen_status_channel = love.thread.getChannel("gen_status_channel")
 local yield = coroutine.yield
 local das = require "diamond_and_square"
+local serpent = require 'serpent'
 
-local enum Command
-    -- Создание объекта генератора с аргументами
-    'init'
-    -- Генерация карты
-    "gen"
-    -- Отправить в канал имя файла с созданной картой
-    'get_fname'
+local mapn = args[1] as integer
+
+if type(mapn) ~= 'number' then
+    error("'mapn' type should be a number, not " .. type(mapn))
 end
-
---[[
-local cmd_circle_buf: {Command} = {}
-local cmd_circle_buf_maxnum = 16 * 2
-
-local function push_cbuf(cmd: Command)
-    if #cmd_circle_buf >= cmd_circle_buf_maxnum then
-        table.remove(cmd_circle_buf, 1)
-    end
-    table.insert(cmd_circle_buf, cmd)
-end
-
-local function print_stack()
-    print(colorize(
-        "%{blue}cmd stack: " .. 
-        inspect(cmd_circle_buf) .. 
-        "%{reset}"
+local low_range, high_range = 1, 12
+if mapn < low_range or mapn > high_range then
+    error(string.format(
+        'mapn out on range(%d..%d) - %d', 
+        low_range, high_range,
+        mapn
     ))
 end
---]]
 
-local commands = {}
+local state = args[2] as string
 
-function commands.gen(): boolean
-    return false
+if type(state) ~= 'string' then
+    error("'state' should be a string nor " .. type(state))
 end
 
-while true do
-    local cmd: Command
+local rng = love.math.newRandomGenerator()
+rng:setState(state)
 
-    repeat
-        cmd = generator_channel:demand() as Command
-        --push_cbuf(cmd)
+print('mapn, state', mapn, state)
 
-        local fun = commands[cmd]
-        if not fun then
-            print_stack()
-            error('generator_thread unknown command: ' .. cmd)
+local gen = das.new(
+    mapn,
+    function(): number
+        return rng:random()
+    end
+)
+
+function write2file(): string
+    -- Сделать построчную обработку, без создания {{number}}
+    local map: {{number}} = {}
+    for i = 1, gen:get_mapsize() do
+        map[#map + 1] = {}
+        for j = 1, gen:get_mapsize() do
+            map[#map][j] = gen:get(i - 1, j - 1)
         end
-        if not fun() then
-            break
-        end
+    end
 
-    until not cmd
+    local fname = "map.data." .. randomFilenameStr() .. ".txt"
+
+    local compress = love.data.compress
+    local struct = require 'struct'
+    local packed_mapsize = struct.pack("L", gen:get_mapsize())
+
+    love.filesystem.write(fname, "", 0)
+    love.filesystem.append(fname, packed_mapsize, #packed_mapsize)
+
+    print('map', #map)
+    local packed_mapsize = struct.pack("L", gen:get_mapsize())
+
+    for i = 1, #map do
+        local row = map[i]
+        local uncompressed = serpent.dump(row)
+        local compressed = compress('string', 'gzip', uncompressed, 9) as string
+
+        --print(format('row[%d]', i))
+        --print('#uncompressed', size2human(#uncompressed))
+        --print('#compressed', size2human(#compressed))
+
+        local packed_rowlen = struct.pack("L", #compressed)
+        love.filesystem.append(fname, packed_rowlen, #packed_rowlen)
+        love.filesystem.append(fname, compressed, #compressed)
+    end
+    --]]
+
+    return fname
 end
+
+gen:eval()
+
+local fname = write2file()
+gen_status_channel:push(fname)
+
+print('generator_thread: finished')
