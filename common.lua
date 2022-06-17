@@ -449,7 +449,7 @@ function boxifyTextParagraph(input, j)
          table.insert(list, '│' .. line .. rep(' ', num) .. '│')
       end
    elseif j == 'center' then
-      print('maxlen', maxlen)
+
       for _, line in ipairs(lines) do
          local len = u8.len(line)
          local num = maxlen - len

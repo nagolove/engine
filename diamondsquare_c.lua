@@ -102,6 +102,9 @@ local DiamonAndSquare = {State = {}, }
 
 
 
+
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
@@ -109,7 +112,18 @@ local DiamonAndSquare_mt = {
 local serpent = require('serpent')
 
 function DiamonAndSquare:doneAsync()
-   return self.done
+
+
+
+
+
+   local gen_status_channel = love.thread.getChannel("gen_status_channel")
+   local fname = gen_status_channel:pop()
+   if fname then
+      self.fname = fname
+      print('self.fname', self.fname)
+   end
+   return self.fname ~= nil
 end
 
 function DiamonAndSquare:setPosition(x, y)
@@ -121,53 +135,65 @@ function DiamonAndSquare:render()
 end
 
 function DiamonAndSquare:send2render()
-   local map = {}
-   for i = 1, self.generator:get_mapsize() do
-      map[#map + 1] = {}
-      for j = 1, self.generator:get_mapsize() do
-         map[#map][j] = self.generator:get(i - 1, j - 1)
-      end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   if self.fname then
+
+
+      self.pipeline:openPushAndClose(
+      self.renderobj_name, 'map', self.fname)
+
+
    end
-
-   local fname = "map.data." .. randomFilenameStr() .. ".txt"
-
-   local compress = love.data.compress
-   local struct = require('struct')
-   local packed_mapsize = struct.pack("L", self.generator:get_mapsize())
-
-   love.filesystem.write(fname, "", 0)
-   love.filesystem.append(fname, packed_mapsize, #packed_mapsize)
-
-   print('map', #map)
-   print('mapSize', self.mapSize)
-   local packed_mapsize = struct.pack("L", self.generator:get_mapsize())
-
-   for i = 1, #map do
-      local row = map[i]
-      local uncompressed = serpent.dump(row)
-      local compressed = compress('string', 'gzip', uncompressed, 9)
-
-
-
-
-
-      local packed_rowlen = struct.pack("L", #compressed)
-      love.filesystem.append(fname, packed_rowlen, #packed_rowlen)
-      love.filesystem.append(fname, compressed, #compressed)
-   end
-
-
-
-   self.pipeline:openPushAndClose(
-   self.renderobj_name, 'map', fname)
-
 
 end
 
 function DiamonAndSquare:evalAsync()
-   print('self.generator', self.generator, type(self.generator))
-   self.done = false
-   self.generator:eval()
+
+   assert(self.rngState)
+
+   self.thread = love.thread.newThread("generator_thread.lua")
+
+
+   self.thread:start(self.mapn, self.rngState)
+
+
+
+
+
+
+
 end
 
 
@@ -193,27 +219,19 @@ function DiamonAndSquare.new(
 
    assert(pl, "pipeline is nil")
    self.pipeline = pl
-
    print('renderobj_counter', renderobj_counter)
    renderobj_counter = renderobj_counter + 1
    self.renderobj_name = "diamondsquare" .. renderobj_counter
-
    self.rez = 8
 
    self.pipeline:pushCodeFromFileRoot(
-
    self.renderobj_name, 'rdr_diamondsquare.lua')
 
 
    self.done = true
+   self.mapn = mapn
    self.generator = das.new(mapn, rng)
    self.mapSize = self.generator:get_mapsize()
-
-
-
-
-
-
 
    return self
 end
