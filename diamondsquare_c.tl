@@ -52,7 +52,9 @@ local record DiamonAndSquare
     mapSize: integer
     mapn: integer
     done: boolean
-    thread: love.thread
+    thread: love.thread.Thread
+    fname: string
+    rngState: string
 
     type RandomCallback = function(): number
 
@@ -115,7 +117,13 @@ function DiamonAndSquare:doneAsync(): boolean
     Проверить канал сообщений. Если есть сообщение с именем карты и 
     положительным результатом запуска(boolean), то вернуть истину.
     --]]
-    return self.done
+    local gen_status_channel = love.thread.getChannel("gen_status_channel")
+    local fname = gen_status_channel:pop() as string
+    if fname then
+        self.fname = fname
+        print('self.fname', self.fname)
+    end
+    return self.fname ~= nil
 end
 
 function DiamonAndSquare:setPosition(x: number, y: number)
@@ -127,6 +135,7 @@ function DiamonAndSquare:render()
 end
 
 function DiamonAndSquare:send2render()
+    --[[
     local map: {{number}} = {}
     for i = 1, self.generator:get_mapsize() do
         map[#map + 1] = {}
@@ -153,28 +162,31 @@ function DiamonAndSquare:send2render()
         local uncompressed = serpent.dump(row)
         local compressed = compress('string', 'gzip', uncompressed, 9) as string
 
-        --print(format('row[%d]', i))
-        --print('#uncompressed', size2human(#uncompressed))
-        --print('#compressed', size2human(#compressed))
-
         local packed_rowlen = struct.pack("L", #compressed)
         love.filesystem.append(fname, packed_rowlen, #packed_rowlen)
         love.filesystem.append(fname, compressed, #compressed)
     end
     --]]
 
-    -- Вызов "метода" в другом потоке
-    self.pipeline:openPushAndClose(
-        self.renderobj_name, 'map', fname
-    )
+    if self.fname then
+
+        -- Вызов "метода" в другом потоке
+        self.pipeline:openPushAndClose(
+            self.renderobj_name, 'map', self.fname
+        )
+
+    end
 
 end
 
 function DiamonAndSquare:evalAsync()
-    print('self.generator', self.generator, type(self.generator))
+    --print('self.generator', self.generator, type(self.generator))
+    assert(self.rngState)
 
     self.thread = love.thread.newThread("generator_thread.lua")
-    self.thread:start()
+    --local rng = love.math.newRandomGenerator(os.time())
+
+    self.thread:start(self.mapn, self.rngState)
 
     --[[
     local tstart = love.timer.getTime()
@@ -207,27 +219,19 @@ function DiamonAndSquare.new(
 
     assert(pl, "pipeline is nil")
     self.pipeline = pl
-    --self.mapn = 0
     print('renderobj_counter', renderobj_counter)
     renderobj_counter = renderobj_counter + 1
     self.renderobj_name = "diamondsquare" .. renderobj_counter
-    --self.mapSize = math.ceil(2 ^ self.mapn) + 1 -- 1025
     self.rez = 8
 
     self.pipeline:pushCodeFromFileRoot(
-        --'diamondsquare', 'diamondsquare-render.lua'
         self.renderobj_name, 'rdr_diamondsquare.lua'
     )
 
     self.done = true
+    self.mapn = mapn
     self.generator = das.new(mapn, rng)
     self.mapSize = self.generator:get_mapsize()
-
-    --[[
-    self.rng = rng
-    self.mapn = mapn
-    self:reset()
-    --]]
 
     return self
 end
