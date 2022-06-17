@@ -33,7 +33,7 @@ local function sub_draw(
     local x = dx or 0
     local y = dy or 0
 
-    local abs_i_init, abs_j_init = 1, 1 -- почему единицы используются?
+    local abs_i_init, abs_j_init = 1, 1
     --local abs_i_init, abs_j_init = i1, j1
 
     -- индексы для рисования
