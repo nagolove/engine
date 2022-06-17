@@ -51,7 +51,6 @@ local record DiamonAndSquare
     rez: integer
     mapSize: integer
     mapn: integer
-    done: boolean
     thread: love.thread.Thread
     fname: string
     rngState: string
@@ -109,14 +108,9 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
     __index = DiamonAndSquare,
 }
 
-local serpent = require 'serpent'
+--local serpent = require 'serpent'
 
 function DiamonAndSquare:doneAsync(): boolean
-    --[[
-    Проверить, что поток создан и запущен. Иначе ошибка.
-    Проверить канал сообщений. Если есть сообщение с именем карты и 
-    положительным результатом запуска(boolean), то вернуть истину.
-    --]]
     local gen_status_channel = love.thread.getChannel("gen_status_channel")
     local fname = gen_status_channel:pop() as string
     if fname then
@@ -136,6 +130,7 @@ end
 
 function DiamonAndSquare:send2render()
     --[[
+    -- {{{ Сейчас этот код перемещен в generator_thread.tl
     local map: {{number}} = {}
     for i = 1, self.generator:get_mapsize() do
         map[#map + 1] = {}
@@ -166,34 +161,32 @@ function DiamonAndSquare:send2render()
         love.filesystem.append(fname, packed_rowlen, #packed_rowlen)
         love.filesystem.append(fname, compressed, #compressed)
     end
+    -- }}}
     --]]
 
     if self.fname then
-
         -- Вызов "метода" в другом потоке
         self.pipeline:openPushAndClose(
             self.renderobj_name, 'map', self.fname
         )
-
     end
 
 end
 
 function DiamonAndSquare:evalAsync()
-    --print('self.generator', self.generator, type(self.generator))
     assert(self.rngState)
 
+    self.fname = nil
     self.thread = love.thread.newThread("generator_thread.lua")
-    --local rng = love.math.newRandomGenerator(os.time())
 
-    self.thread:start(self.mapn, self.rngState)
+    local rngState = self.rngState
+    if not rngState then
+        print('Using default(random) rngState')
+        local rng = love.math.newRandomGenerator(os.time())
+        rngState = rng:getState()
+    end
 
-    --[[
-    local tstart = love.timer.getTime()
-    self.generator:eval()
-    local tfinish = love.timer.getTime()
-    print('map generated for', (tfinish - tstart) * 1000., "sec.")
-    --]]
+    self.thread:start(self.mapn, rngState)
 end
 
 -- добавить анимацию процесса разбиения
@@ -228,17 +221,11 @@ function DiamonAndSquare.new(
         self.renderobj_name, 'rdr_diamondsquare.lua'
     )
 
-    self.done = true
     self.mapn = mapn
     self.generator = das.new(mapn, rng)
     self.mapSize = self.generator:get_mapsize()
 
     return self
-end
-
-function DiamonAndSquare:reset()
-    -- Заглушка
-    -- Что делать с этой функцией? Удалить или оставить?
 end
 
 function DiamonAndSquare:getFieldSize(): integer
