@@ -89,7 +89,20 @@ function write2file(): string
     return fname
 end
 
+local tstart = love.timer.getTime()
 gen:eval()
+local tfinish = love.timer.getTime()
+print('map generated for', (tfinish - tstart) * 1000., "sec.")
+
+--[[
+    coro = gen:newCoroutine()
+    stop = false
+    repeat
+        stop = coroutine.resume(coro)
+        -- Данные о прогрессе
+        gen_status_channel:push()
+    until not stop
+--]]
 
 local fname = write2file()
 gen_status_channel:push(fname)
