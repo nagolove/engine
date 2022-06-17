@@ -89,7 +89,20 @@ function write2file()
    return fname
 end
 
+local tstart = love.timer.getTime()
 gen:eval()
+local tfinish = love.timer.getTime()
+print('map generated for', (tfinish - tstart) * 1000., "sec.")
+
+
+
+
+
+
+
+
+
+
 
 local fname = write2file()
 gen_status_channel:push(fname)

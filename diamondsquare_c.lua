@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local os = _tl_compat and _tl_compat.os or os
 
 
 
@@ -104,19 +104,13 @@ local DiamonAndSquare = {State = {}, }
 
 
 
-
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
 
-local serpent = require('serpent')
+
 
 function DiamonAndSquare:doneAsync()
-
-
-
-
-
    local gen_status_channel = love.thread.getChannel("gen_status_channel")
    local fname = gen_status_channel:pop()
    if fname then
@@ -168,32 +162,31 @@ function DiamonAndSquare:send2render()
 
 
 
-   if self.fname then
 
+
+   if self.fname then
 
       self.pipeline:openPushAndClose(
       self.renderobj_name, 'map', self.fname)
-
 
    end
 
 end
 
 function DiamonAndSquare:evalAsync()
-
    assert(self.rngState)
 
+   self.fname = nil
    self.thread = love.thread.newThread("generator_thread.lua")
 
+   local rngState = self.rngState
+   if not rngState then
+      print('Using default(random) rngState')
+      local rng = love.math.newRandomGenerator(os.time())
+      rngState = rng:getState()
+   end
 
-   self.thread:start(self.mapn, self.rngState)
-
-
-
-
-
-
-
+   self.thread:start(self.mapn, rngState)
 end
 
 
@@ -228,17 +221,11 @@ function DiamonAndSquare.new(
    self.renderobj_name, 'rdr_diamondsquare.lua')
 
 
-   self.done = true
    self.mapn = mapn
    self.generator = das.new(mapn, rng)
    self.mapSize = self.generator:get_mapsize()
 
    return self
-end
-
-function DiamonAndSquare:reset()
-
-
 end
 
 function DiamonAndSquare:getFieldSize()
