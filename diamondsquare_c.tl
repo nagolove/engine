@@ -112,10 +112,16 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
 
 function DiamonAndSquare:doneAsync(): boolean
     local gen_status_channel = love.thread.getChannel("gen_status_channel")
-    local fname = gen_status_channel:pop() as string
+    local fname = gen_status_channel:pop() as string -- Срабатывает один раз
+
+    if self.thread and self.thread:getError() then
+        print('generator_thread.tl crashed with', self.thread:getError())
+    end
+
     if fname then
+        print('fname', fname)
         self.fname = fname
-        print('self.fname', self.fname)
+        self:send2render()
     end
     return self.fname ~= nil
 end
@@ -129,48 +135,10 @@ function DiamonAndSquare:render()
 end
 
 function DiamonAndSquare:send2render()
-    --[[
-    -- {{{ Сейчас этот код перемещен в generator_thread.tl
-    local map: {{number}} = {}
-    for i = 1, self.generator:get_mapsize() do
-        map[#map + 1] = {}
-        for j = 1, self.generator:get_mapsize() do
-            map[#map][j] = self.generator:get(i - 1, j - 1)
-        end
-    end
-
-    local fname = "map.data." .. randomFilenameStr() .. ".txt"
-
-    local compress = love.data.compress
-    local struct = require 'struct'
-    local packed_mapsize = struct.pack("L", self.generator:get_mapsize())
-
-    love.filesystem.write(fname, "", 0)
-    love.filesystem.append(fname, packed_mapsize, #packed_mapsize)
-
-    print('map', #map)
-    print('mapSize', self.mapSize)
-    local packed_mapsize = struct.pack("L", self.generator:get_mapsize())
-
-    for i = 1, #map do
-        local row = map[i]
-        local uncompressed = serpent.dump(row)
-        local compressed = compress('string', 'gzip', uncompressed, 9) as string
-
-        local packed_rowlen = struct.pack("L", #compressed)
-        love.filesystem.append(fname, packed_rowlen, #packed_rowlen)
-        love.filesystem.append(fname, compressed, #compressed)
-    end
-    -- }}}
-    --]]
-
-    if self.fname then
-        -- Вызов "метода" в другом потоке
-        self.pipeline:openPushAndClose(
-            self.renderobj_name, 'map', self.fname
-        )
-    end
-
+    -- Вызов "метода" в другом потоке
+    self.pipeline:openPushAndClose(
+        self.renderobj_name, 'map', self.fname
+    )
 end
 
 function DiamonAndSquare:evalAsync()
