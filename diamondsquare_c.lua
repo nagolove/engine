@@ -135,8 +135,8 @@ function DiamonAndSquare:setPosition(x, y)
    self.pipeline:openPushAndClose(self.renderobj_name, 'set_position', x, y)
 end
 
-function DiamonAndSquare:render()
-   self.pipeline:openPushAndClose(self.renderobj_name, 'flush')
+function DiamonAndSquare:render(x, y)
+   self.pipeline:openPushAndClose(self.renderobj_name, 'flush', x, y)
 end
 
 function DiamonAndSquare:send2render()

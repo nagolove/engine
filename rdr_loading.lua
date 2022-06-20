@@ -55,21 +55,7 @@ function commands.flush()
    gr.setFont(font)
    gr.setColor(color)
 
-
-
-   local list = boxifyTextParagraph(
-   {
-      message,
-      bar,
-   },
-   'center')
-
-
-
-
-
-
-
+   local list = boxifyTextParagraph({ message, bar }, 'center')
 
    local scrW, scrH = gr.getDimensions()
    y = math.ceil((scrH - #list * font:getHeight()) / 2)
