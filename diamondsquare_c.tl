@@ -85,7 +85,7 @@ local record DiamonAndSquare
     -- Отправить на рисование
     send2render: function(DiamonAndSquare)
     -- Рисовать
-    render: function(DiamonAndSquare)
+    render: function(DiamonAndSquare, x: number, y: number)
 
     --[[
     -- Сохранить в файл
@@ -135,8 +135,8 @@ function DiamonAndSquare:setPosition(x: number, y: number)
     self.pipeline:openPushAndClose(self.renderobj_name, 'set_position', x, y)
 end
 
-function DiamonAndSquare:render()
-    self.pipeline:openPushAndClose(self.renderobj_name, 'flush')
+function DiamonAndSquare:render(x: number, y: number)
+    self.pipeline:openPushAndClose(self.renderobj_name, 'flush', x, y)
 end
 
 function DiamonAndSquare:send2render()
