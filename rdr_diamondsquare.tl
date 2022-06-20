@@ -18,8 +18,11 @@ local map: {{number}} = {}
 local mapSize: integer = 0
 -- Размер одного прямоугольника карты в пикселях.
 -- TODO Перенести в параметры
-local rez = 8
+--local rez = 8
 --local rez = 32
+
+local rez = 64
+
 --local rez = 128 + 64 + 32 + 32
 local x_pos, y_pos = 0., 0.
 
@@ -91,15 +94,27 @@ end
 
 local canvas_nodes: {CanvasNode} = {}
 
-local function newCanvasNode(i1: integer, i2: integer, j1: integer, j2: integer)
-    local w, h = rez * ceil(mapSize / 2), rez * ceil(mapSize / 2)
+local function newCanvasNode(
+    i1: integer, i2: integer, j1: integer, j2: integer,
+    canvas_w: integer, canvas_h: integer
+)
+    --local w, h = rez * ceil(mapSize / 2), rez * ceil(mapSize / 2)
     table.insert(canvas_nodes, {
-        canvas = gr.newCanvas(w, h),
+        canvas = gr.newCanvas(canvas_w, canvas_h, {
+            -- XXX Видео драйвер не поддерживает
+            --format = "DXT1",
+        }),
         i1 = i1,
         i2 = i2,
         j1 = j1,
         j2 = j2,
     })
+end
+
+-- Загружает текстуру и рисует ее в холст по индексам.
+-- По каким индексам?
+local function loadCanvas(i: integer, j: integer)
+    -- Файл хранится в каталоге с уникальным для карты именем.
 end
 
 local function bake()
@@ -160,19 +175,41 @@ function commands.set_rez(): boolean
     return false
 end
 
+require "common"
+
+local dirname = ""
+local mapn: integer
+local rng_state: string
+
 -- Загрузить карту и нарисовать ее в холст.
 function commands.map(): boolean
     canvas_nodes = {}
 
-    local fname = graphic_command_channel:demand() as string
+    --local fname = graphic_command_channel:demand() as string
+    mapn = graphic_command_channel:demand() as integer
+    if type(mapn) ~= 'number' then
+        error('mapn should be a number, not a ' .. type(mapn))
+    end
+
+    rng_state = graphic_command_channel:demand() as string
+    if type(rng_state) ~= 'string' then
+        error('rng_state should be a string, not a ' .. type(rng_state))
+    end
+
+    local dirname = zerofyNum(mapn) .. "_" .. rng_state
+    local fname = dirname .. "/map.data.bin"
+
     print('commands.map: fname', fname)
     local mapFile = love.filesystem.newFile(fname, 'r')
-    print('mapFile', mapFile)
-    local struct = require 'struct'
+    if mapFile == nil then
+        error('mapFile equal nil')
+    end
 
+    local struct = require 'struct'
     local decompress = love.data.decompress
     local ulong_size = 8 -- Размер модификатора L в struct.pack()
     local content = mapFile:read(ulong_size)
+
     print('content', content)
     print('#content', #content)
     mapSize = math.ceil(struct.unpack('L', content) as number)
@@ -200,15 +237,77 @@ function commands.map(): boolean
     -- * Разрешение экрана
     -- * Максимальный размер текстуры
     -- * Размер карты в пикселях
+    
+    --[[
+    Запечь необходимое видимое количество канвасов
+    Добавить канвасы в список
+    Проверить номера видимых блоков
+    Если есть незагруженные блоки, то запечь новые канвасы
+    Проверить список, удалить давно использованные
+    --]]
 
-    local maxCanvasSize = 1024
+    local maxCanvasSize = 1024 * 4
     local mapWidth = mapSize * rez
+    print('mapWidth(pix)', mapWidth)
     local canvasNum = math.ceil(mapWidth / maxCanvasSize)
+    print('canvasNum', canvasNum)
 
-    newCanvasNode(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
-    newCanvasNode(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
-    newCanvasNode(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
-    newCanvasNode(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
+    --print('os.exit')
+    --os.exit()
+    
+    local canvas_w, canvas_h = maxCanvasSize, maxCanvasSize
+    
+    --[[
+    -- Перевести в циклы
+    newCanvasNode(
+        1, ceil(mapSize / 2), 
+        1, ceil(mapSize / 2),
+        canvas_w, canvas_h
+    )
+    newCanvasNode(
+        1, ceil(mapSize / 2), 
+        ceil(mapSize / 2), mapSize,
+        canvas_w, canvas_h
+    )
+    newCanvasNode(
+        ceil(mapSize / 2), mapSize, 
+        ceil(mapSize / 2), mapSize,
+        canvas_w, canvas_h
+    )
+    newCanvasNode(
+        ceil(mapSize / 2), mapSize, 
+        1, ceil(mapSize / 2),
+        canvas_w, canvas_h
+    )
+    --]]
+
+    local i, j = 1, 1
+    local step = ceil(#map / canvasNum)
+    print('#map', #map)
+    print('step', step)
+    local num = 0
+
+    for y = 0, canvasNum - 1 do
+        for x = 0, canvasNum - 1 do
+
+            print('canvas', num)
+            num = num + 1
+            print('i, i + step', i, i + step)
+            print('j, j + step', j, j + step)
+
+            newCanvasNode(
+                --1, ceil(mapSize / 2), 
+                --1, ceil(mapSize / 2),
+                i, i + step,
+                j, j + step,
+                canvas_w, canvas_h
+            )
+            --]]
+
+            i = i + step
+        end
+        j = j + step
+    end
 
     --createCanvases()
 
