@@ -1,3 +1,6 @@
+-- vim: set colorcolumn=85
+-- vim: fdm=marker
+
 global graphic_command_channel: love.thread.Channel
 global SCENE_PREFIX: string
 
@@ -35,6 +38,7 @@ local function sub_draw(
     dx: number,
     dy: number
 )
+    -- {{{
     local x = dx or 0
     local y = dy or 0
 
@@ -70,6 +74,7 @@ local function sub_draw(
         end
         abs_i = abs_i + 1
     end
+    -- }}}
 end
 
 local function crazy_test()
@@ -99,9 +104,10 @@ local canvas_nodes: {CanvasNode} = {}
 local function newCanvasNode(
     i1: integer, i2: integer, j1: integer, j2: integer,
     canvas_w: integer, canvas_h: integer
-)
+): CanvasNode
     --local w, h = rez * ceil(mapSize / 2), rez * ceil(mapSize / 2)
-    table.insert(canvas_nodes, {
+    --table.insert(canvas_nodes, {
+    return {
         canvas = gr.newCanvas(canvas_w, canvas_h, {
             -- XXX Видео драйвер не поддерживает
             --format = "DXT1",
@@ -110,13 +116,20 @@ local function newCanvasNode(
         i2 = i2,
         j1 = j1,
         j2 = j2,
-    })
+    }
 end
 
 -- Загружает текстуру и рисует ее в холст по индексам.
 -- По каким индексам?
 local function loadCanvas(i: integer, j: integer)
     -- Файл хранится в каталоге с уникальным для карты именем.
+end
+
+local function bake_node(node: CanvasNode)
+    gr.setColor{1, 1, 1, 1}
+    gr.setCanvas(node.canvas)
+    sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
+    gr.setCanvas()
 end
 
 local function bake()
@@ -128,12 +141,15 @@ local function bake()
     end
 end
 
-local function draw_bakes()
+local function bake_and_save_canvas(node: CanvasNode)
     gr.setColor{1, 1, 1, 1}
-    for _, node in ipairs(canvas_nodes) do
-        local x, y = x_pos + node.i1 * rez, y_pos + node.j1 * rez
-        gr.draw(node.canvas as gr.Drawable, x, y)
-    end
+    gr.setCanvas(node.canvas)
+    sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
+    gr.setCanvas()
+    --local fname = dirname .. "/" .. zerofyNum(i) .. "_" zerofyNum(j) .. ".png"
+    local index_part = zerofyNum(node.i1) .. "_" .. zerofyNum(node.j1) 
+    local fname = dirname .. "/" .. index_part .. ".png"
+    node.canvas:newImageData():encode('png', fname)
 end
 
 -- Если карта от соответствующего семени генератора псевдослучайных чисел
@@ -249,11 +265,9 @@ function commands.map(): boolean
     local canvasNum = math.ceil(mapWidth / maxCanvasSize)
     print('canvasNum', canvasNum)
 
-    --print('os.exit')
-    --os.exit()
-    
     local canvas_w, canvas_h = maxCanvasSize, maxCanvasSize
-    
+   
+    --[[
     -- Перевести в циклы
     newCanvasNode(
         1, ceil(mapSize / 2), 
@@ -277,7 +291,6 @@ function commands.map(): boolean
     )
     --]]
 
-    --[[
     local i, j = 1, 1
     local step = ceil(#map / canvasNum)
     print('#map', #map)
@@ -292,13 +305,17 @@ function commands.map(): boolean
             print('i, i + step', i, i + step)
             print('j, j + step', j, j + step)
 
-            newCanvasNode(
+            local node = newCanvasNode(
                 --1, ceil(mapSize / 2), 
                 --1, ceil(mapSize / 2),
                 i, i + step,
                 j, j + step,
                 canvas_w, canvas_h
             )
+            bake_and_save_canvas(node)
+
+            local obj = node.canvas as love.Object
+            obj:release()
 
             i = i + step
         end
@@ -308,8 +325,9 @@ function commands.map(): boolean
 
     --createCanvases()
 
-    bake()
-    save_bakes()
+    --bake()
+    --save_bakes()
+
     return false
 end
 
@@ -322,12 +340,24 @@ end
 
 -- Рисовать карту из холста.
 function commands.flush(): boolean
+    local camx = graphic_command_channel:demand() as number
+    local camy = graphic_command_channel:demand() as number
+
+    print('camx, camy', camx, camy)
+
     --crazy_test()
 
     -- Получать значение координат левого верхнего угла
     -- До этого получить значение разрешения экрана
     -- Рисовать только те холсты, которые попадают на экран
-    draw_bakes()
+    local w, h = gr.getDimensions()
+    gr.setScissor(0, 0, w, h)
+
+    gr.setColor{1, 1, 1, 1}
+    for _, node in ipairs(canvas_nodes) do
+        local x, y = x_pos + node.i1 * rez, y_pos + node.j1 * rez
+        gr.draw(node.canvas as gr.Drawable, x, y)
+    end
 
     gr.setColor{1, 0, 0, 1}
     gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
