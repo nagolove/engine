@@ -17,7 +17,7 @@ if not font then
 end
 
 local color = {0.9, 0, 0, 1}
-local value = 0.
+--local value = 0.
 local message: string = "Карта создается"
 local barLength = 20
 local bar = ""
@@ -25,15 +25,9 @@ local bar = ""
 local enum Command
     'flush'
     'progress'
-    'reset'
 end
 
 local commands = {}
-
-function commands.reset(): boolean
-    value = 0.
-    return false
-end
 
 -- Двигает полоску прогресса от 0. до 1.
 function commands.progress(): boolean
@@ -41,8 +35,8 @@ function commands.progress(): boolean
     if v > 1. or v < 0. then
         error('Progress value should ve in 0..1 range.')
     end
-    value = v
-    bar = makeProgressBar(barLength, value)
+    print('value', v)
+    bar = makeProgressBar(barLength, v)
 end
 
 function commands.flush(): boolean
