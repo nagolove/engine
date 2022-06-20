@@ -437,7 +437,9 @@ function boxifyTextParagraph(input, j)
    end
 
    for _, line in ipairs(lines) do
-      local len = u8.len(line)
+      local len = u8.len(line) or 0
+
+
       if len > maxlen then
          maxlen = len
       end
@@ -451,7 +453,7 @@ function boxifyTextParagraph(input, j)
    elseif j == 'center' then
 
       for _, line in ipairs(lines) do
-         local len = u8.len(line)
+         local len = u8.len(line) or 0
          local num = maxlen - len
          local num1 = ceil(num / 2.)
          local num2 = floor(num / 2.)
@@ -484,22 +486,43 @@ function makeProgressBar(symbols_len, ratio)
    local rep = string.rep
    local clean_num = math.ceil((1. - ratio) * symbols_len)
    local filled_num = math.floor(ratio * symbols_len)
-   local res = rep(ch_filled, filled_num) .. rep(ch_clean, clean_num)
+
+   if clean_num + filled_num > symbols_len then
+      filled_num = filled_num + 1
+   end
+
+   local part1 = rep(ch_filled, filled_num)
+   local part2 = rep(ch_clean, clean_num)
+   local res = part1 .. part2
+
+   return res
+end
 
 
-   if u8.len(res) > symbols_len then
-      return string.sub(res, 1, #res - 2)
-   else
-      return res
+
+
+
+
+
+function zerofyNum(n)
+   if n < 0 or n >= 1000 then
+      error('n out of range: ' .. n)
+   end
+   if n < 10 then
+      return "00" .. tostring(n)
+   elseif n > 99 then
+      return "0" .. tostring(n)
    end
 end
 
 
 function test_makeProgressBar()
    local len = 20
-   local stepsnum = 100
+   local stepsnum = 110
    for i = 1, stepsnum do
-      print(makeProgressBar(len, i / stepsnum))
+      local v = i / stepsnum
+      print('v', v)
+      print(makeProgressBar(len, v))
    end
 end
 

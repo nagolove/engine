@@ -104,6 +104,7 @@ local DiamonAndSquare = {State = {}, }
 
 
 
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
@@ -112,18 +113,22 @@ local DiamonAndSquare_mt = {
 
 function DiamonAndSquare:doneAsync()
    local gen_status_channel = love.thread.getChannel("gen_status_channel")
-   local fname = gen_status_channel:pop()
+   local finished = gen_status_channel:pop()
 
    if self.thread and self.thread:getError() then
       print('generator_thread.tl crashed with', self.thread:getError())
    end
 
-   if fname then
-      print('fname', fname)
-      self.fname = fname
+   if finished then
+      if type(finished) ~= 'boolean' then
+         error('"finished" shoul be a boolean, not a ' .. type(finished))
+      end
+
+      print('self.finished', self.finished)
+      self.finished = true
       self:send2render()
    end
-   return self.fname ~= nil
+   return self.finished ~= nil
 end
 
 function DiamonAndSquare:setPosition(x, y)
@@ -135,16 +140,18 @@ function DiamonAndSquare:render()
 end
 
 function DiamonAndSquare:send2render()
+   print('DiamonAndSquare:send2render()')
+   print('self.mapn, self.rngState', self.mapn, self.rngState)
 
    self.pipeline:openPushAndClose(
-   self.renderobj_name, 'map', self.fname)
+
+   self.renderobj_name, 'map', self.mapn, self.rngState)
 
 end
 
 function DiamonAndSquare:evalAsync()
    assert(self.rngState)
 
-   self.fname = nil
    self.thread = love.thread.newThread("generator_thread.lua")
 
    local rngState = self.rngState

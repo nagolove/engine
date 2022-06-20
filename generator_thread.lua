@@ -32,16 +32,16 @@ if mapn < low_range or mapn > high_range then
 
 end
 
-local state = args[2]
+local rng_state = args[2]
 
-if type(state) ~= 'string' then
-   error("'state' should be a string nor " .. type(state))
+if type(rng_state) ~= 'string' then
+   error("'rng_state' should be a string nor " .. type(rng_state))
 end
 
 local rng = love.math.newRandomGenerator()
-rng:setState(state)
+rng:setState(rng_state)
 
-print('mapn, state', mapn, state)
+print('mapn, state', mapn, rng_state)
 
 local gen = das.new(
 mapn,
@@ -60,7 +60,12 @@ function write2file()
       end
    end
 
-   local fname = "map.data." .. randomFilenameStr() .. ".txt"
+
+   local dir_name = zerofyNum(mapn) .. "_" .. rng_state
+   love.filesystem.createDirectory(dir_name)
+
+   local fname = dir_name .. "/map.data.bin"
+   print('write2file: fname', fname)
 
    local compress = love.data.compress
    local struct = require('struct')
@@ -106,6 +111,8 @@ print('map generated for', (tfinish - tstart) * 1000., "sec.")
 
 
 local fname = write2file()
-gen_status_channel:push(fname)
+
+
+gen_status_channel:push(true)
 
 print('generator_thread: finished')
