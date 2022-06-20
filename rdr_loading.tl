@@ -24,6 +24,7 @@ local bar = ""
 local enum Command
     'flush'
     'progress'
+    'message'
 end
 
 local commands = {}
@@ -37,6 +38,15 @@ function commands.progress(): boolean
     bar = makeProgressBar(barLength, v)
 end
 
+function commands.message(): boolean
+    local msg = graphic_command_channel:demand() as string
+    if type(msg) ~= 'string' then
+        error('msg should be a string, not a ' .. type(msg))
+    end
+    print('message was changed to', msg)
+    message = msg
+end
+
 function commands.flush(): boolean
     local x, y = 0., 0.
     local prevFont = gr.getFont()
@@ -45,21 +55,7 @@ function commands.flush(): boolean
     gr.setFont(font)
     gr.setColor(color)
 
-    --print('commands.flush()')
-
-    local list = boxifyTextParagraph(
-        {
-            message,
-            bar,
-        },
-        'center'
-    )
-
-    --[[
-    for k, v in ipairs(list) do
-        print(v)
-    end
-    --]]
+    local list = boxifyTextParagraph( { message, bar, }, 'center')
 
     local scrW, scrH = gr.getDimensions()
     y = math.ceil((scrH - #list * font:getHeight()) / 2) 
