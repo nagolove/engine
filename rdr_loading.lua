@@ -26,6 +26,7 @@ local Command = {}
 
 
 
+
 local commands = {}
 
 
@@ -35,6 +36,15 @@ function commands.progress()
       error('Progress value should ve in 0..1 range.')
    end
    bar = makeProgressBar(barLength, v)
+end
+
+function commands.message()
+   local msg = graphic_command_channel:demand()
+   if type(msg) ~= 'string' then
+      error('msg should be a string, not a ' .. type(msg))
+   end
+   print('message was changed to', msg)
+   message = msg
 end
 
 function commands.flush()

@@ -2,6 +2,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 require('love')
+require("common")
 
 local colorize = require('ansicolors2').ansicolors
 local yield = coroutine.yield
@@ -10,11 +11,12 @@ local inspect = require("inspect")
 local ceil = math.ceil
 local get_color = require('height_map').color
 
-
+local dirname = ""
+local mapn
+local rng_state
 
 
 local map = {}
-
 local mapSize = 0
 
 
@@ -139,7 +141,8 @@ end
 
 local function save_bakes()
    for k, node in ipairs(canvas_nodes) do
-      node.canvas:newImageData():encode('png', "map" .. tostring(k) .. ".png")
+      local fname = dirname .. "/" .. zerofyNum(k) .. ".png"
+      node.canvas:newImageData():encode('png', fname)
    end
 end
 
@@ -175,19 +178,13 @@ function commands.set_rez()
    return false
 end
 
-require("common")
-
-local dirname = ""
-local mapn
-local rng_state
-
 
 function commands.map()
    canvas_nodes = {}
 
 
    mapn = graphic_command_channel:demand()
-   if type(mapn) ~= 'numner' then
+   if type(mapn) ~= 'number' then
       error('mapn should be a number, not a ' .. type(mapn))
    end
 
@@ -196,7 +193,7 @@ function commands.map()
       error('rng_state should be a string, not a ' .. type(rng_state))
    end
 
-   local dirname = zerofyNum(mapn) .. "_" .. rng_state
+   dirname = zerofyNum(mapn) .. "_" .. rng_state
    local fname = dirname .. "/map.data.bin"
 
    print('commands.map: fname', fname)
@@ -258,6 +255,25 @@ function commands.map()
    local canvas_w, canvas_h = maxCanvasSize, maxCanvasSize
 
 
+   newCanvasNode(
+   1, ceil(mapSize / 2),
+   1, ceil(mapSize / 2),
+   canvas_w, canvas_h)
+
+   newCanvasNode(
+   1, ceil(mapSize / 2),
+   ceil(mapSize / 2), mapSize,
+   canvas_w, canvas_h)
+
+   newCanvasNode(
+   ceil(mapSize / 2), mapSize,
+   ceil(mapSize / 2), mapSize,
+   canvas_w, canvas_h)
+
+   newCanvasNode(
+   ceil(mapSize / 2), mapSize,
+   1, ceil(mapSize / 2),
+   canvas_w, canvas_h)
 
 
 
@@ -281,33 +297,14 @@ function commands.map()
 
 
 
-   local i, j = 1, 1
-   local step = ceil(#map / canvasNum)
-   print('#map', #map)
-   print('step', step)
-   local num = 0
-
-   for y = 0, canvasNum - 1 do
-      for x = 0, canvasNum - 1 do
-
-         print('canvas', num)
-         num = num + 1
-         print('i, i + step', i, i + step)
-         print('j, j + step', j, j + step)
-
-         newCanvasNode(
-
-
-         i, i + step,
-         j, j + step,
-         canvas_w, canvas_h)
 
 
 
-         i = i + step
-      end
-      j = j + step
-   end
+
+
+
+
+
 
 
 
