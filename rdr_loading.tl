@@ -17,7 +17,6 @@ if not font then
 end
 
 local color = {0.9, 0, 0, 1}
---local value = 0.
 local message: string = "Карта создается"
 local barLength = 20
 local bar = ""
@@ -35,7 +34,6 @@ function commands.progress(): boolean
     if v > 1. or v < 0. then
         error('Progress value should ve in 0..1 range.')
     end
-    print('value', v)
     bar = makeProgressBar(barLength, v)
 end
 
