@@ -438,9 +438,8 @@ function boxifyTextParagraph(input: Input, j: Justfify): {string}, integer
 
     for _, line in ipairs(lines) do
         local len = u8.len(line) or 0
-        print('len, maxlen', len, maxlen)
-        print('line', line)
-        --if len and len > maxlen then
+        --print('len, maxlen', len, maxlen)
+        --print('line', line)
         if len > maxlen then
             maxlen = len
         end
@@ -497,6 +496,23 @@ function makeProgressBar(symbols_len: integer, ratio: number): string
     local res = part1 .. part2
 
     return res
+end
+
+--[[
+ n = 1      -> 001
+ n = 11     -> 011
+ n = 999    -> 999
+ n >= 1000  -> error
+--]]
+function zerofyNum(n: integer): string
+    if n < 0 or n >= 1000 then
+        error('n out of range: ' .. n)
+    end
+    if n < 10 then
+        return "00" .. tostring(n)
+    elseif n > 99 then
+        return "0" .. tostring(n)
+    end
 end
 
 -- {{{ Testing test_makeProgressBar()
