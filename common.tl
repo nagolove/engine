@@ -437,7 +437,10 @@ function boxifyTextParagraph(input: Input, j: Justfify): {string}, integer
     end
 
     for _, line in ipairs(lines) do
-        local len = u8.len(line)
+        local len = u8.len(line) or 0
+        print('len, maxlen', len, maxlen)
+        print('line', line)
+        --if len and len > maxlen then
         if len > maxlen then
             maxlen = len
         end
@@ -451,7 +454,7 @@ function boxifyTextParagraph(input: Input, j: Justfify): {string}, integer
     elseif j == 'center' then
         --print('maxlen', maxlen)
         for _, line in ipairs(lines) do
-            local len = u8.len(line)
+            local len = u8.len(line) or 0
             local num = maxlen - len
             local num1 = ceil(num / 2.)
             local num2 = floor(num / 2.)
@@ -484,22 +487,26 @@ function makeProgressBar(symbols_len: integer, ratio: number): string
     local rep = string.rep
     local clean_num = math.ceil((1. - ratio) * symbols_len)
     local filled_num = math.floor(ratio * symbols_len)
-    local res = rep(ch_filled, filled_num) .. rep(ch_clean, clean_num)
 
-    -- Откусываю один лишний символ если он есть
-    if u8.len(res) > symbols_len then
-        return string.sub(res, 1, #res - 2)
-    else
-        return res
+    if clean_num + filled_num > symbols_len then
+        filled_num = filled_num + 1
     end
+
+    local part1 = rep(ch_filled, filled_num)
+    local part2 = rep(ch_clean, clean_num)
+    local res = part1 .. part2
+
+    return res
 end
 
 -- {{{ Testing test_makeProgressBar()
 function test_makeProgressBar()
     local len = 20
-    local stepsnum = 100
+    local stepsnum = 110
     for i = 1, stepsnum do
-        print(makeProgressBar(len, i / stepsnum))
+        local v = i / stepsnum
+        print('v', v)
+        print(makeProgressBar(len, v))
     end
 end
 
