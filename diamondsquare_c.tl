@@ -52,8 +52,9 @@ local record DiamonAndSquare
     mapSize: integer
     mapn: integer
     thread: love.thread.Thread
-    fname: string
+    --fname: string
     rngState: string
+    finished: boolean
 
     type RandomCallback = function(): number
 
@@ -112,18 +113,22 @@ local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
 
 function DiamonAndSquare:doneAsync(): boolean
     local gen_status_channel = love.thread.getChannel("gen_status_channel")
-    local fname = gen_status_channel:pop() as string -- Срабатывает один раз
+    local finished = gen_status_channel:pop() as boolean -- Срабатывает один раз
 
     if self.thread and self.thread:getError() then
         print('generator_thread.tl crashed with', self.thread:getError())
     end
 
-    if fname then
-        print('fname', fname)
-        self.fname = fname
+    if finished then
+        if type(finished) ~= 'boolean' then
+            error('"finished" shoul be a boolean, not a ' .. type(finished))
+        end
+
+        print('self.finished', self.finished)
+        self.finished = true
         self:send2render()
     end
-    return self.fname ~= nil
+    return self.finished ~= nil
 end
 
 function DiamonAndSquare:setPosition(x: number, y: number)
@@ -135,16 +140,18 @@ function DiamonAndSquare:render()
 end
 
 function DiamonAndSquare:send2render()
+    print('DiamonAndSquare:send2render()')
+    print('self.mapn, self.rngState', self.mapn, self.rngState)
     -- Вызов "метода" в другом потоке
     self.pipeline:openPushAndClose(
-        self.renderobj_name, 'map', self.fname
+        --self.renderobj_name, 'map', self.fname
+        self.renderobj_name, 'map', self.mapn, self.rngState
     )
 end
 
 function DiamonAndSquare:evalAsync()
     assert(self.rngState)
 
-    self.fname = nil
     self.thread = love.thread.newThread("generator_thread.lua")
 
     local rngState = self.rngState
