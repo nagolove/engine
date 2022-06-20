@@ -2,6 +2,7 @@ global graphic_command_channel: love.thread.Channel
 global SCENE_PREFIX: string
 
 require 'love'
+require "common"
 
 local colorize = require('ansicolors2').ansicolors
 local yield = coroutine.yield
@@ -10,17 +11,18 @@ local inspect = require "inspect"
 local ceil = math.ceil
 local get_color = require 'height_map'.color
 
--- Зачем хранить карту как глобальную переменную модуля?
--- Также нет необходимости в хранении карты целиком так как она используется
--- один раз отрисовке, при запекании холстов.
-local map: {{number}} = {}
+local dirname = ""
+local mapn: integer
+local rng_state: string
 
+-- Зачем хранить карту как глобальную переменную модуля?
+local map: {{number}} = {}
 local mapSize: integer = 0
+
 -- Размер одного прямоугольника карты в пикселях.
 -- TODO Перенести в параметры
 --local rez = 8
 --local rez = 32
-
 local rez = 64
 
 --local rez = 128 + 64 + 32 + 32
@@ -139,7 +141,8 @@ end
 -- Какое максимальное количество карт хранить, по объему места на диске?
 local function save_bakes()
     for k, node in ipairs(canvas_nodes) do
-        node.canvas:newImageData():encode('png', "map" .. tostring(k) .. ".png")
+        local fname = dirname .. "/" .. zerofyNum(k) .. ".png"
+        node.canvas:newImageData():encode('png', fname)
     end
 end
 
@@ -175,12 +178,6 @@ function commands.set_rez(): boolean
     return false
 end
 
-require "common"
-
-local dirname = ""
-local mapn: integer
-local rng_state: string
-
 -- Загрузить карту и нарисовать ее в холст.
 function commands.map(): boolean
     canvas_nodes = {}
@@ -196,7 +193,7 @@ function commands.map(): boolean
         error('rng_state should be a string, not a ' .. type(rng_state))
     end
 
-    local dirname = zerofyNum(mapn) .. "_" .. rng_state
+    dirname = zerofyNum(mapn) .. "_" .. rng_state
     local fname = dirname .. "/map.data.bin"
 
     print('commands.map: fname', fname)
@@ -257,7 +254,6 @@ function commands.map(): boolean
     
     local canvas_w, canvas_h = maxCanvasSize, maxCanvasSize
     
-    --[[
     -- Перевести в циклы
     newCanvasNode(
         1, ceil(mapSize / 2), 
@@ -281,6 +277,7 @@ function commands.map(): boolean
     )
     --]]
 
+    --[[
     local i, j = 1, 1
     local step = ceil(#map / canvasNum)
     print('#map', #map)
@@ -302,12 +299,12 @@ function commands.map(): boolean
                 j, j + step,
                 canvas_w, canvas_h
             )
-            --]]
 
             i = i + step
         end
         j = j + step
     end
+    --]]
 
     --createCanvases()
 
