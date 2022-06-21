@@ -499,19 +499,26 @@ function makeProgressBar(symbols_len: integer, ratio: number): string
 end
 
 --[[
- n = 1      -> 001
- n = 11     -> 011
- n = 999    -> 999
- n >= 1000  -> error
+ n = 1      -> 0001
+ n = 11     -> 0011
+ n = 999    -> 0999
+ n = 9999   -> 9999
+ n >= 10000  -> error
 --]]
 function zerofyNum(n: integer): string
-    if n < 0 or n >= 1000 then
+    if n < 0 or n >= 10000 then
         error('n out of range: ' .. n)
     end
     if n < 10 then
+        return "000" .. tostring(n)
+    elseif n < 100 then
         return "00" .. tostring(n)
-    elseif n > 99 then
-        return "0" .. tostring(n)
+    elseif n < 1000 then
+        return "0" ..tostring(n)
+    elseif n < 10000 then
+        return tostring(n)
+    else
+        error("something else: " .. tostring(n))
     end
 end
 
