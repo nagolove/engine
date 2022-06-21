@@ -101,7 +101,7 @@ local record CanvasNode
     j2: integer
 end
 
-local canvas_nodes: {{CanvasNode}} = {}
+local canvas_nodes: {integer:{integer:CanvasNode}} = {}
 
 local function newCanvasNode(
     i1: integer, i2: integer, j1: integer, j2: integer,
@@ -298,8 +298,8 @@ function commands.set_rez(): boolean
 end
 
 local function free_nodes()
-    for _, row in ipairs(canvas_nodes) do
-        for _, node in ipairs(row) do
+    for _, row in pairs(canvas_nodes) do
+        for _, node in pairs(row) do
             if node.canvas then
                 (node.canvas as love.Object):release()
             end
@@ -394,6 +394,9 @@ function commands.flush(): boolean
         --[[
         Какова структура для хранения и поиска холстов?
         Добавить список порядка использования для удаления лишних холстов.
+
+        Определить область видимости.
+        Определить индексы
         --]]
 
         --[[
