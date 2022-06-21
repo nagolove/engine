@@ -19,9 +19,9 @@ local debug_print = print
 -- для синхронизации
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
 -- для команд и данных команд
-local graphic_command_channel = lt.getChannel("graphic_command_channel")
+local command_channel = lt.getChannel("graphic_command_channel")
 -- для кода процедур рисования
-local graphic_code_channel = lt.getChannel("graphic_code_channel")
+local code_channel = lt.getChannel("graphic_code_channel")
 -- для статистики переданных данных
 local graphic_received_in_sec_channel = lt.getChannel('graphic_received_in_sec')
 -- для запросов к рендеру
@@ -168,11 +168,11 @@ function Pipeline:open(func_name: string)
 
     assert(type(func_name) == 'string')
 
-    graphic_command_channel:push(func_name)
+    command_channel:push(func_name)
     self.current_func = func_name
     self.counter = self.counter + 1
     if use_stamp then
-        graphic_command_channel:push(love.timer.getTime())
+        command_channel:push(love.timer.getTime())
     end
 end
 
@@ -202,7 +202,7 @@ function Pipeline:push(...: any)
     for i = 1, select('#', ...) do
         local argument = select(i, ...)
         self.counter = self.counter + 1
-        graphic_command_channel:push(argument)
+        command_channel:push(argument)
     end
 end
 
@@ -260,8 +260,8 @@ function Pipeline:pushCode(name: string, code: string)
 
     code = self.preload .. code
 
-    graphic_code_channel:push(code)
-    graphic_code_channel:push(name)
+    code_channel:push(code)
+    code_channel:push(name)
 end
 
 function Pipeline:pushCodeFromFileRoot(name: string, fname: string)
@@ -308,7 +308,7 @@ local function print_commands_stack()
     local time_start = love.timer.getTime()
     print('command stack:')
     repeat
-        value = graphic_command_channel:pop()
+        value = command_channel:pop()
         if value then
             print(colorize("%{yellow}" .. inspect(value)))
         end
@@ -347,14 +347,14 @@ function Pipeline:render_internal()
 
     local stamp: number
     if use_stamp then
-        stamp = graphic_command_channel:pop() as number
+        stamp = command_channel:pop() as number
     end
 
     --timestamp('render begin')
 
     --repeat
     for _ = 1, cmd_num do
-        cmd_name = graphic_command_channel:pop() as string
+        cmd_name = command_channel:pop() as string
 
         if cmd_name then
             if type(cmd_name) ~= 'string' then
@@ -412,7 +412,7 @@ function Pipeline:render_internal()
             end
 
             if use_stamp then
-                stamp = graphic_command_channel:pop() as number
+                stamp = command_channel:pop() as number
                 if type(stamp) ~= "number" then
                     error('stamp is not a number: ' .. stamp)
                 end
@@ -496,10 +496,10 @@ function Pipeline:pullRenderCode()
     local rendercode: string
     repeat
         local name: string
-        rendercode = graphic_code_channel:pop() as string
+        rendercode = code_channel:pop() as string
 
         if rendercode then
-            name = graphic_code_channel:pop() as string
+            name = code_channel:pop() as string
             if not name then
                 error('No name for drawing function.')
             end
