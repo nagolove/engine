@@ -366,20 +366,31 @@ function commands.flush(): boolean
 
     --crazy_test()
 
-    -- Получать значение координат левого верхнего угла
-    -- До этого получить значение разрешения экрана
-    -- Рисовать только те холсты, которые попадают на экран
     local w, h = gr.getDimensions()
     gr.setScissor(0, 0, w, h)
 
     gr.setColor{1, 1, 1, 1}
-    for _, node in ipairs(canvas_nodes) do
+
+    local inrange_i = index_i > 1 and index_i < #map
+    local inrange_j = index_j > 1 and index_j < #map
+
+    if inrange_i and inrange_j then
+        --[[
+        Какова структура для хранения и поиска холстов?
+        Добавить список порядка использования для удаления лишних холстов.
+        --]]
+
+        --[[
+        for _, node in ipairs(canvas_nodes) do
         local x, y = x_pos + node.i1 * rez, y_pos + node.j1 * rez
         gr.draw(node.canvas as gr.Drawable, x, y)
+        end
+        --]]
+
+        gr.setColor{1, 0, 0, 1}
+        gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
     end
 
-    gr.setColor{1, 0, 0, 1}
-    gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
     return false
 end
 
