@@ -75,7 +75,6 @@ function write2file()
    love.filesystem.append(fname, packed_mapsize, #packed_mapsize)
 
    print('map', #map)
-   local packed_mapsize = struct.pack("L", gen:get_mapsize())
 
    for i = 1, #map do
       local row = map[i]

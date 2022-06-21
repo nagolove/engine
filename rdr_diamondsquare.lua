@@ -134,14 +134,16 @@ local function bake_node(node)
    gr.setCanvas()
 end
 
-local function bake()
-   gr.setColor({ 1, 1, 1, 1 })
-   for _, node in ipairs(canvas_nodes) do
-      gr.setCanvas(node.canvas)
-      sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
-      gr.setCanvas()
-   end
-end
+
+
+
+
+
+
+
+
+
+
 
 local font = gr.newFont(64 * 2)
 
@@ -169,12 +171,14 @@ end
 
 
 
-local function save_bakes()
-   for k, node in ipairs(canvas_nodes) do
-      local fname = dirname .. "/" .. zerofyNum(k) .. ".png"
-      node.canvas:newImageData():encode('png', fname)
-   end
-end
+
+
+
+
+
+
+
+
 
 local Command = {}
 
@@ -242,7 +246,7 @@ local function bake_canvases()
 
    mapWidthPix = mapSize * rez
    print('mapWidthPix', mapWidthPix)
-   local canvasNum = math.ceil(mapWidthPix / canvasSize)
+   local canvasNum = ceil(mapWidthPix / canvasSize)
    print('canvasNum', canvasNum)
    local canvas_w, canvas_h = canvasSize, canvasSize
    local i, j = 1, 1
@@ -274,6 +278,7 @@ local function bake_canvases()
          local obj = node.canvas
          obj:release()
 
+
          i = i + step
       end
       j = j + step
@@ -292,9 +297,20 @@ function commands.set_rez()
    return false
 end
 
+local function free_nodes()
+   for _, row in ipairs(canvas_nodes) do
+      for _, node in ipairs(row) do
+         if node.canvas then
+            (node.canvas):release()
+         end
+      end
+   end
+   canvas_nodes = {}
+end
+
 
 function commands.map()
-   canvas_nodes = {}
+   free_nodes()
 
 
    mapn = graphic_command_channel:demand()
@@ -321,7 +337,7 @@ function commands.map()
    local ulong_size = 8
    local content = mapFile:read(ulong_size)
 
-   mapSize = math.ceil(struct.unpack('L', content))
+   mapSize = ceil(struct.unpack('L', content))
 
    map = {}
    for i = 1, mapSize do
@@ -359,12 +375,9 @@ function commands.flush()
 
 
 
-   local index_i = mapWidthPix / camx
-   local index_j = mapWidthPix / camy
+   local index_i = ceil(mapWidthPix / camx)
+   local index_j = ceil(mapWidthPix / camy)
    print('index_i, index_j', index_i, index_j)
-
-
-
 
 
 
@@ -373,13 +386,27 @@ function commands.flush()
    gr.setScissor(0, 0, w, h)
 
    gr.setColor({ 1, 1, 1, 1 })
-   for _, node in ipairs(canvas_nodes) do
-      local x, y = x_pos + node.i1 * rez, y_pos + node.j1 * rez
-      gr.draw(node.canvas, x, y)
+
+   local inrange_i = index_i > 1 and index_i < #map
+   local inrange_j = index_j > 1 and index_j < #map
+
+   if inrange_i and inrange_j then
+
+
+
+
+
+
+
+
+
+
+
+
+      gr.setColor({ 1, 0, 0, 1 })
+      gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
    end
 
-   gr.setColor({ 1, 0, 0, 1 })
-   gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
    return false
 end
 

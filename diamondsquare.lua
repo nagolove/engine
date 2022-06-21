@@ -141,6 +141,7 @@ function DiamonAndSquare:send2render()
 end
 
 function DiamonAndSquare:setRez(rez)
+   self.rez = rez
    self.pipeline:openPushAndClose(
    self.renderobj_name,
    'set_rez', self.rez)
@@ -475,7 +476,7 @@ function DiamonAndSquare:printMap2File(filenum)
 
    local file = io.open(string.format('map.lua.%d.txt', filenum), "w+")
 
-   for k, v in ipairs(self.map) do
+   for _, v in ipairs(self.map) do
 
 
       local str = inspect(v)
