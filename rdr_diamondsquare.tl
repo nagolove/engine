@@ -21,6 +21,7 @@ local rng_state: string
 -- Зачем хранить карту как глобальную переменную модуля?
 local map: {{number}} = {}
 local mapSize: integer = 0
+local mapWidthPix: integer
 
 -- Размер одного прямоугольника карты в пикселях.
 -- TODO Перенести в параметры
@@ -30,6 +31,7 @@ local rez = 64
 
 --local rez = 128 + 64 + 32 + 32
 local x_pos, y_pos = 0., 0.
+local canvasSize = 1024 * 4
 
 -- i1, i2, j1, j2 - индексы
 -- dx, dy - _необязательное_ смещение в пикслелях для всей картинки
@@ -141,12 +143,24 @@ local function bake()
     end
 end
 
+local font = gr.newFont(64 * 2)
+
 local function bake_and_save_canvas(node: CanvasNode)
     gr.setColor{1, 1, 1, 1}
     gr.setCanvas(node.canvas)
-    sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
+
+    -- Почему смещение -rez ??
+    sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez) 
+    --sub_draw(node.i1, node.i2, node.j1, node.j2, 0, 0)
+
+    local prevfont = gr.getFont()
+    gr.setColor{1, 0, 0, 1}
+    gr.setFont(font)
+    local index_str = string.format("(%d, %d)", node.i1, node.j1)
+    gr.print(index_str, rez, rez)
+    gr.setFont(prevfont)
+
     gr.setCanvas()
-    --local fname = dirname .. "/" .. zerofyNum(i) .. "_" zerofyNum(j) .. ".png"
     local index_part = zerofyNum(node.i1) .. "_" .. zerofyNum(node.j1) 
     local fname = dirname .. "/" .. index_part .. ".png"
     node.canvas:newImageData():encode('png', fname)
@@ -187,6 +201,90 @@ local function print_stack()
     ))
 end
 
+local function bake_canvases()
+    -- TODO Автоматически исходя из размера максимально возможного размера
+    -- текстуры подбирать наилучшее количество нод.
+    -- * Разрешение экрана
+    -- * Максимальный размер текстуры
+    -- * Размер карты в пикселях
+    
+    --[[
+    Запечь необходимое видимое количество канвасов
+    Добавить канвасы в список
+    Проверить номера видимых блоков
+    Если есть незагруженные блоки, то запечь новые канвасы
+    Проверить список, удалить давно использованные
+    --]]
+
+    --[[
+    -- Перевести в циклы
+    newCanvasNode(
+        1, ceil(mapSize / 2), 
+        1, ceil(mapSize / 2),
+        canvas_w, canvas_h
+    )
+    newCanvasNode(
+        1, ceil(mapSize / 2), 
+        ceil(mapSize / 2), mapSize,
+        canvas_w, canvas_h
+    )
+    newCanvasNode(
+        ceil(mapSize / 2), mapSize, 
+        ceil(mapSize / 2), mapSize,
+        canvas_w, canvas_h
+    )
+    newCanvasNode(
+        ceil(mapSize / 2), mapSize, 
+        1, ceil(mapSize / 2),
+        canvas_w, canvas_h
+    )
+    --]]
+
+    mapWidthPix = mapSize * rez
+    print('mapWidthPix', mapWidthPix)
+    local canvasNum = ceil(mapWidthPix / canvasSize)
+    print('canvasNum', canvasNum)
+    local canvas_w, canvas_h = canvasSize, canvasSize
+    local i, j = 1, 1
+    local step = ceil(#map / canvasNum)
+
+    print('#map', #map)
+    print('step', step)
+    local num = 0
+
+    for y = 0, canvasNum - 1 do
+        i = 1
+        for x = 0, canvasNum - 1 do
+
+            num = num + 1
+            --print('canvas', num)
+            --print('i, i + step', i, i + step)
+            --print('j, j + step', j, j + step)
+            print("y, x", y, x)
+            local node = newCanvasNode(
+                --1, ceil(mapSize / 2), 
+                --1, ceil(mapSize / 2),
+                i, i + step,
+                j, j + step,
+                canvas_w, canvas_h
+            )
+            print('node', inspect(node))
+            bake_and_save_canvas(node)
+
+            local obj = node.canvas as love.Object
+            obj:release()
+
+            i = i + step
+        end
+        j = j + step
+    end
+    --]]
+
+    --createCanvases()
+    --bake()
+    --save_bakes()
+end
+
 local commands = {}
 
 function commands.set_rez(): boolean
@@ -223,10 +321,7 @@ function commands.map(): boolean
     local ulong_size = 8 -- Размер модификатора L в struct.pack()
     local content = mapFile:read(ulong_size)
 
-    print('content', content)
-    print('#content', #content)
-    mapSize = math.ceil(struct.unpack('L', content) as number)
-    print('mapSize', mapSize)
+    mapSize = ceil(struct.unpack('L', content) as number)
 
     map = {} -- Двумерный массив высот
     for i = 1, mapSize do
@@ -245,88 +340,7 @@ function commands.map(): boolean
 
     mapFile:close()
 
-    -- TODO Автоматически исходя из размера максимально возможного размера
-    -- текстуры подбирать наилучшее количество нод.
-    -- * Разрешение экрана
-    -- * Максимальный размер текстуры
-    -- * Размер карты в пикселях
-    
-    --[[
-    Запечь необходимое видимое количество канвасов
-    Добавить канвасы в список
-    Проверить номера видимых блоков
-    Если есть незагруженные блоки, то запечь новые канвасы
-    Проверить список, удалить давно использованные
-    --]]
-
-    local maxCanvasSize = 1024 * 4
-    local mapWidth = mapSize * rez
-    print('mapWidth(pix)', mapWidth)
-    local canvasNum = math.ceil(mapWidth / maxCanvasSize)
-    print('canvasNum', canvasNum)
-
-    local canvas_w, canvas_h = maxCanvasSize, maxCanvasSize
-   
-    --[[
-    -- Перевести в циклы
-    newCanvasNode(
-        1, ceil(mapSize / 2), 
-        1, ceil(mapSize / 2),
-        canvas_w, canvas_h
-    )
-    newCanvasNode(
-        1, ceil(mapSize / 2), 
-        ceil(mapSize / 2), mapSize,
-        canvas_w, canvas_h
-    )
-    newCanvasNode(
-        ceil(mapSize / 2), mapSize, 
-        ceil(mapSize / 2), mapSize,
-        canvas_w, canvas_h
-    )
-    newCanvasNode(
-        ceil(mapSize / 2), mapSize, 
-        1, ceil(mapSize / 2),
-        canvas_w, canvas_h
-    )
-    --]]
-
-    local i, j = 1, 1
-    local step = ceil(#map / canvasNum)
-    print('#map', #map)
-    print('step', step)
-    local num = 0
-
-    for y = 0, canvasNum - 1 do
-        for x = 0, canvasNum - 1 do
-
-            print('canvas', num)
-            num = num + 1
-            print('i, i + step', i, i + step)
-            print('j, j + step', j, j + step)
-
-            local node = newCanvasNode(
-                --1, ceil(mapSize / 2), 
-                --1, ceil(mapSize / 2),
-                i, i + step,
-                j, j + step,
-                canvas_w, canvas_h
-            )
-            bake_and_save_canvas(node)
-
-            local obj = node.canvas as love.Object
-            obj:release()
-
-            i = i + step
-        end
-        j = j + step
-    end
-    --]]
-
-    --createCanvases()
-
-    --bake()
-    --save_bakes()
+    bake_canvases()
 
     return false
 end
@@ -343,7 +357,12 @@ function commands.flush(): boolean
     local camx = graphic_command_channel:demand() as number
     local camy = graphic_command_channel:demand() as number
 
-    print('camx, camy', camx, camy)
+    -- Добавить обработку отрицательных положений камеры
+
+    local index_i = ceil(mapWidthPix / camx)
+    local index_j = ceil(mapWidthPix / camy)
+    print('index_i, index_j', index_i, index_j)
+    --print('camx, camy', camx, camy)
 
     --crazy_test()
 
