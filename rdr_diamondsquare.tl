@@ -101,7 +101,7 @@ local record CanvasNode
     j2: integer
 end
 
-local canvas_nodes: {CanvasNode} = {}
+local canvas_nodes: {{CanvasNode}} = {}
 
 local function newCanvasNode(
     i1: integer, i2: integer, j1: integer, j2: integer,
@@ -134,6 +134,7 @@ local function bake_node(node: CanvasNode)
     gr.setCanvas()
 end
 
+--[[
 local function bake()
     gr.setColor{1, 1, 1, 1}
     for _, node in ipairs(canvas_nodes) do
@@ -142,6 +143,7 @@ local function bake()
         gr.setCanvas()
     end
 end
+--]]
 
 local font = gr.newFont(64 * 2)
 
@@ -166,6 +168,7 @@ local function bake_and_save_canvas(node: CanvasNode)
     node.canvas:newImageData():encode('png', fname)
 end
 
+--[[
 -- Если карта от соответствующего семени генератора псевдослучайных чисел
 -- уже отображалась, то записывать в холст куски карты с диска.
 -- Какое максимальное количество карт хранить, по объему места на диске?
@@ -175,6 +178,7 @@ local function save_bakes()
         node.canvas:newImageData():encode('png', fname)
     end
 end
+--]]
 
 local enum Command
     "map"               -- загрузить сжатую карту
@@ -273,6 +277,7 @@ local function bake_canvases()
 
             local obj = node.canvas as love.Object
             obj:release()
+            --(node.canvas as love.Object):release()
 
             i = i + step
         end
@@ -292,9 +297,20 @@ function commands.set_rez(): boolean
     return false
 end
 
+local function free_nodes()
+    for _, row in ipairs(canvas_nodes) do
+        for _, node in ipairs(row) do
+            if node.canvas then
+                (node.canvas as love.Object):release()
+            end
+        end
+    end
+    canvas_nodes = {}
+end
+
 -- Загрузить карту и нарисовать ее в холст.
 function commands.map(): boolean
-    canvas_nodes = {}
+    free_nodes()
 
     --local fname = graphic_command_channel:demand() as string
     mapn = graphic_command_channel:demand() as integer
