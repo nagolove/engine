@@ -44,6 +44,8 @@ local reading_timeout = 0.05
 Какие инструменты отладки можно предложить?
 ]]
 local type Pipeline = record
+    -- Флаг игнорирования ошибок. Попытка работать с игнорированием.
+    forced: boolean 
 
     new: function(scene_prefix: string): Pipeline
 
@@ -151,6 +153,7 @@ function Pipeline.new(scene_prefix: string): Pipeline
     self.received_bytes = 0
     self.received_in_sec = 0
     self.current_func = ''
+    self.forced = false
     return self
 end
 
@@ -382,7 +385,7 @@ function Pipeline:render_internal()
                 received_bytes = received_bytes + #cmd_name
                 ok, errmsg = resume(coro) as (boolean, string)
 
-                if not ok then
+                if not self.forced and not ok then
                     custom_print('%{blue} resume render coroutine error.')
                     custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
                     custom_print('%{cyan}' .. debug.traceback())
@@ -448,7 +451,13 @@ end
 --]]
 function Pipeline:render()
     if self:waitForReady() then
-        self:render_internal()
+        if self.forced then
+            pcall(function()
+                self:render_internal()
+            end)
+        else
+            self:render_internal()
+        end
     end
     process_queries()
 end
