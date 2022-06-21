@@ -46,10 +46,8 @@ local format = string.format
 local pipeline = Pipeline.new()
 
 local lastWindowHeaderUpdateTime = love.timer.getTime()
-local quant = 1
+local quantum = 1
 local titlePrefix = "xcaustic engine "
-
-local stripped_arg = {}
 
 local dprint = require('debug_print')
 

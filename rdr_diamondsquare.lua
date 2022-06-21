@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -21,6 +21,7 @@ local rng_state
 
 local map = {}
 local mapSize = 0
+local mapWidthPix
 
 
 
@@ -30,6 +31,7 @@ local rez = 64
 
 
 local x_pos, y_pos = 0., 0.
+local canvasSize = 1024 * 4
 
 
 
@@ -141,12 +143,24 @@ local function bake()
    end
 end
 
+local font = gr.newFont(64 * 2)
+
 local function bake_and_save_canvas(node)
    gr.setColor({ 1, 1, 1, 1 })
    gr.setCanvas(node.canvas)
-   sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
-   gr.setCanvas()
 
+
+   sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
+
+
+   local prevfont = gr.getFont()
+   gr.setColor({ 1, 0, 0, 1 })
+   gr.setFont(font)
+   local index_str = string.format("(%d, %d)", node.i1, node.j1)
+   gr.print(index_str, rez, rez)
+   gr.setFont(prevfont)
+
+   gr.setCanvas()
    local index_part = zerofyNum(node.i1) .. "_" .. zerofyNum(node.j1)
    local fname = dirname .. "/" .. index_part .. ".png"
    node.canvas:newImageData():encode('png', fname)
@@ -187,6 +201,90 @@ local function print_stack()
 
 end
 
+local function bake_canvases()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   mapWidthPix = mapSize * rez
+   print('mapWidthPix', mapWidthPix)
+   local canvasNum = math.ceil(mapWidthPix / canvasSize)
+   print('canvasNum', canvasNum)
+   local canvas_w, canvas_h = canvasSize, canvasSize
+   local i, j = 1, 1
+   local step = ceil(#map / canvasNum)
+
+   print('#map', #map)
+   print('step', step)
+   local num = 0
+
+   for y = 0, canvasNum - 1 do
+      i = 1
+      for x = 0, canvasNum - 1 do
+
+         num = num + 1
+
+
+
+         print("y, x", y, x)
+         local node = newCanvasNode(
+
+
+         i, i + step,
+         j, j + step,
+         canvas_w, canvas_h)
+
+         print('node', inspect(node))
+         bake_and_save_canvas(node)
+
+         local obj = node.canvas
+         obj:release()
+
+         i = i + step
+      end
+      j = j + step
+   end
+
+
+
+
+
+end
+
 local commands = {}
 
 function commands.set_rez()
@@ -223,10 +321,7 @@ function commands.map()
    local ulong_size = 8
    local content = mapFile:read(ulong_size)
 
-   print('content', content)
-   print('#content', #content)
    mapSize = math.ceil(struct.unpack('L', content))
-   print('mapSize', mapSize)
 
    map = {}
    for i = 1, mapSize do
@@ -245,88 +340,7 @@ function commands.map()
 
    mapFile:close()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   local maxCanvasSize = 1024 * 4
-   local mapWidth = mapSize * rez
-   print('mapWidth(pix)', mapWidth)
-   local canvasNum = math.ceil(mapWidth / maxCanvasSize)
-   print('canvasNum', canvasNum)
-
-   local canvas_w, canvas_h = maxCanvasSize, maxCanvasSize
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   local i, j = 1, 1
-   local step = ceil(#map / canvasNum)
-   print('#map', #map)
-   print('step', step)
-   local num = 0
-
-   for y = 0, canvasNum - 1 do
-      for x = 0, canvasNum - 1 do
-
-         print('canvas', num)
-         num = num + 1
-         print('i, i + step', i, i + step)
-         print('j, j + step', j, j + step)
-
-         local node = newCanvasNode(
-
-
-         i, i + step,
-         j, j + step,
-         canvas_w, canvas_h)
-
-         bake_and_save_canvas(node)
-
-         local obj = node.canvas
-         obj:release()
-
-         i = i + step
-      end
-      j = j + step
-   end
-
-
-
-
-
-
+   bake_canvases()
 
    return false
 end
@@ -343,7 +357,12 @@ function commands.flush()
    local camx = graphic_command_channel:demand()
    local camy = graphic_command_channel:demand()
 
-   print('camx, camy', camx, camy)
+
+
+   local index_i = mapWidthPix / camx
+   local index_j = mapWidthPix / camy
+   print('index_i, index_j', index_i, index_j)
+
 
 
 
