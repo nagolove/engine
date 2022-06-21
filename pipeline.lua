@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
 
 
 require('common')
@@ -111,6 +111,8 @@ local Pipeline = {}
 
 
 
+
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -151,6 +153,7 @@ function Pipeline.new(scene_prefix)
    self.received_bytes = 0
    self.received_in_sec = 0
    self.current_func = ''
+   self.forced = false
    return self
 end
 
@@ -382,7 +385,7 @@ function Pipeline:render_internal()
             received_bytes = received_bytes + #cmd_name
             ok, errmsg = resume(coro)
 
-            if not ok then
+            if not self.forced and not ok then
                custom_print('%{blue} resume render coroutine error.')
                custom_print('%{yellow}' .. 'cmd_name: ' .. cmd_name)
                custom_print('%{cyan}' .. debug.traceback())
@@ -448,7 +451,13 @@ end
 
 function Pipeline:render()
    if self:waitForReady() then
-      self:render_internal()
+      if self.forced then
+         pcall(function()
+            self:render_internal()
+         end)
+      else
+         self:render_internal()
+      end
    end
    process_queries()
 end

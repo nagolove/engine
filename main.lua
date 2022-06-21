@@ -49,7 +49,7 @@ local lastWindowHeaderUpdateTime = love.timer.getTime()
 local quant = 1
 local titlePrefix = "xcaustic engine "
 
-
+local stripped_arg = {}
 
 local dprint = require('debug_print')
 
@@ -104,10 +104,11 @@ local function searchArg(arg, paramName)
    if type(paramName) ~= 'string' then
       error(string.format('searchArg() paramName =  "%s"', paramName or ""))
    end
-   print("searchArg", paramName)
 
-   for _, v in ipairs(arg) do
+
+   for k, v in ipairs(arg) do
       if v == paramName then
+         table.remove(arg, k)
          return true
       end
    end
@@ -160,13 +161,27 @@ function love.load(arg)
 
    bindKeys()
 
-   if searchArg(arg, '--debug') or searchArg(arg, '--silent') then
+   if searchArg(arg, '--mobdebug') then
       require("mobdebug").start()
       print(colorize("%{red}mobdebug started"))
    end
 
-   print("love.load(arg)", inspect(arg))
+   if searchArg(arg, '--forced') then
+      pipeline.forced = true
+      print(colorize("%{red}using forced render mode"))
+   end
 
+   if searchArg(arg, '--help') then
+      print()
+      print(colorize('%{green}--mobdebug    : start mobdebug session'))
+      print(colorize('%{green}' ..
+      '--forced      : forced rendering mode with ignoring errors' ..
+      " and more pcall()'s"))
+
+      print()
+   end
+
+   print("processed arg", inspect(arg))
    local sceneName = findCommand(arg)
 
    print("sceneName", sceneName)
@@ -365,19 +380,8 @@ function love.run()
       if love.graphics and love.graphics.isActive() then
          love.graphics.origin()
 
-
          love.graphics.clear()
-
          pipeline:render()
-
-
-
-
-
-
-
-
-
          love.graphics.present()
       end
 
