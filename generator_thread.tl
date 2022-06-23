@@ -14,7 +14,7 @@ require "love.math"
 require 'common'
 
 local gen_status_channel = love.thread.getChannel("gen_status_channel")
-local yield = coroutine.yield
+--local yield = coroutine.yield
 local das = require "diamond_and_square"
 local serpent = require 'serpent'
 
@@ -50,7 +50,7 @@ local gen = das.new(
     end
 )
 
-function write2file(): string
+function write2file()
     -- Сделать построчную обработку, без создания {{number}}
     local map: {{number}} = {}
     for i = 1, gen:get_mapsize() do
@@ -90,8 +90,6 @@ function write2file(): string
         love.filesystem.append(fname, compressed, #compressed)
     end
     --]]
-
-    return fname
 end
 
 local tstart = love.timer.getTime()
@@ -109,7 +107,8 @@ print('map generated for', (tfinish - tstart) * 1000., "sec.")
     until not stop
 --]]
 
-local fname = write2file()
+--local fname = 
+write2file()
 --gen_status_channel:push(fname)
 --gen_status_channel:push(mapn, rng_state)
 gen_status_channel:push(true)

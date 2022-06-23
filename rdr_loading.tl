@@ -5,7 +5,7 @@ global SCENE_PREFIX: string
 global graphic_command_channel: love.thread.Channel
 local gr = love.graphics
 local yield = coroutine.yield
-local colorize = require 'ansicolors2'.ansicolors
+--local colorize = require 'ansicolors2'.ansicolors
 
 local fontName = "/DejaVuSansMono.ttf" -- Когда получать параметры шрифта?
 --local fontSize = 128
@@ -57,10 +57,11 @@ function commands.flush(): boolean
 
     local list = boxifyTextParagraph( { message, bar, }, 'center')
 
-    local scrW, scrH = gr.getDimensions()
+    local _, scrH = gr.getDimensions()
     y = math.ceil((scrH - #list * font:getHeight()) / 2) 
 
-    for k, line in ipairs(list) do
+    -- Добавить выравнивание текста по ширине экрана
+    for _, line in ipairs(list) do
         gr.print(line, x, y)
         y = y + gr.getFont():getHeight()
     end

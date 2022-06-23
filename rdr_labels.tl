@@ -1,23 +1,26 @@
 --[[
+Модуль отображения надписей на объектах.
 Код ниже - кал. Будет отменен.
 --]]
 
 local gr = love.graphics
 local yield = coroutine.yield
-local serpent = require 'serpent'
+--local serpent = require 'serpent'
 
 local enum Command
     "flush"
     "get_values"
 end
 
+--[[
 local record Label
     label: string
     x: number
     y: number
 end
+--]]
 
-local labels: {Label} = {}
+--local labels: {Label} = {}
 
 local commands = {}
 

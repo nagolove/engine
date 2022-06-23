@@ -151,16 +151,16 @@ end
 function DiamonAndSquare:load(fname: string)
     local data, size = love.filesystem.read(fname)
     if data then
-        local f: DiamonAndSquare.State
+        local func: DiamonAndSquare.State
         local ok, errmsg = pcall(function()
-            f = load(data)() as DiamonAndSquare.State
+            func = load(data)() as DiamonAndSquare.State
         end) as (boolean, string)
         if not ok then
             local msg_part = fname .. ': ' .. errmsg
             print('Could not load DiamonAndSquare from ' .. msg_part)
         end
-        self.mapSize = f.mapSize
-        self.map = f.map
+        self.mapSize = func.mapSize
+        self.map = func.map
     else
         local msg_part = fname .. ': ' .. tostring(size)
         error('Could not load DiamonAndSquare from ' .. msg_part)
