@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -31,7 +31,12 @@ local rez = 64
 
 
 local x_pos, y_pos = 0., 0.
-local canvasSize = 1024 * 4
+
+local canvasSize = 1024
+
+local font = gr.newFont(64 * 2)
+local format = string.format
+local drawlist = {}
 
 
 
@@ -145,8 +150,6 @@ end
 
 
 
-local font = gr.newFont(64 * 2)
-
 local function bake_and_save_canvas(node)
    gr.setColor({ 1, 1, 1, 1 })
    gr.setCanvas(node.canvas)
@@ -158,7 +161,7 @@ local function bake_and_save_canvas(node)
    local prevfont = gr.getFont()
    gr.setColor({ 1, 0, 0, 1 })
    gr.setFont(font)
-   local index_str = string.format("(%d, %d)", node.i1, node.j1)
+   local index_str = format("(%d, %d)", node.i1, node.j1)
    gr.print(index_str, rez, rez)
    gr.setFont(prevfont)
 
@@ -256,6 +259,9 @@ local function bake_canvases()
    print('step', step)
    local num = 0
 
+   local prevFont = gr.getFont()
+   gr.setFont(font)
+
    for y = 0, canvasNum - 1 do
       i = 1
       for x = 0, canvasNum - 1 do
@@ -272,6 +278,18 @@ local function bake_canvases()
          j, j + step,
          canvas_w, canvas_h)
 
+
+         table.insert(drawlist, function()
+            gr.setColor({ 0, 0, 0, 1 })
+            local str = format("(%d, %d)", i, j)
+
+            gr.print(str, i, j)
+
+            gr.setColor({ 0, 1, 0, 1 })
+            gr.circle("fill", 0, 0, 200)
+            print('drawing')
+         end)
+
          print('node', inspect(node))
          bake_and_save_canvas(node)
 
@@ -284,6 +302,8 @@ local function bake_canvases()
       j = j + step
    end
 
+
+   gr.setFont(prevFont)
 
 
 
@@ -370,41 +390,56 @@ end
 
 
 function commands.flush()
-   local camx = graphic_command_channel:demand()
-   local camy = graphic_command_channel:demand()
+   local ok, errmsg = pcall(function()
+
+      local camx = graphic_command_channel:demand()
+      local camy = graphic_command_channel:demand()
 
 
 
-   local index_i = ceil(mapWidthPix / camx)
-   local index_j = ceil(mapWidthPix / camy)
-   print('index_i, index_j', index_i, index_j)
-
-
-
-
-   local w, h = gr.getDimensions()
-   gr.setScissor(0, 0, w, h)
-
-   gr.setColor({ 1, 1, 1, 1 })
-
-   local inrange_i = index_i > 1 and index_i < #map
-   local inrange_j = index_j > 1 and index_j < #map
-
-   if inrange_i and inrange_j then
+      local index_i = ceil(mapWidthPix / camx)
+      local index_j = ceil(mapWidthPix / camy)
+      print('index_i, index_j', index_i, index_j)
 
 
 
 
+      local w, h = gr.getDimensions()
+      gr.setScissor(0, 0, w, h)
 
+      gr.setColor({ 1, 1, 1, 1 })
 
+      local inrange_i = index_i > 1 and index_i < #map
+      local inrange_j = index_j > 1 and index_j < #map
+
+      if inrange_i and inrange_j then
 
 
 
 
 
 
-      gr.setColor({ 1, 0, 0, 1 })
-      gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
+
+
+
+
+
+
+
+
+
+         gr.setColor({ 1, 0, 0, 1 })
+         gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
+      end
+
+      print('#drawlist', #drawlist)
+      for _, draw_func in ipairs(drawlist) do
+         draw_func()
+      end
+
+   end)
+   if not ok then
+      error('commands.flush():' .. errmsg)
    end
 
    return false
