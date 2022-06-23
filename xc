@@ -2,6 +2,10 @@
 # vim: fdm=marker
 # vim: set colorcolumn=85
 
+# Возможные ключи:
+# --debug   собрать .so модули с отладочной информацией
+# --jit     запуск love собранной с luajit
+
 ##### Some strict BASH rules:
 set -Eeuo pipefail
 set -o nounset
@@ -48,11 +52,14 @@ make_things()
     fi
 
     build_mode="release"
+    use_jit="false"
 
     # Сборка новых аргументов что-бы выкинуть ключ --debug из списка.
     for i in "$@" ; do
         if [[ $i == "--debug" ]] ; then
             build_mode="debug"
+        elif [[ $i == "--jit" ]] ; then
+            use_jit="true"
         else
             newparams+=("$i")
         fi
@@ -108,10 +115,17 @@ make_things()
     if [[ teal_result -eq 0 ]]; then
         echo 'compiled.'
         separate_line
-        #love . "$@"
-        #~/projects/love_nojit/src/.libs/love . "$@"
-        #gdb -ex run --args ~/projects/love_nojit/src/.libs/love . t80 
-        gdb -ex run --args ~/projects/love_nojit/src/.libs/love . "$@"
+        
+        if [[ "$use_jit" == "true" ]] ; then
+            gdb -ex run --args love . "$@"
+            #echo "jit"
+        else
+            #~/projects/love_nojit/src/.libs/love . "$@"
+            #gdb -ex run --args ~/projects/love_nojit/src/.libs/love . t80 
+
+            gdb -ex run --args ~/projects/love_nojit/src/.libs/love . "$@"
+            #echo "nojit"
+        fi
     else
         echo 'not compiled.'
     fi
