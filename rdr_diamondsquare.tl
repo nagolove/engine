@@ -31,7 +31,12 @@ local rez = 64
 
 --local rez = 128 + 64 + 32 + 32
 local x_pos, y_pos = 0., 0.
-local canvasSize = 1024 * 4
+--local canvasSize = 1024 * 4
+local canvasSize = 1024
+
+local font = gr.newFont(64 * 2)
+local format = string.format
+local drawlist: {function} = {}
 
 -- i1, i2, j1, j2 - индексы
 -- dx, dy - _необязательное_ смещение в пикслелях для всей картинки
@@ -145,8 +150,6 @@ local function bake()
 end
 --]]
 
-local font = gr.newFont(64 * 2)
-
 local function bake_and_save_canvas(node: CanvasNode)
     gr.setColor{1, 1, 1, 1}
     gr.setCanvas(node.canvas)
@@ -158,7 +161,7 @@ local function bake_and_save_canvas(node: CanvasNode)
     local prevfont = gr.getFont()
     gr.setColor{1, 0, 0, 1}
     gr.setFont(font)
-    local index_str = string.format("(%d, %d)", node.i1, node.j1)
+    local index_str = format("(%d, %d)", node.i1, node.j1)
     gr.print(index_str, rez, rez)
     gr.setFont(prevfont)
 
@@ -250,11 +253,14 @@ local function bake_canvases()
     print('canvasNum', canvasNum)
     local canvas_w, canvas_h = canvasSize, canvasSize
     local i, j = 1, 1
-    local step = ceil(#map / canvasNum)
+    local step = ceil(#map / canvasNum) -- Шаг индексов для одного холста.
 
     print('#map', #map)
     print('step', step)
     local num = 0
+
+    local prevFont = gr.getFont()
+    gr.setFont(font)
 
     for y = 0, canvasNum - 1 do
         i = 1
@@ -272,6 +278,18 @@ local function bake_canvases()
                 j, j + step,
                 canvas_w, canvas_h
             )
+
+            table.insert(drawlist, function()
+                gr.setColor{0, 0, 0, 1}
+                local str = format("(%d, %d)", i, j)
+                --gr.print(str, i * rez, j * rez)
+                gr.print(str, i, j)
+
+                gr.setColor{0, 1, 0, 1}
+                gr.circle("fill", 0, 0, 200)
+                print('drawing')
+            end)
+
             print('node', inspect(node))
             bake_and_save_canvas(node)
 
@@ -284,6 +302,8 @@ local function bake_canvases()
         j = j + step
     end
     --]]
+
+    gr.setFont(prevFont)
 
     --createCanvases()
     --bake()
@@ -370,6 +390,8 @@ end
 
 -- Рисовать карту из холста.
 function commands.flush(): boolean
+    local ok, errmsg = pcall(function()
+
     local camx = graphic_command_channel:demand() as number
     local camy = graphic_command_channel:demand() as number
 
@@ -408,6 +430,16 @@ function commands.flush(): boolean
 
         gr.setColor{1, 0, 0, 1}
         gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
+    end
+
+    print('#drawlist', #drawlist)
+    for _, draw_func in ipairs(drawlist) do
+        draw_func()
+    end
+
+    end) as (boolean, string)
+    if not ok then
+        error('commands.flush():' .. errmsg)
     end
 
     return false
