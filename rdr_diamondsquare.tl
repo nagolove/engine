@@ -36,7 +36,8 @@ local canvasSize = 1024
 
 local font = gr.newFont(64 * 2)
 local format = string.format
-local drawlist: {function} = {}
+local type Drawer = function(camx: integer, camy: integer)
+local drawlist: {Drawer} = {}
 
 -- i1, i2, j1, j2 - индексы
 -- dx, dy - _необязательное_ смещение в пикслелях для всей картинки
@@ -208,6 +209,9 @@ local function print_stack()
     ))
 end
 
+local i_poses: {integer: boolean} = {}
+local j_poses: {integer: boolean} = {}
+
 local function bake_canvases()
     -- TODO Автоматически исходя из размера максимально возможного размера
     -- текстуры подбирать наилучшее количество нод.
@@ -259,9 +263,6 @@ local function bake_canvases()
     print('step', step)
     local num = 0
 
-    local prevFont = gr.getFont()
-    gr.setFont(font)
-
     for y = 0, canvasNum - 1 do
         i = 1
         for x = 0, canvasNum - 1 do
@@ -279,15 +280,55 @@ local function bake_canvases()
                 canvas_w, canvas_h
             )
 
-            table.insert(drawlist, function()
-                gr.setColor{0, 0, 0, 1}
-                local str = format("(%d, %d)", i, j)
-                --gr.print(str, i * rez, j * rez)
-                gr.print(str, i, j)
+            print('i', i)
+            print('j', j)
 
-                gr.setColor{0, 1, 0, 1}
-                gr.circle("fill", 0, 0, 200)
-                print('drawing')
+            local uniq_color = {1, math.random(), math.random(), 1}
+            table.insert(drawlist, function(camx: integer, camy: integer)
+
+                --print('i', i)
+                --print('j', j)
+
+                local i_pos = i * rez
+                local j_pos = j * rez
+                local scrw, scrh = gr.getDimensions()
+
+                local i_visible = i_pos >= camx and i_pos <= camx + scrw
+                local j_visible = j_pos >= camy and j_pos <= camy + scrh
+
+                gr.setColor(uniq_color)
+
+                local prevFont = gr.getFont()
+                gr.setFont(font)
+
+                if not i_poses[i_pos] then
+                    i_poses[i_pos] = true
+                    print('i_pos', i_pos)
+                end
+                if not j_poses[j_pos] then
+                    j_poses[j_pos] = true
+                    print('j_pos', j_pos)
+                end
+
+                gr.rectangle(
+                    'fill', 
+                    i_pos, j_pos, 
+                    canvas_w, canvas_h 
+                )
+
+                if i_visible and j_visible then
+                    gr.setColor{0, 0, 0, 1}
+                    local str = format("(%d, %d)", i, j)
+                    --gr.print(str, i * rez, j * rez)
+                    gr.print(str, i, j)
+
+                    gr.setColor{0, 1, 0, 1}
+                    gr.circle("fill", 0, 0, 200)
+                    --print('drawing')
+                end
+
+                gr.setFont(prevFont)
+
             end)
 
             print('node', inspect(node))
@@ -302,8 +343,6 @@ local function bake_canvases()
         j = j + step
     end
     --]]
-
-    gr.setFont(prevFont)
 
     --createCanvases()
     --bake()
@@ -390,16 +429,16 @@ end
 
 -- Рисовать карту из холста.
 function commands.flush(): boolean
-    local ok, errmsg = pcall(function()
+    --local ok, errmsg = pcall(function()
 
-    local camx = graphic_command_channel:demand() as number
-    local camy = graphic_command_channel:demand() as number
+    local camx = ceil(graphic_command_channel:demand() as number)
+    local camy = ceil(graphic_command_channel:demand() as number)
 
     -- Добавить обработку отрицательных положений камеры
 
     local index_i = ceil(mapWidthPix / camx)
     local index_j = ceil(mapWidthPix / camy)
-    print('index_i, index_j', index_i, index_j)
+    --print('index_i, index_j', index_i, index_j)
     --print('camx, camy', camx, camy)
 
     --crazy_test()
@@ -432,15 +471,20 @@ function commands.flush(): boolean
         gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
     end
 
-    print('#drawlist', #drawlist)
+    --print('#drawlist', #drawlist)
     for _, draw_func in ipairs(drawlist) do
-        draw_func()
+        draw_func(camx, camy)
     end
 
+    --print('i_poses', inspect(i_poses))
+    --print('j_poses', inspect(j_poses))
+
+    --[[
     end) as (boolean, string)
     if not ok then
         error('commands.flush():' .. errmsg)
     end
+    --]]
 
     return false
 end
