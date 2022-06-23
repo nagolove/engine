@@ -36,6 +36,7 @@ local canvasSize = 1024
 
 local font = gr.newFont(64 * 2)
 local format = string.format
+local Drawer = {}
 local drawlist = {}
 
 
@@ -208,6 +209,9 @@ local function print_stack()
 
 end
 
+local i_poses = {}
+local j_poses = {}
+
 local function bake_canvases()
 
 
@@ -259,9 +263,6 @@ local function bake_canvases()
    print('step', step)
    local num = 0
 
-   local prevFont = gr.getFont()
-   gr.setFont(font)
-
    for y = 0, canvasNum - 1 do
       i = 1
       for x = 0, canvasNum - 1 do
@@ -279,15 +280,55 @@ local function bake_canvases()
          canvas_w, canvas_h)
 
 
-         table.insert(drawlist, function()
-            gr.setColor({ 0, 0, 0, 1 })
-            local str = format("(%d, %d)", i, j)
+         print('i', i)
+         print('j', j)
 
-            gr.print(str, i, j)
+         local uniq_color = { 1, math.random(), math.random(), 1 }
+         table.insert(drawlist, function(camx, camy)
 
-            gr.setColor({ 0, 1, 0, 1 })
-            gr.circle("fill", 0, 0, 200)
-            print('drawing')
+
+
+
+            local i_pos = i * rez
+            local j_pos = j * rez
+            local scrw, scrh = gr.getDimensions()
+
+            local i_visible = i_pos >= camx and i_pos <= camx + scrw
+            local j_visible = j_pos >= camy and j_pos <= camy + scrh
+
+            gr.setColor(uniq_color)
+
+            local prevFont = gr.getFont()
+            gr.setFont(font)
+
+            if not i_poses[i_pos] then
+               i_poses[i_pos] = true
+               print('i_pos', i_pos)
+            end
+            if not j_poses[j_pos] then
+               j_poses[j_pos] = true
+               print('j_pos', j_pos)
+            end
+
+            gr.rectangle(
+            'fill',
+            i_pos, j_pos,
+            canvas_w, canvas_h)
+
+
+            if i_visible and j_visible then
+               gr.setColor({ 0, 0, 0, 1 })
+               local str = format("(%d, %d)", i, j)
+
+               gr.print(str, i, j)
+
+               gr.setColor({ 0, 1, 0, 1 })
+               gr.circle("fill", 0, 0, 200)
+
+            end
+
+            gr.setFont(prevFont)
+
          end)
 
          print('node', inspect(node))
@@ -302,8 +343,6 @@ local function bake_canvases()
       j = j + step
    end
 
-
-   gr.setFont(prevFont)
 
 
 
@@ -390,31 +429,29 @@ end
 
 
 function commands.flush()
-   local ok, errmsg = pcall(function()
-
-      local camx = graphic_command_channel:demand()
-      local camy = graphic_command_channel:demand()
 
 
-
-      local index_i = ceil(mapWidthPix / camx)
-      local index_j = ceil(mapWidthPix / camy)
-      print('index_i, index_j', index_i, index_j)
+   local camx = ceil(graphic_command_channel:demand())
+   local camy = ceil(graphic_command_channel:demand())
 
 
 
-
-      local w, h = gr.getDimensions()
-      gr.setScissor(0, 0, w, h)
-
-      gr.setColor({ 1, 1, 1, 1 })
-
-      local inrange_i = index_i > 1 and index_i < #map
-      local inrange_j = index_j > 1 and index_j < #map
-
-      if inrange_i and inrange_j then
+   local index_i = ceil(mapWidthPix / camx)
+   local index_j = ceil(mapWidthPix / camy)
 
 
+
+
+
+   local w, h = gr.getDimensions()
+   gr.setScissor(0, 0, w, h)
+
+   gr.setColor({ 1, 1, 1, 1 })
+
+   local inrange_i = index_i > 1 and index_i < #map
+   local inrange_j = index_j > 1 and index_j < #map
+
+   if inrange_i and inrange_j then
 
 
 
@@ -428,19 +465,26 @@ function commands.flush()
 
 
 
-         gr.setColor({ 1, 0, 0, 1 })
-         gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
-      end
 
-      print('#drawlist', #drawlist)
-      for _, draw_func in ipairs(drawlist) do
-         draw_func()
-      end
 
-   end)
-   if not ok then
-      error('commands.flush():' .. errmsg)
+      gr.setColor({ 1, 0, 0, 1 })
+      gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
    end
+
+
+   for _, draw_func in ipairs(drawlist) do
+      draw_func(camx, camy)
+   end
+
+
+
+
+
+
+
+
+
+
 
    return false
 end

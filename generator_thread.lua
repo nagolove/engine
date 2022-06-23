@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local string = _tl_compat and _tl_compat.string or string
 
 
 print('generator_thread: started')
@@ -14,7 +14,7 @@ require("love.math")
 require('common')
 
 local gen_status_channel = love.thread.getChannel("gen_status_channel")
-local yield = coroutine.yield
+
 local das = require("diamond_and_square")
 local serpent = require('serpent')
 
@@ -90,8 +90,6 @@ function write2file()
       love.filesystem.append(fname, compressed, #compressed)
    end
 
-
-   return fname
 end
 
 local tstart = love.timer.getTime()
@@ -109,7 +107,8 @@ print('map generated for', (tfinish - tstart) * 1000., "sec.")
 
 
 
-local fname = write2file()
+
+write2file()
 
 
 gen_status_channel:push(true)

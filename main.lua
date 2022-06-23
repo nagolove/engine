@@ -45,8 +45,8 @@ local ecodes = require("errorcodes")
 local format = string.format
 local pipeline = Pipeline.new()
 
-local lastWindowHeaderUpdateTime = love.timer.getTime()
-local quantum = 1
+
+
 local titlePrefix = "xcaustic engine "
 
 local dprint = require('debug_print')
@@ -98,15 +98,15 @@ function printGraphicsInfo()
 end
 
 
-local function searchArg(arg, paramName)
+local function searchArg(args, paramName)
    if type(paramName) ~= 'string' then
       error(string.format('searchArg() paramName =  "%s"', paramName or ""))
    end
 
 
-   for k, v in ipairs(arg) do
+   for k, v in ipairs(args) do
       if v == paramName then
-         table.remove(arg, k)
+         table.remove(args, k)
          return true
       end
    end
@@ -115,10 +115,10 @@ local function searchArg(arg, paramName)
 end
 
 
-local function findCommand(arg)
+local function findCommand(args)
    local commands = {}
-   for i = 1, #arg do
-      local s = arg[i]
+   for i = 1, #args do
+      local s = args[i]
       local ok, errmsg = pcall(function()
          if string.sub(s, 1, 1) ~= '-' and string.sub(s, 2, 2) ~= '-' then
             table.insert(commands, s)
@@ -148,7 +148,7 @@ local function newThread(name)
    return thread
 end
 
-function love.load(arg)
+function love.load(args)
    love.window.setTitle(titlePrefix)
 
    if not IMGUI_USE_STUB then
@@ -159,17 +159,17 @@ function love.load(arg)
 
    bindKeys()
 
-   if searchArg(arg, '--mobdebug') then
+   if searchArg(args, '--mobdebug') then
       require("mobdebug").start()
       print(colorize("%{red}mobdebug started"))
    end
 
-   if searchArg(arg, '--forced') then
+   if searchArg(args, '--forced') then
       pipeline.forced = true
       print(colorize("%{red}using forced render mode"))
    end
 
-   if searchArg(arg, '--help') then
+   if searchArg(args, '--help') then
       print()
       print(colorize('%{green}--mobdebug    : start mobdebug session'))
       print(colorize('%{green}' ..
@@ -179,8 +179,8 @@ function love.load(arg)
       print()
    end
 
-   print("processed arg", inspect(arg))
-   local sceneName = findCommand(arg)
+   print("processed arg", inspect(args))
+   local sceneName = findCommand(args)
 
    print("sceneName", sceneName)
 

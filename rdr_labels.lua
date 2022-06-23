@@ -2,22 +2,25 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
+
 local gr = love.graphics
 local yield = coroutine.yield
-local serpent = require('serpent')
+
 
 local Command = {}
 
 
 
 
-local Label = {}
 
 
 
 
 
-local labels = {}
+
+
+
+
 
 local commands = {}
 
