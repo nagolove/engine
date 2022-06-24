@@ -21,6 +21,9 @@ local dirname = ""
 local mapn: integer
 local rng_state: string
 
+-- Общее смещение при рисовании ландшафта
+local x_pos, y_pos = 0., 0.
+
 -- Зачем хранить карту как глобальную переменную модуля?
 local map: {{number}} = {}
 local mapSize: integer = 0
@@ -28,14 +31,9 @@ local mapWidthPix: integer
 
 -- Размер одного прямоугольника карты в пикселях.
 -- TODO Перенести в параметры
---local rez = 8
---local rez = 32
 local rez = 64
 
---local rez = 128 + 64 + 32 + 32
-local x_pos, y_pos = 0., 0.
---local canvasSize = 1024 * 4
-local canvasSize = 1024 -- in pixels
+local canvasSize = 256 -- in pixels
 
 -- Условие качественного тайлинга
 assert(canvasSize % rez == 0, "canvasSize % rez == 0")
@@ -85,32 +83,6 @@ local function sub_draw(
     -- }}}
 end
 
---[[
-local function crazy_test()
-    local r = math.random()
-    if r < 1 / 4 then
-        sub_draw(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
-    elseif r > 1 /4 and r < 1/4 *2 then
-        sub_draw(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
-    elseif r > 1/4 *2 and r < 1/4*3 then
-        sub_draw(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
-    else
-        sub_draw(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
-    end
-end
---]]
-
---[[
-local record CanvasNode
-    canvas: gr.Canvas
-    -- индексы
-    i1: integer
-    i2: integer
-    j1: integer
-    j2: integer
-end
---]]
-
 local record Node
     i: integer
     j: integer
@@ -122,54 +94,41 @@ local loaded_order: {Node} = {} -- Новые добавляются в коне
 local max_loaded_num: integer = 10 
 
 local function new_texture(i: integer, j: integer)
-    if not canvas_nodes[i][j] then
-        if #loaded_order >= max_loaded_num then
-            -- Удалить первую загруженную текстуру
-            local node = loaded_order[1]
-            assert(node.i == i and node.j == node.j, "indexes are equal")
-            local obj = canvas_nodes[node.i][node.j] as love.Object
-            obj:release()
-            canvas_nodes[node.i][node.j] = nil
-            table.remove(loaded_order, 1)
-        end
-        local path = format(
-            "%s/%s_%s.png", 
-            dirname, 
-            zerofyNum(i), zerofyNum(j)
-        )
-        canvas_nodes[i][j] = gr.newImage(path)
-        table.insert(loaded_order, { i = i, j = j})
+    if #loaded_order >= max_loaded_num then
+        -- Удалить первую загруженную текстуру
+        local node = loaded_order[1]
+        assert(node.i == i and node.j == node.j, "indexes are equal")
+        local obj = canvas_nodes[node.i][node.j] as love.Object
+        obj:release()
+        canvas_nodes[node.i][node.j] = nil
+        table.remove(loaded_order, 1)
     end
+    local path = format(
+        "%s/%s_%s.png", 
+        dirname, 
+        zerofyNum(i), zerofyNum(j)
+    )
+    canvas_nodes[i][j] = gr.newImage(path)
+    table.insert(loaded_order, { i = i, j = j})
 end
 
---[[
-local function newCanvasNode(
-    i1: integer, i2: integer, j1: integer, j2: integer,
-    canvas_w: integer, canvas_h: integer
-): CanvasNode
-    --local w, h = rez * ceil(mapSize / 2), rez * ceil(mapSize / 2)
-    --table.insert(canvas_nodes, {
-    return {
-        canvas = gr.newCanvas(canvas_w, canvas_h, {
-        }),
-        i1 = i1,
-        i2 = i2,
-        j1 = j1,
-        j2 = j2,
-    }
+local function draw_texture(i: integer, j: integer)
+    if not canvas_nodes[i][j] then
+        new_texture(i, j)
+    end
+    local tex = canvas_nodes[i][j]
+    -- Нужен-ли i-1 считать или лучше i брать от 0??
+    local x, y = x_pos + canvasSize * (i - 1), y_pos + canvasSize * (j - 1)
+    gr.draw(tex as gr.Drawable, x, y)
 end
---]]
 
 local function bake_and_save_canvas(
-    i1: integer, j1: integer, 
-    i2: integer, j2: integer,
+    i1: integer, i2: integer, j1: integer, j2: integer,
     name: string
 )
     gr.setColor{1, 1, 1, 1}
     local canvas = gr.newCanvas(canvasSize, canvasSize)
     gr.setCanvas(canvas)
-
-    print("i1, i2, j1, j2", i1, i2, j1, j2) 
 
     -- Почему смещение -rez ??
     sub_draw(i1, i2, j1, j2, -rez, -rez) 
@@ -177,10 +136,11 @@ local function bake_and_save_canvas(
     local prevfont = gr.getFont()
     gr.setColor{1, 0, 0, 1}
     gr.setFont(font)
-    local index_str = format("(%d, %d)", i1, j1)
+
+    local ij_str = format("(%d-%d,%d-%d)", i1, i2, j1, j2)
 
     local x, y = rez, rez
-    gr.print(index_str, x, y)
+    gr.print(ij_str, x, y)
     y = y + ceil(gr.getFont():getHeight())
     gr.print(name, x, y)
     gr.setFont(prevfont)
@@ -191,18 +151,6 @@ local function bake_and_save_canvas(
     local object = canvas as love.Object
     object:release()
 end
-
---[[
--- Если карта от соответствующего семени генератора псевдослучайных чисел
--- уже отображалась, то записывать в холст куски карты с диска.
--- Какое максимальное количество карт хранить, по объему места на диске?
-local function save_bakes()
-    for k, node in ipairs(canvas_nodes) do
-        local fname = dirname .. "/" .. zerofyNum(k) .. ".png"
-        node.canvas:newImageData():encode('png', fname)
-    end
-end
---]]
 
 local enum Command
     "map"               -- загрузить сжатую карту
@@ -235,45 +183,6 @@ local i_poses: {integer: boolean} = {}
 local j_poses: {integer: boolean} = {}
 
 local function bake_canvases()
-    --[[
-    TODO Автоматически исходя из размера максимально возможного размера
-    текстуры подбирать наилучшее количество нод.
-    * Разрешение экрана
-    * Максимальный размер текстуры
-    * Размер карты в пикселях
-    Запечь необходимое видимое количество канвасов
-    Добавить канвасы в список
-    Проверить номера видимых блоков
-    Если есть незагруженные блоки, то запечь новые канвасы
-    Проверить список, удалить давно использованные
-    --]]
-
-    --[[
-    -- {{{
-    -- Перевести в циклы
-    newCanvasNode(
-        1, ceil(mapSize / 2), 
-        1, ceil(mapSize / 2),
-        canvas_w, canvas_h
-    )
-    newCanvasNode(
-        1, ceil(mapSize / 2), 
-        ceil(mapSize / 2), mapSize,
-        canvas_w, canvas_h
-    )
-    newCanvasNode(
-        ceil(mapSize / 2), mapSize, 
-        ceil(mapSize / 2), mapSize,
-        canvas_w, canvas_h
-    )
-    newCanvasNode(
-        ceil(mapSize / 2), mapSize, 
-        1, ceil(mapSize / 2),
-        canvas_w, canvas_h
-    )
-    -- }}}
-    --]]
-
     mapWidthPix = mapSize * rez
     print('mapWidthPix', mapWidthPix)
     local canvasNum = ceil(mapWidthPix / canvasSize)
@@ -295,15 +204,10 @@ local function bake_canvases()
     for y = 0, canvasNum - 1 do
         j = 1
         for x = 0, canvasNum - 1 do
-
             num = num + 1
-            --print('canvas', num)
-            --print('i, i + step', i, i + step)
-            --print('j, j + step', j, j + step)
-            print("y, x", y, x)
 
-            print('i', i)
-            print('j', j)
+            print("y, x", y, x)
+            print('i, j', i, j)
 
             -- {{{
             local uniq_color = {1, math.random(), math.random(), 1}
@@ -359,7 +263,7 @@ local function bake_canvases()
             bake_and_save_canvas(
                 i, i + step,
                 j, j + step,
-                zerofyNum(x + 1) .. "_" .. zerofyNum(y + 1)
+                zerofyNum(y + 1) .. "_" .. zerofyNum(x + 1)
             )
             j = j + step
         end
@@ -376,7 +280,6 @@ end
 
 -- Загрузить карту и нарисовать ее в холст.
 function commands.map(): boolean
-    --local fname = graphic_command_channel:demand() as string
     mapn = graphic_command_channel:demand() as integer
     if type(mapn) ~= 'number' then
         error('mapn should be a number, not a ' .. type(mapn))
@@ -432,21 +335,27 @@ function commands.set_position(): boolean
     return false
 end
 
+local scrw, scrh = gr.getDimensions()
+-- Часть экрана, видимая зрителю.
+local view_port = {0, 0, scrw, scrh}
+
 -- Рисовать карту из холста.
 function commands.flush(): boolean
-    --local ok, errmsg = pcall(function()
-
     local camx = ceil(graphic_command_channel:demand() as number)
     local camy = ceil(graphic_command_channel:demand() as number)
 
     -- Добавить обработку отрицательных положений камеры
 
-    local index_i = ceil(mapWidthPix / camx)
-    local index_j = ceil(mapWidthPix / camy)
-    --print('index_i, index_j', index_i, index_j)
+    local index_i = ceil(camx / canvasSize)
+    local index_j = ceil(camy / canvasSize)
+    local local_view_port = {
+        view_port[1] + camx,
+        view_port[2] + camy,
+        view_port[3] + camx,
+        view_port[4] + camy,
+    }
+    print('index_i, index_j', index_i, index_j)
     --print('camx, camy', camx, camy)
-
-    --crazy_test()
 
     local w, h = gr.getDimensions()
     gr.setScissor(0, 0, w, h)
@@ -458,38 +367,39 @@ function commands.flush(): boolean
 
     if inrange_i and inrange_j then
         --[[
-        Какова структура для хранения и поиска холстов?
-        Добавить список порядка использования для удаления лишних холстов.
-
         Определить область видимости.
         Определить индексы
         --]]
 
+        --draw_inner_textures()
         --[[
         for _, node in ipairs(canvas_nodes) do
         local x, y = x_pos + node.i1 * rez, y_pos + node.j1 * rez
         gr.draw(node.canvas as gr.Drawable, x, y)
         end
         --]]
+        local i, j: integer = 0, 0
+        repeat
+            repeat
+                draw_texture(i, j)
+            until true
+        until true
 
         gr.setColor{1, 0, 0, 1}
         gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
     end
 
     --print('#drawlist', #drawlist)
-    for _, draw_func in ipairs(drawlist) do
-        draw_func(camx, camy)
-    end
+    --for _, draw_func in ipairs(drawlist) do
+        --draw_func(camx, camy)
+    --end
+
+    local msg = format('index_i, index_j: %d, %d', index_i, index_j)
+    gr.print(msg, w / 2, h / 2)
+    gr.print(msg, camx - w/2 + w / 2, camy -h/2 + h / 2)
 
     --print('i_poses', inspect(i_poses))
     --print('j_poses', inspect(j_poses))
-
-    --[[
-    end) as (boolean, string)
-    if not ok then
-        error('commands.flush():' .. errmsg)
-    end
-    --]]
 
     return false
 end
