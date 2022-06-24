@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -22,20 +22,18 @@ local mapn
 local rng_state
 
 
+local x_pos, y_pos = 0., 0.
+
+
 local map = {}
 local mapSize = 0
 local mapWidthPix
 
 
 
-
-
 local rez = 64
 
-
-local x_pos, y_pos = 0., 0.
-
-local canvasSize = 1024
+local canvasSize = 256
 
 
 assert(canvasSize % rez == 0, "canvasSize % rez == 0")
@@ -85,32 +83,6 @@ local function sub_draw(
 
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 local Node = {}
 
 
@@ -142,34 +114,13 @@ local function new_texture(i, j)
    end
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 local function bake_and_save_canvas(
-   i1, j1,
-   i2, j2,
+   i1, i2, j1, j2,
    name)
 
    gr.setColor({ 1, 1, 1, 1 })
    local canvas = gr.newCanvas(canvasSize, canvasSize)
    gr.setCanvas(canvas)
-
-   print("i1, i2, j1, j2", i1, i2, j1, j2)
 
 
    sub_draw(i1, i2, j1, j2, -rez, -rez)
@@ -177,10 +128,11 @@ local function bake_and_save_canvas(
    local prevfont = gr.getFont()
    gr.setColor({ 1, 0, 0, 1 })
    gr.setFont(font)
-   local index_str = format("(%d, %d)", i1, j1)
+
+   local ij_str = format("(%d-%d,%d-%d)", i1, i2, j1, j2)
 
    local x, y = rez, rez
-   gr.print(index_str, x, y)
+   gr.print(ij_str, x, y)
    y = y + ceil(gr.getFont():getHeight())
    gr.print(name, x, y)
    gr.setFont(prevfont)
@@ -191,18 +143,6 @@ local function bake_and_save_canvas(
    local object = canvas
    object:release()
 end
-
-
-
-
-
-
-
-
-
-
-
-
 
 local Command = {}
 
@@ -235,45 +175,6 @@ local i_poses = {}
 local j_poses = {}
 
 local function bake_canvases()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
    mapWidthPix = mapSize * rez
    print('mapWidthPix', mapWidthPix)
    local canvasNum = ceil(mapWidthPix / canvasSize)
@@ -295,15 +196,10 @@ local function bake_canvases()
    for y = 0, canvasNum - 1 do
       j = 1
       for x = 0, canvasNum - 1 do
-
          num = num + 1
 
-
-
          print("y, x", y, x)
-
-         print('i', i)
-         print('j', j)
+         print('i, j', i, j)
 
 
          local uniq_color = { 1, math.random(), math.random(), 1 }
@@ -359,7 +255,7 @@ local function bake_canvases()
          bake_and_save_canvas(
          i, i + step,
          j, j + step,
-         zerofyNum(x + 1) .. "_" .. zerofyNum(y + 1))
+         zerofyNum(y + 1) .. "_" .. zerofyNum(x + 1))
 
          j = j + step
       end
@@ -376,7 +272,6 @@ end
 
 
 function commands.map()
-
    mapn = graphic_command_channel:demand()
    if type(mapn) ~= 'number' then
       error('mapn should be a number, not a ' .. type(mapn))
@@ -441,11 +336,9 @@ function commands.flush()
 
 
 
-   local index_i = ceil(mapWidthPix / camx)
-   local index_j = ceil(mapWidthPix / camy)
-
-
-
+   local index_i = ceil(camx / canvasSize)
+   local index_j = ceil(camy / canvasSize)
+   print('index_i, index_j', index_i, index_j)
 
 
    local w, h = gr.getDimensions()
@@ -477,9 +370,13 @@ function commands.flush()
    end
 
 
-   for _, draw_func in ipairs(drawlist) do
-      draw_func(camx, camy)
-   end
+
+
+
+
+   local msg = format('index_i, index_j: %d, %d', index_i, index_j)
+   gr.print(msg, w / 2, h / 2)
+   gr.print(msg, camx - w / 2 + w / 2, camy - h / 2 + h / 2)
 
 
 
