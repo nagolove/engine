@@ -1,6 +1,9 @@
 -- vim: set colorcolumn=85
 -- vim: fdm=marker
 
+-- XXX Видео драйвер не поддерживает
+--format = "DXT1",
+
 global graphic_command_channel: love.thread.Channel
 global SCENE_PREFIX: string
 
@@ -32,7 +35,10 @@ local rez = 64
 --local rez = 128 + 64 + 32 + 32
 local x_pos, y_pos = 0., 0.
 --local canvasSize = 1024 * 4
-local canvasSize = 1024
+local canvasSize = 1024 -- in pixels
+
+-- Условие качественного тайлинга
+assert(canvasSize % rez == 0, "canvasSize % rez == 0")
 
 local font = gr.newFont(64 * 2)
 local format = string.format
@@ -63,20 +69,14 @@ local function sub_draw(
             if c then
                 local color = get_color(c ^ 2)
                 --print('color', inspect(color))
-
                 gr.setColor(color)
                 --gr.rectangle("fill", x + rez*i, y + rez*j, rez, rez)
-                gr.rectangle("fill", x + rez * abs_i, y + rez * abs_j, rez, rez)
-
-                --if map_n < 5 then
-                --if c < 0.75 then
-                --love.graphics.setColor(1,1,1)
-                --else
-                --love.graphics.setColor(0,0,0)
-                --end
-                --love.graphics.print(tostring(math.floor(c*100)), rez*i, rez*j)
-                --end
-
+                gr.rectangle(
+                    "fill", 
+                    x + rez * abs_i, 
+                    y + rez * abs_j, 
+                    rez, rez
+                )
             end
             abs_j = abs_j + 1
         end
@@ -85,6 +85,7 @@ local function sub_draw(
     -- }}}
 end
 
+--[[
 local function crazy_test()
     local r = math.random()
     if r < 1 / 4 then
@@ -97,7 +98,9 @@ local function crazy_test()
         sub_draw(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
     end
 end
+--]]
 
+--[[
 local record CanvasNode
     canvas: gr.Canvas
     -- индексы
@@ -106,9 +109,40 @@ local record CanvasNode
     j1: integer
     j2: integer
 end
+--]]
 
-local canvas_nodes: {integer:{integer:CanvasNode}} = {}
+local record Node
+    i: integer
+    j: integer
+end
 
+local canvas_nodes: {integer:{integer:gr.Image}} = {}
+local loaded_order: {Node} = {} -- Новые добавляются в конец
+-- Максимальное количество загруженных текстур
+local max_loaded_num: integer = 10 
+
+local function new_texture(i: integer, j: integer)
+    if not canvas_nodes[i][j] then
+        if #loaded_order >= max_loaded_num then
+            -- Удалить первую загруженную текстуру
+            local node = loaded_order[1]
+            assert(node.i == i and node.j == node.j, "indexes are equal")
+            local obj = canvas_nodes[node.i][node.j] as love.Object
+            obj:release()
+            canvas_nodes[node.i][node.j] = nil
+            table.remove(loaded_order, 1)
+        end
+        local path = format(
+            "%s/%s_%s.png", 
+            dirname, 
+            zerofyNum(i), zerofyNum(j)
+        )
+        canvas_nodes[i][j] = gr.newImage(path)
+        table.insert(loaded_order, { i = i, j = j})
+    end
+end
+
+--[[
 local function newCanvasNode(
     i1: integer, i2: integer, j1: integer, j2: integer,
     canvas_w: integer, canvas_h: integer
@@ -117,8 +151,6 @@ local function newCanvasNode(
     --table.insert(canvas_nodes, {
     return {
         canvas = gr.newCanvas(canvas_w, canvas_h, {
-            -- XXX Видео драйвер не поддерживает
-            --format = "DXT1",
         }),
         i1 = i1,
         i2 = i2,
@@ -126,50 +158,38 @@ local function newCanvasNode(
         j2 = j2,
     }
 end
-
--- Загружает текстуру и рисует ее в холст по индексам.
--- По каким индексам?
-local function loadCanvas(i: integer, j: integer)
-    -- Файл хранится в каталоге с уникальным для карты именем.
-end
-
-local function bake_node(node: CanvasNode)
-    gr.setColor{1, 1, 1, 1}
-    gr.setCanvas(node.canvas)
-    sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
-    gr.setCanvas()
-end
-
---[[
-local function bake()
-    gr.setColor{1, 1, 1, 1}
-    for _, node in ipairs(canvas_nodes) do
-        gr.setCanvas(node.canvas)
-        sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
-        gr.setCanvas()
-    end
-end
 --]]
 
-local function bake_and_save_canvas(node: CanvasNode)
+local function bake_and_save_canvas(
+    i1: integer, j1: integer, 
+    i2: integer, j2: integer,
+    name: string
+)
     gr.setColor{1, 1, 1, 1}
-    gr.setCanvas(node.canvas)
+    local canvas = gr.newCanvas(canvasSize, canvasSize)
+    gr.setCanvas(canvas)
+
+    print("i1, i2, j1, j2", i1, i2, j1, j2) 
 
     -- Почему смещение -rez ??
-    sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez) 
-    --sub_draw(node.i1, node.i2, node.j1, node.j2, 0, 0)
+    sub_draw(i1, i2, j1, j2, -rez, -rez) 
 
     local prevfont = gr.getFont()
     gr.setColor{1, 0, 0, 1}
     gr.setFont(font)
-    local index_str = format("(%d, %d)", node.i1, node.j1)
-    gr.print(index_str, rez, rez)
+    local index_str = format("(%d, %d)", i1, j1)
+
+    local x, y = rez, rez
+    gr.print(index_str, x, y)
+    y = y + ceil(gr.getFont():getHeight())
+    gr.print(name, x, y)
     gr.setFont(prevfont)
 
     gr.setCanvas()
-    local index_part = zerofyNum(node.i1) .. "_" .. zerofyNum(node.j1) 
-    local fname = dirname .. "/" .. index_part .. ".png"
-    node.canvas:newImageData():encode('png', fname)
+    local fname = dirname .. "/" .. name .. ".png"
+    canvas:newImageData():encode('png', fname)
+    local object = canvas as love.Object
+    object:release()
 end
 
 --[[
@@ -192,14 +212,16 @@ local enum Command
 end
 
 local cmd_circle_buf: {Command} = {}
-local cmd_circle_buf_maxnum = 16 * 2
+--local cmd_circle_buf_maxnum = 16 * 2
 
+--[[
 local function push_cbuf(cmd: Command)
     if #cmd_circle_buf >= cmd_circle_buf_maxnum then
         table.remove(cmd_circle_buf, 1)
     end
     table.insert(cmd_circle_buf, cmd)
 end
+--]]
 
 local function print_stack()
     print(colorize(
@@ -213,13 +235,12 @@ local i_poses: {integer: boolean} = {}
 local j_poses: {integer: boolean} = {}
 
 local function bake_canvases()
-    -- TODO Автоматически исходя из размера максимально возможного размера
-    -- текстуры подбирать наилучшее количество нод.
-    -- * Разрешение экрана
-    -- * Максимальный размер текстуры
-    -- * Размер карты в пикселях
-    
     --[[
+    TODO Автоматически исходя из размера максимально возможного размера
+    текстуры подбирать наилучшее количество нод.
+    * Разрешение экрана
+    * Максимальный размер текстуры
+    * Размер карты в пикселях
     Запечь необходимое видимое количество канвасов
     Добавить канвасы в список
     Проверить номера видимых блоков
@@ -228,6 +249,7 @@ local function bake_canvases()
     --]]
 
     --[[
+    -- {{{
     -- Перевести в циклы
     newCanvasNode(
         1, ceil(mapSize / 2), 
@@ -249,6 +271,7 @@ local function bake_canvases()
         1, ceil(mapSize / 2),
         canvas_w, canvas_h
     )
+    -- }}}
     --]]
 
     mapWidthPix = mapSize * rez
@@ -257,14 +280,20 @@ local function bake_canvases()
     print('canvasNum', canvasNum)
     local canvas_w, canvas_h = canvasSize, canvasSize
     local i, j = 1, 1
-    local step = ceil(#map / canvasNum) -- Шаг индексов для одного холста.
+
+    print('step_1', ceil(#map / canvasNum)) -- Шаг индексов для одного холста.
+    local step = ceil(canvasSize / rez) -- Шаг индексов для одного холста.
+    print('step', step)
+
+    --print('os.exit()')
+    --os.exit()
 
     print('#map', #map)
     print('step', step)
     local num = 0
 
     for y = 0, canvasNum - 1 do
-        i = 1
+        j = 1
         for x = 0, canvasNum - 1 do
 
             num = num + 1
@@ -272,17 +301,11 @@ local function bake_canvases()
             --print('i, i + step', i, i + step)
             --print('j, j + step', j, j + step)
             print("y, x", y, x)
-            local node = newCanvasNode(
-                --1, ceil(mapSize / 2), 
-                --1, ceil(mapSize / 2),
-                i, i + step,
-                j, j + step,
-                canvas_w, canvas_h
-            )
 
             print('i', i)
             print('j', j)
 
+            -- {{{
             local uniq_color = {1, math.random(), math.random(), 1}
             table.insert(drawlist, function(camx: integer, camy: integer)
 
@@ -330,23 +353,18 @@ local function bake_canvases()
                 gr.setFont(prevFont)
 
             end)
+            -- }}}
 
-            print('node', inspect(node))
-            bake_and_save_canvas(node)
-
-            local obj = node.canvas as love.Object
-            obj:release()
-            --(node.canvas as love.Object):release()
-
-            i = i + step
+            --print('node', inspect(node))
+            bake_and_save_canvas(
+                i, i + step,
+                j, j + step,
+                zerofyNum(x + 1) .. "_" .. zerofyNum(y + 1)
+            )
+            j = j + step
         end
-        j = j + step
+        i = i + step
     end
-    --]]
-
-    --createCanvases()
-    --bake()
-    --save_bakes()
 end
 
 local commands = {}
@@ -356,21 +374,8 @@ function commands.set_rez(): boolean
     return false
 end
 
-local function free_nodes()
-    for _, row in pairs(canvas_nodes) do
-        for _, node in pairs(row) do
-            if node.canvas then
-                (node.canvas as love.Object):release()
-            end
-        end
-    end
-    canvas_nodes = {}
-end
-
 -- Загрузить карту и нарисовать ее в холст.
 function commands.map(): boolean
-    free_nodes()
-
     --local fname = graphic_command_channel:demand() as string
     mapn = graphic_command_channel:demand() as integer
     if type(mapn) ~= 'number' then
@@ -399,7 +404,7 @@ function commands.map(): boolean
     mapSize = ceil(struct.unpack('L', content) as number)
 
     map = {} -- Двумерный массив высот
-    for i = 1, mapSize do
+    for _ = 1, mapSize do
         local row_len_s = mapFile:read(ulong_size)
         local row_len = struct.unpack('L', row_len_s) as number
         local compressed = mapFile:read(row_len)
@@ -409,7 +414,7 @@ function commands.map(): boolean
             map[#map + 1] = load(uncompressed as string)() as {number}
         end) as (boolean, string)
         if not ok then
-            error('diamondsquare: Could not load map data.')
+            error('diamondsquare: Could not load map data:' .. errmsg)
         end
     end
 
