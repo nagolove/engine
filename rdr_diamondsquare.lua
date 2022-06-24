@@ -1,4 +1,7 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+
+
+
 
 
 
@@ -34,6 +37,9 @@ local x_pos, y_pos = 0., 0.
 
 local canvasSize = 1024
 
+
+assert(canvasSize % rez == 0, "canvasSize % rez == 0")
+
 local font = gr.newFont(64 * 2)
 local format = string.format
 local Drawer = {}
@@ -63,19 +69,13 @@ local function sub_draw(
          if c then
             local color = get_color(c ^ 2)
 
-
             gr.setColor(color)
 
-            gr.rectangle("fill", x + rez * abs_i, y + rez * abs_j, rez, rez)
-
-
-
-
-
-
-
-
-
+            gr.rectangle(
+            "fill",
+            x + rez * abs_i,
+            y + rez * abs_j,
+            rez, rez)
 
          end
          abs_j = abs_j + 1
@@ -85,91 +85,111 @@ local function sub_draw(
 
 end
 
-local function crazy_test()
-   local r = math.random()
-   if r < 1 / 4 then
-      sub_draw(1, ceil(mapSize / 2), 1, ceil(mapSize / 2))
-   elseif r > 1 / 4 and r < 1 / 4 * 2 then
-      sub_draw(1, ceil(mapSize / 2), ceil(mapSize / 2), mapSize)
-   elseif r > 1 / 4 * 2 and r < 1 / 4 * 3 then
-      sub_draw(ceil(mapSize / 2), mapSize, ceil(mapSize / 2), mapSize)
-   else
-      sub_draw(ceil(mapSize / 2), mapSize, 1, ceil(mapSize / 2))
-   end
-end
-
-local CanvasNode = {}
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local Node = {}
 
 
 
 
 local canvas_nodes = {}
+local loaded_order = {}
 
-local function newCanvasNode(
-   i1, i2, j1, j2,
-   canvas_w, canvas_h)
+local max_loaded_num = 10
 
+local function new_texture(i, j)
+   if not canvas_nodes[i][j] then
+      if #loaded_order >= max_loaded_num then
 
+         local node = loaded_order[1]
+         assert(node.i == i and node.j == node.j, "indexes are equal")
+         local obj = canvas_nodes[node.i][node.j]
+         obj:release()
+         canvas_nodes[node.i][node.j] = nil
+         table.remove(loaded_order, 1)
+      end
+      local path = format(
+      "%s/%s_%s.png",
+      dirname,
+      zerofyNum(i), zerofyNum(j))
 
-   return {
-      canvas = gr.newCanvas(canvas_w, canvas_h, {}),
-
-
-
-      i1 = i1,
-      i2 = i2,
-      j1 = j1,
-      j2 = j2,
-   }
+      canvas_nodes[i][j] = gr.newImage(path)
+      table.insert(loaded_order, { i = i, j = j })
+   end
 end
 
 
 
-local function loadCanvas(i, j)
 
-end
 
-local function bake_node(node)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function bake_and_save_canvas(
+   i1, j1,
+   i2, j2,
+   name)
+
    gr.setColor({ 1, 1, 1, 1 })
-   gr.setCanvas(node.canvas)
-   sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
-   gr.setCanvas()
-end
+   local canvas = gr.newCanvas(canvasSize, canvasSize)
+   gr.setCanvas(canvas)
+
+   print("i1, i2, j1, j2", i1, i2, j1, j2)
 
 
-
-
-
-
-
-
-
-
-
-
-local function bake_and_save_canvas(node)
-   gr.setColor({ 1, 1, 1, 1 })
-   gr.setCanvas(node.canvas)
-
-
-   sub_draw(node.i1, node.i2, node.j1, node.j2, -rez, -rez)
-
+   sub_draw(i1, i2, j1, j2, -rez, -rez)
 
    local prevfont = gr.getFont()
    gr.setColor({ 1, 0, 0, 1 })
    gr.setFont(font)
-   local index_str = format("(%d, %d)", node.i1, node.j1)
-   gr.print(index_str, rez, rez)
+   local index_str = format("(%d, %d)", i1, j1)
+
+   local x, y = rez, rez
+   gr.print(index_str, x, y)
+   y = y + ceil(gr.getFont():getHeight())
+   gr.print(name, x, y)
    gr.setFont(prevfont)
 
    gr.setCanvas()
-   local index_part = zerofyNum(node.i1) .. "_" .. zerofyNum(node.j1)
-   local fname = dirname .. "/" .. index_part .. ".png"
-   node.canvas:newImageData():encode('png', fname)
+   local fname = dirname .. "/" .. name .. ".png"
+   canvas:newImageData():encode('png', fname)
+   local object = canvas
+   object:release()
 end
 
 
@@ -192,14 +212,16 @@ local Command = {}
 
 
 local cmd_circle_buf = {}
-local cmd_circle_buf_maxnum = 16 * 2
 
-local function push_cbuf(cmd)
-   if #cmd_circle_buf >= cmd_circle_buf_maxnum then
-      table.remove(cmd_circle_buf, 1)
-   end
-   table.insert(cmd_circle_buf, cmd)
-end
+
+
+
+
+
+
+
+
+
 
 local function print_stack()
    print(colorize(
@@ -251,20 +273,27 @@ local function bake_canvases()
 
 
 
+
    mapWidthPix = mapSize * rez
    print('mapWidthPix', mapWidthPix)
    local canvasNum = ceil(mapWidthPix / canvasSize)
    print('canvasNum', canvasNum)
    local canvas_w, canvas_h = canvasSize, canvasSize
    local i, j = 1, 1
-   local step = ceil(#map / canvasNum)
+
+   print('step_1', ceil(#map / canvasNum))
+   local step = ceil(canvasSize / rez)
+   print('step', step)
+
+
+
 
    print('#map', #map)
    print('step', step)
    local num = 0
 
    for y = 0, canvasNum - 1 do
-      i = 1
+      j = 1
       for x = 0, canvasNum - 1 do
 
          num = num + 1
@@ -272,16 +301,10 @@ local function bake_canvases()
 
 
          print("y, x", y, x)
-         local node = newCanvasNode(
-
-
-         i, i + step,
-         j, j + step,
-         canvas_w, canvas_h)
-
 
          print('i', i)
          print('j', j)
+
 
          local uniq_color = { 1, math.random(), math.random(), 1 }
          table.insert(drawlist, function(camx, camy)
@@ -331,22 +354,17 @@ local function bake_canvases()
 
          end)
 
-         print('node', inspect(node))
-         bake_and_save_canvas(node)
-
-         local obj = node.canvas
-         obj:release()
 
 
-         i = i + step
+         bake_and_save_canvas(
+         i, i + step,
+         j, j + step,
+         zerofyNum(x + 1) .. "_" .. zerofyNum(y + 1))
+
+         j = j + step
       end
-      j = j + step
+      i = i + step
    end
-
-
-
-
-
 end
 
 local commands = {}
@@ -356,21 +374,8 @@ function commands.set_rez()
    return false
 end
 
-local function free_nodes()
-   for _, row in pairs(canvas_nodes) do
-      for _, node in pairs(row) do
-         if node.canvas then
-            (node.canvas):release()
-         end
-      end
-   end
-   canvas_nodes = {}
-end
-
 
 function commands.map()
-   free_nodes()
-
 
    mapn = graphic_command_channel:demand()
    if type(mapn) ~= 'number' then
@@ -399,7 +404,7 @@ function commands.map()
    mapSize = ceil(struct.unpack('L', content))
 
    map = {}
-   for i = 1, mapSize do
+   for _ = 1, mapSize do
       local row_len_s = mapFile:read(ulong_size)
       local row_len = struct.unpack('L', row_len_s)
       local compressed = mapFile:read(row_len)
@@ -409,7 +414,7 @@ function commands.map()
          map[#map + 1] = load(uncompressed)()
       end)
       if not ok then
-         error('diamondsquare: Could not load map data.')
+         error('diamondsquare: Could not load map data:' .. errmsg)
       end
    end
 
