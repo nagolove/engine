@@ -15,6 +15,7 @@ local yield = coroutine.yield
 local gr = love.graphics
 local inspect = require "inspect"
 local ceil = math.ceil
+local fmod = math.fmod
 local get_color = require 'height_map'.color
 
 local dirname = ""
@@ -88,12 +89,14 @@ local record Node
     j: integer
 end
 
-local canvas_nodes: {integer:{integer:gr.Image}} = {}
+local canvas_nodes: {integer:{integer:gr.Image}} = {{}}
 local loaded_order: {Node} = {} -- Новые добавляются в конец
 -- Максимальное количество загруженных текстур
 local max_loaded_num: integer = 10 
 
 local function new_texture(i: integer, j: integer)
+    local ok, errmsg: boolean, string = pcall(function()
+
     if #loaded_order >= max_loaded_num then
         -- Удалить первую загруженную текстуру
         local node = loaded_order[1]
@@ -108,18 +111,34 @@ local function new_texture(i: integer, j: integer)
         dirname, 
         zerofyNum(i), zerofyNum(j)
     )
+    print('loading', path)
     canvas_nodes[i][j] = gr.newImage(path)
     table.insert(loaded_order, { i = i, j = j})
+
+    end) as (boolean, string)
+    if not ok then
+        print('new_texture:' .. errmsg)
+    end
 end
 
 local function draw_texture(i: integer, j: integer)
-    if not canvas_nodes[i][j] then
+    local ok, errmsg: boolean, string = pcall(function()
+
+    if canvas_nodes[i] and (not canvas_nodes[i][j]) then
         new_texture(i, j)
     end
     local tex = canvas_nodes[i][j]
     -- Нужен-ли i-1 считать или лучше i брать от 0??
-    local x, y = x_pos + canvasSize * (i - 1), y_pos + canvasSize * (j - 1)
-    gr.draw(tex as gr.Drawable, x, y)
+    if tex then
+        local x, y = x_pos + canvasSize * (i - 1), y_pos + canvasSize * (j - 1)
+        gr.draw(tex as gr.Drawable, x, y)
+    end
+
+    end) as (boolean, string)
+    if not ok then
+        print('draw_texture:' .. errmsg)
+        print('canvas_nodes', inspect(canvas_nodes))
+    end
 end
 
 local function bake_and_save_canvas(
@@ -187,7 +206,6 @@ local function bake_canvases()
     print('mapWidthPix', mapWidthPix)
     local canvasNum = ceil(mapWidthPix / canvasSize)
     print('canvasNum', canvasNum)
-    local canvas_w, canvas_h = canvasSize, canvasSize
     local i, j = 1, 1
 
     print('step_1', ceil(#map / canvasNum)) -- Шаг индексов для одного холста.
@@ -209,15 +227,20 @@ local function bake_canvases()
             print("y, x", y, x)
             print('i, j', i, j)
 
+            local tmpx, tmpy = i, j
+
             -- {{{
             local uniq_color = {1, math.random(), math.random(), 1}
             table.insert(drawlist, function(camx: integer, camy: integer)
 
-                --print('i', i)
-                --print('j', j)
+                --print('drawlist', inspect(drawlist))
+                --print('num', num)
+                --print('i', tmpx)
+                --print('j', tmpy)
+                --print('rez', rez)
 
-                local i_pos = i * rez
-                local j_pos = j * rez
+                local i_pos = tmpx * rez
+                local j_pos = tmpy * rez
                 local scrw, scrh = gr.getDimensions()
 
                 local i_visible = i_pos >= camx and i_pos <= camx + scrw
@@ -228,6 +251,7 @@ local function bake_canvases()
                 local prevFont = gr.getFont()
                 gr.setFont(font)
 
+                --[[
                 if not i_poses[i_pos] then
                     i_poses[i_pos] = true
                     print('i_pos', i_pos)
@@ -236,12 +260,13 @@ local function bake_canvases()
                     j_poses[j_pos] = true
                     print('j_pos', j_pos)
                 end
+                --]]
 
-                gr.rectangle(
-                    'fill', 
-                    i_pos, j_pos, 
-                    canvas_w, canvas_h 
-                )
+                --print('i_pos', i_pos)
+                --print('j_pos', j_pos)
+                --os.exit()
+
+                gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
 
                 if i_visible and j_visible then
                     gr.setColor{0, 0, 0, 1}
@@ -346,15 +371,22 @@ function commands.flush(): boolean
 
     -- Добавить обработку отрицательных положений камеры
 
-    local index_i = ceil(camx / canvasSize)
-    local index_j = ceil(camy / canvasSize)
     local local_view_port = {
         view_port[1] + camx,
         view_port[2] + camy,
         view_port[3] + camx,
         view_port[4] + camy,
     }
+    local index_i = ceil(local_view_port[1] / canvasSize)
+    local index_j = ceil(local_view_port[2] / canvasSize)
+
+    --local dx = local_view_port[1] / canvasSize - index_i
+    --local dy = local_view_port[2] / canvasSize - index_j
+    local dx = fmod(local_view_port[1], canvasSize)
+    local dy = fmod(local_view_port[2], canvasSize)
+
     print('index_i, index_j', index_i, index_j)
+    print('dx, dy', dx, dy)
     --print('camx, camy', camx, camy)
 
     local w, h = gr.getDimensions()
@@ -371,17 +403,10 @@ function commands.flush(): boolean
         Определить индексы
         --]]
 
-        --draw_inner_textures()
-        --[[
-        for _, node in ipairs(canvas_nodes) do
-        local x, y = x_pos + node.i1 * rez, y_pos + node.j1 * rez
-        gr.draw(node.canvas as gr.Drawable, x, y)
-        end
-        --]]
-        local i, j: integer = 0, 0
+        --local i, j: integer = 0, 0
         repeat
             repeat
-                draw_texture(i, j)
+                --draw_texture(i, j)
             until true
         until true
 
@@ -390,12 +415,14 @@ function commands.flush(): boolean
     end
 
     --print('#drawlist', #drawlist)
-    --for _, draw_func in ipairs(drawlist) do
-        --draw_func(camx, camy)
-    --end
+    for _, draw_func in ipairs(drawlist) do
+    --for i = #drawlist, 1, -1 do
+    --for i = 1, #drawlist do
+        draw_func(camx, camy)
+        --drawlist[i](camx, camy)
+    end
 
     local msg = format('index_i, index_j: %d, %d', index_i, index_j)
-    gr.print(msg, w / 2, h / 2)
     gr.print(msg, camx - w/2 + w / 2, camy -h/2 + h / 2)
 
     --print('i_poses', inspect(i_poses))
