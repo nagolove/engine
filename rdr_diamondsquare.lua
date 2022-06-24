@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -15,6 +15,7 @@ local yield = coroutine.yield
 local gr = love.graphics
 local inspect = require("inspect")
 local ceil = math.ceil
+local fmod = math.fmod
 local get_color = require('height_map').color
 
 local dirname = ""
@@ -88,13 +89,14 @@ local Node = {}
 
 
 
-local canvas_nodes = {}
+local canvas_nodes = { {} }
 local loaded_order = {}
 
 local max_loaded_num = 10
 
 local function new_texture(i, j)
-   if not canvas_nodes[i][j] then
+   local ok, errmsg = pcall(function()
+
       if #loaded_order >= max_loaded_num then
 
          local node = loaded_order[1]
@@ -109,8 +111,33 @@ local function new_texture(i, j)
       dirname,
       zerofyNum(i), zerofyNum(j))
 
+      print('loading', path)
       canvas_nodes[i][j] = gr.newImage(path)
       table.insert(loaded_order, { i = i, j = j })
+
+   end)
+   if not ok then
+      print('new_texture:' .. errmsg)
+   end
+end
+
+local function draw_texture(i, j)
+   local ok, errmsg = pcall(function()
+
+      if canvas_nodes[i] and (not canvas_nodes[i][j]) then
+         new_texture(i, j)
+      end
+      local tex = canvas_nodes[i][j]
+
+      if tex then
+         local x, y = x_pos + canvasSize * (i - 1), y_pos + canvasSize * (j - 1)
+         gr.draw(tex, x, y)
+      end
+
+   end)
+   if not ok then
+      print('draw_texture:' .. errmsg)
+      print('canvas_nodes', inspect(canvas_nodes))
    end
 end
 
@@ -179,7 +206,6 @@ local function bake_canvases()
    print('mapWidthPix', mapWidthPix)
    local canvasNum = ceil(mapWidthPix / canvasSize)
    print('canvasNum', canvasNum)
-   local canvas_w, canvas_h = canvasSize, canvasSize
    local i, j = 1, 1
 
    print('step_1', ceil(#map / canvasNum))
@@ -201,6 +227,8 @@ local function bake_canvases()
          print("y, x", y, x)
          print('i, j', i, j)
 
+         local tmpx, tmpy = i, j
+
 
          local uniq_color = { 1, math.random(), math.random(), 1 }
          table.insert(drawlist, function(camx, camy)
@@ -208,8 +236,11 @@ local function bake_canvases()
 
 
 
-            local i_pos = i * rez
-            local j_pos = j * rez
+
+
+
+            local i_pos = tmpx * rez
+            local j_pos = tmpy * rez
             local scrw, scrh = gr.getDimensions()
 
             local i_visible = i_pos >= camx and i_pos <= camx + scrw
@@ -220,20 +251,22 @@ local function bake_canvases()
             local prevFont = gr.getFont()
             gr.setFont(font)
 
-            if not i_poses[i_pos] then
-               i_poses[i_pos] = true
-               print('i_pos', i_pos)
-            end
-            if not j_poses[j_pos] then
-               j_poses[j_pos] = true
-               print('j_pos', j_pos)
-            end
 
-            gr.rectangle(
-            'fill',
-            i_pos, j_pos,
-            canvas_w, canvas_h)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+            gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
 
             if i_visible and j_visible then
                gr.setColor({ 0, 0, 0, 1 })
@@ -327,18 +360,33 @@ function commands.set_position()
    return false
 end
 
+local scrw, scrh = gr.getDimensions()
+
+local view_port = { 0, 0, scrw, scrh }
+
 
 function commands.flush()
-
-
    local camx = ceil(graphic_command_channel:demand())
    local camy = ceil(graphic_command_channel:demand())
 
 
 
-   local index_i = ceil(camx / canvasSize)
-   local index_j = ceil(camy / canvasSize)
+   local local_view_port = {
+      view_port[1] + camx,
+      view_port[2] + camy,
+      view_port[3] + camx,
+      view_port[4] + camy,
+   }
+   local index_i = ceil(local_view_port[1] / canvasSize)
+   local index_j = ceil(local_view_port[2] / canvasSize)
+
+
+
+   local dx = fmod(local_view_port[1], canvasSize)
+   local dy = fmod(local_view_port[2], canvasSize)
+
    print('index_i, index_j', index_i, index_j)
+   print('dx, dy', dx, dy)
 
 
    local w, h = gr.getDimensions()
@@ -356,34 +404,26 @@ function commands.flush()
 
 
 
+      repeat
+         repeat
 
-
-
-
-
-
-
-
+         until true
+      until true
 
       gr.setColor({ 1, 0, 0, 1 })
       gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
    end
 
 
+   for _, draw_func in ipairs(drawlist) do
 
 
+      draw_func(camx, camy)
 
+   end
 
    local msg = format('index_i, index_j: %d, %d', index_i, index_j)
-   gr.print(msg, w / 2, h / 2)
    gr.print(msg, camx - w / 2 + w / 2, camy - h / 2 + h / 2)
-
-
-
-
-
-
-
 
 
 
