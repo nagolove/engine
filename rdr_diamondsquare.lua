@@ -22,6 +22,8 @@ local dirname = ""
 local mapn
 local rng_state
 
+local sliced_func
+
 
 local x_pos, y_pos = 0., 0.
 
@@ -219,6 +221,8 @@ local function bake_canvases()
    print('step', step)
    local num = 0
 
+   local slices = {}
+
    for y = 0, canvasNum - 1 do
       j = 1
       for x = 0, canvasNum - 1 do
@@ -231,6 +235,26 @@ local function bake_canvases()
 
 
          local uniq_color = { 1, math.random(), math.random(), 1 }
+         local str = format("(%d, %d)", tmpx, tmpy)
+         local i_pos = tmpx * rez
+         local j_pos = tmpy * rez
+
+
+
+         local s = format([[
+            love.graphics.setColor({%d, %d, %d, 1})
+            love.graphics.rectangle('fill', %d, %d, %d, %d)
+            love.graphics.setColor{0, 0, 0, 1}
+            love.graphics.print('%s', %d, %d)
+            ]],
+         uniq_color[1], uniq_color[2], uniq_color[3],
+         i_pos, j_pos,
+         canvasSize, canvasSize,
+         str,
+         i_pos, j_pos)
+
+         table.insert(slices, s)
+
          table.insert(drawlist, function(camx, camy)
 
 
@@ -239,47 +263,51 @@ local function bake_canvases()
 
 
 
-            local i_pos = tmpx * rez
-            local j_pos = tmpy * rez
-            local scrw, scrh = gr.getDimensions()
 
-            local i_visible = i_pos >= camx and i_pos <= camx + scrw
-            local j_visible = j_pos >= camy and j_pos <= camy + scrh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             gr.setColor(uniq_color)
 
-            local prevFont = gr.getFont()
-            gr.setFont(font)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
+            gr.setColor({ 0, 0, 0, 1 })
+            gr.print(str, i_pos, j_pos)
 
-            if i_visible and j_visible then
-               gr.setColor({ 0, 0, 0, 1 })
-               local str = format("(%d, %d)", i, j)
 
-               gr.print(str, i, j)
 
-               gr.setColor({ 0, 1, 0, 1 })
-               gr.circle("fill", 0, 0, 200)
 
-            end
 
-            gr.setFont(prevFont)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
          end)
 
@@ -293,6 +321,15 @@ local function bake_canvases()
          j = j + step
       end
       i = i + step
+   end
+
+
+   local code = table.concat(slices, '\n')
+   print('code', code)
+   local errmsg
+   sliced_func, errmsg = load(code)
+   if not sliced_func then
+      print('errmsg:', errmsg)
    end
 end
 
@@ -385,8 +422,9 @@ function commands.flush()
    local dx = fmod(local_view_port[1], canvasSize)
    local dy = fmod(local_view_port[2], canvasSize)
 
-   print('index_i, index_j', index_i, index_j)
-   print('dx, dy', dx, dy)
+
+
+
 
 
    local w, h = gr.getDimensions()
@@ -414,13 +452,10 @@ function commands.flush()
       gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
    end
 
-
    for _, draw_func in ipairs(drawlist) do
-
-
       draw_func(camx, camy)
-
    end
+
 
    local msg = format('index_i, index_j: %d, %d', index_i, index_j)
    gr.print(msg, camx - w / 2 + w / 2, camy - h / 2 + h / 2)

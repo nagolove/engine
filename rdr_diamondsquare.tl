@@ -22,6 +22,8 @@ local dirname = ""
 local mapn: integer
 local rng_state: string
 
+local sliced_func: function
+
 -- Общее смещение при рисовании ландшафта
 local x_pos, y_pos = 0., 0.
 
@@ -219,6 +221,8 @@ local function bake_canvases()
     print('step', step)
     local num = 0
 
+    local slices: {string} = {}
+
     for y = 0, canvasNum - 1 do
         j = 1
         for x = 0, canvasNum - 1 do
@@ -231,6 +235,26 @@ local function bake_canvases()
 
             -- {{{
             local uniq_color = {1, math.random(), math.random(), 1}
+            local str = format("(%d, %d)", tmpx, tmpy)
+            local i_pos = tmpx * rez
+            local j_pos = tmpy * rez
+            --local scrw, scrh = gr.getDimensions()
+            --local tmpcanvas = gr.newCanvas(300, 100)
+
+            local s = format([[
+            love.graphics.setColor({%d, %d, %d, 1})
+            love.graphics.rectangle('fill', %d, %d, %d, %d)
+            love.graphics.setColor{0, 0, 0, 1}
+            love.graphics.print('%s', %d, %d)
+            ]], 
+            uniq_color[1], uniq_color[2], uniq_color[3],
+            i_pos, j_pos,
+            canvasSize, canvasSize,
+            str,
+            i_pos, j_pos
+            )
+            table.insert(slices, s)
+
             table.insert(drawlist, function(camx: integer, camy: integer)
 
                 --print('drawlist', inspect(drawlist))
@@ -239,17 +263,11 @@ local function bake_canvases()
                 --print('j', tmpy)
                 --print('rez', rez)
 
-                local i_pos = tmpx * rez
-                local j_pos = tmpy * rez
-                local scrw, scrh = gr.getDimensions()
+                --local i_visible = i_pos >= camx and i_pos <= camx + scrw
+                --local j_visible = j_pos >= camy and j_pos <= camy + scrh
 
-                local i_visible = i_pos >= camx and i_pos <= camx + scrw
-                local j_visible = j_pos >= camy and j_pos <= camy + scrh
-
-                gr.setColor(uniq_color)
-
-                local prevFont = gr.getFont()
-                gr.setFont(font)
+                --local prevFont = gr.getFont()
+                --gr.setFont(font)
 
                 --[[
                 if not i_poses[i_pos] then
@@ -266,8 +284,20 @@ local function bake_canvases()
                 --print('j_pos', j_pos)
                 --os.exit()
 
-                gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
+                --gr.setCanvas(tmpcanvas)
+                gr.setColor(uniq_color)
 
+                gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
+                gr.setColor{0, 0, 0, 1}
+                gr.print(str, i_pos, j_pos)
+                --gr.setCanvas()
+
+                --gr.draw(tmpcanvas as gr.Drawable, i_pos, j_pos)
+
+                --gr.setFont(prevFont)
+                --gr.print(str, i_pos, j_pos)
+
+                --[[
                 if i_visible and j_visible then
                     gr.setColor{0, 0, 0, 1}
                     local str = format("(%d, %d)", i, j)
@@ -278,9 +308,7 @@ local function bake_canvases()
                     gr.circle("fill", 0, 0, 200)
                     --print('drawing')
                 end
-
-                gr.setFont(prevFont)
-
+                --]]
             end)
             -- }}}
 
@@ -293,6 +321,15 @@ local function bake_canvases()
             j = j + step
         end
         i = i + step
+    end
+
+
+    local code = table.concat(slices, '\n')
+    print('code', code)
+    local errmsg: string
+    sliced_func, errmsg = load(code)
+    if not sliced_func then
+        print('errmsg:', errmsg)
     end
 end
 
@@ -385,8 +422,9 @@ function commands.flush(): boolean
     local dx = fmod(local_view_port[1], canvasSize)
     local dy = fmod(local_view_port[2], canvasSize)
 
-    print('index_i, index_j', index_i, index_j)
-    print('dx, dy', dx, dy)
+    --print('index_i, index_j', index_i, index_j)
+    --print('dx, dy', dx, dy)
+
     --print('camx, camy', camx, camy)
 
     local w, h = gr.getDimensions()
@@ -414,13 +452,10 @@ function commands.flush(): boolean
         gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
     end
 
-    --print('#drawlist', #drawlist)
     for _, draw_func in ipairs(drawlist) do
-    --for i = #drawlist, 1, -1 do
-    --for i = 1, #drawlist do
         draw_func(camx, camy)
-        --drawlist[i](camx, camy)
     end
+    --sliced_func()
 
     local msg = format('index_i, index_j: %d, %d', index_i, index_j)
     gr.print(msg, camx - w/2 + w / 2, camy -h/2 + h / 2)
