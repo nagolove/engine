@@ -36,7 +36,7 @@ local mapWidthPix: integer
 -- TODO Перенести в параметры
 local rez = 64
 
-local canvasSize = 256 -- in pixels
+local canvasSize = 512 -- in pixels
 
 -- Условие качественного тайлинга
 assert(canvasSize % rez == 0, "canvasSize % rez == 0")
@@ -234,28 +234,13 @@ local function bake_canvases()
             local tmpx, tmpy = i, j
 
             -- {{{
-            local uniq_color = {1, math.random(), math.random(), 1}
-            local str = format("(%d, %d)", tmpx, tmpy)
-            local i_pos = tmpx * rez
-            local j_pos = tmpy * rez
             --local scrw, scrh = gr.getDimensions()
             --local tmpcanvas = gr.newCanvas(300, 100)
 
-            local s = format([[
-            love.graphics.setColor({%d, %d, %d, 1})
-            love.graphics.rectangle('fill', %d, %d, %d, %d)
-            love.graphics.setColor{0, 0, 0, 1}
-            love.graphics.print('%s', %d, %d)
-            ]], 
-            uniq_color[1], uniq_color[2], uniq_color[3],
-            i_pos, j_pos,
-            canvasSize, canvasSize,
-            str,
-            i_pos, j_pos
-            )
-            table.insert(slices, s)
-
+            local uniq_color = {1, math.random(), math.random(), 1}
             table.insert(drawlist, function(camx: integer, camy: integer)
+                local i_pos = tmpx * rez
+                local j_pos = tmpy * rez
 
                 --print('drawlist', inspect(drawlist))
                 --print('num', num)
@@ -285,11 +270,14 @@ local function bake_canvases()
                 --os.exit()
 
                 --gr.setCanvas(tmpcanvas)
-                gr.setColor(uniq_color)
 
-                gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
-                gr.setColor{0, 0, 0, 1}
-                gr.print(str, i_pos, j_pos)
+                --if i_pos > camx and j_pos > camy then
+                    gr.setColor(uniq_color)
+                    gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
+                    gr.setColor{0, 0, 0, 1}
+                    local str = format("(%d, %d)", x, y)
+                    gr.print(str, i_pos, j_pos)
+                --end
                 --gr.setCanvas()
 
                 --gr.draw(tmpcanvas as gr.Drawable, i_pos, j_pos)
@@ -458,6 +446,7 @@ function commands.flush(): boolean
     --sliced_func()
 
     local msg = format('index_i, index_j: %d, %d', index_i, index_j)
+    gr.setColor{0, 0, 0, 1}
     gr.print(msg, camx - w/2 + w / 2, camy -h/2 + h / 2)
 
     --print('i_poses', inspect(i_poses))
