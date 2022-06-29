@@ -43,7 +43,7 @@ assert(canvasSize % rez == 0, "canvasSize % rez == 0")
 
 local font = gr.newFont(64 * 2)
 local format = string.format
-local type Drawer = function(camx: integer, camy: integer)
+local type Drawer = function(camx: integer, camy: integer): boolean
 local drawlist: {Drawer} = {}
 
 -- i1, i2, j1, j2 - индексы
@@ -238,65 +238,43 @@ local function bake_canvases()
             --local tmpcanvas = gr.newCanvas(300, 100)
 
             local uniq_color = {1, math.random(), math.random(), 1}
-            table.insert(drawlist, function(camx: integer, camy: integer)
+            table.insert(drawlist, function(camx: integer, camy: integer): boolean
                 local i_pos = tmpx * rez
                 local j_pos = tmpy * rez
 
-                --print('drawlist', inspect(drawlist))
-                --print('num', num)
-                --print('i', tmpx)
-                --print('j', tmpy)
-                --print('rez', rez)
+                local scrw, scrh = gr.getDimensions()
+                local view_port = { 
+                    camx, camy, 
+                    camx + scrw, camy + scrh 
+                }
+                local tile = { 
+                    i_pos, j_pos, 
+                    i_pos + canvasSize, j_pos + canvasSize 
+                }
 
-                --local i_visible = i_pos >= camx and i_pos <= camx + scrw
-                --local j_visible = j_pos >= camy and j_pos <= camy + scrh
+                local invisible =  (
+                    tile[1] > view_port[1] and
+                    tile[1] < view_port[3] and
+                    tile[2] > view_port[2] and
+                    tile[2] < view_port[4] and
+                    tile[3] < view_port[3] and
+                    tile[4] < view_port[4]
+                )
+                    --view_port[1] < tile[1] and
+                    --view_port[2] < tile[2] and
+                    --view_port[3] > tile[3] and
+                    --view_port[4] > tile[4]
 
-                --local prevFont = gr.getFont()
-                --gr.setFont(font)
-
-                --[[
-                if not i_poses[i_pos] then
-                    i_poses[i_pos] = true
-                    print('i_pos', i_pos)
-                end
-                if not j_poses[j_pos] then
-                    j_poses[j_pos] = true
-                    print('j_pos', j_pos)
-                end
-                --]]
-
-                --print('i_pos', i_pos)
-                --print('j_pos', j_pos)
-                --os.exit()
-
-                --gr.setCanvas(tmpcanvas)
-
-                --if i_pos > camx and j_pos > camy then
+                if not invisible then
                     gr.setColor(uniq_color)
-                    gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
+                    --gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
+                    gr.rectangle('fill', tile[1], tile[2], tile[3], tile[4])
                     gr.setColor{0, 0, 0, 1}
                     local str = format("(%d, %d)", x, y)
                     gr.print(str, i_pos, j_pos)
-                --end
-                --gr.setCanvas()
-
-                --gr.draw(tmpcanvas as gr.Drawable, i_pos, j_pos)
-
-                --gr.setFont(prevFont)
-                --gr.print(str, i_pos, j_pos)
-
-                --[[
-                if i_visible and j_visible then
-                    gr.setColor{0, 0, 0, 1}
-                    local str = format("(%d, %d)", i, j)
-                    --gr.print(str, i * rez, j * rez)
-                    gr.print(str, i, j)
-
-                    gr.setColor{0, 1, 0, 1}
-                    gr.circle("fill", 0, 0, 200)
-                    --print('drawing')
                 end
-                --]]
+
+                return not invisible
             end)
             -- }}}
 
@@ -440,9 +418,13 @@ function commands.flush(): boolean
         gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
     end
 
+    local drawed_num = 0
     for _, draw_func in ipairs(drawlist) do
-        draw_func(camx, camy)
+        if draw_func(camx, camy) then
+            drawed_num = drawed_num + 1
+        end
     end
+    print('#drawlist, drawed_num', #drawlist, drawed_num)
     --sliced_func()
 
     local msg = format('index_i, index_j: %d, %d', index_i, index_j)
