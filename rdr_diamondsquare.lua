@@ -242,61 +242,39 @@ local function bake_canvases()
             local i_pos = tmpx * rez
             local j_pos = tmpy * rez
 
+            local scrw, scrh = gr.getDimensions()
+            local view_port = {
+               camx, camy,
+               camx + scrw, camy + scrh,
+            }
+            local tile = {
+               i_pos, j_pos,
+               i_pos + canvasSize, j_pos + canvasSize,
+            }
+
+            local invisible = (
+            tile[1] > view_port[1] and
+            tile[1] < view_port[3] and
+            tile[2] > view_port[2] and
+            tile[2] < view_port[4] and
+            tile[3] < view_port[3] and
+            tile[4] < view_port[4])
 
 
 
 
 
 
+            if not invisible then
+               gr.setColor(uniq_color)
 
+               gr.rectangle('fill', tile[1], tile[2], tile[3], tile[4])
+               gr.setColor({ 0, 0, 0, 1 })
+               local str = format("(%d, %d)", x, y)
+               gr.print(str, i_pos, j_pos)
+            end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            gr.setColor(uniq_color)
-            gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
-            gr.setColor({ 0, 0, 0, 1 })
-            local str = format("(%d, %d)", x, y)
-            gr.print(str, i_pos, j_pos)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            return not invisible
          end)
 
 
@@ -440,9 +418,13 @@ function commands.flush()
       gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
    end
 
+   local drawed_num = 0
    for _, draw_func in ipairs(drawlist) do
-      draw_func(camx, camy)
+      if draw_func(camx, camy) then
+         drawed_num = drawed_num + 1
+      end
    end
+   print('#drawlist, drawed_num', #drawlist, drawed_num)
 
 
    local msg = format('index_i, index_j: %d, %d', index_i, index_j)
