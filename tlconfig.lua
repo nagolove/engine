@@ -85,7 +85,7 @@ return {
 
         --"scenes/sri/*.tl",
         "scenes/t80/*.tl",
-        "scenes/diamond_square/*.tl",
+        --"scenes/diamond_square/*.tl",
         --'scenes/colored_text_transform_mt/*.tl',
         --'scenes/textured_quad/*.tl',
         --'scenes/debug_print_mt/*.tl',
