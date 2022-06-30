@@ -265,14 +265,14 @@ local function bake_canvases()
                     --view_port[3] > tile[3] and
                     --view_port[4] > tile[4]
 
-                if not invisible then
+                --if not invisible then
                     gr.setColor(uniq_color)
                     --gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
                     gr.rectangle('fill', tile[1], tile[2], tile[3], tile[4])
                     gr.setColor{0, 0, 0, 1}
                     local str = format("(%d, %d)", x, y)
-                    gr.print(str, i_pos, j_pos)
-                end
+                    --gr.print(str, i_pos, j_pos)
+                --end
 
                 return not invisible
             end)
@@ -424,7 +424,7 @@ function commands.flush(): boolean
             drawed_num = drawed_num + 1
         end
     end
-    print('#drawlist, drawed_num', #drawlist, drawed_num)
+    --print('#drawlist, drawed_num', #drawlist, drawed_num)
     --sliced_func()
 
     local msg = format('index_i, index_j: %d, %d', index_i, index_j)
