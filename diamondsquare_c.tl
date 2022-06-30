@@ -44,7 +44,7 @@ local record DiamonAndSquare
         mapSize: integer
     end
 
-    generator: das.Generator
+    --generator: das.Generator
     renderobj_name: string
     pipeline: Pipeline
 
@@ -166,16 +166,16 @@ end
 
 -- добавить анимацию процесса разбиения
 function DiamonAndSquare:eval()
-    print('self.generator', self.generator, type(self.generator))
-    local tstart = love.timer.getTime()
-    self.generator:eval()
-    local tfinish = love.timer.getTime()
-    print('map generated for', (tfinish - tstart) * 1000., "sec.")
+    --print('self.generator', self.generator, type(self.generator))
+    --local tstart = love.timer.getTime()
+    --self.generator:eval()
+    --local tfinish = love.timer.getTime()
+    --print('map generated for', (tfinish - tstart) * 1000., "sec.")
 end
 
 function DiamonAndSquare.new(
     mapn: integer, 
-    rng: DiamonAndSquare.RandomCallback,
+    --rng: DiamonAndSquare.RandomCallback,
     pl: Pipeline
 ): DiamonAndSquare
 
@@ -197,8 +197,9 @@ function DiamonAndSquare.new(
     )
 
     self.mapn = mapn
-    self.generator = das.new(mapn, rng)
-    self.mapSize = self.generator:get_mapsize()
+    --self.generator = das.new(mapn, rng)
+    --self.mapSize = self.generator:get_mapsize()
+    self.mapSize = math.ceil(math.pow(2, mapn) + 1)
 
     return self
 end
