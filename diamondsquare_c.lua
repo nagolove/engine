@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local os = _tl_compat and _tl_compat.os or os
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os
 
 
 
@@ -166,16 +166,16 @@ end
 
 
 function DiamonAndSquare:eval()
-   print('self.generator', self.generator, type(self.generator))
-   local tstart = love.timer.getTime()
-   self.generator:eval()
-   local tfinish = love.timer.getTime()
-   print('map generated for', (tfinish - tstart) * 1000., "sec.")
+
+
+
+
+
 end
 
 function DiamonAndSquare.new(
    mapn,
-   rng,
+
    pl)
 
 
@@ -197,8 +197,9 @@ function DiamonAndSquare.new(
 
 
    self.mapn = mapn
-   self.generator = das.new(mapn, rng)
-   self.mapSize = self.generator:get_mapsize()
+
+
+   self.mapSize = math.ceil(math.pow(2, mapn) + 1)
 
    return self
 end
