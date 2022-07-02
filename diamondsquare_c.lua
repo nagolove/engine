@@ -105,6 +105,11 @@ local DiamonAndSquare = {State = {}, }
 
 
 
+
+
+
+
+
 local DiamonAndSquare_mt = {
    __index = DiamonAndSquare,
 }
@@ -213,6 +218,13 @@ function DiamonAndSquare:setRez(rez)
    self.pipeline:openPushAndClose(
    self.renderobj_name,
    'set_rez', self.rez)
+
+end
+
+function DiamonAndSquare:setViewport(   x, y, w, h)
+
+   self.pipeline:openPushAndClose(
+   self.renderobj_name, 'set_view_port', x, y, w, h)
 
 end
 
