@@ -18,6 +18,8 @@
 
 #include "lua_tools.h"
 
+#include <sys/mman.h>
+
 #ifdef DEBUG
 // {{{
 
@@ -45,11 +47,92 @@ void check_argsnum(lua_State *lua, int num) {
     }
 }
 
+typedef struct {
+    int alocated_size;
+    char magic[32];
+    char data[100];
+} Messenger;
+
+#define MAGIC_STR "wefhwjkefh"
+
+static int init(lua_State *lua) {
+    char str_buf[32] = {0, };
+    int size = 1024 * 1024; // 1mb
+    void *ptr = mmap(
+            NULL, size, PROT_READ | PROT_WRITE, 
+            MAP_ANONYMOUS | MAP_SHARED,
+            -1, 0
+    );
+
+    Messenger *m = ptr;
+    m->alocated_size = size;
+    sprintf(m->magic, "%s", MAGIC_STR);
+
+    sprintf(str_buf, "%p", ptr);
+
+    printf("init\n");
+    printf("ptr = %s\n", str_buf);
+
+    lua_pushlightuserdata(lua, m);
+    lua_pushstring(lua, str_buf);
+    return 2;
+}
+
+static Messenger *channel;
+
+static int deinit(lua_State *lua) {
+    return 0;
+}
+
+static int connect(lua_State *lua) {
+    check_argsnum(lua, 1);
+    luaL_checktype(lua, 1, LUA_TSTRING);
+    const char *addr_str = lua_tostring(lua, 1);
+
+    printf("connect\n");
+    printf("addr_str = %s\n", addr_str);
+    channel = (void*)strtouq(addr_str, NULL, 16);
+
+    printf("channel %p\n", channel);
+    // XXX
+    lua_pushboolean(lua, 1);
+
+    return 1;
+}
+
+static int pop(lua_State *lua) {
+    lua_pushstring(lua, (char*)channel->data);
+    return 1;
+}
+
+static int push(lua_State *lua) {
+    check_argsnum(lua, 1);
+    luaL_checktype(lua, 1, LUA_TSTRING);
+    const char * str = lua_tostring(lua, 1);
+
+    printf("push\n");
+    printf("str = %s\n", str);
+    printf("channel %p\n", channel);
+    /*printf("magic = %s\n", channel->magic);*/
+
+    /*strcpy((char*)channel->data, str);*/
+    return 0;
+}
+
+static int empty(lua_State *lua) {
+    return 0;
+}
+
 int register_module(lua_State *lua) {
     static const struct luaL_Reg functions[] =
     {
         // {{{
-        {"new", diamond_and_square_new},
+        {"init", init},
+        {"deinit", deinit},
+        {"connect", connect},
+        {"pop", pop},
+        {"push", push},
+        {"empty", empty},
         {NULL, NULL}
         // }}}
     };
@@ -57,10 +140,7 @@ int register_module(lua_State *lua) {
     return 1; // что возвращает?
 }
 
-static int diamond_and_square_get_as_string(lua_State *lua) {
-    return 0;
-}
-
+/*
 static const struct luaL_Reg DiamondSquare_methods[] =
 {
     // {{{
@@ -77,11 +157,13 @@ static const struct luaL_Reg DiamondSquare_methods[] =
     {NULL, NULL}
     // }}}
 };
+*/
 
-extern int luaopen_diamond_and_square(lua_State *lua) {
-    register_methods(lua, "_DiamondSquare", DiamondSquare_methods);
-    printf("diamond&square module was opened [%s]\n", stack_dump(lua));
-    srand(time(NULL));
+extern int luaopen_messenger(lua_State *lua) {
+    /*register_methods(lua, "_DiamondSquare", DiamondSquare_methods);*/
+    printf("messenger module was opened [%s]\n", stack_dump(lua));
+    /*srand(time(NULL));*/
+    channel = NULL;
     return register_module(lua);
 }
 
