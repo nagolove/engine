@@ -91,13 +91,14 @@ make_things()
 
     # Что значит $@ ?? Передача параметра функции?
     echo $@
-    #pushd scenes/$@
     pushd scenes/$1
     echo "mode: $build_mode"
     # проверяю вызов команды сборки на успешность завершения
-    if ! make config=$build_mode; then
-        echo "C module not compiled."
-        exit
+    if [ -f Makefile ]; then
+        if ! make config=$build_mode; then
+            echo "C module not compiled."
+            exit
+        fi
     fi
     popd
 
