@@ -103,6 +103,11 @@ local record DiamonAndSquare
     -- Устанавливает размер одного квадратика карты в пикселях. 
     -- Вызывается до send2render()
     setRez: function(DiamonAndSquare, rez: integer)
+
+    -- Указать размеры окна вывода. По умолчанию равны размеру экрана.
+    setViewport: function(
+        DiamonAndSquare, x: number, y: number, w: number, h: number
+    )
 end
 
 local DiamonAndSquare_mt: metatable<DiamonAndSquare> = {
@@ -213,6 +218,14 @@ function DiamonAndSquare:setRez(rez: integer)
     self.pipeline:openPushAndClose(
         self.renderobj_name,
         'set_rez', self.rez
+    )
+end
+
+function DiamonAndSquare:setViewport(
+    x: number, y: number, w: number, h: number
+)
+    self.pipeline:openPushAndClose(
+        self.renderobj_name, 'set_view_port', x, y, w, h
     )
 end
 
