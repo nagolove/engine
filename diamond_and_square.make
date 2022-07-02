@@ -14,17 +14,17 @@ ifeq ($(config),debug)
   RESCOMP = windres
   TARGETDIR = .
   TARGET = $(TARGETDIR)/diamond_and_square.so
-  OBJDIR = obj/Debug
-  DEFINES += -DDEBUG
+  OBJDIR = obj/Debug/diamond_and_square
+  DEFINES +=
   INCLUDES += -I/usr/include/luajit-2.1 -I../../projects/Chipmunk2D/include -I../lua_capi
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -fPIC -g -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -fPIC -g -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -llua5.1 -lchipmunk -lmem_guard -llua_tools
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L../../projects/Chipmunk2D/src -L../c_guard -L../lua_capi -shared -Wl,-soname=diamond_and_square.so
+  ALL_LDFLAGS += $(LDFLAGS) -L../../projects/Chipmunk2D/src -L../c_guard -L../lua_capi -shared -Wl,-soname=diamond_and_square.so -s
   LINKCMD = $(CC) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -41,13 +41,13 @@ ifeq ($(config),release)
   RESCOMP = windres
   TARGETDIR = .
   TARGET = $(TARGETDIR)/diamond_and_square.so
-  OBJDIR = obj/Release
-  DEFINES += -DNDEBUG
+  OBJDIR = obj/Release/diamond_and_square
+  DEFINES +=
   INCLUDES += -I/usr/include/luajit-2.1 -I../../projects/Chipmunk2D/include -I../lua_capi
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2 -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O2 -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -llua5.1 -lchipmunk -lmem_guard -llua_tools
   LDDEPS +=

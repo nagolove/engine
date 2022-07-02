@@ -10,12 +10,14 @@ endif
 
 ifeq ($(config),debug)
   diamond_and_square_config = debug
+  messenger_config = debug
 endif
 ifeq ($(config),release)
   diamond_and_square_config = release
+  messenger_config = release
 endif
 
-PROJECTS := diamond_and_square
+PROJECTS := diamond_and_square messenger
 
 .PHONY: all clean help $(PROJECTS) 
 
@@ -27,8 +29,15 @@ ifneq (,$(diamond_and_square_config))
 	@${MAKE} --no-print-directory -C . -f diamond_and_square.make config=$(diamond_and_square_config)
 endif
 
+messenger:
+ifneq (,$(messenger_config))
+	@echo "==== Building messenger ($(messenger_config)) ===="
+	@${MAKE} --no-print-directory -C . -f messenger.make config=$(messenger_config)
+endif
+
 clean:
 	@${MAKE} --no-print-directory -C . -f diamond_and_square.make clean
+	@${MAKE} --no-print-directory -C . -f messenger.make clean
 
 help:
 	@echo "Usage: make [config=name] [target]"
@@ -41,5 +50,6 @@ help:
 	@echo "   all (default)"
 	@echo "   clean"
 	@echo "   diamond_and_square"
+	@echo "   messenger"
 	@echo ""
 	@echo "For more information, see https://github.com/premake/premake-core/wiki"
