@@ -37,7 +37,9 @@ workspace "xcaustic"
     project "diamond_and_square"
         files { "**.h", "diamond_and_square.c" }
         --links { "lua5.1" }
-
+    project "messenger"
+        files { "**.h", "messenger.c" }
+        --links { "lua5.1" }
 
     filter "configurations:Debug"
     defines { "DEBUG" }
