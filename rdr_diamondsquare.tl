@@ -41,8 +41,10 @@ local canvasSize = 512 -- in pixels
 -- Условие качественного тайлинга
 assert(canvasSize % rez == 0, "canvasSize % rez == 0")
 
-local font = gr.newFont(64 * 2)
+local font = gr.newFont(64 * 1)
+local font_color = {0, 0, 0.7, 1}
 local format = string.format
+
 local type Drawer = function(camx: integer, camy: integer): boolean
 local drawlist: {Drawer} = {}
 
@@ -155,7 +157,7 @@ local function bake_and_save_canvas(
     sub_draw(i1, i2, j1, j2, -rez, -rez) 
 
     local prevfont = gr.getFont()
-    gr.setColor{1, 0, 0, 1}
+    gr.setColor(font_color)
     gr.setFont(font)
 
     local ij_str = format("(%d-%d,%d-%d)", i1, i2, j1, j2)
@@ -178,6 +180,7 @@ local enum Command
     "set_position"      -- установить координаты рисования
     "flush"             -- рисовать
     "set_rez"           -- установить размер квадратика поля
+    "set_view_port"     -- установить размер окна вывода
 end
 
 local cmd_circle_buf: {Command} = {}
@@ -367,6 +370,20 @@ local scrw, scrh = gr.getDimensions()
 -- Часть экрана, видимая зрителю.
 local view_port = {0, 0, scrw, scrh}
 
+function commands.set_view_port(): boolean
+    view_port[1] = ceil(graphic_command_channel:demand() as number)
+    view_port[2] = ceil(graphic_command_channel:demand() as number)
+    view_port[3] = ceil(graphic_command_channel:demand() as number)
+    view_port[4] = ceil(graphic_command_channel:demand() as number)
+    assert(
+        type(view_port[1]) == 'number' and
+        type(view_port[2]) == 'number' and
+        type(view_port[3]) == 'number' and
+        type(view_port[4]) == 'number'
+    )
+    return false
+end
+
 -- Рисовать карту из холста.
 function commands.flush(): boolean
     local camx = ceil(graphic_command_channel:demand() as number)
@@ -380,6 +397,7 @@ function commands.flush(): boolean
         view_port[3] + camx,
         view_port[4] + camy,
     }
+
     local index_i = ceil(local_view_port[1] / canvasSize)
     local index_j = ceil(local_view_port[2] / canvasSize)
 
@@ -433,6 +451,12 @@ function commands.flush(): boolean
 
     --print('i_poses', inspect(i_poses))
     --print('j_poses', inspect(j_poses))
+    gr.setColor{0, 0, 0, 1}
+    gr.rectangle(
+        'line', 
+        local_view_port[1] - w / 2, local_view_port[2] - w / 2, 
+        local_view_port[3] - w / 2, local_view_port[4] - h / 2
+    )
 
     return false
 end
