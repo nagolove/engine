@@ -76,6 +76,7 @@ return {
     include = {
         --"scenes/empty/*.tl",
         --"scenes/empty_mt/*.tl",
+        "scenes/messenger/*.tl",
         --"scenes/mt_coro/*.tl",
         --"scenes/chipmunk_mt/*.tl",
         --"scenes/lua_capi/*.tl",
