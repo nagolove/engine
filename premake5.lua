@@ -41,7 +41,7 @@ workspace "xcaustic"
         files { "**.h", "messenger.c" }
         
     project "messenger2"
-        files { "**.h", "messenger.c" }
+        files { "**.h", "messenger2.c" }
         includedirs { "/usr/include/SDL2" }
         links { "pthread", "SDL2" }
         buildoptions { "-D_REENTRANT" }
