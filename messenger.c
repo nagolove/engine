@@ -61,6 +61,7 @@ static int init(lua_State *lua) {
     void *ptr = mmap(
             NULL, size, PROT_READ | PROT_WRITE, 
             MAP_ANONYMOUS | MAP_SHARED,
+            /*MAP_ANONYMOUS | MAP_SHARED | MAP_POPULATE,*/
             -1, 0
     );
 
