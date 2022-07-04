@@ -3,7 +3,8 @@ local record Messenger
         push: function(Channel, value: any)
         pop: function(Channel): any
     end
-    new: function(): Channel
+    -- Создание нового или возврат существующего канала.
+    new: function(name: string): Channel
 end
 
 return Messenger
