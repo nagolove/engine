@@ -63,13 +63,11 @@ return {
     --source_dir = "src",
     --build_dir = "app",
     include_dir = {
-        --"ddd",
-        --"ddd/target/debug",
-        "lib",
-        "src",
         "include",
 
         "scenes/t80/",
+        "scenes/t80_tanks_bench/",
+
         --"scenes/lua_capi/",
         --"scenes/sri/",
     },
@@ -85,7 +83,10 @@ return {
         "*.tl",
 
         --"scenes/sri/*.tl",
+        
         "scenes/t80/*.tl",
+        "scenes/t80_tanks_bench/*.tl",
+
         --"scenes/diamond_square/*.tl",
         --'scenes/colored_text_transform_mt/*.tl',
         --'scenes/textured_quad/*.tl',
