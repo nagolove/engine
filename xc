@@ -64,7 +64,7 @@ make_things()
             newparams+=("$i")
         fi
     done
-   
+
     # Установка новых аргуметов функции
     set -- "${newparams[@]}" 
 
@@ -118,14 +118,15 @@ make_things()
         separate_line
         
         if [[ "$use_jit" == "true" ]] ; then
-            gdb -ex run --args love . "$@"
-            #echo "jit"
+            echo "using jit"
+            #gdb -ex run --args love . "$@"
+            gdb -ex run --args ~/projects/love/src/.libs/love . "$@"
         else
             #~/projects/love_nojit/src/.libs/love . "$@"
             #gdb -ex run --args ~/projects/love_nojit/src/.libs/love . t80 
 
+            echo "no using jit"
             gdb -ex run --args ~/projects/love_nojit/src/.libs/love . "$@"
-            #echo "nojit"
         fi
     else
         echo 'not compiled.'
