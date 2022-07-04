@@ -87,28 +87,30 @@ typedef struct {
     int reg_index;
 } Channel;
 
-/*int channels_num;*/
-/*Channel *channels[MAX_CHANNELS_NUM] = {0, };*/
-/*SDL_mutex *channels_mut = NULL;*/
+typedef struct {
+    int channels_num;
+    Channel *channels[MAX_CHANNELS_NUM];
+    SDL_mutex *channels_mut;
+} State;
 
-static int channels_num;
-static Channel *channels[MAX_CHANNELS_NUM] = {0, };
-static SDL_mutex *channels_mut = NULL;
+State *state = NULL;
 
-Channel *find(const char *name) {
-    LOG("find:\n");
-    LOG("channels_num %d\n", channels_num);
+Channel *find_channel(const char *name) {
+    assert(state && "state == NULL");
+    LOG("find_channel:\n");
+    LOG("channels_num %d\n", state->channels_num);
     LOG("name %s\n", name);
-    for(int i = 0; i < channels_num; i++) {
-        LOG("channels[i]->name %s\n", channels[i]->name);
-        if (!strcmp(name, channels[i]->name)) {
-            return channels[i];
+    for(int i = 0; i < state->channels_num; i++) {
+        LOG("channels[i]->name %s\n", state->channels[i]->name);
+        if (!strcmp(name, state->channels[i]->name)) {
+            return state->channels[i];
         }
     }
     return NULL;
 }
 
-void init(lua_State *lua, const char *chan_name) {
+void channel_new(lua_State *lua, const char *chan_name) {
+    LOG("channel_new:\n")
     // [.., ]
     Channel *chan = lua_newuserdata(lua, sizeof(Channel));
     // [.., {ud}]
@@ -122,6 +124,7 @@ void init(lua_State *lua, const char *chan_name) {
     lua_pushvalue(lua, -1);
     // [... {ud}, {ud}]
     chan->reg_index = luaL_ref(lua, LUA_REGISTRYINDEX);
+    LOG("chan->reg_index = %d\n", chan->reg_index);
     // [... {ud}]
 
     chan->mut = SDL_CreateMutex();
@@ -133,10 +136,14 @@ void init(lua_State *lua, const char *chan_name) {
     chan->sent = 0;
     chan->received = 0;
     strcpy(chan->name, chan_name);
-    channels[channels_num++] = chan;
+    assert(state && "state == NULL");
+    state->channels[state->channels_num++] = chan;
+
+    LOG("channel_new [%s]\n", stack_dump(lua));
 }
 
 static int new(lua_State *lua) {
+    assert(state);
     const char *chan_name = luaL_checkstring(lua, 1);
 
     if (strlen(chan_name) >= MAX_NAME_LEN) {
@@ -153,18 +160,36 @@ static int new(lua_State *lua) {
 
     // Добавить проверку на превышение количества доступных каналов.
 
-    SDL_LockMutex(channels_mut);
+    SDL_LockMutex(state->channels_mut);
 
-    Channel *chan = find(chan_name);
+    Channel *chan = find_channel(chan_name);
     if (chan) {
+        LOG("chan->reg_index = %d\n", chan->reg_index);
         lua_rawgeti(lua, LUA_REGISTRYINDEX, chan->reg_index);
         // [.., {ud}]
     } else {
-        init(lua, chan_name);
+        channel_new(lua, chan_name);
     }
 
-    SDL_UnlockMutex(channels_mut);
+    SDL_UnlockMutex(state->channels_mut);
+    LOG("new [%s]\n", stack_dump(lua));
     return 1;
+}
+
+// XXX free() для state отсутствует
+static int init(lua_State *lua) {
+    // Закрывать мютекс?
+    
+    if (lua_islightuserdata(lua, 1)) {
+        state = lua_touserdata(lua, 1);
+        return 0;
+    } else {
+        state = calloc(1, sizeof(State));
+        state->channels_mut = SDL_CreateMutex();
+        state->channels_num = 0;
+        lua_pushlightuserdata(lua, state);
+        return 1;
+    }
 }
 
 int register_module(lua_State *lua) {
@@ -172,6 +197,7 @@ int register_module(lua_State *lua) {
     {
         // {{{
         {"new", new},
+        {"init", init},
         {NULL, NULL}
         // }}}
     };
@@ -200,7 +226,7 @@ static int channel_push(lua_State *lua) {
     LOG("channel name %s\n", chan->name);
     LOG("pushing %f\n", value);
     LOG("sent %d\n", chan->sent);
-    LOG("channels_num %d\n", channels_num);
+    LOG("channels_num %d\n", state->channels_num);
 
     chan->data[chan->sent++] = value;
     SDL_CondBroadcast(chan->cond);
@@ -210,11 +236,13 @@ static int channel_push(lua_State *lua) {
 }
 
 static int channel_pop(lua_State *lua) {
+    assert(state && "state == NULL");
     Channel *chan = (Channel*)luaL_checkudata(lua, 1, "_Channel");
 
+    LOG("----------------------------\n");
     LOG("channel_pop:\n");
     LOG("channel name %s\n", chan->name);
-    LOG("channels_num %d\n", channels_num);
+    LOG("channels_num %d\n", state->channels_num);
 
     SDL_LockMutex(chan->mut);
 
@@ -234,19 +262,21 @@ static int channel_pop(lua_State *lua) {
     SDL_CondBroadcast(chan->cond);
 
     SDL_UnlockMutex(chan->mut);
+    LOG("----------------------------\n");
     return 1;
 }
 
 static int channel_finalize(lua_State *lua) {
+    assert(state);
     Channel *chan = (Channel*)luaL_checkudata(lua, 1, "_Channel");
 
     LOG("channel '%s' finalizatioin\n", chan->name);
 
-    for(int i = 0; i < channels_num; ++i) {
-        if (channels[i] == chan) {
+    for(int i = 0; i < state->channels_num; ++i) {
+        if (state->channels[i] == chan) {
             int k = i;
-            for(int j = i + 1; j < channels_num; j++) {
-                channels[k++] = channels[j];
+            for(int j = i + 1; j < state->channels_num; j++) {
+                state->channels[k++] = state->channels[j];
             }
         }
     }
@@ -270,9 +300,9 @@ static const struct luaL_Reg Channel_methods[] =
 
 extern int luaopen_messenger2(lua_State *lua) {
     register_methods(lua, "_Channel", Channel_methods);
-    printf("messenger2 module was opened [%s]\n", stack_dump(lua));
-    channels_num = 0;
-    channels_mut = SDL_CreateMutex();
+    LOG("messenger2 module was opened [%s]\n", stack_dump(lua));
+    LOG("lua = %p\n", lua);
+    state = NULL;
     return register_module(lua);
 }
 
