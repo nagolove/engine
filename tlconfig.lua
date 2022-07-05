@@ -67,6 +67,7 @@ return {
 
         "scenes/t80/",
         "scenes/t80_tanks_bench/",
+        "scenes/t80_circle_moving/",
 
         --"scenes/lua_capi/",
         --"scenes/sri/",
@@ -86,6 +87,7 @@ return {
         
         "scenes/t80/*.tl",
         "scenes/t80_tanks_bench/*.tl",
+        "scenes/t80_circle_moving/*.tl",
 
         --"scenes/diamond_square/*.tl",
         --'scenes/colored_text_transform_mt/*.tl',
