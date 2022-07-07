@@ -1,14 +1,5 @@
 local record Messenger
-    --[[
-    record Channel
-        push: function(Channel, value: any)
-        pop: function(Channel): any
-    end
-    -- Создание нового или возврат существующего канала.
-    new: function(name: string): Channel
-    record State end
-    init: function(State): State
-    --]]
+
     record Channel end
     push: function(Channel, value: any)
     pop: function(Channel): any
@@ -18,9 +9,11 @@ local record Messenger
     free: function(ch: Channel)
 
     record State end
+
     -- Инициализация общего состояния для всех копий библиотеки
     -- (для всех потоков).
-    init: function(State): State
+    init_messenger: function(State): State
+    free_messenger: function()
     --]]
 end
 
