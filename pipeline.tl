@@ -492,10 +492,13 @@ function Pipeline:getDimensions(): integer, integer
     graphic_query_channel:supply("getDimensions")
     local x: integer = floor(graphic_query_res_channel:demand() as number)
     local y: integer = floor(graphic_query_res_channel:demand() as number)
+    --local x: integer = floor(graphic_query_res_channel:pop() as number)
+    --local y: integer = floor(graphic_query_res_channel:pop() as number)
     --[[
     local dims = self.graphic_info_channel:peek() as {integer}
     return dims[1], dims[2]
     --]]
+    return x, y
 end
 
 function Pipeline:get_received_in_sec(): integer
