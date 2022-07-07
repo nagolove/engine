@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
 
 
 require('common')
@@ -10,6 +10,7 @@ local format = string.format
 local smatch = string.match
 local inspect = require('inspect')
 local resume = coroutine.resume
+local floor = math.floor
 
 
 
@@ -113,6 +114,8 @@ local Pipeline = {}
 
 
 
+
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -120,6 +123,8 @@ local Pipeline_mt = {
 
 
 local use_stamp = false
+
+
 
 
 
@@ -154,6 +159,27 @@ function Pipeline.new(scene_prefix)
    self.received_in_sec = 0
    self.current_func = ''
    self.forced = false
+
+
+   if love.graphics then
+      self.graphic_info_channel = love.thread.getChannel("graphic_info_channel")
+      self.graphic_info_channel:push({ love.graphics.getDimensions() })
+   end
+
+   local func, errmsg = load([[
+    local inspect = require 'inspect'
+    print('love', inspect(love))
+    --require love
+    --local gr = require love.graphics
+
+    --local graphic_info_channel = love.thread.getChannel("graphic_info_channel")
+    --graphic_info_channel:push({gr.getDimensions()})
+    love.thread.getChannel("graphic_info_channel"):push({love.graphics.getDimensions()})
+    ]])
+
+
+
+
    return self
 end
 
@@ -225,7 +251,7 @@ function Pipeline:waitForReady()
       local ready_s, cmd_name_s
 
       ready_s, cmd_name_s = smatch(is_ready, "(%l+)%s(%d+)")
-      self.cmd_num = math.floor(tonumber(cmd_name_s))
+      self.cmd_num = floor(tonumber(cmd_name_s))
 
       if not self.cmd_num then
          error("cmd_num is nil")
@@ -464,15 +490,18 @@ end
 
 function Pipeline:getDimensions()
    graphic_query_channel:supply("getDimensions")
-   local x = math.floor(graphic_query_res_channel:pop())
-   local y = math.floor(graphic_query_res_channel:pop())
-   return x, y
+   local x = floor(graphic_query_res_channel:demand())
+   local y = floor(graphic_query_res_channel:demand())
+
+
+
+
 end
 
 function Pipeline:get_received_in_sec()
    local bytes = graphic_received_in_sec_channel:peek()
    if bytes then
-      return math.floor(tonumber(bytes))
+      return floor(tonumber(bytes))
    else
       return 0
    end
