@@ -205,30 +205,57 @@ void channel_full_error(lua_State *lua, char *name, int maxsent) {
     lua_error(lua);
 }
 
+void push_number(lua_State *lua) {
+    Channel *chan = (Channel*)lua_touserdata(lua, 1);
+    double value = lua_tonumber(lua, 2);
+    SDL_LockMutex(chan->mut);
+
+    // Правильность + 1 в условии
+    if (chan->sent + 1 == chan->maxsent) {
+        channel_full_error(lua, chan->name, chan->maxsent);
+    }
+
+    LOG("channel name %s\n", chan->name);
+    LOG("pushing %f\n", value);
+    LOG("sent %d\n", chan->sent);
+    LOG("channels_num %d\n", state->channels_num);
+
+    /*chan->data[chan->sent++] = value;*/
+    chan->queue[chan->sent++] = value;
+    SDL_CondBroadcast(chan->cond);
+
+    SDL_UnlockMutex(chan->mut);
+}
+
+void push_string(lua_State *lua) {
+    Channel *chan = (Channel*)lua_touserdata(lua, 1);
+    double value = lua_tonumber(lua, 2);
+    SDL_LockMutex(chan->mut);
+
+    // Правильность + 1 в условии
+    if (chan->sent + 1 == chan->maxsent) {
+        channel_full_error(lua, chan->name, chan->maxsent);
+    }
+
+    LOG("channel name %s\n", chan->name);
+    LOG("pushing %f\n", value);
+    LOG("sent %d\n", chan->sent);
+    LOG("channels_num %d\n", state->channels_num);
+
+    /*chan->data[chan->sent++] = value;*/
+    chan->queue[chan->sent++] = value;
+    SDL_CondBroadcast(chan->cond);
+
+    SDL_UnlockMutex(chan->mut);
+}
+
 static int channel_push(lua_State *lua) {
     LOG("channel_push:\n");
-    Channel *chan = (Channel*)lua_touserdata(lua, 1);
 
     if (lua_isnumber(lua, 2)) {
-        double value = lua_tonumber(lua, 2);
-        SDL_LockMutex(chan->mut);
-
-        // Правильность + 1 в условии
-        if (chan->sent + 1 == chan->maxsent) {
-            channel_full_error(lua, chan->name, chan->maxsent);
-        }
-
-        LOG("channel name %s\n", chan->name);
-        LOG("pushing %f\n", value);
-        LOG("sent %d\n", chan->sent);
-        LOG("channels_num %d\n", state->channels_num);
-
-        /*chan->data[chan->sent++] = value;*/
-        chan->queue[chan->sent++] = value;
-        SDL_CondBroadcast(chan->cond);
-
-        SDL_UnlockMutex(chan->mut);
+        push_number(lua);
     } else if (lua_isstring(lua, 2)) {
+        push_string(lua);
     } else {
         char buf[128] = {0, };
         const char *tname = lua_typename(lua, lua_type(lua, 2));
