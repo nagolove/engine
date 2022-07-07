@@ -496,6 +496,9 @@ function Pipeline:getDimensions()
 
 
 
+
+
+   return x, y
 end
 
 function Pipeline:get_received_in_sec()
