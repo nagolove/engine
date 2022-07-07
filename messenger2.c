@@ -107,7 +107,7 @@ typedef struct {
 
 State *state = NULL;
 
-Channel *find_channel(const char *name) {
+Channel *channel_find(const char *name) {
     assert(state && "state == NULL");
     LOG("find_channel:\n");
     LOG("channels_num %d\n", state->channels_num);
@@ -121,7 +121,7 @@ Channel *find_channel(const char *name) {
     return NULL;
 }
 
-Channel *channel_new(lua_State *lua, const char *chan_name) {
+Channel *channel_allocate(lua_State *lua, const char *chan_name) {
     assert(state && "state == NULL");
     LOG("channel_new:\n")
     Channel *chan = calloc(1, sizeof(Channel));
@@ -148,7 +148,7 @@ Channel *channel_new(lua_State *lua, const char *chan_name) {
     return chan;
 }
 
-static int new(lua_State *lua) {
+static int channel_new(lua_State *lua) {
     assert(state);
     const char *chan_name = luaL_checkstring(lua, 1);
 
@@ -168,9 +168,9 @@ static int new(lua_State *lua) {
 
     SDL_LockMutex(state->channels_mut);
 
-    Channel *chan = find_channel(chan_name);
+    Channel *chan = channel_find(chan_name);
     if (!chan) {
-        chan = channel_new(lua, chan_name);
+        chan = channel_allocate(lua, chan_name);
     }
 
     lua_pushlightuserdata(lua, chan);
@@ -180,8 +180,24 @@ static int new(lua_State *lua) {
     return 1;
 }
 
-// XXX free() для state отсутствует
-static int init(lua_State *lua) {
+static int free_messenger(lua_State *lua) {
+    if (state) {
+        SDL_LockMutex(state->channels_mut);
+        for(int i = 0; state->channels_num; i++) {
+            SDL_DestroyMutex(state->channels[i]->mut);
+            free(state->channels[i]->queue);
+            free(state->channels[i]->number_data);
+            free(state->channels[i]->short_string_data);
+            free(state->channels[i]);
+        }
+        SDL_UnlockMutex(state->channels_mut);
+        SDL_DestroyMutex(state->channels_mut);
+        free(state);
+    }
+    return 0;
+}
+
+static int init_messenger(lua_State *lua) {
     // Имеет-ли здесб мьютекс какой-нибудь смысл?
     SDL_mutex *mut = SDL_CreateMutex();
     SDL_LockMutex(mut);
@@ -300,7 +316,7 @@ static int channel_pop(lua_State *lua) {
     return 1;
 }
 
-static int channel_finalize(lua_State *lua) {
+static int channel_free(lua_State *lua) {
     assert(state);
     Channel *chan = (Channel*)lua_touserdata(lua, 1);
 
@@ -341,11 +357,12 @@ int register_module(lua_State *lua) {
     static const struct luaL_Reg functions[] =
     {
         // {{{
-        {"new", new},
-        {"init", init},
+        {"init_messenger", init_messenger},
+        {"free_messenger", free_messenger},
+        {"new", channel_new},
+        {"free", channel_free},
         {"push", channel_push},
         {"pop", channel_pop},
-        {"free", channel_finalize},
         {NULL, NULL}
         // }}}
     };
