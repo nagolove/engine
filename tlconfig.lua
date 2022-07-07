@@ -65,8 +65,8 @@ return {
     include_dir = {
         "include",
 
-        "scenes/t80/",
-        "scenes/t80_tanks_bench/",
+        --"scenes/t80/",
+        --"scenes/t80_tanks_bench/",
         "scenes/t80_circle_moving/",
 
         --"scenes/lua_capi/",
@@ -75,7 +75,9 @@ return {
     include = {
         --"scenes/empty/*.tl",
         --"scenes/empty_mt/*.tl",
+        
         "scenes/messenger/*.tl",
+
         --"scenes/mt_coro/*.tl",
         --"scenes/chipmunk_mt/*.tl",
         --"scenes/lua_capi/*.tl",
