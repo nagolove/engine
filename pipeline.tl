@@ -10,6 +10,7 @@ local format = string.format
 local smatch = string.match
 local inspect = require 'inspect'
 local resume = coroutine.resume
+local floor = math.floor
 
 --local dprint = require 'debug_print'
 --local debug_print = dprint.debug_print
@@ -111,6 +112,8 @@ local type Pipeline = record
     received_bytes: integer
     received_in_sec: integer
     last_render: number
+
+    graphic_info_channel: love.thread.Channel
 end
 
 local Pipeline_mt: metatable<Pipeline> = {
@@ -129,6 +132,8 @@ local function timestamp(msg: string)
     print(colorize('%{blue}' .. prepared))
 end
 --]]
+
+--require love.graphics
 
 function Pipeline.new(scene_prefix: string): Pipeline
     local self: Pipeline = setmetatable({} as Pipeline, Pipeline_mt)
@@ -154,6 +159,27 @@ function Pipeline.new(scene_prefix: string): Pipeline
     self.received_in_sec = 0
     self.current_func = ''
     self.forced = false
+
+    -- Для Pipeline:getDimensions()
+    if love.graphics then
+        self.graphic_info_channel = love.thread.getChannel("graphic_info_channel")
+        self.graphic_info_channel:push({love.graphics.getDimensions()})
+    end
+
+    local func, errmsg = load([[
+    local inspect = require 'inspect'
+    print('love', inspect(love))
+    --require love
+    --local gr = require love.graphics
+
+    --local graphic_info_channel = love.thread.getChannel("graphic_info_channel")
+    --graphic_info_channel:push({gr.getDimensions()})
+    love.thread.getChannel("graphic_info_channel"):push({love.graphics.getDimensions()})
+    ]]) as (function, string)
+    --print('errmsg', errmsg)
+    --func()
+    --]]
+
     return self
 end
 
@@ -225,7 +251,7 @@ function Pipeline:waitForReady(): boolean
         local ready_s, cmd_name_s: string, string
 
         ready_s, cmd_name_s = smatch(is_ready, "(%l+)%s(%d+)")
-        self.cmd_num = math.floor(tonumber(cmd_name_s))
+        self.cmd_num = floor(tonumber(cmd_name_s))
 
         if not self.cmd_num then
             error("cmd_num is nil")
@@ -464,15 +490,18 @@ end
 
 function Pipeline:getDimensions(): integer, integer
     graphic_query_channel:supply("getDimensions")
-    local x: integer = math.floor(graphic_query_res_channel:pop() as number)
-    local y: integer = math.floor(graphic_query_res_channel:pop() as number)
-    return x, y
+    local x: integer = floor(graphic_query_res_channel:demand() as number)
+    local y: integer = floor(graphic_query_res_channel:demand() as number)
+    --[[
+    local dims = self.graphic_info_channel:peek() as {integer}
+    return dims[1], dims[2]
+    --]]
 end
 
 function Pipeline:get_received_in_sec(): integer
     local bytes = graphic_received_in_sec_channel:peek()
     if bytes then
-        return math.floor(tonumber(bytes))
+        return floor(tonumber(bytes))
     else
         return 0
     end
