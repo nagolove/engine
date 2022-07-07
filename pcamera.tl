@@ -69,6 +69,7 @@ local record Camera
     checkMovement: function(Camera, dx: number, dy: number)
     checkScale: function(Camera, dscale: number)
 
+    free: boolean
     screenW: number
     screenH: number
     pipeline: Pipeline
@@ -110,6 +111,7 @@ function Camera.new(
         self.x,
         self.y
     )
+    self.free = false
     self.pipeline:pushCodeFromFileRoot('camera', "rdr_camera.lua")
 
     -- {{{
@@ -189,24 +191,26 @@ function Camera:update(
     local cam_dx, cam_dy = 0., 0.
     local move = false
 
-    if px < self.bbox_pix.x then
-        cam_dx = self.bbox_pix.x - px
-        move = true
-    end
-    local right = self.bbox_pix.x + self.bbox_pix.w
-    if px > right then
-        cam_dx = px - right
-        move = true
-    end
+    if not self.free then
+        if px < self.bbox_pix.x then
+            cam_dx = self.bbox_pix.x - px
+            move = true
+        end
+        local right = self.bbox_pix.x + self.bbox_pix.w
+        if px > right then
+            cam_dx = px - right
+            move = true
+        end
 
-    if py < self.bbox_pix.y then
-        cam_dy = self.bbox_pix.y - py
-        move = true
-    end
-    local bottom = self.bbox_pix.y + self.bbox_pix.h
-    if py > bottom then
-        cam_dy = py - bottom
-        move = true
+        if py < self.bbox_pix.y then
+            cam_dy = self.bbox_pix.y - py
+            move = true
+        end
+        local bottom = self.bbox_pix.y + self.bbox_pix.h
+        if py > bottom then
+            cam_dy = py - bottom
+            move = true
+        end
     end
 
     --print('px, py', px, py)
