@@ -251,7 +251,7 @@ void push_number(lua_State *lua) {
 
 char *channel_get_string(Channel *ch, int index) {
     assert(ch && "Channel is NULL");
-    assert(index < ch->short_string_count);
+    assert(index <= ch->short_string_count);
     return &ch->short_string_data[(MAX_STR_LEN + 1) * index];
 }
 
@@ -296,6 +296,11 @@ void push_string(lua_State *lua) {
     const char *value = lua_tostring(lua, 2);
     SDL_LockMutex(chan->mut);
 
+    if (strlen(value) > MAX_STR_LEN) {
+        lua_pushstring(lua, "Too long string.\n");
+        lua_error(lua);
+    }
+
     if (chan->count == QUEUE_SIZE) {
         channel_error(lua, chan->name, "queue is full");
     }
@@ -321,7 +326,7 @@ void push_string(lua_State *lua) {
 }
 
 static int channel_push(lua_State *lua) {
-    LOG("channel_push:\n");
+    /*LOG("channel_push:\n");*/
 
     if (lua_isnumber(lua, 2)) {
         push_number(lua);
@@ -355,7 +360,7 @@ static int channel_pop(lua_State *lua) {
 
     SDL_LockMutex(chan->mut);
     if (chan->count == 0) {
-        LOG("preemptive pushing nil\n");
+        /*LOG("preemptive pushing nil\n");*/
         lua_pushnil(lua);
     } else {
         int8_t type = chan->queue[--chan->count];
@@ -443,7 +448,27 @@ int register_module(lua_State *lua) {
         {NULL, NULL}
         // }}}
     };
+
     luaL_register(lua, "messenger", functions);
+
+    // Добавление справочных констант.
+
+    lua_pushstring(lua, "MAX_STR_LEN");
+    lua_pushnumber(lua, MAX_STR_LEN);
+    lua_settable(lua, -3);
+
+    lua_pushstring(lua, "QUEUE_SIZE");
+    lua_pushnumber(lua, QUEUE_SIZE);
+    lua_settable(lua, -3);
+
+    lua_pushstring(lua, "MAX_NAME_LEN");
+    lua_pushnumber(lua, MAX_NAME_LEN);
+    lua_settable(lua, -3);
+
+    lua_pushstring(lua, "MAX_CHANNELS_NUM");
+    lua_pushnumber(lua, MAX_CHANNELS_NUM);
+    lua_settable(lua, -3);
+
     return 1; // что возвращает?
 }
 
