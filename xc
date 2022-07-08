@@ -76,7 +76,7 @@ make_things()
     echo -e "*.tl\nscenes/$1/*.tl" > tl_include.txt
 
     # Генерация lua кода из teal кода
-    tl_build="$TL build"
+    $TL build
     teal_result=$?
 
     #eval $TL --wdisable unused build && love . $1 $2 $3
