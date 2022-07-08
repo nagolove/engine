@@ -4,7 +4,7 @@
 
 # Возможные ключи:
 # --debug   собрать .so модули с отладочной информацией
-# --jit     запуск love собранной с luajit
+# --jit     запуск love с luajit
 
 ##### Some strict BASH rules:
 set -Eeuo pipefail
@@ -73,23 +73,16 @@ make_things()
         #echo "$i"
     #done
 
+    echo -e "*.tl\nscenes/$1/*.tl" > tl_include.txt
+
     # Генерация lua кода из teal кода
     tl_build="$TL build"
-    $tl_build
     teal_result=$?
 
-    #eval $TL build && love . $1 $2 $3
-    #eval $TL build && love . $1 $2 $3
-    #if test $Tl -eq 0; then
-    #$TL="tl build"
-    #echo "res"$t1
-    #echo $t1
     #eval $TL --wdisable unused build && love . $1 $2 $3
-    #tl build && nlove .
 
     separate_line
 
-    # Что значит $@ ?? Передача параметра функции?
     echo $@
     pushd scenes/$1
     echo "mode: $build_mode"
@@ -119,12 +112,8 @@ make_things()
         
         if [[ "$use_jit" == "true" ]] ; then
             echo "using jit"
-            #gdb -ex run --args love . "$@"
             gdb -ex run --args ~/projects/love/src/.libs/love . "$@"
         else
-            #~/projects/love_nojit/src/.libs/love . "$@"
-            #gdb -ex run --args ~/projects/love_nojit/src/.libs/love . t80 
-
             echo "no using jit"
             gdb -ex run --args ~/projects/love_nojit/src/.libs/love . "$@"
         fi
