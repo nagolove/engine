@@ -397,6 +397,8 @@ function size2human(n: integer): string
     return string.format("%d Kb", kilo)
 end
 
+-- Возвращает случайную строку длины len из чисел. 
+-- Подходит для имени файла.
 function randomFilenameStr(len: integer): string
     local s = ""
     len = len or 5
