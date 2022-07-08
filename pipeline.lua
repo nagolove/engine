@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local load = _tl_compat and _tl_compat.load or load; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
 
 
 require('common')
@@ -166,16 +166,16 @@ function Pipeline.new(scene_prefix)
       self.graphic_info_channel:push({ love.graphics.getDimensions() })
    end
 
-   local func, errmsg = load([[
-    local inspect = require 'inspect'
-    print('love', inspect(love))
-    --require love
-    --local gr = require love.graphics
 
-    --local graphic_info_channel = love.thread.getChannel("graphic_info_channel")
-    --graphic_info_channel:push({gr.getDimensions()})
-    love.thread.getChannel("graphic_info_channel"):push({love.graphics.getDimensions()})
-    ]])
+
+
+
+
+
+
+
+
+
 
 
 
