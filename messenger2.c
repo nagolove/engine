@@ -132,7 +132,7 @@ Channel *channel_allocate(lua_State *lua, const char *chan_name) {
     chan->mut = SDL_CreateMutex();
     chan->cond = SDL_CreateCond();
     chan->count = 0;
-    chan->queue = calloc(QUEUE_SIZE, sizeof(uint32_t));
+    chan->queue = calloc(QUEUE_SIZE, sizeof(int8_t));
     chan->number_data = calloc(QUEUE_SIZE, sizeof(double));
     chan->short_string_data = calloc(
             QUEUE_SIZE, (MAX_STR_LEN + 1) * sizeof(char)
@@ -271,13 +271,23 @@ void channel_print_numbers(Channel *ch) {
 
 static int channel_print_strings_l(lua_State *lua) {
     Channel *ch = lua_touserdata(lua, 1);
-    channel_print_strings(ch);
+    if (ch) {
+        channel_print_strings(ch);
+    } else {
+        lua_pushstring(lua, "No Channel userdata.\n");
+        lua_error(lua);
+    }
     return 0;
 }
 
 static int channel_print_numbers_l(lua_State *lua) {
     Channel *ch = lua_touserdata(lua, 1);
-    channel_print_numbers(ch);
+    if (ch) {
+        channel_print_numbers(ch);
+    } else {
+        lua_pushstring(lua, "No Channel userdata.\n");
+        lua_error(lua);
+    }
     return 0;
 }
 
@@ -348,19 +358,19 @@ static int channel_pop(lua_State *lua) {
         LOG("preemptive pushing nil\n");
         lua_pushnil(lua);
     } else {
-        uint32_t type = chan->queue[chan->sent--]; // Верно-ли работает?
+        int8_t type = chan->queue[--chan->count];
         if (type == TYPE_STRING) {
             if (chan->short_string_count == 0) {
                 channel_error(lua, chan->name, "string queue is empty");
             } else {
-                char *s = channel_get_string(chan, chan->short_string_count--);
+                char *s = channel_get_string(chan, --chan->short_string_count);
                 lua_pushstring(lua, s);
             }
         } else if (type == TYPE_NUMBER) {
             if (chan->number_count == 0) {
                 channel_error(lua, chan->name, "number queue is empty");
             } else {
-                lua_pushnumber(lua, chan->number_data[chan->number_count--]);
+                lua_pushnumber(lua, chan->number_data[--chan->number_count]);
             }
         } else {
             channel_error(lua, chan->name, "internal type error");
