@@ -14,7 +14,9 @@ local record Messenger
     -- (для всех потоков).
     init_messenger: function(State): State
     free_messenger: function()
-    --]]
+
+    channel_print_strings: function(Channel)
+    channel_print_numbers: function(Channel)
 end
 
 return Messenger
