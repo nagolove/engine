@@ -56,6 +56,45 @@ if is_windows then
 end
 --print("files", files)
 
+local default_include = {
+    --"scenes/empty/*.tl",
+    --"scenes/empty_mt/*.tl",
+    "scenes/messenger/*.tl",
+    --"scenes/mt_coro/*.tl",
+    --"scenes/chipmunk_mt/*.tl",
+    --"scenes/lua_capi/*.tl",
+    --"src/*.tl",
+    "*.tl",
+    --"scenes/sri/*.tl",
+    "scenes/t80/*.tl",
+    "scenes/t80_tanks_bench/*.tl",
+    "scenes/t80_circle_moving/*.tl",
+    --"scenes/diamond_square/*.tl",
+    --'scenes/colored_text_transform_mt/*.tl',
+    --'scenes/textured_quad/*.tl',
+    --'scenes/debug_print_mt/*.tl',
+    --'scenes/dynlib/*.tl',
+}
+
+local include_fname = "tl_include.txt"
+local current_include
+local ok, errmsg = pcall(function()
+    local file = io.open(include_fname, "r")
+    current_include = {}
+    for line in file:lines() do
+        table.insert(current_include, line)
+    end
+    file:close()
+end)
+
+if not ok then
+    print(string.format("Error in opening % with %s", include_fname, errmsg))
+end
+
+if not current_include then 
+    current_include = default_include
+end
+
 return {
     --skip_compat53 = true,
     --gen_target = "5.1",
@@ -72,31 +111,7 @@ return {
         --"scenes/lua_capi/",
         --"scenes/sri/",
     },
-    include = {
-        --"scenes/empty/*.tl",
-        --"scenes/empty_mt/*.tl",
-        
-        "scenes/messenger/*.tl",
-
-        --"scenes/mt_coro/*.tl",
-        --"scenes/chipmunk_mt/*.tl",
-        --"scenes/lua_capi/*.tl",
-
-        --"src/*.tl",
-        "*.tl",
-
-        --"scenes/sri/*.tl",
-        
-        "scenes/t80/*.tl",
-        "scenes/t80_tanks_bench/*.tl",
-        "scenes/t80_circle_moving/*.tl",
-
-        --"scenes/diamond_square/*.tl",
-        --'scenes/colored_text_transform_mt/*.tl',
-        --'scenes/textured_quad/*.tl',
-        --'scenes/debug_print_mt/*.tl',
-        --'scenes/dynlib/*.tl',
-    },
+    include = current_include,
     --files = files,
     exclude = {
     }
