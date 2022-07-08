@@ -22,6 +22,8 @@
 
 #include <SDL_thread.h>
 
+#include <stdatomic.h>
+
 #ifdef DEBUG
 // {{{
 
@@ -226,7 +228,6 @@ void push_number(lua_State *lua) {
     double value = lua_tonumber(lua, 2);
     SDL_LockMutex(chan->mut);
 
-    // Правильность + 1 в условии
     if (chan->count == QUEUE_SIZE) {
         channel_error(lua, chan->name, "queue is full");
     }
@@ -378,7 +379,7 @@ static int channel_pop(lua_State *lua) {
                 lua_pushnumber(lua, chan->number_data[--chan->number_count]);
             }
         } else {
-            channel_error(lua, chan->name, "internal type error");
+            channel_error(lua, chan->name, "pop: internal type error");
         }
     }
     SDL_CondBroadcast(chan->cond);
@@ -410,7 +411,6 @@ static int channel_free(lua_State *lua) {
         SDL_UnlockMutex(chan->mut);
         SDL_DestroyMutex(chan->mut);
         SDL_DestroyCond(chan->cond);
-        /*free(chan->data);*/
 
         for(int i = 0; i < state->channels_num; ++i) {
             if (state->channels[i] == chan) {
@@ -427,6 +427,108 @@ static int channel_free(lua_State *lua) {
     return 0;
 }
 
+static int channel_clear(lua_State *lua) {
+    assert(state);
+    Channel *chan = (Channel*)lua_touserdata(lua, 1);
+    SDL_LockMutex(chan->mut);
+    chan->cond = 0;
+    chan->number_count = 0;
+    chan->short_string_data = 0;
+#ifdef DEBUG
+    memset(chan->queue, 0, sizeof(int8_t) * QUEUE_SIZE);
+    memset(chan->number_data, 0, sizeof(double) * QUEUE_SIZE);
+    memset(
+            chan->short_string_data, 
+            0, 
+            sizeof(char) (MAX_STR_LEN + 1)* QUEUE_SIZE
+    );
+#endif
+    SDL_CondBroadcast(chan->cond);
+    SDL_UnlockMutex(chan->mut);
+    return 0;
+}
+
+static int channel_peek(lua_State *lua) {
+    assert(state);
+    Channel *chan = (Channel*)lua_touserdata(lua, 1);
+    SDL_LockMutex(chan->mut);
+
+    if (chan->count > 0) {
+        int8_t type = chan->queue[chan->count - 1];
+        if (type == TYPE_STRING) {
+            if (chan->short_string_count == 0) {
+                channel_error(lua, chan->name, "string queue is empty");
+            } else {
+                char *s = channel_get_string(chan, chan->short_string_count - 1);
+                lua_pushstring(lua, s);
+            }
+        } else if (type == TYPE_NUMBER) {
+            if (chan->number_count == 0) {
+                channel_error(lua, chan->name, "number queue is empty");
+            } else {
+                lua_pushnumber(lua, chan->number_data[chan->number_count - 1]);
+            }
+        } else {
+            channel_error(lua, chan->name, "clear: internal type error");
+        }
+    }
+
+    SDL_UnlockMutex(chan->mut);
+    return 1;
+}
+
+#define CHANNEL_DEMAND
+static int channel_demand(lua_State *lua) {
+    assert(state);
+    Channel *chan = (Channel*)lua_touserdata(lua, 1);
+    double timeout = lua_tonumber(lua, 2);
+
+#ifdef CHAHHEL_DEMAND
+    LOG("----------------------------\n");
+    LOG("channel_demand [%s]:\n", stack_dump(lua));
+    LOG("name %s\n", chan->name);
+    LOG("sent, received %d, %d\n", chan->sent, chan->received);
+    LOG("count %d\n", chan->count);
+    LOG("number_count %d\n", chan->number_count);
+    LOG("short_string_count %d\n", chan->short_string_count);
+#endif
+
+    SDL_LockMutex(chan->mut);
+
+    bool popped = false;
+    while (timeout > 0) {
+        if (chan->count == 0) {
+            lua_pushnil(lua);
+            popped = false;
+        } else {
+            int8_t type = chan->queue[--chan->count];
+            if (type == TYPE_STRING) {
+                if (chan->short_string_count == 0) {
+                    channel_error(lua, chan->name, "string queue is empty");
+                    popped = true;
+                } else {
+                    char *s = channel_get_string(chan, --chan->short_string_count);
+                    lua_pushstring(lua, s);
+                }
+            } else if (type == TYPE_NUMBER) {
+                if (chan->number_count == 0) {
+                    channel_error(lua, chan->name, "number queue is empty");
+                } else {
+                    lua_pushnumber(lua, chan->number_data[--chan->number_count]);
+                    popped = true;
+                }
+            } else {
+                channel_error(lua, chan->name, "pop: internal type error");
+            }
+        }
+    }
+
+    SDL_UnlockMutex(chan->mut);
+
+    return 1;
+}
+#undef CHANNEL_DEMAND
+
 int register_module(lua_State *lua) {
     static const struct luaL_Reg functions[] =
     {
@@ -439,6 +541,9 @@ int register_module(lua_State *lua) {
 
         {"push", channel_push},
         {"pop", channel_pop},
+        {"clear", channel_clear},
+        {"peek", channel_peek},
+        {"demand", channel_demand},
 
         // DEBUGGING STUFF
         // Напечатать всю очередь строк
@@ -451,7 +556,7 @@ int register_module(lua_State *lua) {
 
     luaL_register(lua, "messenger", functions);
 
-    // Добавление справочных констант.
+    // {{{ Добавление справочных констант.
 
     lua_pushstring(lua, "MAX_STR_LEN");
     lua_pushnumber(lua, MAX_STR_LEN);
@@ -468,6 +573,7 @@ int register_module(lua_State *lua) {
     lua_pushstring(lua, "MAX_CHANNELS_NUM");
     lua_pushnumber(lua, MAX_CHANNELS_NUM);
     lua_settable(lua, -3);
+    // }}}
 
     return 1; // что возвращает?
 }
@@ -476,6 +582,10 @@ extern int luaopen_messenger2(lua_State *lua) {
     LOG("messenger2 module was opened [%s]\n", stack_dump(lua));
     LOG("lua = %p\n", lua);
     state = NULL;
+
+    /*atomic_int bugaga = 0;*/
+    /*printf("%d\n", bugaga);*/
+
     return register_module(lua);
 }
 
