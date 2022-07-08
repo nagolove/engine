@@ -1,6 +1,11 @@
 local record Messenger
+    MAX_STR_LEN: integer
+    QUEUE_SIZE: integer
+    MAX_NAME_LEN: integer
+    MAX_CHANNELS_NUM: integer
 
     record Channel end
+
     push: function(Channel, value: any)
     pop: function(Channel): any
 
