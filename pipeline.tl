@@ -166,16 +166,16 @@ function Pipeline.new(scene_prefix: string): Pipeline
         self.graphic_info_channel:push({love.graphics.getDimensions()})
     end
 
-    local func, errmsg = load([[
-    local inspect = require 'inspect'
-    print('love', inspect(love))
+    --local func, errmsg = load([[
+    --local inspect = require 'inspect'
+    --print('love', inspect(love))
     --require love
     --local gr = require love.graphics
 
     --local graphic_info_channel = love.thread.getChannel("graphic_info_channel")
     --graphic_info_channel:push({gr.getDimensions()})
-    love.thread.getChannel("graphic_info_channel"):push({love.graphics.getDimensions()})
-    ]]) as (function, string)
+    --love.thread.getChannel("graphic_info_channel"):push({love.graphics.getDimensions()})
+    --]]) as (function, string)
     --print('errmsg', errmsg)
     --func()
     --]]
