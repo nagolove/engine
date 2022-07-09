@@ -16,11 +16,12 @@
 #include <lualib.h>
 // }}} 
 
-#include "SDL_mutex.h"
-#include "SDL_stdinc.h"
-#include "lua_tools.h"
-
+#include <SDL_mutex.h>
+#include <SDL_stdinc.h>
 #include <SDL_thread.h>
+#include <SDL_timer.h>
+
+#include "lua_tools.h"
 
 #include <stdatomic.h>
 
@@ -382,6 +383,7 @@ static int channel_pop(lua_State *lua) {
             channel_error(lua, chan->name, "pop: internal type error");
         }
     }
+    chan->received++;
     SDL_CondBroadcast(chan->cond);
     SDL_UnlockMutex(chan->mut);
 
@@ -440,7 +442,7 @@ static int channel_clear(lua_State *lua) {
     memset(
             chan->short_string_data, 
             0, 
-            sizeof(char) (MAX_STR_LEN + 1)* QUEUE_SIZE
+            sizeof(char) * (MAX_STR_LEN + 1)* QUEUE_SIZE
     );
 #endif
     SDL_CondBroadcast(chan->cond);
@@ -477,22 +479,45 @@ static int channel_peek(lua_State *lua) {
     return 1;
 }
 
-#define CHANNEL_DEMAND
-static int channel_demand(lua_State *lua) {
-    assert(state);
-    Channel *chan = (Channel*)lua_touserdata(lua, 1);
-    double timeout = lua_tonumber(lua, 2);
+void channel_demand_no_timeout(lua_State *lua, Channel *chan) {
+    SDL_LockMutex(chan->mut);
 
-#ifdef CHAHHEL_DEMAND
-    LOG("----------------------------\n");
-    LOG("channel_demand [%s]:\n", stack_dump(lua));
-    LOG("name %s\n", chan->name);
-    LOG("sent, received %d, %d\n", chan->sent, chan->received);
-    LOG("count %d\n", chan->count);
-    LOG("number_count %d\n", chan->number_count);
-    LOG("short_string_count %d\n", chan->short_string_count);
-#endif
+    bool popped = false;
+    while (!popped) {
+        if (chan->count == 0) {
+            popped = false; // XXX Ждать еще или прервать цикл?
+        } else {
+            int8_t type = chan->queue[--chan->count];
+            if (type == TYPE_STRING) {
+                if (chan->short_string_count == 0) {
+                    channel_error(lua, chan->name, "string queue is empty");
+                    popped = true;
+                } else {
+                    char *s = channel_get_string(chan, --chan->short_string_count);
+                    lua_pushstring(lua, s);
+                }
+            } else if (type == TYPE_NUMBER) {
+                if (chan->number_count == 0) {
+                    channel_error(lua, chan->name, "number queue is empty");
+                } else {
+                    lua_pushnumber(lua, chan->number_data[--chan->number_count]);
+                    popped = true;
+                }
+            } else {
+                channel_error(lua, chan->name, "pop: internal type error");
+            }
+        }
 
+        if (popped) {
+            break;
+        }
+
+    }
+
+    SDL_UnlockMutex(chan->mut);
+}
+
+void channel_demand_timeout(lua_State *lua, Channel *chan, double timeout) {
     SDL_LockMutex(chan->mut);
 
     bool popped = false;
@@ -521,13 +546,74 @@ static int channel_demand(lua_State *lua) {
                 channel_error(lua, chan->name, "pop: internal type error");
             }
         }
+
+        if (popped) {
+            break;
+        }
+
+        uint64_t start = SDL_GetTicks64();
+        SDL_CondWaitTimeout(chan->cond, chan->mut, timeout * 1000);
+        uint64_t stop = SDL_GetTicks64();
+
+        timeout -= (stop - start);
     }
 
     SDL_UnlockMutex(chan->mut);
+}
+
+#define CHANNEL_DEMAND
+static int channel_demand(lua_State *lua) {
+    assert(state);
+    Channel *chan = (Channel*)lua_touserdata(lua, 1);
+
+#ifdef CHAHHEL_DEMAND
+    LOG("----------------------------\n");
+    LOG("channel_demand [%s]:\n", stack_dump(lua));
+    LOG("name %s\n", chan->name);
+    LOG("sent, received %d, %d\n", chan->sent, chan->received);
+    LOG("count %d\n", chan->count);
+    LOG("number_count %d\n", chan->number_count);
+    LOG("short_string_count %d\n", chan->short_string_count);
+#endif
+
+    if (lua_isnumber(lua, 2)) {
+        double timeout = lua_tonumber(lua, 2);
+        channel_demand_timeout(lua, chan, timeout);
+    } else {
+        channel_demand_no_timeout(lua, chan);
+    }
 
     return 1;
 }
 #undef CHANNEL_DEMAND
+
+int static channel_has_read(lua_State *lua) {
+    Channel *chan = (Channel*)lua_touserdata(lua, 1);
+    if (!chan) {
+        lua_pushstring(lua, "channel_has_read: channel is nil");
+        lua_error(lua);
+    }
+
+    if (!lua_isnumber(lua, 2)) {
+        lua_pushstring(lua, "channel_has_read: 'timeout' argument is nil");
+        lua_error(lua);
+    }
+
+    double id = lua_tonumber(lua, 2);
+    bool value = chan->received >= floor(id);
+    lua_pushboolean(lua, value);
+    return 1;
+}
+
+int static channel_get_count(lua_State *lua) {
+    Channel *chan = (Channel*)lua_touserdata(lua, 1);
+    if (!chan) {
+        lua_pushstring(lua, "channel_has_read: channel is nil");
+        lua_error(lua);
+    }
+    lua_pushnumber(lua, chan->count);
+    return 1;
+}
 
 int register_module(lua_State *lua) {
     static const struct luaL_Reg functions[] =
@@ -544,6 +630,8 @@ int register_module(lua_State *lua) {
         {"clear", channel_clear},
         {"peek", channel_peek},
         {"demand", channel_demand},
+        {"has_read", channel_has_read},
+        {"get_count", channel_get_count},
 
         // DEBUGGING STUFF
         // Напечатать всю очередь строк
