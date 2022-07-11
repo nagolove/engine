@@ -73,6 +73,8 @@ typedef struct {
     SDL_mutex *channels_mut;
 } State;
 
+typedef double ID;
+
 /*
 // {{{
     SDL_DestroyMutex(mutex);
@@ -135,7 +137,7 @@ Channel *channel_allocate(lua_State *lua, const char *chan_name) {
     chan->mut = SDL_CreateMutex();
     chan->cond = SDL_CreateCond();
     chan->count = 0;
-    chan->queue = calloc(QUEUE_SIZE, sizeof(int8_t));
+    chan->queue = calloc(QUEUE_SIZE, sizeof(chan->queue[0]));
     chan->number_data = calloc(QUEUE_SIZE, sizeof(double));
     chan->short_string_data = calloc(
             QUEUE_SIZE, (MAX_STR_LEN + 1) * sizeof(char)
@@ -224,7 +226,7 @@ void channel_error(lua_State *lua, char *name, char *msg) {
     lua_error(lua);
 }
 
-void push_number(lua_State *lua) {
+ID push_number(lua_State *lua) {
     Channel *chan = (Channel*)lua_touserdata(lua, 1);
     double value = lua_tonumber(lua, 2);
     SDL_LockMutex(chan->mut);
@@ -246,9 +248,12 @@ void push_number(lua_State *lua) {
 
     chan->number_data[chan->number_count++] = value;
     chan->queue[chan->count++] = TYPE_NUMBER;
+    chan->sent++;
 
     SDL_CondBroadcast(chan->cond);
     SDL_UnlockMutex(chan->mut);
+
+    return chan->sent;
 }
 
 char *channel_get_string(Channel *ch, int index) {
@@ -293,7 +298,7 @@ static int channel_print_numbers_l(lua_State *lua) {
     return 0;
 }
 
-void push_string(lua_State *lua) {
+ID push_string(lua_State *lua) {
     Channel *chan = (Channel*)lua_touserdata(lua, 1);
     const char *value = lua_tostring(lua, 2);
     SDL_LockMutex(chan->mut);
@@ -322,18 +327,22 @@ void push_string(lua_State *lua) {
     strcpy(&chan->short_string_data[index], value);
     chan->short_string_count++;
     chan->queue[chan->count++] = TYPE_STRING;
+    chan->sent++;
 
     SDL_CondBroadcast(chan->cond);
     SDL_UnlockMutex(chan->mut);
+
+    return chan->sent;
 }
 
 static int channel_push(lua_State *lua) {
     /*LOG("channel_push:\n");*/
 
+    ID id = -1;
     if (lua_isnumber(lua, 2)) {
-        push_number(lua);
+        id = push_number(lua);
     } else if (lua_isstring(lua, 2)) {
-        push_string(lua);
+        id = push_string(lua);
     } else {
         char buf[128] = {0, };
         const char *tname = lua_typename(lua, lua_type(lua, 2));
@@ -342,7 +351,9 @@ static int channel_push(lua_State *lua) {
         lua_error(lua);
     }
 
-    return 0;
+    lua_pushnumber(lua, id);
+
+    return 1;
 }
 
 #define CHANNEL_POP
@@ -432,17 +443,20 @@ static int channel_free(lua_State *lua) {
 static int channel_clear(lua_State *lua) {
     assert(state);
     Channel *chan = (Channel*)lua_touserdata(lua, 1);
+    assert(chan);
+
     SDL_LockMutex(chan->mut);
-    chan->cond = 0;
+    chan->count = 0;
     chan->number_count = 0;
-    chan->short_string_data = 0;
+    chan->short_string_count = 0;
+    chan->received = chan->sent;
 #ifdef DEBUG
-    memset(chan->queue, 0, sizeof(int8_t) * QUEUE_SIZE);
+    memset(chan->queue, 0, sizeof(chan->queue[0]) * QUEUE_SIZE);
     memset(chan->number_data, 0, sizeof(double) * QUEUE_SIZE);
     memset(
             chan->short_string_data, 
             0, 
-            sizeof(char) * (MAX_STR_LEN + 1)* QUEUE_SIZE
+            sizeof(char) * (MAX_STR_LEN + 1) * QUEUE_SIZE
     );
 #endif
     SDL_CondBroadcast(chan->cond);
@@ -491,10 +505,10 @@ void channel_demand_no_timeout(lua_State *lua, Channel *chan) {
             if (type == TYPE_STRING) {
                 if (chan->short_string_count == 0) {
                     channel_error(lua, chan->name, "string queue is empty");
-                    popped = true;
                 } else {
                     char *s = channel_get_string(chan, --chan->short_string_count);
                     lua_pushstring(lua, s);
+                    popped = true;
                 }
             } else if (type == TYPE_NUMBER) {
                 if (chan->number_count == 0) {
@@ -566,8 +580,7 @@ static int channel_demand(lua_State *lua) {
     assert(state);
     Channel *chan = (Channel*)lua_touserdata(lua, 1);
 
-#ifdef CHAHHEL_DEMAND
-    LOG("----------------------------\n");
+#ifdef CHANNEL_DEMAND
     LOG("channel_demand [%s]:\n", stack_dump(lua));
     LOG("name %s\n", chan->name);
     LOG("sent, received %d, %d\n", chan->sent, chan->received);
@@ -576,11 +589,11 @@ static int channel_demand(lua_State *lua) {
     LOG("short_string_count %d\n", chan->short_string_count);
 #endif
 
-    if (lua_isnumber(lua, 2)) {
+    if (lua_isnone(lua, 2)) {
+        channel_demand_no_timeout(lua, chan);
+    } else {
         double timeout = lua_tonumber(lua, 2);
         channel_demand_timeout(lua, chan, timeout);
-    } else {
-        channel_demand_no_timeout(lua, chan);
     }
 
     return 1;
@@ -615,6 +628,78 @@ int static channel_get_count(lua_State *lua) {
     return 1;
 }
 
+void channel_supply_no_timeout(lua_State *lua, Channel *chan) {
+    SDL_LockMutex(chan->mut);
+
+    ID id = -1;
+    if (lua_isnumber(lua, 2)) {
+        id = push_number(lua);
+    } else if (lua_isstring(lua, 2)) {
+        id = push_string(lua);
+    } else {
+        char buf[128] = {0, };
+        const char *tname = lua_typename(lua, lua_type(lua, 2));
+        sprintf(buf, "%s type is not allowed", tname);
+        lua_pushstring(lua, buf);
+        lua_error(lua);
+    }
+
+    while (chan->received < id) {
+        SDL_CondWait(chan->cond, chan->mut);
+    }
+
+    SDL_UnlockMutex(chan->mut);
+}
+
+void channel_supply_timeout(lua_State *lua, Channel *chan, double timeout) {
+    assert(timeout > 0);
+    SDL_LockMutex(chan->mut);
+
+    ID id = -1;
+    if (lua_isnumber(lua, 2)) {
+        id = push_number(lua);
+    } else if (lua_isstring(lua, 2)) {
+        id = push_string(lua);
+    } else {
+        char buf[128] = {0, };
+        const char *tname = lua_typename(lua, lua_type(lua, 2));
+        sprintf(buf, "%s type is not allowed", tname);
+        lua_pushstring(lua, buf);
+        lua_error(lua);
+    }
+
+    while (timeout >= 0) {
+        if (chan->received >= id) {
+            break;
+        }
+
+        double start = SDL_GetTicks64();
+        SDL_CondWaitTimeout(chan->cond, chan->mut, timeout * 1000);
+        double stop = SDL_GetTicks64();
+
+        timeout -= (stop - start);
+    }
+
+    SDL_UnlockMutex(chan->mut);
+}
+
+int static channel_supply(lua_State *lua) {
+    Channel *chan = (Channel*)lua_touserdata(lua, 1);
+    if (!chan) {
+        lua_pushstring(lua, "channel_supply: channel is nil");
+        lua_error(lua);
+    }
+
+    if (lua_isnil(lua, 2)) {
+        channel_supply_no_timeout(lua, chan);
+    } else {
+        double timeout = lua_tonumber(lua, 2);
+        channel_supply_timeout(lua, chan, timeout);
+    }
+
+    return 0;
+}
+
 int register_module(lua_State *lua) {
     static const struct luaL_Reg functions[] =
     {
@@ -632,6 +717,7 @@ int register_module(lua_State *lua) {
         {"demand", channel_demand},
         {"has_read", channel_has_read},
         {"get_count", channel_get_count},
+        {"supply", channel_supply},
 
         // DEBUGGING STUFF
         // Напечатать всю очередь строк
@@ -676,4 +762,10 @@ extern int luaopen_messenger2(lua_State *lua) {
 
     return register_module(lua);
 }
+
+
+
+
+
+
 
