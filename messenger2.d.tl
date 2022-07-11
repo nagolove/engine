@@ -5,9 +5,23 @@ local record Messenger
     MAX_CHANNELS_NUM: integer
 
     record Channel end
+    record ID end
 
-    push: function(Channel, value: any)
+    -- Положить 
+    push: function(Channel, value: any): ID
+    -- Положить и ждать пока не будет снято
+    supply: function(Channel, value: any)
+    -- Снять
     pop: function(Channel): any
+    -- Заглянуть
+    peek: function(Channel): any
+    -- Снять или ждать пока не появится
+    demand: function(Channel, timeout: number): any
+    -- Очистить
+    clear: function(Channel)
+    -- Было-ли считано
+    has_read: function(Channel, id: ID): boolean
+    get_count: function(Channel): integer
 
     -- Создание нового или поиск и возврат существующего канала по имени.
     new: function(name: string): Channel
