@@ -262,6 +262,12 @@ char *channel_get_string(Channel *ch, int index) {
     return &ch->short_string_data[(MAX_STR_LEN + 1) * index];
 }
 
+double channel_get_number(Channel *ch, int index) {
+    assert(ch && "Channel is NULL");
+    assert(index <= ch->number_count);
+    return ch->number_data[index];
+}
+
 void channel_print_strings(Channel *ch) {
     for(int i = 0; i < ch->short_string_count; ++i) {
         printf("%s ", channel_get_string(ch, i));
@@ -700,6 +706,26 @@ int static channel_supply(lua_State *lua) {
     return 0;
 }
 
+int channel_print(lua_State *lua) {
+    Channel *ch = lua_touserdata(lua, 1);
+    if (ch) {
+        channel_print_strings(ch);
+        int number_index = ch->number_count;
+        int string_index = ch->short_string_count;
+        for(int i = ch->count; i >= 0; i--) {
+            if (ch->queue[i] == TYPE_STRING) {
+                printf("%s ", channel_get_string(ch, string_index--));
+            } else if (ch->queue[i] == TYPE_NUMBER) {
+                printf("%.3f ", channel_get_number(ch, number_index--));
+            }
+        }
+    } else {
+        lua_pushstring(lua, "No Channel userdata.\n");
+        lua_error(lua);
+    }
+    return 0;
+}
+
 int register_module(lua_State *lua) {
     static const struct luaL_Reg functions[] =
     {
@@ -721,9 +747,10 @@ int register_module(lua_State *lua) {
 
         // DEBUGGING STUFF
         // Напечатать всю очередь строк
-        {"channel_print_strings", channel_print_strings_l},
+        {"print_strings", channel_print_strings_l},
         // Напечать всю очередь чисел
-        {"channel_print_numbers", channel_print_numbers_l},
+        {"print_numbers", channel_print_numbers_l},
+        {"print", channel_print},
         {NULL, NULL}
         // }}}
     };
@@ -762,10 +789,3 @@ extern int luaopen_messenger2(lua_State *lua) {
 
     return register_module(lua);
 }
-
-
-
-
-
-
-
