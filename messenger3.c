@@ -139,7 +139,7 @@ void channel_init(Channel *chan) {
     assert(chan);
 
 #ifdef DEBUG
-    memset(chan->allocated, 0, sizeof(chan->queue[0]) * QUEUE_SIZE);
+    memset(chan->allocated, 0, sizeof(chan->allocated[0]) * QUEUE_SIZE);
 #endif
     chan->count = 0;
     chan->number_count = 0;
@@ -148,9 +148,9 @@ void channel_init(Channel *chan) {
     Node *node = chan->allocated;
 
     /*
+    -- Порядок создания списка:
     node->next = &chan->allocated[1];
     node = &chan->allocated[1];
-
     node->next = &chan->allocated[2];
     node = &chan->allocated[2];
     */
@@ -167,7 +167,6 @@ void channel_init(Channel *chan) {
 
     chan->sent = 0;
     chan->received = 0;
-
 }
 
 Channel *channel_allocate(lua_State *lua) {
@@ -271,6 +270,14 @@ ID push_number(lua_State *lua) {
     new->number = value;
     new->next = NULL;
 
+    // Может-ли queue_start == queue_end ?
+    if (!chan->queue_start) {
+        chan->queue_start = new;
+    } else {
+        new->next = chan->queue_start;
+        chan->queue_start = new;
+    }
+
     chan->number_count++;
     chan->count++;
     chan->sent++;
@@ -371,6 +378,14 @@ ID push_string(lua_State *lua) {
     strcpy(new->string, value);
     new->next = NULL;
 
+    // Может-ли queue_start == queue_end ?
+    if (!chan->queue_start) {
+        chan->queue_start = new;
+    } else {
+        new->next = chan->queue_start;
+        chan->queue_start = new;
+    }
+
     chan->string_count++;
     chan->count++;
     chan->sent++;
@@ -403,7 +418,7 @@ static int channel_push(lua_State *lua) {
     return 1;
 }
 
-#define CHANNEL_POP_INTERNAL
+#define CHANNEL_POP_INTERNAL 1
 bool channel_pop_internal(lua_State *lua, Channel *chan) {
     assert(chan);
 
@@ -414,7 +429,7 @@ bool channel_pop_internal(lua_State *lua, Channel *chan) {
     LOG("sent, received %d, %d\n", chan->sent, chan->received);
     LOG("count %d\n", chan->count);
     LOG("number_count %d\n", chan->number_count);
-    LOG("short_string_count %d\n", chan->short_string_count);
+    LOG("string_count %d\n", chan->string_count);
 #endif
 
     SDL_LockMutex(chan->mut);
@@ -452,8 +467,8 @@ bool channel_pop_internal(lua_State *lua, Channel *chan) {
 
     return true;
 }
+#undef CHANNEL_POP_INTERNAL
 
-#define CHANNEL_POP
 // Удаление с начала очереди.
 static int channel_pop(lua_State *lua) {
     Channel *chan = (Channel*)lua_touserdata(lua, 1);
@@ -462,12 +477,8 @@ static int channel_pop(lua_State *lua) {
     if (!channel_pop_internal(lua, chan)) {
         lua_pushnil(lua);
     } 
-
-    LOG("channel_pop: [%s]\n", stack_dump(lua));
-    LOG("----------------------------\n");
     return 1;
 }
-#undef CHANNEL_POP
 
 static int channel_free(lua_State *lua) {
     assert(state);
@@ -712,6 +723,7 @@ int channel_print(lua_State *lua) {
             }
             node = node->next;
         }
+        printf("\n");
     } else {
         lua_pushstring(lua, "No Channel userdata.");
         lua_error(lua);
@@ -769,7 +781,7 @@ int register_module(lua_State *lua) {
     return 1; // что возвращает?
 }
 
-extern int luaopen_messenger2(lua_State *lua) {
+extern int luaopen_messenger3(lua_State *lua) {
     LOG("messenger2 module was opened [%s]\n", stack_dump(lua));
     LOG("lua = %p\n", lua);
     state = NULL;
