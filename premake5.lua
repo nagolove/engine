@@ -46,6 +46,12 @@ workspace "xcaustic"
         links { "pthread", "SDL2" }
         buildoptions { "-D_REENTRANT" }
 
+    project "messenger3"
+        files { "**.h", "messenger3.c" }
+        includedirs { "/usr/include/SDL2" }
+        links { "pthread", "SDL2" }
+        buildoptions { "-D_REENTRANT" }
+
     filter "configurations:Debug"
     defines { "DEBUG" }
     symbols "On"
