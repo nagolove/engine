@@ -12,14 +12,16 @@ ifeq ($(config),debug)
   diamond_and_square_config = debug
   messenger_config = debug
   messenger2_config = debug
+  messenger3_config = debug
 endif
 ifeq ($(config),release)
   diamond_and_square_config = release
   messenger_config = release
   messenger2_config = release
+  messenger3_config = release
 endif
 
-PROJECTS := diamond_and_square messenger messenger2
+PROJECTS := diamond_and_square messenger messenger2 messenger3
 
 .PHONY: all clean help $(PROJECTS) 
 
@@ -43,10 +45,17 @@ ifneq (,$(messenger2_config))
 	@${MAKE} --no-print-directory -C . -f messenger2.make config=$(messenger2_config)
 endif
 
+messenger3:
+ifneq (,$(messenger3_config))
+	@echo "==== Building messenger3 ($(messenger3_config)) ===="
+	@${MAKE} --no-print-directory -C . -f messenger3.make config=$(messenger3_config)
+endif
+
 clean:
 	@${MAKE} --no-print-directory -C . -f diamond_and_square.make clean
 	@${MAKE} --no-print-directory -C . -f messenger.make clean
 	@${MAKE} --no-print-directory -C . -f messenger2.make clean
+	@${MAKE} --no-print-directory -C . -f messenger3.make clean
 
 help:
 	@echo "Usage: make [config=name] [target]"
@@ -61,5 +70,6 @@ help:
 	@echo "   diamond_and_square"
 	@echo "   messenger"
 	@echo "   messenger2"
+	@echo "   messenger3"
 	@echo ""
 	@echo "For more information, see https://github.com/premake/premake-core/wiki"

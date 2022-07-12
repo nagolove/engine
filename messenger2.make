@@ -15,16 +15,16 @@ ifeq ($(config),debug)
   TARGETDIR = .
   TARGET = $(TARGETDIR)/messenger2.so
   OBJDIR = obj/Debug/messenger2
-  DEFINES += -DDEBUG
+  DEFINES +=
   INCLUDES += -I/usr/include/luajit-2.1 -I../../projects/Chipmunk2D/include -I../lua_capi -I/usr/include/SDL2
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -fPIC -g -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing -D_REENTRANT
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -fPIC -g -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing -D_REENTRANT
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing -D_REENTRANT
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing -D_REENTRANT
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -llua5.1 -lchipmunk -lmem_guard -llua_tools -lpthread -lSDL2
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L../../projects/Chipmunk2D/src -L../c_guard -L../lua_capi -shared -Wl,-soname=messenger2.so
+  ALL_LDFLAGS += $(LDFLAGS) -L../../projects/Chipmunk2D/src -L../c_guard -L../lua_capi -shared -Wl,-soname=messenger2.so -s
   LINKCMD = $(CC) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -42,12 +42,12 @@ ifeq ($(config),release)
   TARGETDIR = .
   TARGET = $(TARGETDIR)/messenger2.so
   OBJDIR = obj/Release/messenger2
-  DEFINES += -DNDEBUG
+  DEFINES +=
   INCLUDES += -I/usr/include/luajit-2.1 -I../../projects/Chipmunk2D/include -I../lua_capi -I/usr/include/SDL2
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2 -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing -D_REENTRANT
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O2 -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing -D_REENTRANT
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing -D_REENTRANT
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -fPIC -ggdb3 -fPIC -Wall -Werror -Wno-strict-aliasing -D_REENTRANT
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -llua5.1 -lchipmunk -lmem_guard -llua_tools -lpthread -lSDL2
   LDDEPS +=
