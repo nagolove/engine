@@ -4,6 +4,12 @@ local record Messenger
     MAX_NAME_LEN: integer
     MAX_CHANNELS_NUM: integer
 
+    record State end
+    -- Инициализация общего состояния для всех копий библиотеки
+    -- (для всех потоков).
+    init_messenger: function(State): State
+    free_messenger: function()
+
     record Channel end
     record ID end
 
@@ -27,15 +33,6 @@ local record Messenger
     new: function(name: string): Channel
     free: function(ch: Channel)
 
-    record State end
-
-    -- Инициализация общего состояния для всех копий библиотеки
-    -- (для всех потоков).
-    init_messenger: function(State): State
-    free_messenger: function()
-
-    print_strings: function(Channel)
-    print_numbers: function(Channel)
     print: function(Channel)
 end
 
