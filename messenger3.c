@@ -477,6 +477,7 @@ static int channel_pop(lua_State *lua) {
     if (!channel_pop_internal(lua, chan)) {
         lua_pushnil(lua);
     } 
+
     return 1;
 }
 
