@@ -55,13 +55,18 @@ typedef struct {
     SDL_mutex *mut;
     SDL_cond *cond;
 
+    /*
+    int8_t *type_queue;
+    int type_count, type_maxcount, type_i, type_j;
+    */
+
     int8_t *queue;
     int count, maxcount, queue_i, queue_j;
 
-    double *number_data;
+    double *number_queue;
     int number_count, number_maxcount, number_i, number_j;
 
-    char *string_data; 
+    char *string_queue; 
     int string_count, string_maxcount, string_i, string_j;
 
     int received, sent;
@@ -143,6 +148,9 @@ Channel *channel_allocate(lua_State *lua, const char *chan_name) {
     chan->string_data = calloc(
             QUEUE_SIZE, (MAX_STR_LEN + 1) * sizeof(char)
     );
+    chan->maxcount = QUEUE_SIZE;
+    chan->number_maxcount = QUEUE_SIZE;
+    chan->string_maxcount = QUEUE_SIZE;
 
     chan->sent = 0;
     chan->received = 0;
@@ -227,6 +235,20 @@ void channel_error(lua_State *lua, char *name, char *msg) {
     lua_error(lua);
 }
 
+void push2queue(lua_State *lua, Channel *chan, int8_t type) {
+    assert(type == TYPE_NUMBER || type == TYPE_STRING);
+    assert(chan);
+
+    if (chan->count < chan->maxcount) {
+        chan->queue[chan->queue_i] = type;
+        chan->queue_i = (chan->queue_i + 1) % chan->maxcount;
+        chan->count++;
+    } else {
+        lua_pushstring(lua, "queue is full");
+        lua_error(lua);
+    }
+}
+
 ID push_number(lua_State *lua) {
     Channel *chan = (Channel*)lua_touserdata(lua, 1);
     double value = lua_tonumber(lua, 2);
@@ -247,9 +269,20 @@ ID push_number(lua_State *lua) {
     LOG("channels_num %d\n", state->channels_num);
     */
 
-    chan->number_data[chan->number_count++] = value;
+    /*chan->number_data[chan->number_count++] = value;*/
+
+    push2queue(lua, chan, TYPE_NUMBER);
     chan->queue[chan->count++] = TYPE_NUMBER;
-    chan->sent++;
+
+    if (chan->number_count < chan->number_maxcount ) {
+        chan->number_queue[chan->number_i] = value;
+        chan->number_i = (chan->number_i + 1) % chan->number_maxcount;
+        chan->number_count++;
+        chan->sent++;
+    } else {
+        lua_pushstring(lua, "number queue is full");
+        lua_error(lua);
+    }
 
     SDL_CondBroadcast(chan->cond);
     SDL_UnlockMutex(chan->mut);
@@ -260,13 +293,13 @@ ID push_number(lua_State *lua) {
 char *channel_get_string(Channel *ch, int index) {
     assert(ch && "Channel is NULL");
     assert(index <= ch->string_count);
-    return &ch->string_data[(MAX_STR_LEN + 1) * index];
+    return &ch->string_queue[(MAX_STR_LEN + 1) * index];
 }
 
 double channel_get_number(Channel *ch, int index) {
     assert(ch && "Channel is NULL");
     assert(index <= ch->number_count);
-    return ch->number_data[index];
+    return ch->number_queue[index];
 }
 
 void channel_print_strings(Channel *ch) {
@@ -278,7 +311,7 @@ void channel_print_strings(Channel *ch) {
 
 void channel_print_numbers(Channel *ch) {
     for(int i = 0; i < ch->number_count; ++i) {
-        printf("%.3f ", ch->number_data[i]);
+        printf("%.3f ", ch->number_queue[i]);
     }
     printf("\n");
 }
@@ -315,6 +348,7 @@ ID push_string(lua_State *lua) {
         lua_error(lua);
     }
 
+    /*
     if (chan->count == QUEUE_SIZE) {
         channel_error(lua, chan->name, "queue is full");
     }
@@ -322,6 +356,7 @@ ID push_string(lua_State *lua) {
     if (chan->string_count == QUEUE_SIZE) {
         channel_error(lua, chan->name, "string queue is full");
     }
+    */
 
     /*
        LOG("channel name %s\n", chan->name);
@@ -330,11 +365,18 @@ ID push_string(lua_State *lua) {
        LOG("channels_num %d\n", state->channels_num);
        */
 
-    int index = chan->string_count * (MAX_STR_LEN + 1);
-    strcpy(&chan->string_data[index], value);
-    chan->string_count++;
-    chan->queue[chan->count++] = TYPE_STRING;
-    chan->sent++;
+    if (chan->string_count < chan->string_maxcount) {
+        int index = chan->string_i * (MAX_STR_LEN + 1);
+        chan->string_i = (chan->string_i + 1) % chan->string_maxcount;
+        chan->string_count++;
+        strcpy(&chan->string_queue[index], value);
+        push2queue(lua, chan, TYPE_STRING);
+
+        chan->sent++;
+    } else {
+        lua_pushstring(lua, "string queue is full");
+        lua_error(lua);
+    }
 
     SDL_CondBroadcast(chan->cond);
     SDL_UnlockMutex(chan->mut);
