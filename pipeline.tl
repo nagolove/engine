@@ -19,6 +19,7 @@ local debug_print = print
 
 local Msg = require "messenger2"
 
+--[[
 -- для синхронизации
 local draw_ready_channel = Msg.new("draw_ready_channel")
 -- для команд и данных команд
@@ -31,8 +32,8 @@ local graphic_received_in_sec_channel = Msg.new('graphic_received_in_sec')
 local graphic_query_channel = Msg.new('graphic_query_channel')
 -- для ответов на запросы рендера
 local graphic_query_res_channel = Msg.new('graphic_query_res_channel')
+--]]
 
---[[
 -- для синхронизации
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
 -- для команд и данных команд
