@@ -37,6 +37,7 @@ local threads: {string: lt.Thread} = {}
 
 local Msg = require "messenger2"
 local Msg_state = Msg.init_messenger()
+print("Msg_state", Msg_state)
 local ChannelProxy = require 'channel_proxy'
 
 --[[
@@ -56,7 +57,7 @@ local Shortcut = KeyConfig.Shortcut
 local colorize = require 'ansicolors2'.ansicolors
 local ecodes = require "errorcodes"
 local format = string.format
-local pipeline = Pipeline.new()
+local pipeline = Pipeline.new("", Msg_state)
 
 --local lastWindowHeaderUpdateTime = love.timer.getTime()
 --local quantum = 1 -- shoud be in s seconds. Real unit measure is unknown.
