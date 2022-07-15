@@ -17,6 +17,23 @@ local floor = math.floor
 
 local debug_print = print
 
+local Msg = require("messenger2")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
 
@@ -29,6 +46,7 @@ local graphic_received_in_sec_channel = lt.getChannel('graphic_received_in_sec')
 local graphic_query_channel = lt.getChannel('graphic_query_channel')
 
 local graphic_query_res_channel = lt.getChannel('graphic_query_res_channel')
+
 
 local State = {}
 

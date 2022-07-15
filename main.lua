@@ -35,9 +35,22 @@ local imguiFontSize = 22
 local lt = love.thread
 local threads = {}
 
+local Msg = require("messenger2")
+local Msg_state = Msg.init_messenger()
+local ChannelProxy = require('channel_proxy')
+
+
+
+
+
+
+
+
 
 local main_channel = love.thread.getChannel("main_channel")
+
 local event_channel = lt.getChannel("event_channel")
+
 
 local Shortcut = KeyConfig.Shortcut
 local colorize = require('ansicolors2').ansicolors
@@ -185,7 +198,7 @@ function love.load(args)
    print("sceneName", sceneName)
 
    local thread = newThread(sceneName)
-   thread:start()
+   thread:start(Msg_state)
 
 
    local waitfor = 0.1
@@ -236,6 +249,7 @@ function love.quit()
    if not IMGUI_USE_STUB then
       imgui.ShutDown();
    end
+   Msg.free_messenger()
 end
 
 function love.textinput(t)
