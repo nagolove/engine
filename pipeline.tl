@@ -17,6 +17,22 @@ local floor = math.floor
 -- XXX monkey patch
 local debug_print = print
 
+local Msg = require "messenger2"
+
+-- для синхронизации
+local draw_ready_channel = Msg.new("draw_ready_channel")
+-- для команд и данных команд
+local command_channel = Msg.new("graphic_command_channel")
+-- для кода процедур рисования
+local code_channel = Msg.new("graphic_code_channel")
+-- для статистики переданных данных
+local graphic_received_in_sec_channel = Msg.new('graphic_received_in_sec')
+-- для запросов к рендеру
+local graphic_query_channel = Msg.new('graphic_query_channel')
+-- для ответов на запросы рендера
+local graphic_query_res_channel = Msg.new('graphic_query_res_channel')
+
+--[[
 -- для синхронизации
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
 -- для команд и данных команд
@@ -29,6 +45,7 @@ local graphic_received_in_sec_channel = lt.getChannel('graphic_received_in_sec')
 local graphic_query_channel = lt.getChannel('graphic_query_channel')
 -- для ответов на запросы рендера
 local graphic_query_res_channel = lt.getChannel('graphic_query_res_channel')
+--]]
 
 local enum State
     'open'
