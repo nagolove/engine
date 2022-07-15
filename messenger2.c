@@ -700,12 +700,34 @@ int channel_print(lua_State *lua) {
     return 0;
 }
 
+static int state_from_string(lua_State *lua) {
+    LOG("state_from_string: [%s]\n", stack_dump(lua));
+    const char *state_addr = luaL_checkstring(lua, 1);
+    LOG("state_addr = %s\n", state_addr);
+    State *tmp_state = (void*)strtouq(state_addr, NULL, 16);
+    lua_pushlightuserdata(lua, tmp_state);
+    return 1;
+}
+
+static int string_from_state(lua_State *lua) {
+    LOG("string_from_state: [%s]\n", stack_dump(lua));
+    Channel *chan = (Channel*)lua_touserdata(lua, 1);
+    char buf[32] = {0, };
+    sprintf(buf, "%p", chan);
+    LOG("ptr = %s\n", buf);
+    lua_pushstring(lua, buf);
+    return 1;
+}
+
 int register_module(lua_State *lua) {
     static const struct luaL_Reg functions[] =
     {
         // {{{
         {"init_messenger", init_messenger},
         {"free_messenger", free_messenger},
+
+        {"string_from_state", string_from_state},
+        {"state_from_string", state_from_string},
 
         {"new", channel_new},
         {"free", channel_free},
@@ -721,11 +743,6 @@ int register_module(lua_State *lua) {
 
         // DEBUGGING STUFF
         
-        // Напечатать всю очередь строк
-        /*{"print_strings", channel_print_strings_l},*/
-        // Напечать всю очередь чисел
-        /*{"print_numbers", channel_print_numbers_l},*/
-
         {"print", channel_print},
         {NULL, NULL}
         // }}}
