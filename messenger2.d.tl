@@ -10,7 +10,7 @@ local record Messenger
     -- Положить 
     push: function(Channel, value: any): ID
     -- Положить и ждать пока не будет снято
-    supply: function(Channel, value: any)
+    supply: function(Channel, value: any): boolean
     -- Снять
     pop: function(Channel): any
     -- Заглянуть
