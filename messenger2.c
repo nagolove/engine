@@ -552,7 +552,7 @@ static int channel_demand(lua_State *lua) {
     LOG("short_string_count %d\n", chan->short_string_count);
 #endif
 
-    if (lua_isnone(lua, 2)) {
+    if (lua_isnoneornil(lua, 2)) {
         channel_demand_no_timeout(lua, chan);
     } else {
         double timeout = lua_tonumber(lua, 2);
@@ -607,10 +607,13 @@ void channel_supply_no_timeout(lua_State *lua, Channel *chan) {
         lua_error(lua);
     }
 
+    assert(id != -1.);
+
     while (chan->received < id) {
         SDL_CondWait(chan->cond, chan->mut);
     }
 
+    lua_pushboolean(lua, true);
     SDL_UnlockMutex(chan->mut);
 }
 
@@ -631,8 +634,11 @@ void channel_supply_timeout(lua_State *lua, Channel *chan, double timeout) {
         lua_error(lua);
     }
 
+    assert(id != -1.);
+
     while (timeout >= 0) {
         if (chan->received >= id) {
+            lua_pushboolean(lua, true);
             break;
         }
 
@@ -643,6 +649,7 @@ void channel_supply_timeout(lua_State *lua, Channel *chan, double timeout) {
         timeout -= (stop - start);
     }
 
+    lua_pushboolean(lua, false);
     SDL_UnlockMutex(chan->mut);
 }
 
@@ -653,14 +660,14 @@ int static channel_supply(lua_State *lua) {
         lua_error(lua);
     }
 
-    if (lua_isnil(lua, 2)) {
+    if (lua_isnoneornil(lua, 2)) {
         channel_supply_no_timeout(lua, chan);
     } else {
         double timeout = lua_tonumber(lua, 2);
         channel_supply_timeout(lua, chan, timeout);
     }
 
-    return 0;
+    return 1;
 }
 
 int channel_print(lua_State *lua) {
