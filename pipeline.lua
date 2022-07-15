@@ -18,6 +18,7 @@ local floor = math.floor
 local debug_print = print
 
 local Msg = require("messenger2")
+local ChannelProxy = require('channel_proxy')
 
 
 
@@ -134,6 +135,7 @@ local Pipeline = {}
 
 
 
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -153,13 +155,37 @@ local use_stamp = false
 
 
 
-function Pipeline.new(scene_prefix)
+function Pipeline.new(
+   scene_prefix,
+   messenger_state)
+
+
    local self = setmetatable({}, Pipeline_mt)
    self.section_state = 'closed'
-   self.scene_prefix = scene_prefix or ""
+
+
+   self.scene_prefix = scene_prefix
+   assert(type(self.scene_prefix) == "string")
+
+   self.messenger_state = messenger_state
+   print("self.messenger_state", type(self.messenger_state))
+   assert(type(self.messenger_state) == "userdata")
+
    self.preload = [[
+    --local _inspect = require 'inspect'
+    local _Msg = require "messenger2"
+    local _state = _Msg.state_from_string("_STATE_STRING_")
+    _Msg.init_messenger(_state)
+    local ChannelProxy = require 'channel_proxy'
     local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
+    --local graphic_command_channel = ChannelProxy.new("graphic_command_channel")
     ]]
+   self.preload = string.gsub(
+   self.preload,
+   "_STATE_STRING_",
+   Msg.string_from_state(self.messenger_state))
+
+
    if self.scene_prefix then
       local var = format('local SCENE_PREFIX = "%s"\n', self.scene_prefix)
       self.preload = self.preload .. var
