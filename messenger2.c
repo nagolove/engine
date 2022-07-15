@@ -292,46 +292,6 @@ double channel_get_number(Channel *ch, int index) {
     return ch->number_queue[index];
 }
 
-void channel_print_strings(Channel *ch) {
-    for(int i = 0; i < ch->string_count; ++i) {
-        printf("%s ", channel_get_string(ch, i));
-    }
-    printf("\n");
-}
-
-void channel_print_numbers(Channel *ch) {
-    for(int i = 0; i < ch->number_count; ++i) {
-        printf("%.3f ", ch->number_queue[i]);
-    }
-    printf("\n");
-}
-
-/*
-static int channel_print_strings_l(lua_State *lua) {
-    Channel *ch = lua_touserdata(lua, 1);
-    if (ch) {
-        channel_print_strings(ch);
-    } else {
-        lua_pushstring(lua, "No Channel userdata.\n");
-        lua_error(lua);
-    }
-    return 0;
-}
-*/
-
-/*
-static int channel_print_numbers_l(lua_State *lua) {
-    Channel *ch = lua_touserdata(lua, 1);
-    if (ch) {
-        channel_print_numbers(ch);
-    } else {
-        lua_pushstring(lua, "No Channel userdata.\n");
-        lua_error(lua);
-    }
-    return 0;
-}
-*/
-
 ID push_string(lua_State *lua) {
     Channel *chan = (Channel*)lua_touserdata(lua, 1);
     const char *value = lua_tostring(lua, 2);
@@ -341,13 +301,6 @@ ID push_string(lua_State *lua) {
         lua_pushstring(lua, "Too long string.\n");
         lua_error(lua);
     }
-
-    /*
-       LOG("channel name %s\n", chan->name);
-       LOG("pushing %f\n", value);
-       LOG("sent %d\n", chan->sent);
-       LOG("channels_num %d\n", state->channels_num);
-       */
 
     if (chan->string_count < chan->maxcount) {
         int index = chan->string_i * (MAX_STR_LEN + 1);
@@ -420,7 +373,7 @@ bool channel_pop_internal(lua_State *lua, Channel *chan) {
             if (chan->string_count == 0) {
                 channel_error(lua, chan->name, "string queue is empty");
             } else {
-                printf("chan->string_j = %d\n", chan->string_j);
+                /*printf("chan->string_j = %d\n", chan->string_j);*/
                 char *s = channel_get_string(chan, chan->string_j);
                 assert(s);
                 chan->string_j = (chan->string_j + 1) % chan->maxcount;
@@ -508,7 +461,13 @@ static int channel_clear(lua_State *lua) {
     chan->count = 0;
     chan->number_count = 0;
     chan->string_count = 0;
+    chan->number_i = chan->number_j = 0;
+    chan->string_i = chan->string_j = 0;
+    chan->queue_i = chan->queue_j = 0;
+
     chan->received = chan->sent;
+
+    /*
 #ifdef DEBUG
     memset(chan->queue, 0, sizeof(chan->queue[0]) * QUEUE_SIZE);
     memset(chan->number_data, 0, sizeof(double) * QUEUE_SIZE);
@@ -518,6 +477,8 @@ static int channel_clear(lua_State *lua) {
             sizeof(char) * (MAX_STR_LEN + 1) * QUEUE_SIZE
     );
 #endif
+*/
+
     SDL_CondBroadcast(chan->cond);
     SDL_UnlockMutex(chan->mut);
     return 0;
@@ -711,6 +672,7 @@ int channel_print(lua_State *lua) {
         int string_j = ch->string_j;
         while (count > 0) {
             int type = ch->queue[queue_j];
+            queue_j = (queue_j + 1) % ch->maxcount;
             if (type == TYPE_NUMBER) {
                 printf("%f ", ch->number_queue[number_j]);
                 number_j = (number_j + 1) % ch->maxcount;
@@ -724,20 +686,6 @@ int channel_print(lua_State *lua) {
             count--;
         }
         printf("\n");
-
-        /*
-        int number_index = ch->number_count;
-        int string_index = ch->string_count;
-        for(int i = ch->count; i >= 0; i--) {
-            if (ch->queue[i] == TYPE_STRING) {
-                printf("%s ", channel_get_string(ch, string_index--));
-            } else if (ch->queue[i] == TYPE_NUMBER) {
-                printf("%.3f ", channel_get_number(ch, number_index--));
-            }
-        }
-        printf("\n");
-        */
-
     } else {
         lua_pushstring(lua, "No Channel userdata.\n");
         lua_error(lua);
