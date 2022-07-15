@@ -18,20 +18,21 @@ local floor = math.floor
 local debug_print = print
 
 local Msg = require "messenger2"
+local ChannelProxy = require 'channel_proxy'
 
 --[[
 -- для синхронизации
-local draw_ready_channel = Msg.new("draw_ready_channel")
+local draw_ready_channel = ChannelProxy.new("draw_ready_channel")
 -- для команд и данных команд
-local command_channel = Msg.new("graphic_command_channel")
+local command_channel = ChannelProxy.new("graphic_command_channel")
 -- для кода процедур рисования
-local code_channel = Msg.new("graphic_code_channel")
+local code_channel = ChannelProxy.new("graphic_code_channel")
 -- для статистики переданных данных
-local graphic_received_in_sec_channel = Msg.new('graphic_received_in_sec')
+local graphic_received_in_sec_channel = ChannelProxy.new('graphic_received_in_sec')
 -- для запросов к рендеру
-local graphic_query_channel = Msg.new('graphic_query_channel')
+local graphic_query_channel = ChannelProxy.new('graphic_query_channel')
 -- для ответов на запросы рендера
-local graphic_query_res_channel = Msg.new('graphic_query_res_channel')
+local graphic_query_res_channel = ChannelProxy.new('graphic_query_res_channel')
 --]]
 
 -- для синхронизации
@@ -107,6 +108,7 @@ local type Pipeline = record
 
     getDimensions: function(Pipeline): integer, integer
 
+    messenger_state: Msg.State
     section_state: State
     preload: string
     scene_prefix: string
@@ -153,13 +155,37 @@ end
 
 --require love.graphics
 
-function Pipeline.new(scene_prefix: string): Pipeline
+function Pipeline.new(
+    scene_prefix: string, 
+    messenger_state: Msg.State
+): Pipeline
+
     local self: Pipeline = setmetatable({} as Pipeline, Pipeline_mt)
     self.section_state = 'closed'
-    self.scene_prefix = scene_prefix or ""
+
+    --self.scene_prefix = scene_prefix or ""
+    self.scene_prefix = scene_prefix
+    assert(type(self.scene_prefix) == "string")
+
+    self.messenger_state = messenger_state
+    print("self.messenger_state", type(self.messenger_state))
+    assert(type(self.messenger_state) == "userdata")
+
     self.preload = [[
+    --local _inspect = require 'inspect'
+    local _Msg = require "messenger2"
+    local _state = _Msg.state_from_string("_STATE_STRING_")
+    _Msg.init_messenger(_state)
+    local ChannelProxy = require 'channel_proxy'
     local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
+    --local graphic_command_channel = ChannelProxy.new("graphic_command_channel")
     ]]
+    self.preload = string.gsub(
+        self.preload, 
+        "_STATE_STRING_", 
+        Msg.string_from_state(self.messenger_state)
+    )
+
     if self.scene_prefix then
         local var = format('local SCENE_PREFIX = "%s"\n', self.scene_prefix)
         self.preload = self.preload .. var 
