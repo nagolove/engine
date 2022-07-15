@@ -34,6 +34,9 @@ local record Messenger
     init_messenger: function(State): State
     free_messenger: function()
 
+    string_from_state: function(State): string
+    state_from_string: function(string): State
+
     print: function(Channel)
 end
 
