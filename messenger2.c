@@ -64,10 +64,10 @@ typedef struct {
     int count, maxcount, queue_i, queue_j;
 
     double *number_queue;
-    int number_count, number_maxcount, number_i, number_j;
+    int number_count, number_i, number_j;
 
     char *string_queue; 
-    int string_count, string_maxcount, string_i, string_j;
+    int string_count, string_i, string_j;
 
     int received, sent;
     char name[MAX_NAME_LEN];
@@ -149,8 +149,6 @@ Channel *channel_allocate(lua_State *lua, const char *chan_name) {
             QUEUE_SIZE, (MAX_STR_LEN + 1) * sizeof(char)
     );
     chan->maxcount = QUEUE_SIZE;
-    chan->number_maxcount = QUEUE_SIZE;
-    chan->string_maxcount = QUEUE_SIZE;
 
     chan->sent = 0;
     chan->received = 0;
@@ -274,9 +272,9 @@ ID push_number(lua_State *lua) {
     push2queue(lua, chan, TYPE_NUMBER);
     /*chan->queue[chan->count++] = TYPE_NUMBER;*/
 
-    if (chan->number_count < chan->number_maxcount ) {
+    if (chan->number_count < chan->maxcount ) {
         chan->number_queue[chan->number_i] = value;
-        chan->number_i = (chan->number_i + 1) % chan->number_maxcount;
+        chan->number_i = (chan->number_i + 1) % chan->maxcount;
         chan->number_count++;
         chan->sent++;
     } else {
@@ -316,6 +314,7 @@ void channel_print_numbers(Channel *ch) {
     printf("\n");
 }
 
+/*
 static int channel_print_strings_l(lua_State *lua) {
     Channel *ch = lua_touserdata(lua, 1);
     if (ch) {
@@ -326,7 +325,9 @@ static int channel_print_strings_l(lua_State *lua) {
     }
     return 0;
 }
+*/
 
+/*
 static int channel_print_numbers_l(lua_State *lua) {
     Channel *ch = lua_touserdata(lua, 1);
     if (ch) {
@@ -337,6 +338,7 @@ static int channel_print_numbers_l(lua_State *lua) {
     }
     return 0;
 }
+*/
 
 ID push_string(lua_State *lua) {
     Channel *chan = (Channel*)lua_touserdata(lua, 1);
@@ -355,9 +357,9 @@ ID push_string(lua_State *lua) {
        LOG("channels_num %d\n", state->channels_num);
        */
 
-    if (chan->string_count < chan->string_maxcount) {
+    if (chan->string_count < chan->maxcount) {
         int index = chan->string_i * (MAX_STR_LEN + 1);
-        chan->string_i = (chan->string_i + 1) % chan->string_maxcount;
+        chan->string_i = (chan->string_i + 1) % chan->maxcount;
         /*chan->string_count++;*/
         strcpy(&chan->string_queue[index], value);
         push2queue(lua, chan, TYPE_STRING);
@@ -424,7 +426,7 @@ bool channel_pop_internal(lua_State *lua, Channel *chan) {
             } else {
                 char *s = channel_get_string(chan, chan->string_j);
                 assert(s);
-                chan->string_j = (chan->string_j + 1) % chan->string_maxcount;
+                chan->string_j = (chan->string_j + 1) % chan->maxcount;
                 chan->string_count--;
                 lua_pushstring(lua, s);
             }
@@ -701,11 +703,30 @@ int static channel_supply(lua_State *lua) {
     return 0;
 }
 
-// TODO Сделать распечатку.
 int channel_print(lua_State *lua) {
     Channel *ch = lua_touserdata(lua, 1);
     if (ch) {
-        /*channel_print_strings(ch);*/
+        int count = ch->count;
+        int queue_j = ch->queue_j;
+        int number_j = ch->number_j;
+        int string_j = ch->string_j;
+        while (count > 0) {
+            int type = ch->queue[queue_j];
+            if (type == TYPE_NUMBER) {
+                printf("%f ", ch->number_queue[number_j]);
+                number_j = (number_j + 1) % ch->maxcount;
+            } else if (type == TYPE_STRING) {
+                int index = string_j * (MAX_STR_LEN + 1);
+                printf("%s ", &ch->string_queue[index]);
+                string_j = (string_j + 1) % ch->maxcount;
+            } else {
+                abort();
+            }
+            count--;
+        }
+        printf("\n");
+
+        /*
         int number_index = ch->number_count;
         int string_index = ch->string_count;
         for(int i = ch->count; i >= 0; i--) {
@@ -716,6 +737,8 @@ int channel_print(lua_State *lua) {
             }
         }
         printf("\n");
+        */
+
     } else {
         lua_pushstring(lua, "No Channel userdata.\n");
         lua_error(lua);
@@ -743,10 +766,12 @@ int register_module(lua_State *lua) {
         {"supply", channel_supply},
 
         // DEBUGGING STUFF
+        
         // Напечатать всю очередь строк
-        {"print_strings", channel_print_strings_l},
+        /*{"print_strings", channel_print_strings_l},*/
         // Напечать всю очередь чисел
-        {"print_numbers", channel_print_numbers_l},
+        /*{"print_numbers", channel_print_numbers_l},*/
+
         {"print", channel_print},
         {NULL, NULL}
         // }}}
