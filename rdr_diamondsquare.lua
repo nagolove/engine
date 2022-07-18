@@ -14,8 +14,8 @@ local colorize = require('ansicolors2').ansicolors
 local yield = coroutine.yield
 local gr = love.graphics
 local inspect = require("inspect")
-local ceil = math.ceil
-local fmod = math.fmod
+local abs = math.abs
+local ceil, fmod = math.ceil, math.fmod
 local get_color = require('height_map').color
 
 local dirname = ""
@@ -36,7 +36,9 @@ local mapWidthPix
 
 local rez = 64
 
-local canvasSize = 512
+
+
+local canvasSize = 128
 
 
 assert(canvasSize % rez == 0, "canvasSize % rez == 0")
@@ -47,6 +49,24 @@ local format = string.format
 
 local Drawer = {}
 local drawlist = {}
+
+
+local Viewport = {}
+
+local scrw, scrh = gr.getDimensions()
+
+local view_port = { 0, 0, scrw, scrh }
+
+
+local scrw, scrh = gr.getDimensions()
+local vp_dx1, vp_dy1 = 100, 100
+local vp_dx2, vp_dy2 = -100, -100
+
+
+local function draw_view_port(vp)
+   gr.setColor({ 1, 0, 0, 1 })
+   gr.rectangle("line", vp[1], vp[2], abs(vp[3] - vp[1]), abs(vp[4] - vp[2]))
+end
 
 
 
@@ -71,9 +91,7 @@ local function sub_draw(
          local c = map[i] and map[i][j] or nil
          if c then
             local color = get_color(c ^ 2)
-
             gr.setColor(color)
-
             gr.rectangle(
             "fill",
             x + rez * abs_i,
@@ -96,9 +114,11 @@ local Node = {}
 local canvas_nodes = { {} }
 local loaded_order = {}
 
+
 local max_loaded_num = 10
 
 local function new_texture(i, j)
+
    local ok, errmsg = pcall(function()
 
       if #loaded_order >= max_loaded_num then
@@ -123,9 +143,11 @@ local function new_texture(i, j)
    if not ok then
       print('new_texture:' .. errmsg)
    end
+
 end
 
 local function draw_texture(i, j)
+
    local ok, errmsg = pcall(function()
 
       if canvas_nodes[i] and (not canvas_nodes[i][j]) then
@@ -139,15 +161,18 @@ local function draw_texture(i, j)
       end
 
    end)
+
    if not ok then
       print('draw_texture:' .. errmsg)
       print('canvas_nodes', inspect(canvas_nodes))
    end
+
 end
 
 local function bake_and_save_canvas(
    i1, i2, j1, j2,
    name)
+
 
    gr.setColor({ 1, 1, 1, 1 })
    local canvas = gr.newCanvas(canvasSize, canvasSize)
@@ -173,6 +198,7 @@ local function bake_and_save_canvas(
    canvas:newImageData():encode('png', fname)
    local object = canvas
    object:release()
+
 end
 
 local Command = {}
@@ -245,23 +271,32 @@ local function bake_canvases()
             local i_pos = tmpx * rez
             local j_pos = tmpy * rez
 
-            local scrw, scrh = gr.getDimensions()
-            local view_port = {
-               camx, camy,
-               camx + scrw, camy + scrh,
-            }
+
+
             local tile = {
                i_pos, j_pos,
                i_pos + canvasSize, j_pos + canvasSize,
             }
 
+            view_port[1] = vp_dx1 + camx - scrw / 2
+            view_port[2] = vp_dy1 + camy - scrh / 2
+            view_port[3] = vp_dx2 + camx + scrw / 2
+            view_port[4] = vp_dy2 + camy + scrh / 2
+
+            local local_view_port = {
+               view_port[1] - canvasSize,
+               view_port[2] - canvasSize,
+               view_port[3] + canvasSize,
+               view_port[4] + canvasSize,
+            }
+
             local invisible = (
-            tile[1] > view_port[1] and
-            tile[1] < view_port[3] and
-            tile[2] > view_port[2] and
-            tile[2] < view_port[4] and
-            tile[3] < view_port[3] and
-            tile[4] < view_port[4])
+            tile[1] >= local_view_port[1] and
+            tile[1] <= local_view_port[3] and
+            tile[2] >= local_view_port[2] and
+            tile[2] <= local_view_port[4] and
+            tile[3] <= local_view_port[3] and
+            tile[4] <= local_view_port[4])
 
 
 
@@ -269,11 +304,34 @@ local function bake_canvases()
 
 
 
-            gr.setColor(uniq_color)
 
-            gr.rectangle('fill', tile[1], tile[2], tile[3], tile[4])
-            gr.setColor({ 0, 0, 0, 1 })
-            local str = format("(%d, %d)", x, y)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            if invisible then
+               gr.setColor(uniq_color)
+
+
+
+
+               gr.rectangle('fill', tile[1], tile[2], canvasSize, canvasSize)
+
+
+
+            end
+
 
 
 
@@ -366,10 +424,6 @@ function commands.set_position()
    return false
 end
 
-local scrw, scrh = gr.getDimensions()
-
-local view_port = { 0, 0, scrw, scrh }
-
 function commands.set_view_port()
    view_port[1] = ceil(graphic_command_channel:demand())
    view_port[2] = ceil(graphic_command_channel:demand())
@@ -386,6 +440,7 @@ end
 
 
 function commands.flush()
+
    local camx = ceil(graphic_command_channel:demand())
    local camy = ceil(graphic_command_channel:demand())
 
@@ -432,16 +487,24 @@ function commands.flush()
          until true
       until true
 
-      gr.setColor({ 1, 0, 0, 1 })
-      gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
+
+
    end
 
    local drawed_num = 0
+
    for _, draw_func in ipairs(drawlist) do
       if draw_func(camx, camy) then
          drawed_num = drawed_num + 1
       end
    end
+
+
+   draw_view_port(view_port)
+
+
+
+
 
 
 
@@ -451,11 +514,14 @@ function commands.flush()
 
 
 
-   gr.setColor({ 0, 0, 0, 1 })
-   gr.rectangle(
-   'line',
-   local_view_port[1] - w / 2, local_view_port[2] - w / 2,
-   local_view_port[3] - w / 2, local_view_port[4] - h / 2)
+
+
+
+
+
+
+
+
 
 
    return false
