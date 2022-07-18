@@ -133,7 +133,7 @@ static int string_from_state(lua_State *lua) {
 static int free_messenger(lua_State *lua) {
     if (state) {
         for(int i = 0; state->channels_num; i++) {
-            Channel *ch = state->channels[i];
+            /*Channel *ch = state->channels[i];*/
             free(state->channels[i]);
         }
         free(state);
