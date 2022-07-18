@@ -36,6 +36,7 @@ local mapWidthPix: integer
 -- TODO Перенести в параметры
 local rez = 64
 
+--local canvasSize = 1024 -- in pixels
 --local canvasSize = 512 -- in pixels
 --local canvasSize = 256 -- in pixels
 local canvasSize = 128 -- in pixels
@@ -56,16 +57,20 @@ local type Viewport = {number}
 local scrw, scrh = gr.getDimensions()
 -- Часть экрана, видимая зрителю.
 local view_port: Viewport = {0, 0, scrw, scrh}
+local local_view_port: Viewport = {0, 0, 0, 0}
 
 ------- Уменьшение размера окна вывода ------- 
 local scrw, scrh = gr.getDimensions()
-local vp_dx1, vp_dy1 = 100, 100
-local vp_dx2, vp_dy2 = -100, -100
+local vp_dx1, vp_dy1 = 500, 300
+local vp_dx2, vp_dy2 = -500, -300
 ----------------------------------------
 
 local function draw_view_port(vp: {number})
-    gr.setColor{1, 0, 0, 1}
+    gr.setColor{1, 1, 1, 1}
     gr.rectangle("line", vp[1], vp[2], abs(vp[3] - vp[1]), abs(vp[4] - vp[2]))
+    gr.setColor{0, 0, 1.}
+    local rad = 5
+    gr.circle("fill", vp[1], vp[2], rad)
 end
 
 -- i1, i2, j1, j2 - индексы
@@ -257,10 +262,10 @@ local function bake_canvases()
         for x = 0, canvasNum - 1 do
             num = num + 1
 
-            print("y, x", y, x)
-            print('i, j', i, j)
+            --print("y, x", y, x)
+            --print('i, j', i, j)
 
-            local tmpx, tmpy = i, j
+            local tmpi, tmpj = i, j
 
             -- {{{
             --local scrw, scrh = gr.getDimensions()
@@ -268,26 +273,14 @@ local function bake_canvases()
 
             local uniq_color = {1, math.random(), math.random(), 1}
             table.insert(drawlist, function(camx: integer, camy: integer): boolean
-                local i_pos = tmpx * rez
-                local j_pos = tmpy * rez
+                local i_pos = tmpi * rez
+                local j_pos = tmpj * rez
 
                 --]]
 
                 local tile = { 
                     i_pos, j_pos, 
                     i_pos + canvasSize, j_pos + canvasSize 
-                }
-
-                view_port[1] = vp_dx1 + camx - scrw / 2
-                view_port[2] = vp_dy1 + camy - scrh / 2
-                view_port[3] = vp_dx2 + camx + scrw / 2
-                view_port[4] = vp_dy2 + camy + scrh / 2
-
-                local local_view_port = {
-                    view_port[1] - canvasSize,
-                    view_port[2] - canvasSize,
-                    view_port[3] + canvasSize,
-                    view_port[4] + canvasSize,
                 }
 
                 local visible =  (
@@ -298,31 +291,11 @@ local function bake_canvases()
                     tile[3] <= local_view_port[3] and
                     tile[4] <= local_view_port[4]
                 )
-                --view_port[1] < tile[1] and
-                --view_port[2] < tile[2] and
-                --view_port[3] > tile[3] and
-                --view_port[4] > tile[4]
 
-
-                --[[
-                local invisible =  (
-                    tile[1] >= view_port[1] and
-                    tile[1] <= view_port[3] and
-                    tile[2] >= view_port[2] and
-                    tile[2] <= view_port[4] and
-                    tile[3] <= view_port[3] and
-                    tile[4] <= view_port[4]
-                )
-                --]]
-
-                    --view_port[1] < tile[1] and
-                    --view_port[2] < tile[2] and
-                    --view_port[3] > tile[3] and
-                    --view_port[4] > tile[4]
-
-                if not invisible then
+                if visible then
                     gr.setColor(uniq_color)
                     --gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
+
 
                     --print("tile[3], tile[4]", tile[3], tile[4])
 
@@ -440,18 +413,30 @@ end
 
 -- Рисовать карту из холста.
 function commands.flush(): boolean
-    -- Камера указывает на центр экрана или верхний левый угол?
+    -- Камера указывает на центр экрана
     local camx = ceil(graphic_command_channel:demand() as number)
     local camy = ceil(graphic_command_channel:demand() as number)
 
     -- Добавить обработку отрицательных положений камеры
 
+    --[[
     local local_view_port = {
         view_port[1] + camx,
         view_port[2] + camy,
         view_port[3] + camx,
         view_port[4] + camy,
     }
+    --]]
+
+    view_port[1] = vp_dx1 + camx - scrw / 2
+    view_port[2] = vp_dy1 + camy - scrh / 2
+    view_port[3] = vp_dx2 + camx + scrw / 2
+    view_port[4] = vp_dy2 + camy + scrh / 2
+
+    local_view_port[1] = view_port[1] - canvasSize
+    local_view_port[2] = view_port[2] - canvasSize
+    local_view_port[3] = view_port[3] + canvasSize
+    local_view_port[4] = view_port[4] + canvasSize
 
     local index_i = ceil(local_view_port[1] / canvasSize)
     local index_j = ceil(local_view_port[2] / canvasSize)
@@ -470,6 +455,12 @@ function commands.flush(): boolean
     gr.setScissor(0, 0, w, h)
 
     gr.setColor{1, 1, 1, 1}
+
+    --local inrange_i = index_i > 1 and index_i < #map
+    --local inrange_j = index_j > 1 and index_j < #map
+
+    if index_i < 0 then index_i = 0 end 
+    if index_j < 0 then index_j = 0 end
 
     local inrange_i = index_i > 1 and index_i < #map
     local inrange_j = index_j > 1 and index_j < #map
@@ -492,12 +483,12 @@ function commands.flush(): boolean
     end
 
     local drawed_num = 0
-    
     for _, draw_func in ipairs(drawlist) do
         if draw_func(camx, camy) then
             drawed_num = drawed_num + 1
         end
     end
+
     --]]
 
     draw_view_port(view_port)
@@ -510,7 +501,7 @@ function commands.flush(): boolean
 
     local msg = format('index_i, index_j: %d, %d', index_i, index_j)
     gr.setColor{0, 0, 0, 1}
-    gr.print(msg, camx - w/2 + w / 2, camy -h/2 + h / 2)
+    gr.print(msg, local_view_port[1], local_view_port[2])
 
     --print('i_poses', inspect(i_poses))
     --print('j_poses', inspect(j_poses))
