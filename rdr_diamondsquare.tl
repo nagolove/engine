@@ -14,8 +14,8 @@ local colorize = require('ansicolors2').ansicolors
 local yield = coroutine.yield
 local gr = love.graphics
 local inspect = require "inspect"
-local ceil = math.ceil
-local fmod = math.fmod
+local abs = math.abs
+local ceil, fmod = math.ceil, math.fmod
 local get_color = require 'height_map'.color
 
 local dirname = ""
@@ -36,7 +36,9 @@ local mapWidthPix: integer
 -- TODO Перенести в параметры
 local rez = 64
 
-local canvasSize = 512 -- in pixels
+--local canvasSize = 512 -- in pixels
+--local canvasSize = 256 -- in pixels
+local canvasSize = 128 -- in pixels
 
 -- Условие качественного тайлинга
 assert(canvasSize % rez == 0, "canvasSize % rez == 0")
@@ -47,6 +49,24 @@ local format = string.format
 
 local type Drawer = function(camx: integer, camy: integer): boolean
 local drawlist: {Drawer} = {}
+
+-- {x1, y1, x2, y2}
+local type Viewport = {number}
+
+local scrw, scrh = gr.getDimensions()
+-- Часть экрана, видимая зрителю.
+local view_port: Viewport = {0, 0, scrw, scrh}
+
+------- Уменьшение размера окна вывода ------- 
+local scrw, scrh = gr.getDimensions()
+local vp_dx1, vp_dy1 = 100, 100
+local vp_dx2, vp_dy2 = -100, -100
+----------------------------------------
+
+local function draw_view_port(vp: {number})
+    gr.setColor{1, 0, 0, 1}
+    gr.rectangle("line", vp[1], vp[2], abs(vp[3] - vp[1]), abs(vp[4] - vp[2]))
+end
 
 -- i1, i2, j1, j2 - индексы
 -- dx, dy - _необязательное_ смещение в пикслелях для всей картинки
@@ -71,9 +91,7 @@ local function sub_draw(
             local c = map[i] and map[i][j] or nil
             if c then
                 local color = get_color(c ^ 2)
-                --print('color', inspect(color))
                 gr.setColor(color)
-                --gr.rectangle("fill", x + rez*i, y + rez*j, rez, rez)
                 gr.rectangle(
                     "fill", 
                     x + rez * abs_i, 
@@ -95,10 +113,12 @@ end
 
 local canvas_nodes: {integer:{integer:gr.Image}} = {{}}
 local loaded_order: {Node} = {} -- Новые добавляются в конец
+
 -- Максимальное количество загруженных текстур
 local max_loaded_num: integer = 10 
 
 local function new_texture(i: integer, j: integer)
+    -- {{{
     local ok, errmsg: boolean, string = pcall(function()
 
     if #loaded_order >= max_loaded_num then
@@ -123,9 +143,11 @@ local function new_texture(i: integer, j: integer)
     if not ok then
         print('new_texture:' .. errmsg)
     end
+    -- }}}
 end
 
 local function draw_texture(i: integer, j: integer)
+    -- {{{
     local ok, errmsg: boolean, string = pcall(function()
 
     if canvas_nodes[i] and (not canvas_nodes[i][j]) then
@@ -139,16 +161,19 @@ local function draw_texture(i: integer, j: integer)
     end
 
     end) as (boolean, string)
+
     if not ok then
         print('draw_texture:' .. errmsg)
         print('canvas_nodes', inspect(canvas_nodes))
     end
+    -- }}}
 end
 
 local function bake_and_save_canvas(
     i1: integer, i2: integer, j1: integer, j2: integer,
     name: string
 )
+    -- {{{
     gr.setColor{1, 1, 1, 1}
     local canvas = gr.newCanvas(canvasSize, canvasSize)
     gr.setCanvas(canvas)
@@ -173,6 +198,7 @@ local function bake_and_save_canvas(
     canvas:newImageData():encode('png', fname)
     local object = canvas as love.Object
     object:release()
+    -- }}}
 end
 
 local enum Command
@@ -245,39 +271,71 @@ local function bake_canvases()
                 local i_pos = tmpx * rez
                 local j_pos = tmpy * rez
 
-                local scrw, scrh = gr.getDimensions()
-                local view_port = { 
-                    camx, camy, 
-                    camx + scrw, camy + scrh 
-                }
+                --]]
+
                 local tile = { 
                     i_pos, j_pos, 
                     i_pos + canvasSize, j_pos + canvasSize 
                 }
 
-                local invisible =  (
-                    tile[1] > view_port[1] and
-                    tile[1] < view_port[3] and
-                    tile[2] > view_port[2] and
-                    tile[2] < view_port[4] and
-                    tile[3] < view_port[3] and
-                    tile[4] < view_port[4]
+                view_port[1] = vp_dx1 + camx - scrw / 2
+                view_port[2] = vp_dy1 + camy - scrh / 2
+                view_port[3] = vp_dx2 + camx + scrw / 2
+                view_port[4] = vp_dy2 + camy + scrh / 2
+
+                local local_view_port = {
+                    view_port[1] - canvasSize,
+                    view_port[2] - canvasSize,
+                    view_port[3] + canvasSize,
+                    view_port[4] + canvasSize,
+                }
+
+                local visible =  (
+                    tile[1] >= local_view_port[1] and
+                    tile[1] <= local_view_port[3] and
+                    tile[2] >= local_view_port[2] and
+                    tile[2] <= local_view_port[4] and
+                    tile[3] <= local_view_port[3] and
+                    tile[4] <= local_view_port[4]
                 )
+                --view_port[1] < tile[1] and
+                --view_port[2] < tile[2] and
+                --view_port[3] > tile[3] and
+                --view_port[4] > tile[4]
+
+
+                --[[
+                local invisible =  (
+                    tile[1] >= view_port[1] and
+                    tile[1] <= view_port[3] and
+                    tile[2] >= view_port[2] and
+                    tile[2] <= view_port[4] and
+                    tile[3] <= view_port[3] and
+                    tile[4] <= view_port[4]
+                )
+                --]]
+
                     --view_port[1] < tile[1] and
                     --view_port[2] < tile[2] and
                     --view_port[3] > tile[3] and
                     --view_port[4] > tile[4]
 
-                --if not invisible then
+                if not invisible then
                     gr.setColor(uniq_color)
                     --gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
-                    gr.rectangle('fill', tile[1], tile[2], tile[3], tile[4])
-                    gr.setColor{0, 0, 0, 1}
-                    local str = format("(%d, %d)", x, y)
-                    --gr.print(str, i_pos, j_pos)
-                --end
 
-                return not invisible
+                    --print("tile[3], tile[4]", tile[3], tile[4])
+
+                    gr.rectangle('fill', tile[1], tile[2], canvasSize, canvasSize)
+
+                    --local str = format("(%d, %d)", x, y)
+                    --gr.print(str, i_pos, j_pos)
+                end
+
+                --gr.setColor{1, 0, 0, 1}
+                --gr.rectangle("line", view_port[1], view_port[2], scrw, scrh)
+
+                return visible
             end)
             -- }}}
 
@@ -366,10 +424,6 @@ function commands.set_position(): boolean
     return false
 end
 
-local scrw, scrh = gr.getDimensions()
--- Часть экрана, видимая зрителю.
-local view_port = {0, 0, scrw, scrh}
-
 function commands.set_view_port(): boolean
     view_port[1] = ceil(graphic_command_channel:demand() as number)
     view_port[2] = ceil(graphic_command_channel:demand() as number)
@@ -386,6 +440,7 @@ end
 
 -- Рисовать карту из холста.
 function commands.flush(): boolean
+    -- Камера указывает на центр экрана или верхний левый угол?
     local camx = ceil(graphic_command_channel:demand() as number)
     local camy = ceil(graphic_command_channel:demand() as number)
 
@@ -432,16 +487,24 @@ function commands.flush(): boolean
             until true
         until true
 
-        gr.setColor{1, 0, 0, 1}
-        gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
+        --gr.setColor{1, 0, 0, 1}
+        --gr.rectangle('line', 0, 0, mapSize * rez, mapSize * rez)
     end
 
     local drawed_num = 0
+    
     for _, draw_func in ipairs(drawlist) do
         if draw_func(camx, camy) then
             drawed_num = drawed_num + 1
         end
     end
+    --]]
+
+    draw_view_port(view_port)
+
+    --sub_draw(1, mapSize, 1, mapSize, -rez, -rez)
+    --sub_draw(1, mapSize, 1, mapSize, 0, 0)
+
     --print('#drawlist, drawed_num', #drawlist, drawed_num)
     --sliced_func()
 
@@ -451,12 +514,15 @@ function commands.flush(): boolean
 
     --print('i_poses', inspect(i_poses))
     --print('j_poses', inspect(j_poses))
+
+    --[[
     gr.setColor{0, 0, 0, 1}
     gr.rectangle(
         'line', 
         local_view_port[1] - w / 2, local_view_port[2] - w / 2, 
         local_view_port[3] - w / 2, local_view_port[4] - h / 2
     )
+    --]]
 
     return false
 end
