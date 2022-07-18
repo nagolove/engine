@@ -34,23 +34,39 @@ workspace "xcaustic"
     targetprefix ""
     targetdir "."
 
+    -- Генератор ландшафта
     project "diamond_and_square"
         files { "**.h", "diamond_and_square.c" }
 
+    -- Библиотека для замены love.thread.Channel
+    -- Стек вместо очереди
     project "messenger"
         files { "**.h", "messenger.c" }
         
+    -- Библиотека для замены love.thread.Channel
+    -- На циклическом списке
     project "messenger2"
         files { "**.h", "messenger2.c" }
         includedirs { "/usr/include/SDL2" }
         links { "pthread", "SDL2" }
         buildoptions { "-D_REENTRANT" }
 
+    -- Библиотека для замены love.thread.Channel
+    -- Очередь на списке. Заброшено
     project "messenger3"
         files { "**.h", "messenger3.c" }
         includedirs { "/usr/include/SDL2" }
         links { "pthread", "SDL2" }
         buildoptions { "-D_REENTRANT" }
+
+    -- Библиотека для проверки корректности работы менеджера памяти при
+    -- разделении состояния на несколько потоков.
+    project ""
+        files { "**.h", "test_memmgr.c" }
+        includedirs { "/usr/include/SDL2" }
+        links { "pthread", "SDL2" }
+        buildoptions { "-D_REENTRANT" }
+
 
     filter "configurations:Debug"
     defines { "DEBUG" }
