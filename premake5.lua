@@ -61,7 +61,7 @@ workspace "xcaustic"
 
     -- Библиотека для проверки корректности работы менеджера памяти при
     -- разделении состояния на несколько потоков.
-    project ""
+    project "test_memmgr"
         files { "**.h", "test_memmgr.c" }
         includedirs { "/usr/include/SDL2" }
         links { "pthread", "SDL2" }
