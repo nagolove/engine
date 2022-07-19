@@ -612,3 +612,34 @@ print('os.exit(100)')
 os.exit(100)
 --]]
 -- }}}
+
+--global type BitNumber = number
+
+function bit(p: number): number
+  return 2 ^ (p - 1)  -- 1-based indexing
+end
+
+-- Typical call:  if hasbit(x, bit(3)) then ...
+function hasbit(x: number, p: number): boolean
+  return x % (p + p) >= p
+end
+
+function setbit(x: number, p: number): number
+  return hasbit(x, p) and x or x + p
+end
+
+function clearbit(x: number, p: number): number
+  return hasbit(x, p) and x - p or x
+end
+
+function getbitstr(v: number): string
+    local s = ""
+    -- Максимальное значение для Lua 5.4, при большем num теряется статильность.
+    local num = 53
+    for i = 1, num do
+        s = s .. tostring(hasbit(v, bit(i)) and 1 or 0) .. " "
+    end
+    return s
+end
+
+
