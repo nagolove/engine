@@ -37,7 +37,17 @@ local das = require("diamond_and_square")
 
 require('diamondsquare_common')
 
+DiamonAndSquare_draw_tiles = 1
+DiamonAndSquare_invert_tiles_draw_order = 2
+
+
+
+
+
 local DiamonAndSquare = {State = {}, }
+
+
+
 
 
 
@@ -141,7 +151,12 @@ function DiamonAndSquare:setPosition(x, y)
 end
 
 function DiamonAndSquare:render(x, y)
-   self.pipeline:openPushAndClose(self.renderobj_name, 'flush', x, y)
+   self.pipeline:openPushAndClose(
+   self.renderobj_name,
+   'flush',
+   x, y,
+   self.bitmask)
+
 end
 
 function DiamonAndSquare:send2render()
@@ -201,6 +216,7 @@ function DiamonAndSquare.new(
    self.renderobj_name, 'rdr_diamondsquare.lua')
 
 
+   self.bitmask = 0
    self.mapn = mapn
 
 

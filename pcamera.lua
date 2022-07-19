@@ -268,7 +268,7 @@ end
 
 function Camera:checkMovement(dx, dy)
 
-   local amount_x, amount_y = 3000 * self.dt, 3000 * self.dt
+   local amount_x, amount_y = 1000 * self.dt, 1000 * self.dt
    local tx, ty = 0., 0.
    local changed = false
 

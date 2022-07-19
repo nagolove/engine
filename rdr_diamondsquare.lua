@@ -9,12 +9,14 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 require('love')
 require("common")
+require('diamondsquare_c')
 
 local colorize = require('ansicolors2').ansicolors
 local yield = coroutine.yield
 local gr = love.graphics
 local inspect = require("inspect")
 local abs = math.abs
+local floor = math.floor
 local ceil, fmod = math.ceil, math.fmod
 local get_color = require('height_map').color
 
@@ -214,6 +216,9 @@ local Command = {}
 
 
 
+local is_draw_tiles = false
+local is_invert_tiles_draw_order = false
+
 local cmd_circle_buf = {}
 
 
@@ -242,7 +247,8 @@ local function bake_canvases()
    print('mapWidthPix', mapWidthPix)
    local canvasNum = ceil(mapWidthPix / canvasSize)
    print('canvasNum', canvasNum)
-   local i, j = 1, 1
+
+   local i, j = 0, 0
 
    print('step_1', ceil(#map / canvasNum))
    local step = ceil(canvasSize / rez)
@@ -258,7 +264,8 @@ local function bake_canvases()
    local slices = {}
 
    for y = 0, canvasNum - 1 do
-      j = 1
+
+      j = 0
       for x = 0, canvasNum - 1 do
          num = num + 1
 
@@ -266,6 +273,12 @@ local function bake_canvases()
 
 
          local tmpi, tmpj = i, j
+         local tmpx, tmpy = x, y
+
+
+
+
+
 
 
 
@@ -273,10 +286,9 @@ local function bake_canvases()
 
          local uniq_color = { 1, math.random(), math.random(), 1 }
          table.insert(drawlist, function(camx, camy)
+
             local i_pos = tmpi * rez
             local j_pos = tmpj * rez
-
-
 
             local tile = {
                i_pos, j_pos,
@@ -292,31 +304,54 @@ local function bake_canvases()
             tile[4] <= local_view_port[4])
 
 
-            if visible then
-               gr.setColor(uniq_color)
+            if not visible then
+               return
+            end
+
+            if not is_invert_tiles_draw_order then
+
+               if is_draw_tiles then
+                  gr.setColor(uniq_color)
+                  gr.rectangle('fill', tile[1], tile[2], canvasSize, canvasSize)
+               end
+
+               gr.setColor({ 1, 1, 1, 1 })
+               sub_draw(
+               (tmpi + 1), (tmpi + 1) + step,
+               (tmpj + 1), (tmpj + 1) + step,
+               (tmpi + 1) * rez - canvasSize,
+               (tmpj + 1) * rez - canvasSize)
 
 
+               if is_draw_tiles then
+                  local str = format("(%d, %d)", tmpi, tmpj)
+                  gr.setColor({ 0, 0, 0, 1 })
+                  gr.print(str, tile[1], tile[2])
+               end
+
+            else
+
+               gr.setColor({ 1, 1, 1, 1 })
+               sub_draw(
+               (tmpi + 1), (tmpi + 1) + step,
+               (tmpj + 1), (tmpj + 1) + step,
+               (tmpi + 1) * rez - canvasSize,
+               (tmpj + 1) * rez - canvasSize)
 
 
-
-               gr.rectangle('fill', tile[1], tile[2], canvasSize, canvasSize)
-
-
+               if is_draw_tiles then
+                  gr.setColor(uniq_color)
+                  gr.rectangle('fill', tile[1], tile[2], canvasSize, canvasSize)
+                  local str = format("(%d, %d)", tmpi, tmpj)
+                  gr.setColor({ 0, 0, 0, 1 })
+                  gr.print(str, tile[1], tile[2])
+               end
 
             end
 
-
-
-
             return visible
+
          end)
-
-
-
-         bake_and_save_canvas(
-         i, i + step,
-         j, j + step,
-         zerofyNum(y + 1) .. "_" .. zerofyNum(x + 1))
 
          j = j + step
       end
@@ -416,6 +451,14 @@ function commands.flush()
 
    local camx = ceil(graphic_command_channel:demand())
    local camy = ceil(graphic_command_channel:demand())
+   local param = graphic_command_channel:demand()
+
+   is_draw_tiles = hasbit(param, bit(DiamonAndSquare_draw_tiles))
+   is_invert_tiles_draw_order = hasbit(
+   param, bit(DiamonAndSquare_invert_tiles_draw_order))
+
+
+
 
 
 
@@ -438,26 +481,20 @@ function commands.flush()
    local_view_port[3] = view_port[3] + canvasSize
    local_view_port[4] = view_port[4] + canvasSize
 
-   local index_i = ceil(local_view_port[1] / canvasSize)
-   local index_j = ceil(local_view_port[2] / canvasSize)
+
+
+   local index_i = ceil(view_port[1] / canvasSize)
+   local index_j = ceil(view_port[2] / canvasSize)
 
 
 
    local dx = fmod(local_view_port[1], canvasSize)
    local dy = fmod(local_view_port[2], canvasSize)
 
-
-
-
-
-
    local w, h = gr.getDimensions()
    gr.setScissor(0, 0, w, h)
 
    gr.setColor({ 1, 1, 1, 1 })
-
-
-
 
    if index_i < 0 then index_i = 0 end
    if index_j < 0 then index_j = 0 end
@@ -501,7 +538,7 @@ function commands.flush()
 
    local msg = format('index_i, index_j: %d, %d', index_i, index_j)
    gr.setColor({ 0, 0, 0, 1 })
-   gr.print(msg, local_view_port[1], local_view_port[2])
+   gr.print(msg, view_port[1], view_port[2])
 
 
 

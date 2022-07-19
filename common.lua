@@ -605,3 +605,39 @@ function test_boxifyTextParagraph()
    end
 
 end
+
+
+
+
+
+
+
+
+
+
+function bit(p)
+   return 2 ^ (p - 1)
+end
+
+
+function hasbit(x, p)
+   return x % (p + p) >= p
+end
+
+function setbit(x, p)
+   return hasbit(x, p) and x or x + p
+end
+
+function clearbit(x, p)
+   return hasbit(x, p) and x - p or x
+end
+
+function getbitstr(v)
+   local s = ""
+
+   local num = 53
+   for i = 1, num do
+      s = s .. tostring(hasbit(v, bit(i)) and 1 or 0) .. " "
+   end
+   return s
+end
