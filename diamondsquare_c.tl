@@ -37,6 +37,13 @@ diamondsquare_common.tl
 
 require 'diamondsquare_common'
 
+global DiamonAndSquare_draw_tiles = 1
+global DiamonAndSquare_invert_tiles_draw_order = 2
+-- XXX Выбрать более короткий вариант именования?
+--global DASquare_invert_tiles_draw_order = 2
+--global DiamonAndSquare_inv_draw_order = 2
+--global DASquare_inv_draw_order = 2
+
 local record DiamonAndSquare
 
     record State
@@ -48,6 +55,7 @@ local record DiamonAndSquare
     renderobj_name: string
     pipeline: Pipeline
 
+    bitmask: number
     rez: integer
     mapSize: integer
     mapn: integer
@@ -86,6 +94,8 @@ local record DiamonAndSquare
     send2render: function(DiamonAndSquare)
     -- Рисовать
     render: function(DiamonAndSquare, x: number, y: number)
+
+    renderWithParam: function(x: number, y: number, param: number)
 
     --[[
     -- Сохранить в файл
@@ -141,7 +151,12 @@ function DiamonAndSquare:setPosition(x: number, y: number)
 end
 
 function DiamonAndSquare:render(x: number, y: number)
-    self.pipeline:openPushAndClose(self.renderobj_name, 'flush', x, y)
+    self.pipeline:openPushAndClose(
+        self.renderobj_name, 
+        'flush', 
+        x, y, 
+        self.bitmask
+    )
 end
 
 function DiamonAndSquare:send2render()
@@ -201,6 +216,7 @@ function DiamonAndSquare.new(
         self.renderobj_name, 'rdr_diamondsquare.lua'
     )
 
+    self.bitmask = 0
     self.mapn = mapn
     --self.generator = das.new(mapn, rng)
     --self.mapSize = self.generator:get_mapsize()
