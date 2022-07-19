@@ -24,8 +24,6 @@ local dirname = ""
 local mapn
 local rng_state
 
-local sliced_func
-
 
 local x_pos, y_pos = 0., 0.
 
@@ -261,8 +259,6 @@ local function bake_canvases()
    print('step', step)
    local num = 0
 
-   local slices = {}
-
    for y = 0, canvasNum - 1 do
 
       j = 0
@@ -358,14 +354,6 @@ local function bake_canvases()
       i = i + step
    end
 
-
-   local code = table.concat(slices, '\n')
-   print('code', code)
-   local errmsg
-   sliced_func, errmsg = load(code)
-   if not sliced_func then
-      print('errmsg:', errmsg)
-   end
 end
 
 local commands = {}
@@ -529,12 +517,6 @@ function commands.flush()
 
 
    draw_view_port(view_port)
-
-
-
-
-
-
 
    local msg = format('index_i, index_j: %d, %d', index_i, index_j)
    gr.setColor({ 0, 0, 0, 1 })
