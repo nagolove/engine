@@ -9,20 +9,20 @@ global SCENE_PREFIX: string
 
 require 'love'
 require "common"
+require 'diamondsquare_c'
 
 local colorize = require('ansicolors2').ansicolors
 local yield = coroutine.yield
 local gr = love.graphics
 local inspect = require "inspect"
 local abs = math.abs
+local floor = math.floor
 local ceil, fmod = math.ceil, math.fmod
 local get_color = require 'height_map'.color
 
 local dirname = ""
 local mapn: integer
 local rng_state: string
-
-local sliced_func: function
 
 -- Общее смещение при рисовании ландшафта
 local x_pos, y_pos = 0., 0.
@@ -59,7 +59,7 @@ local scrw, scrh = gr.getDimensions()
 local view_port: Viewport = {0, 0, scrw, scrh}
 local local_view_port: Viewport = {0, 0, 0, 0}
 
-------- Уменьшение размера окна вывода ------- 
+------- Уменьшение размера окна вывода для отладки отсечения ------- 
 local scrw, scrh = gr.getDimensions()
 local vp_dx1, vp_dy1 = 500, 300
 local vp_dx2, vp_dy2 = -500, -300
@@ -214,6 +214,9 @@ local enum Command
     "set_view_port"     -- установить размер окна вывода
 end
 
+local is_draw_tiles: boolean = false
+local is_invert_tiles_draw_order: boolean = false
+
 local cmd_circle_buf: {Command} = {}
 --local cmd_circle_buf_maxnum = 16 * 2
 
@@ -242,7 +245,8 @@ local function bake_canvases()
     print('mapWidthPix', mapWidthPix)
     local canvasNum = ceil(mapWidthPix / canvasSize)
     print('canvasNum', canvasNum)
-    local i, j = 1, 1
+    --local i, j = 1, 1
+    local i, j = 0, 0
 
     print('step_1', ceil(#map / canvasNum)) -- Шаг индексов для одного холста.
     local step = ceil(canvasSize / rez) -- Шаг индексов для одного холста.
@@ -255,10 +259,9 @@ local function bake_canvases()
     print('step', step)
     local num = 0
 
-    local slices: {string} = {}
-
     for y = 0, canvasNum - 1 do
-        j = 1
+        --j = 1
+        j = 0
         for x = 0, canvasNum - 1 do
             num = num + 1
 
@@ -266,17 +269,22 @@ local function bake_canvases()
             --print('i, j', i, j)
 
             local tmpi, tmpj = i, j
+            local tmpx, tmpy = x, y
 
-            -- {{{
-            --local scrw, scrh = gr.getDimensions()
-            --local tmpcanvas = gr.newCanvas(300, 100)
+            --print('node', inspect(node))
+            --[[
+            bake_and_save_canvas(
+                i, i + step,
+                j, j + step,
+                zerofyNum(y + 1) .. "_" .. zerofyNum(x + 1)
+            )
+            --]]
 
             local uniq_color = {1, math.random(), math.random(), 1}
             table.insert(drawlist, function(camx: integer, camy: integer): boolean
+                -- {{{
                 local i_pos = tmpi * rez
                 local j_pos = tmpj * rez
-
-                --]]
 
                 local tile = { 
                     i_pos, j_pos, 
@@ -292,45 +300,60 @@ local function bake_canvases()
                     tile[4] <= local_view_port[4]
                 )
 
-                if visible then
-                    gr.setColor(uniq_color)
-                    --gr.rectangle('fill', i_pos, j_pos, canvasSize, canvasSize)
-
-
-                    --print("tile[3], tile[4]", tile[3], tile[4])
-
-                    gr.rectangle('fill', tile[1], tile[2], canvasSize, canvasSize)
-
-                    --local str = format("(%d, %d)", x, y)
-                    --gr.print(str, i_pos, j_pos)
+                if not visible then 
+                    return
                 end
 
-                --gr.setColor{1, 0, 0, 1}
-                --gr.rectangle("line", view_port[1], view_port[2], scrw, scrh)
+                if not is_invert_tiles_draw_order then
+                    -------------------------------------------------------
+                    if is_draw_tiles then
+                        gr.setColor(uniq_color)
+                        gr.rectangle('fill', tile[1], tile[2], canvasSize, canvasSize)
+                    end
 
-                return visible
-            end)
+                    gr.setColor{1, 1, 1, 1}
+                    sub_draw(
+                        (tmpi + 1), (tmpi + 1) + step, 
+                        (tmpj + 1), (tmpj + 1) + step, 
+                        (tmpi + 1) * rez - canvasSize, 
+                        (tmpj + 1) * rez - canvasSize
+                    )
+
+                    if is_draw_tiles then
+                        local str = format("(%d, %d)", tmpi, tmpj)
+                        gr.setColor{0, 0, 0, 1}
+                        gr.print(str, tile[1], tile[2])
+                    end
+                    -------------------------------------------------------
+                else
+                    -------------------------------------------------------
+                    gr.setColor{1, 1, 1, 1}
+                    sub_draw(
+                        (tmpi + 1), (tmpi + 1) + step, 
+                        (tmpj + 1), (tmpj + 1) + step, 
+                        (tmpi + 1) * rez - canvasSize, 
+                        (tmpj + 1) * rez - canvasSize
+                    )
+
+                    if is_draw_tiles then
+                        gr.setColor(uniq_color)
+                        gr.rectangle('fill', tile[1], tile[2], canvasSize, canvasSize)
+                        local str = format("(%d, %d)", tmpi, tmpj)
+                        gr.setColor{0, 0, 0, 1}
+                        gr.print(str, tile[1], tile[2])
+                    end
+                    -------------------------------------------------------
+                end
+
+            return visible
             -- }}}
+        end)
 
-            --print('node', inspect(node))
-            bake_and_save_canvas(
-                i, i + step,
-                j, j + step,
-                zerofyNum(y + 1) .. "_" .. zerofyNum(x + 1)
-            )
             j = j + step
         end
         i = i + step
     end
 
-
-    local code = table.concat(slices, '\n')
-    print('code', code)
-    local errmsg: string
-    sliced_func, errmsg = load(code)
-    if not sliced_func then
-        print('errmsg:', errmsg)
-    end
 end
 
 local commands = {}
@@ -416,6 +439,13 @@ function commands.flush(): boolean
     -- Камера указывает на центр экрана
     local camx = ceil(graphic_command_channel:demand() as number)
     local camy = ceil(graphic_command_channel:demand() as number)
+    local param = graphic_command_channel:demand() as number
+
+    is_draw_tiles = hasbit(param, bit(DiamonAndSquare_draw_tiles))
+    is_invert_tiles_draw_order = hasbit(
+        param, bit(DiamonAndSquare_invert_tiles_draw_order)
+    )
+    --print('param', getbitstr(param))
 
     -- Добавить обработку отрицательных положений камеры
 
@@ -428,6 +458,7 @@ function commands.flush(): boolean
     }
     --]]
 
+    -- view_port[n] = уменьшение_окна_вывода + координата_камеры - сдвиг_от_центра
     view_port[1] = vp_dx1 + camx - scrw / 2
     view_port[2] = vp_dy1 + camy - scrh / 2
     view_port[3] = vp_dx2 + camx + scrw / 2
@@ -438,26 +469,20 @@ function commands.flush(): boolean
     local_view_port[3] = view_port[3] + canvasSize
     local_view_port[4] = view_port[4] + canvasSize
 
-    local index_i = ceil(local_view_port[1] / canvasSize)
-    local index_j = ceil(local_view_port[2] / canvasSize)
+    --local index_i = ceil(local_view_port[1] / canvasSize)
+    --local index_j = ceil(local_view_port[2] / canvasSize)
+    local index_i = ceil(view_port[1] / canvasSize)
+    local index_j = ceil(view_port[2] / canvasSize)
 
     --local dx = local_view_port[1] / canvasSize - index_i
     --local dy = local_view_port[2] / canvasSize - index_j
     local dx = fmod(local_view_port[1], canvasSize)
     local dy = fmod(local_view_port[2], canvasSize)
 
-    --print('index_i, index_j', index_i, index_j)
-    --print('dx, dy', dx, dy)
-
-    --print('camx, camy', camx, camy)
-
     local w, h = gr.getDimensions()
     gr.setScissor(0, 0, w, h)
 
     gr.setColor{1, 1, 1, 1}
-
-    --local inrange_i = index_i > 1 and index_i < #map
-    --local inrange_j = index_j > 1 and index_j < #map
 
     if index_i < 0 then index_i = 0 end 
     if index_j < 0 then index_j = 0 end
@@ -493,15 +518,9 @@ function commands.flush(): boolean
 
     draw_view_port(view_port)
 
-    --sub_draw(1, mapSize, 1, mapSize, -rez, -rez)
-    --sub_draw(1, mapSize, 1, mapSize, 0, 0)
-
-    --print('#drawlist, drawed_num', #drawlist, drawed_num)
-    --sliced_func()
-
     local msg = format('index_i, index_j: %d, %d', index_i, index_j)
     gr.setColor{0, 0, 0, 1}
-    gr.print(msg, local_view_port[1], local_view_port[2])
+    gr.print(msg, view_port[1], view_port[2])
 
     --print('i_poses', inspect(i_poses))
     --print('j_poses', inspect(j_poses))
