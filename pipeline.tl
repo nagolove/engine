@@ -20,7 +20,7 @@ local debug_print = print
 -- для синхронизации
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
 -- для команд и данных команд
-local command_channel = lt.getChannel("graphic_command_channel")
+--local command_channel = lt.getChannel("graphic_command_channel")
 -- для кода процедур рисования
 local code_channel = lt.getChannel("graphic_code_channel")
 -- для статистики переданных данных
@@ -80,14 +80,25 @@ local type Pipeline = record
     pullRenderCode: function(Pipeline)
     render: function(Pipeline)
 
-    -- служебная
-    render_internal: function(Pipeline)
-
     printAvaibleFunctions: function(Pipeline)
     -- возвращает количество байт переданных за секунду через канал команд
     get_received_in_sec: function(Pipeline): integer
 
     getDimensions: function(Pipeline): integer, integer
+
+    ------------------------------------ PRIVATE PRIVATE PRIVATE ...
+
+    -- Каналы с командами
+    cmd_channels: {lt.Channel}
+    -- Номер активного канала с командами
+    cmd_channel_idx: integer
+    -- Количество каналов команд
+    cmd_channel_idx_max: integer
+    -- Ссылка на активный канал команд
+    command_channel: lt.Channel
+
+    -- служебная
+    render_internal: function(Pipeline)
 
     section_state: State
     preload: string
@@ -95,10 +106,6 @@ local type Pipeline = record
 
     -- команда рисования и код ее корутины
     renderFunctions: {string:thread}
-
-    -- множество существущих команд рисования
-    -- добавить возможность переопределения или удаления
-    render_set: {string: boolean}
 
     -- количество команд рисования отправленных за кадр
     counter: integer
@@ -139,9 +146,55 @@ function Pipeline.new(scene_prefix: string): Pipeline
     local self: Pipeline = setmetatable({} as Pipeline, Pipeline_mt)
     self.section_state = 'closed'
     self.scene_prefix = scene_prefix or ""
+
+    self.cmd_channel_idx = 1
+    self.cmd_channel_idx_max = 3
+    self.cmd_channels = {}
+    for i = 1, self.cmd_channel_idx_max do
+        local ch = lt.getChannel("graphic_command_channel" .. tostring(i))
+        table.insert(self.cmd_channels, ch)
+    end
+    self.command_channel = self.cmd_channels[self.cmd_channel_idx]
+    print('self.command_channel', self.command_channel)
+
     self.preload = [[
-    local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
+    local _args = {...}
+    local _channel_index: integer = _args[1] as integer
+    assert(type(_channel_index) == "number")
+    local lt = love.thread
+    local _cmd_channel_max = _MAX_CHANNELS_SUBSTITUTION_
+    local _channels: {lt.Channel} = {}
+
+    for i = 1, _cmd_channel_max do
+        local ch = lt.getChannel("graphic_command_channel" .. tostring(i))
+        table.insert(_channels, ch)
+    end
+
+    local graphic_command_channel: lt.Channel = _channels[_channel_index]
+
+    local default_yield = coroutine.yield
+    coroutine.yield = function()
+        error("Please use yield_ch() instead of coroutine.yield()")
+    end
+
+    local function yield_ch(): lt.Channel
+        _channel_index = default_yield() as integer
+        assert(type(_channel_index) == 'number')
+        graphic_command_channel = _channels[_channel_index]
+    end
+
+    --local graphic_command_channel = lt.getChannel(
+        --"graphic_command_channel" .. _channel_index
+    --)
+
+    --local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
     ]]
+    self.preload = string.gsub(
+        self.preload, 
+        "_MAX_CHANNELS_SUBSTITUTION_", 
+        tostring(self.cmd_channel_idx_max)
+    )
+
     if self.scene_prefix then
         local var = format('local SCENE_PREFIX = "%s"\n', self.scene_prefix)
         self.preload = self.preload .. var 
@@ -151,7 +204,6 @@ function Pipeline.new(scene_prefix: string): Pipeline
     self.inc_linum = 2
 
     self.renderFunctions = {}
-    self.render_set = {}
     self.counter = 0
     self.cmd_num = 0
     self.last_render = love.timer.getTime()
@@ -194,11 +246,14 @@ function Pipeline:open(func_name: string)
 
     assert(type(func_name) == 'string')
 
-    command_channel:push(func_name)
+    -- Кромени имени функции добавить номер канала
+    self.command_channel:push(func_name)
+
     self.current_func = func_name
     self.counter = self.counter + 1
     if use_stamp then
-        command_channel:push(love.timer.getTime())
+        error("This option was disabled by developer.")
+        --command_channel:push(love.timer.getTime())
     end
 end
 
@@ -228,7 +283,7 @@ function Pipeline:push(...: any)
     for i = 1, select('#', ...) do
         local argument = select(i, ...)
         self.counter = self.counter + 1
-        command_channel:push(argument)
+        self.command_channel:push(argument)
     end
 end
 
@@ -239,7 +294,14 @@ function Pipeline:sync()
     --draw_ready_channel:clear()
     --draw_ready_channel:supply("ready " .. self.counter)
 
-    draw_ready_channel:supply(self.counter)
+    --draw_ready_channel:supply(self.counter, self.cmd_channel_idx)
+    draw_ready_channel:push(self.counter)
+    draw_ready_channel:supply(self.cmd_channel_idx)
+
+    -- XXX Добавить здесь проверку на доступность предыдущего канала?
+    self.cmd_channel_idx = 
+        (self.cmd_channel_idx + 1) % self.cmd_channel_idx_max + 1
+
     --draw_ready_channel:push(self.counter)
 
     --draw_ready_channel:push("ready " .. self.counter)--, timeout)
@@ -248,10 +310,11 @@ end
 
 function Pipeline:waitForReady(): boolean
     local timeout = 0.5
-    -- XXX Дать более понятное название, связанное с количеством
-    local is_ready: integer = draw_ready_channel:demand(timeout) as integer
+    local cmd_num: integer = draw_ready_channel:demand(timeout) as integer
+    local channel_idx: integer = draw_ready_channel:demand(timeout) as integer
 
-    if is_ready then
+    if cmd_num then
+        --[[
         if type(is_ready) ~= "number" then
 
             local msg = 
@@ -262,13 +325,18 @@ function Pipeline:waitForReady(): boolean
             debug_print("graphics", colorize(msg))
             os.exit(ecodes.ERROR_BAD_TYPE)
         end
+        --]]
+        assert(type(cmd_num) == "number")
+        assert(type(channel_idx) == "number")
 
         --print('is_ready', is_ready)
         --local ready_s, cmd_name_s: string, string
 
         --ready_s, cmd_name_s = smatch(is_ready, "(%l+)%s(%d+)")
         --print('ready_s', ready_s)
-        self.cmd_num = floor(is_ready)
+        self.cmd_num = floor(cmd_num)
+        self.cmd_channel_idx = floor(channel_idx)
+        self.command_channel = self.cmd_channels[self.cmd_channel_idx]
 
         if not self.cmd_num then
             error("cmd_num is nil")
@@ -346,6 +414,7 @@ local function process_queries()
     until not query
 end
 
+--[[
 local function print_commands_stack()
     local value: any
     local time_start = love.timer.getTime()
@@ -364,6 +433,7 @@ local function print_commands_stack()
         end
     until not value
 end
+--]]
 
 function Pipeline:render_internal()
     local custom_print = function(s: string)
@@ -379,25 +449,21 @@ function Pipeline:render_internal()
     end
 
     local cmd_num = self.cmd_num
-
-    ---------------------------------- 
-    -- Не лучше-ли использовать graphic_command_channel:pop()
-    -- что-бы избежать блокировки?
-    --local cmd_name = graphic_command_channel:demand() as string
     local cmd_name: string
     local received_bytes: integer = 0
-    ---------------------------------- 
 
     local stamp: number
     if use_stamp then
-        stamp = command_channel:pop() as number
+        error("This option was disabled by developer.")
+        --stamp = command_channel:pop() as number
     end
 
-    --timestamp('render begin')
-
-    --repeat
     for _ = 1, cmd_num do
-        cmd_name = command_channel:pop() as string
+        --print("self.cmd_channel_idx", self.cmd_channel_idx)
+        cmd_name = self.command_channel:pop() as string
+
+        --assert(cmd_name == "string", type(cmd_name) .. " " .. cmd_name)
+        assert(cmd_name ~= "string")
 
         if cmd_name then
             if type(cmd_name) ~= 'string' then
@@ -426,7 +492,7 @@ function Pipeline:render_internal()
                 local ok, errmsg: boolean, string
 
                 received_bytes = received_bytes + #cmd_name
-                ok, errmsg = resume(coro) as (boolean, string)
+                ok, errmsg = resume(coro, self.cmd_channel_idx) as (boolean, string)
 
                 if not self.forced and not ok then
                     custom_print('%{blue} resume render coroutine error.')
@@ -448,17 +514,19 @@ function Pipeline:render_internal()
 
                 self:printAvaibleFunctions()
 
-                print_commands_stack()
+                --print_commands_stack()
+                print(colorize("%{yellow} Sorry, callstack is not avaible yet."))
 
                 custom_print('%{cyan}' .. debug.traceback())
                 os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
             end
 
             if use_stamp then
-                stamp = command_channel:pop() as number
-                if type(stamp) ~= "number" then
-                    error('stamp is not a number: ' .. stamp)
-                end
+                error("This option was disabled by developer.")
+                --stamp = command_channel:pop() as number
+                --if type(stamp) ~= "number" then
+                    --error('stamp is not a number: ' .. stamp)
+                --end
             end
         end
     end
