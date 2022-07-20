@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 require('common')
@@ -20,7 +20,7 @@ local debug_print = print
 
 local draw_ready_channel = lt.getChannel("draw_ready_channel")
 
-local command_channel = lt.getChannel("graphic_command_channel")
+
 
 local code_channel = lt.getChannel("graphic_code_channel")
 
@@ -116,6 +116,13 @@ local Pipeline = {}
 
 
 
+
+
+
+
+
+
+
 local Pipeline_mt = {
    __index = Pipeline,
 }
@@ -139,9 +146,55 @@ function Pipeline.new(scene_prefix)
    local self = setmetatable({}, Pipeline_mt)
    self.section_state = 'closed'
    self.scene_prefix = scene_prefix or ""
+
+   self.cmd_channel_idx = 1
+   self.cmd_channel_idx_max = 3
+   self.cmd_channels = {}
+   for i = 1, self.cmd_channel_idx_max do
+      local ch = lt.getChannel("graphic_command_channel" .. tostring(i))
+      table.insert(self.cmd_channels, ch)
+   end
+   self.command_channel = self.cmd_channels[self.cmd_channel_idx]
+   print('self.command_channel', self.command_channel)
+
    self.preload = [[
-    local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
+    local _args = {...}
+    local _channel_index: integer = _args[1] as integer
+    assert(type(_channel_index) == "number")
+    local lt = love.thread
+    local _cmd_channel_max = _MAX_CHANNELS_SUBSTITUTION_
+    local _channels: {lt.Channel} = {}
+
+    for i = 1, _cmd_channel_max do
+        local ch = lt.getChannel("graphic_command_channel" .. tostring(i))
+        table.insert(_channels, ch)
+    end
+
+    local graphic_command_channel: lt.Channel = _channels[_channel_index]
+
+    local default_yield = coroutine.yield
+    coroutine.yield = function()
+        error("Please use yield_ch() instead of coroutine.yield()")
+    end
+
+    local function yield_ch(): lt.Channel
+        _channel_index = default_yield() as integer
+        assert(type(_channel_index) == 'number')
+        graphic_command_channel = _channels[_channel_index]
+    end
+
+    --local graphic_command_channel = lt.getChannel(
+        --"graphic_command_channel" .. _channel_index
+    --)
+
+    --local graphic_command_channel = love.thread.getChannel("graphic_command_channel")
     ]]
+   self.preload = string.gsub(
+   self.preload,
+   "_MAX_CHANNELS_SUBSTITUTION_",
+   tostring(self.cmd_channel_idx_max))
+
+
    if self.scene_prefix then
       local var = format('local SCENE_PREFIX = "%s"\n', self.scene_prefix)
       self.preload = self.preload .. var
@@ -151,7 +204,6 @@ function Pipeline.new(scene_prefix)
    self.inc_linum = 2
 
    self.renderFunctions = {}
-   self.render_set = {}
    self.counter = 0
    self.cmd_num = 0
    self.last_render = love.timer.getTime()
@@ -194,11 +246,14 @@ function Pipeline:open(func_name)
 
    assert(type(func_name) == 'string')
 
-   command_channel:push(func_name)
+
+   self.command_channel:push(func_name)
+
    self.current_func = func_name
    self.counter = self.counter + 1
    if use_stamp then
-      command_channel:push(love.timer.getTime())
+      error("This option was disabled by developer.")
+
    end
 end
 
@@ -228,7 +283,7 @@ function Pipeline:push(...)
    for i = 1, select('#', ...) do
       local argument = select(i, ...)
       self.counter = self.counter + 1
-      command_channel:push(argument)
+      self.command_channel:push(argument)
    end
 end
 
@@ -241,6 +296,13 @@ function Pipeline:sync()
 
 
    draw_ready_channel:push(self.counter)
+   draw_ready_channel:supply(self.cmd_channel_idx)
+
+
+   self.cmd_channel_idx = 
+   (self.cmd_channel_idx + 1) % self.cmd_channel_idx_max + 1
+
+
 
 
    self.counter = 0
@@ -248,27 +310,33 @@ end
 
 function Pipeline:waitForReady()
    local timeout = 0.5
+   local cmd_num = draw_ready_channel:demand(timeout)
+   local channel_idx = draw_ready_channel:demand(timeout)
 
-   local is_ready = draw_ready_channel:demand(timeout)
-
-   if is_ready then
-      if type(is_ready) ~= "number" then
-
-         local msg = 
-         '%{red} draw_ready_channel:demand() got "' ..
-         type(is_ready) ..
-         '"'
-
-         debug_print("graphics", colorize(msg))
-         os.exit(ecodes.ERROR_BAD_TYPE)
-      end
+   if cmd_num then
 
 
 
 
 
 
-      self.cmd_num = floor(is_ready)
+
+
+
+
+
+
+      assert(type(cmd_num) == "number")
+      assert(type(channel_idx) == "number")
+
+
+
+
+
+
+      self.cmd_num = floor(cmd_num)
+      self.cmd_channel_idx = floor(channel_idx)
+      self.command_channel = self.cmd_channels[self.cmd_channel_idx]
 
       if not self.cmd_num then
          error("cmd_num is nil")
@@ -346,24 +414,26 @@ local function process_queries()
    until not query
 end
 
-local function print_commands_stack()
-   local value
-   local time_start = love.timer.getTime()
-   print('command stack:')
-   repeat
-      value = command_channel:pop()
-      if value then
-         print(colorize("%{yellow}" .. inspect(value)))
-      end
-      local now = love.timer.getTime()
-      if now - time_start >= reading_timeout then
-         local timeout = reading_timeout
-         local msg = "%{red} stack reading timeout " .. timeout .. ' sec.'
-         print(colorize(msg))
-         break
-      end
-   until not value
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function Pipeline:render_internal()
    local custom_print = function(s)
@@ -379,25 +449,21 @@ function Pipeline:render_internal()
    end
 
    local cmd_num = self.cmd_num
-
-
-
-
-
    local cmd_name
    local received_bytes = 0
 
-
    local stamp
    if use_stamp then
-      stamp = command_channel:pop()
+      error("This option was disabled by developer.")
+
    end
 
-
-
-
    for _ = 1, cmd_num do
-      cmd_name = command_channel:pop()
+
+      cmd_name = self.command_channel:pop()
+
+
+      assert(cmd_name ~= "string")
 
       if cmd_name then
          if type(cmd_name) ~= 'string' then
@@ -426,7 +492,7 @@ function Pipeline:render_internal()
             local ok, errmsg
 
             received_bytes = received_bytes + #cmd_name
-            ok, errmsg = resume(coro)
+            ok, errmsg = resume(coro, self.cmd_channel_idx)
 
             if not self.forced and not ok then
                custom_print('%{blue} resume render coroutine error.')
@@ -448,17 +514,19 @@ function Pipeline:render_internal()
 
             self:printAvaibleFunctions()
 
-            print_commands_stack()
+
+            print(colorize("%{yellow} Sorry, callstack is not avaible yet."))
 
             custom_print('%{cyan}' .. debug.traceback())
             os.exit(ecodes.ERROR_NO_RENDER_FUNCTION)
          end
 
          if use_stamp then
-            stamp = command_channel:pop()
-            if type(stamp) ~= "number" then
-               error('stamp is not a number: ' .. stamp)
-            end
+            error("This option was disabled by developer.")
+
+
+
+
          end
       end
    end
