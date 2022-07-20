@@ -237,21 +237,38 @@ end
 function Pipeline:sync()
 
 
-   draw_ready_channel:supply("ready " .. self.counter)
+
+
+
+   draw_ready_channel:push(self.counter)
+
 
    self.counter = 0
 end
 
 function Pipeline:waitForReady()
    local timeout = 0.5
+
    local is_ready = draw_ready_channel:demand(timeout)
 
    if is_ready then
+      if type(is_ready) ~= "number" then
 
-      local ready_s, cmd_name_s
+         local msg = 
+         '%{red} draw_ready_channel:demand() got "' ..
+         type(is_ready) ..
+         '"'
 
-      ready_s, cmd_name_s = smatch(is_ready, "(%l+)%s(%d+)")
-      self.cmd_num = floor(tonumber(cmd_name_s))
+         debug_print("graphics", colorize(msg))
+         os.exit(ecodes.ERROR_BAD_TYPE)
+      end
+
+
+
+
+
+
+      self.cmd_num = floor(is_ready)
 
       if not self.cmd_num then
          error("cmd_num is nil")
