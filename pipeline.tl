@@ -237,21 +237,38 @@ end
 function Pipeline:sync()
     --local timeout = 1. -- in seconds
     --draw_ready_channel:clear()
-    draw_ready_channel:supply("ready " .. self.counter)
+    --draw_ready_channel:supply("ready " .. self.counter)
+
+    draw_ready_channel:supply(self.counter)
+    --draw_ready_channel:push(self.counter)
+
     --draw_ready_channel:push("ready " .. self.counter)--, timeout)
     self.counter = 0
 end
 
 function Pipeline:waitForReady(): boolean
     local timeout = 0.5
-    local is_ready: string = draw_ready_channel:demand(timeout) as string
+    -- XXX Дать более понятное название, связанное с количеством
+    local is_ready: integer = draw_ready_channel:demand(timeout) as integer
 
     if is_ready then
-        --print('is_ready', is_ready)
-        local ready_s, cmd_name_s: string, string
+        if type(is_ready) ~= "number" then
 
-        ready_s, cmd_name_s = smatch(is_ready, "(%l+)%s(%d+)")
-        self.cmd_num = floor(tonumber(cmd_name_s))
+            local msg = 
+                '%{red} draw_ready_channel:demand() got "' .. 
+                type(is_ready) .. 
+                '"'
+
+            debug_print("graphics", colorize(msg))
+            os.exit(ecodes.ERROR_BAD_TYPE)
+        end
+
+        --print('is_ready', is_ready)
+        --local ready_s, cmd_name_s: string, string
+
+        --ready_s, cmd_name_s = smatch(is_ready, "(%l+)%s(%d+)")
+        --print('ready_s', ready_s)
+        self.cmd_num = floor(is_ready)
 
         if not self.cmd_num then
             error("cmd_num is nil")
